@@ -7,6 +7,3589 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowIQ Crew OPERATIONS v1.0</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#020617">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  min-height:100%;
+  background:
+    radial-gradient(circle at top left,rgba(59,130,246,.16),transparent 32%),
+    radial-gradient(circle at bottom right,rgba(168,85,247,.12),transparent 28%),
+    #020617;
+  color:white;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  overflow-x:hidden;
+}
+body{display:flex;justify-content:center}
+.app{
+  width:100%;
+  max-width:440px;
+  min-height:100vh;
+  padding:26px 18px 110px;
+}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.brand{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-1px;
+  background:linear-gradient(90deg,#60a5fa,#a78bfa);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.tagline{
+  color:#94a3b8;
+  font-size:13px;
+  margin-top:5px;
+  letter-spacing:.3px;
+}
+.icon-box{width:48px;height:48px;border-radius:18px;background:rgba(37,99,235,.18);display:flex;align-items:center;justify-content:center;font-size:24px}
+.card{
+  background:
+    linear-gradient(180deg,rgba(15,23,42,.96) 0%,rgba(17,24,39,.96) 100%);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:30px;
+  padding:22px;
+  margin-bottom:16px;
+  box-shadow:
+    0 14px 38px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(14px);
+}
+.title{font-size:21px;font-weight:800;margin-bottom:6px}
+.sub{color:#94a3b8;font-size:14px;line-height:1.45}
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+button{
+  border:0;
+  color:white;
+  background:#1e293b;
+  border-radius:24px;
+  min-height:58px;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.18s ease;
+  box-shadow:0 6px 20px rgba(0,0,0,.22);
+}
+
+button:active{
+  transform:scale(.98);
+}
+.blue{background:#2563eb}.green{background:#059669}.gray{background:#334155}.red{background:#dc2626}
+.big{min-height:78px;font-size:18px;width:100%;margin-bottom:12px}
+.action{
+  min-height:108px;
+  background:linear-gradient(180deg,#0f172a 0%,#111827 100%);
+  border:1px solid rgba(255,255,255,.05);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  border-radius:28px;
+  box-shadow:0 10px 26px rgba(0,0,0,.22);
+}
+.action .emoji{
+  font-size:32px;
+  filter:drop-shadow(0 4px 10px rgba(59,130,246,.25));
+}
+.section{
+  font-size:22px;
+  font-weight:900;
+  margin:28px 0 14px;
+  letter-spacing:-.5px;
+}
+.job-head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.job-title{
+  font-size:20px;
+  font-weight:900;
+  line-height:1.3;
+  letter-spacing:-.4px;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:88px;
+  height:42px;
+  padding:0 16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:white;
+  font-size:14px;
+  font-weight:900;
+  box-shadow:0 8px 20px rgba(37,99,235,.35);
+}
+.type{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(59,130,246,.14);
+  color:#93c5fd;
+  font-size:12px;
+  margin-top:8px;
+  font-weight:800;
+}
+.info{
+  color:#cbd5e1;
+  font-size:14px;
+  margin:12px 0;
+  line-height:1.5;
+}
+.full{width:100%}
+.metric-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.metric{
+  background:rgba(15,23,42,.92);
+  border-radius:24px;
+  padding:18px 10px;
+  text-align:center;
+  border:1px solid rgba(255,255,255,.05);
+  box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+.metric b{
+  display:block;
+  font-size:28px;
+  font-weight:900;
+  margin-bottom:4px;
+  letter-spacing:-1px;
+}
+.metric span{color:#94a3b8;font-size:12px}
+.worker-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.worker-name{font-weight:800}
+.worker-meta{color:#94a3b8;font-size:13px;margin-top:4px}
+.status{
+  min-width:96px;
+  min-height:78px;
+  padding:10px 12px;
+  border-radius:22px;
+  font-size:16px;
+  line-height:1.25;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  white-space:normal;
+  word-break:keep-all;
+  flex-direction:column;
+  gap:6px;
+}
+
+.ok{
+  background:linear-gradient(135deg,rgba(16,185,129,.22),rgba(5,150,105,.16));
+  color:#34d399;
+  border:1px solid rgba(52,211,153,.28);
+  box-shadow:0 8px 24px rgba(16,185,129,.12);
+}
+
+.checked{
+  background:linear-gradient(135deg,rgba(59,130,246,.24),rgba(37,99,235,.18));
+  color:#60a5fa;
+  border:1px solid rgba(96,165,250,.30);
+  box-shadow:0 8px 24px rgba(59,130,246,.14);
+}
+
+.rejected{
+  background:linear-gradient(135deg,rgba(239,68,68,.20),rgba(185,28,28,.15));
+  color:#f87171;
+  border:1px solid rgba(248,113,113,.26);
+  box-shadow:0 8px 24px rgba(239,68,68,.12);
+}
+
+.wait{
+  background:linear-gradient(135deg,rgba(148,163,184,.16),rgba(71,85,105,.14));
+  color:#cbd5e1;
+  border:1px solid rgba(203,213,225,.16);
+  box-shadow:0 8px 24px rgba(15,23,42,.14);
+}
+.notice{
+  background:linear-gradient(135deg,rgba(37,99,235,.18),rgba(59,130,246,.08));
+  border:1px solid rgba(96,165,250,.22);
+  box-shadow:0 10px 30px rgba(37,99,235,.12);
+}
+.hidden{display:none}
+.back{width:100%;margin-top:12px;background:#334155}
+input,select{
+  width:100%;
+  min-height:56px;
+  margin:8px 0 14px;
+  padding:0 16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(15,23,42,.92);
+  color:white;
+  font-size:15px;
+  outline:none;
+  transition:.18s ease;
+}
+
+input:focus,
+select:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 4px rgba(59,130,246,.15);
+}
+label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 14px}
+.lang-option{display:flex;align-items:center;gap:8px;background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;color:#e2e8f0;font-size:14px;font-weight:700}
+.lang-option input{width:auto;min-height:auto;margin:0}
+.qr-box{
+  width:240px;
+  height:240px;
+  margin:24px auto;
+  background:white;
+  color:#020617;
+  border-radius:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:132px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+  padding:14px;
+}
+.bottom-nav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:calc(100% - 24px);max-width:430px;background:rgba(15,23,42,.94);border:1px solid #1e293b;border-radius:26px;padding:10px;display:none;grid-template-columns:repeat(4,1fr);gap:8px}
+.bottom-nav button{
+  min-height:58px;
+  border-radius:20px;
+  font-size:12px;
+  background:#020617;
+  color:#cbd5e1;
+  font-weight:700;
+  border:1px solid rgba(255,255,255,.04);
+}
+
+.bottom-nav button.active{
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:white;
+  box-shadow:0 8px 22px rgba(37,99,235,.38);
+}
+.bottom-nav button.active{background:#2563eb;color:white}
+.top-actions{display:flex;gap:8px;margin-bottom:14px}
+.top-actions button{
+  flex:1;
+  min-height:46px;
+  border-radius:18px;
+  font-size:13px;
+  font-weight:800;
+  background:rgba(15,23,42,.92);
+  border:1px solid rgba(255,255,255,.05);
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+#languageGrid button{background:linear-gradient(180deg,#0f172a 0%,#111827 100%);border:1px solid rgba(255,255,255,.05);}
+#languageScreen .notice{
+  margin-top:18px;
+}
+#languageGrid button{
+  min-height:72px;
+  font-size:16px;
+}
+
+
+#languageGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:20px;
+}
+#languageGrid button{
+  min-height:72px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#0f172a;
+  color:white;
+  font-size:16px;
+  font-weight:700;
+}
+
+
+.worker-hero{
+  background:
+    radial-gradient(circle at top right,rgba(59,130,246,.20),transparent 38%),
+    linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.98));
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:34px;
+  padding:24px;
+  margin-bottom:16px;
+  box-shadow:0 18px 44px rgba(0,0,0,.34);
+}
+.worker-status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 13px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:14px;
+}
+.pill-ready{background:rgba(148,163,184,.16);color:#cbd5e1;border:1px solid rgba(203,213,225,.16)}
+.pill-pending{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(251,191,36,.22)}
+.pill-approved{background:rgba(16,185,129,.18);color:#34d399;border:1px solid rgba(52,211,153,.24)}
+.pill-checked{background:rgba(59,130,246,.20);color:#60a5fa;border:1px solid rgba(96,165,250,.28)}
+.pill-rejected{background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(248,113,113,.24)}
+.worker-hero-title{font-size:28px;font-weight:950;letter-spacing:-.8px;margin-bottom:8px}
+.worker-hero-sub{font-size:14px;color:#94a3b8;line-height:1.5}
+.worker-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.worker-mini-card{
+  background:rgba(15,23,42,.70);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:22px;
+  padding:15px;
+}
+.worker-mini-card b{display:block;font-size:18px;margin-top:5px}
+.worker-mini-card span{font-size:12px;color:#94a3b8}
+.today-site-card{
+  background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:30px;
+  padding:22px;
+  margin-bottom:16px;
+}
+.worker-actions-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.worker-actions-row button{min-height:54px;border-radius:20px;font-size:14px}
+
+
+.map-choice{
+  position:fixed;
+  left:50%;
+  bottom:96px;
+  transform:translateX(-50%);
+  width:calc(100% - 28px);
+  max-width:420px;
+  background:rgba(15,23,42,.98);
+  border:1px solid rgba(148,163,184,.18);
+  border-radius:28px;
+  padding:18px;
+  box-shadow:0 18px 46px rgba(0,0,0,.45);
+  z-index:9999;
+}
+.map-choice.hidden{display:none}
+.map-choice-title{
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+.map-choice-sub{
+  color:#94a3b8;
+  font-size:13px;
+  margin-bottom:14px;
+}
+.map-choice-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.map-choice-grid button{
+  min-height:56px;
+  border-radius:18px;
+  font-size:14px;
+}
+
+
+.manager-summary-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+.manager-summary-card{
+  background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:26px;
+  padding:18px;
+}
+.manager-summary-card .label{
+  color:#94a3b8;
+  font-size:13px;
+}
+.manager-summary-card .value{
+  font-size:28px;
+  font-weight:950;
+  margin-top:6px;
+}
+.manager-summary-card .mini{
+  font-size:12px;
+  color:#64748b;
+  margin-top:6px;
+}
+.manager-todo{
+  background:linear-gradient(180deg,rgba(30,41,59,.96),rgba(15,23,42,.96));
+  border:1px solid rgba(96,165,250,.16);
+  border-radius:28px;
+  padding:20px;
+  margin-bottom:18px;
+}
+.manager-todo-title{
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:12px;
+}
+.todo-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+  color:#cbd5e1;
+}
+
+
+.status-live-bar{
+  display:flex;
+  gap:8px;
+  overflow:auto;
+  margin-top:16px;
+}
+.status-step{
+  flex:1;
+  min-width:90px;
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:18px;
+  padding:12px;
+  text-align:center;
+  font-size:12px;
+}
+.status-step.active{
+  border-color:rgba(52,211,153,.35);
+  background:rgba(16,185,129,.14);
+  color:#34d399;
+}
+.manager-urgent{
+  background:rgba(239,68,68,.12);
+  border:1px solid rgba(248,113,113,.20);
+  color:#fecaca;
+  border-radius:18px;
+  padding:12px;
+  margin-top:10px;
+  font-size:13px;
+  font-weight:700;
+}
+
+
+.master-danger{
+  background:rgba(239,68,68,.12);
+  border:1px solid rgba(248,113,113,.22);
+  color:#fecaca;
+  border-radius:18px;
+  padding:12px;
+  margin-top:12px;
+  font-size:13px;
+  font-weight:800;
+}
+.master-delete-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.master-delete-row button{
+  min-height:48px;
+  border-radius:18px;
+  font-size:13px;
+}
+
+
+.urgent-banner{
+  background:linear-gradient(90deg,rgba(239,68,68,.18),rgba(245,158,11,.18));
+  border:1px solid rgba(248,113,113,.25);
+  border-radius:22px;
+  padding:16px;
+  margin-bottom:16px;
+}
+.urgent-banner .title{
+  font-size:18px;
+  font-weight:900;
+}
+.live-alert{
+  background:rgba(59,130,246,.12);
+  border:1px solid rgba(96,165,250,.20);
+  color:#bfdbfe;
+  border-radius:18px;
+  padding:12px;
+  margin-top:12px;
+  font-size:13px;
+  font-weight:700;
+}
+.fast-approve-bar{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+.fast-approve-bar button{
+  flex:1;
+  min-height:48px;
+  border-radius:18px;
+}
+
+
+.notice-center{
+  background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:26px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.notice-item{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:18px;
+  padding:12px;
+  margin-top:10px;
+  font-size:13px;
+}
+.translate-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(59,130,246,.16);
+  color:#bfdbfe;
+  font-size:12px;
+  font-weight:800;
+  margin-top:10px;
+}
+
+
+.shift-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.shift-board-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.shift-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(16,185,129,.14);
+  color:#6ee7b7;
+  font-size:12px;
+  font-weight:800;
+}
+.shift-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.shift-row:first-child{
+  border-top:none;
+}
+.shift-left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.shift-time{
+  font-size:13px;
+  color:#94a3b8;
+}
+.shift-site{
+  font-size:16px;
+  font-weight:800;
+}
+.shift-state{
+  font-size:12px;
+  font-weight:800;
+  color:#60a5fa;
+}
+
+
+.manager-filter{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.manager-filter-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.manager-filter button{
+  min-height:48px;
+  border-radius:18px;
+  font-size:13px;
+}
+.manager-filter input{
+  margin-top:12px;
+}
+
+
+.worker-wallet{
+  background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(15,23,42,.98));
+  border:1px solid rgba(52,211,153,.22);
+  border-radius:28px;
+  padding:20px;
+  margin-bottom:18px;
+}
+.wallet-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
+}
+.wallet-label{
+  color:#a7f3d0;
+  font-size:13px;
+}
+.wallet-value{
+  font-size:28px;
+  font-weight:950;
+}
+.wallet-mini{
+  color:#94a3b8;
+  font-size:12px;
+  margin-top:6px;
+}
+
+
+.live-crew-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.live-crew-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.live-crew-row:first-child{
+  border-top:none;
+}
+.live-badge{
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+}
+.live-green{
+  background:rgba(16,185,129,.16);
+  color:#6ee7b7;
+}
+.live-blue{
+  background:rgba(59,130,246,.16);
+  color:#93c5fd;
+}
+
+
+.smart-alert-board{
+  background:linear-gradient(180deg,rgba(30,41,59,.98),rgba(15,23,42,.98));
+  border:1px solid rgba(251,191,36,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.smart-alert-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.smart-alert-item:first-child{
+  border-top:none;
+}
+.smart-alert-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(245,158,11,.16);
+  color:#fde68a;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.worker-rank-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(168,85,247,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.rank-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.rank-row:first-child{
+  border-top:none;
+}
+.rank-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(168,85,247,.16);
+  color:#ddd6fe;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.multi-language-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.lang-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.lang-row:first-child{
+  border-top:none;
+}
+.lang-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(59,130,246,.16);
+  color:#bfdbfe;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.manager-ai-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(34,197,94,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.ai-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.ai-row:first-child{
+  border-top:none;
+}
+.ai-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(34,197,94,.16);
+  color:#bbf7d0;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.global-network-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(14,165,233,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.network-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.network-row:first-child{
+  border-top:none;
+}
+.network-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(14,165,233,.16);
+  color:#bae6fd;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.smart-pay-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(250,204,21,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.pay-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.pay-row:first-child{
+  border-top:none;
+}
+.pay-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(250,204,21,.16);
+  color:#fde68a;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.ai-worker-match-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(236,72,153,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.match-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.match-row:first-child{
+  border-top:none;
+}
+.match-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(236,72,153,.16);
+  color:#fbcfe8;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.smart-site-health{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(34,211,238,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.health-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.health-row:first-child{
+  border-top:none;
+}
+.health-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(34,211,238,.16);
+  color:#a5f3fc;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.future-finance-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(132,204,22,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.finance-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.finance-row:first-child{
+  border-top:none;
+}
+.finance-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(132,204,22,.16);
+  color:#d9f99d;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.ai-language-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(244,114,182,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.ai-language-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.ai-language-row:first-child{
+  border-top:none;
+}
+.ai-language-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(244,114,182,.16);
+  color:#fbcfe8;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.safety-monitor-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(248,113,113,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.safety-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.safety-row:first-child{
+  border-top:none;
+}
+.safety-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(248,113,113,.16);
+  color:#fecaca;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.future-ai-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(192,132,252,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.future-ai-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.future-ai-row:first-child{
+  border-top:none;
+}
+.future-ai-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(192,132,252,.16);
+  color:#e9d5ff;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.command-center-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(59,130,246,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.command-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.command-row:first-child{
+  border-top:none;
+}
+.command-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(59,130,246,.16);
+  color:#bfdbfe;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.ops-timeline-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(45,212,191,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.timeline-step{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.timeline-step:first-child{border-top:none}
+.timeline-dot{
+  width:14px;
+  height:14px;
+  border-radius:999px;
+  background:#2dd4bf;
+  box-shadow:0 0 18px rgba(45,212,191,.45);
+}
+.timeline-text b{
+  display:block;
+  font-size:14px;
+}
+.timeline-text span{
+  color:#94a3b8;
+  font-size:12px;
+}
+
+
+.autonomous-grid-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(34,197,94,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.autonomous-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.autonomous-tile{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:20px;
+  padding:14px;
+}
+.autonomous-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.autonomous-tile b{
+  font-size:18px;
+}
+
+
+.integrated-build-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(96,165,250,.20);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.integrated-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.integrated-tile{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:20px;
+  padding:14px;
+}
+.integrated-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.integrated-tile b{
+  font-size:16px;
+}
+.mobile-stable-badge{
+  display:inline-flex;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(16,185,129,.16);
+  color:#86efac;
+  font-size:12px;
+  font-weight:900;
+  margin-top:10px;
+}
+
+
+.master-cleanup-board{
+  background:rgba(239,68,68,.10);
+  border:1px solid rgba(248,113,113,.18);
+  border-radius:24px;
+  padding:16px;
+  margin-bottom:18px;
+}
+.master-cleanup-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.master-cleanup-grid button{
+  min-height:46px;
+  border-radius:18px;
+  font-size:13px;
+}
+
+
+.civic-platform-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(45,212,191,.20);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.civic-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.civic-tile{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:20px;
+  padding:14px;
+}
+.civic-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.civic-tile b{
+  font-size:16px;
+}
+.partner-model-board{
+  background:linear-gradient(180deg,rgba(30,41,59,.98),rgba(15,23,42,.98));
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.partner-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.partner-row:first-child{
+  border-top:none;
+}
+.partner-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(45,212,191,.16);
+  color:#99f6e4;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.v10-launch-board{
+  background:
+    radial-gradient(circle at top right,rgba(96,165,250,.18),transparent 36%),
+    linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(96,165,250,.24);
+  border-radius:30px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 16px 42px rgba(0,0,0,.30);
+}
+.v10-launch-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+.v10-launch-tile{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:20px;
+  padding:14px;
+}
+.v10-launch-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.v10-launch-tile b{
+  font-size:16px;
+}
+.v10-ready-badge{
+  display:inline-flex;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(34,197,94,.16);
+  color:#86efac;
+  font-size:12px;
+  font-weight:900;
+  margin-top:12px;
+}
+.v10-worker-ready{
+  background:
+    linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.98));
+  border:1px solid rgba(45,212,191,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.v10-worker-ready-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.v10-worker-ready-row:first-child{
+  border-top:none;
+}
+.v10-worker-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(45,212,191,.16);
+  color:#99f6e4;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.v105-field-ready-board{
+  background:
+    radial-gradient(circle at top right,rgba(45,212,191,.18),transparent 36%),
+    linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(45,212,191,.24);
+  border-radius:30px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 16px 42px rgba(0,0,0,.30);
+}
+.v105-field-ready-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+.v105-field-ready-tile{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:20px;
+  padding:14px;
+}
+.v105-field-ready-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.v105-field-ready-tile b{
+  font-size:16px;
+}
+.v105-build-badge{
+  display:inline-flex;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(45,212,191,.16);
+  color:#99f6e4;
+  font-size:12px;
+  font-weight:900;
+  margin-top:12px;
+}
+.v105-worker-direct-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.98));
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.v105-worker-direct-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-top:1px solid rgba(148,163,184,.08);
+}
+.v105-worker-direct-row:first-child{
+  border-top:none;
+}
+.v105-worker-direct-badge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(96,165,250,.16);
+  color:#bfdbfe;
+  font-size:11px;
+  font-weight:900;
+}
+
+
+.v11-recovery-board{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(34,197,94,.22);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.v11-recovery-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.v11-recovery-tile{
+  background:rgba(15,23,42,.72);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:18px;
+  padding:14px;
+}
+.v11-recovery-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.v11-recovery-tile b{
+  font-size:16px;
+}
+
+
+.manager-only-hidden{
+  display:none !important;
+}
+
+
+.worker-only-hidden{
+  display:none !important;
+}
+
+
+.worker-minimal-hidden{
+  display:none !important;
+}
+
+
+.field-simple-note{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(96,165,250,.16);
+  border-radius:26px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.field-simple-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.field-simple-tile{
+  background:rgba(15,23,42,.76);
+  border:1px solid rgba(148,163,184,.10);
+  border-radius:20px;
+  padding:14px;
+}
+.field-simple-tile span{
+  display:block;
+  color:#94a3b8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.field-simple-tile b{
+  font-size:16px;
+}
+.manager-simple-anchor{
+  scroll-margin-top:16px;
+}
+
+
+.manager-section-hidden{
+  display:none !important;
+}
+
+</style>
+</head>
+
+<body>
+<main class="app">
+<header class="top">
+  <div>
+    <div class="brand">FlowIQ Crew</div>
+    <div class="tagline">One Crew. Any Language.</div>
+  </div>
+  <div class="icon-box">🌐</div>
+</header>
+
+<div class="top-actions hidden" id="topActions">
+  <button class="gray" onclick="history.back()">← 뒤로</button>
+  <button class="gray" onclick="goRoleSelect()">역할변경</button>
+  <button class="gray" onclick="goLanguageSelect()">언어변경</button>
+  <button class="red" onclick="refreshData()">새로고침</button>
+  <button class="gray" onclick="resetWorkerTest()">새 근로자</button>
+</div>
+
+<section id="languageScreen">
+  <div class="card notice">
+    <div class="title">언어 선택</div>
+    <div class="sub">Choose your language.</div>
+  </div>
+  <div class="grid2" id="languageGrid"></div>
+  </section>
+
+<section id="roleScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">시작하기</div>
+    <div class="sub">근로자 또는 업체관리자로 접속하세요.</div>
+  </div>
+  <button class="big blue" onclick="selectRole('worker')">👷 근로자 앱</button>
+
+<button class="big green" onclick="selectRole('manager')">🏗️ 업체 관리자</button>
+
+<button class="big red" onclick="selectRole('master')">🛡️ FlowIQ MASTER</button>
+</section>
+<section id="workerInfoScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">근로자 정보</div>
+    <div class="sub">이름과 연락처를 입력하세요.</div>
+  </div>
+
+  <div class="card">
+    <label>이름</label>
+    <input id="workerNameInput" placeholder="예: 바타르">
+
+    <label>연락처</label>
+    <input id="workerPhoneInput" placeholder="예: 010-1234-5678">
+
+    <button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button>
+  </div>
+</section>
+<section id="workerScreen" class="hidden">
+  <div id="workerHomePanel"></div>
+
+  <div class="grid3 worker-minimal-hidden">
+    <button class="action" onclick="goScreen('workerScreen')"><span class="emoji">💼</span>일자리</button>
+    <button class="action" onclick="showQR('worker')"><span class="emoji">📷</span>출근</button>
+    <button class="action" onclick="showPayroll()"><span class="emoji">💳</span>급여</button>
+  </div>
+
+  <div class="section">추천 일자리</div>
+  <div id="jobsList"></div>
+</section>
+
+<section id="managerScreen" class="hidden">
+  <div class="card notice">
+    <div class="sub">오늘 현장</div>
+    <div class="title" id="managerTitle">FlowIQ Crew OPERATIONS</div>
+    <div class="metric-wrap">
+      <div class="metric"><b id="mChecked">0</b><span>출근</span></div>
+      <div class="metric"><b id="mApplied">0</b><span>지원</span></div>
+      <div class="metric"><b id="mJobs">0</b><span>공고</span></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <button class="blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
+    <button class="green" onclick="showQR('manager')">▦ 출근 QR</button>
+  </div>
+
+  <div class="manager-section-hidden section">지원/출근 현황</div>
+  <div id="workersList"></div>
+</section>
+
+<section id="jobFormScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">새 공고 생성</div>
+    <div class="sub">현장에서 바로 사용할 공고를 생성합니다.</div>
+  </div>
+
+  <div class="card">
+    <label>공고명</label>
+    <input id="fTitle" placeholder="예: 성수 물류센터 상하차"/>
+
+    <label>위치</label>
+    <input id="fLocation" placeholder="예: 서울 성동구 성수동"/>
+
+    <label>근무 시간</label>
+    <input id="fTime" placeholder="예: 08:00 - 18:00"/>
+
+    <label>일급</label>
+    <input id="fSalary" type="number" placeholder="예: 150000"/>
+
+    <label>필요 인원</label>
+    <input id="fNeeded" type="number" placeholder="예: 8"/>
+
+    <label>작업 종류</label>
+    <select id="fType">
+      <option>물류</option>
+      <option>건설</option>
+      <option>공장</option>
+      <option>행사</option>
+      <option>기타</option>
+    </select>
+
+    <label>지원 언어</label>
+    <div class="lang-grid">
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="English">영어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Монгол">몽골어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Tiếng Việt">베트남어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="ไทย">태국어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="中文">중국어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Русский">러시아어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="नेपाली">네팔어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Oʻzbek">우즈베크어</label>
+    </div>
+
+    <button class="full blue" onclick="createJob()">공고 저장</button>
+  </div>
+</section>
+
+<section id="payrollScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">급여</div>
+    <div class="sub">출근 기록 기반 예상 급여입니다.</div>
+  </div>
+  <div id="payrollList"></div>
+</section>
+
+<section id="qrScreen" class="hidden">
+  <div class="card" style="text-align:center">
+    <div class="title" id="qrTitle">출근 QR</div>
+    <img id="qrImage" class="qr-box" alt="출근 QR"/>
+    <div class="sub" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
+    <button class="full green" onclick="completeQR()" style="margin-top:18px">✅ 수동 출근 테스트</button>
+  </div>
+</section>
+</main>
+
+
+<div id="mapChoice" class="map-choice hidden">
+  <div class="map-choice-title">길찾기 앱 선택</div>
+  <div class="map-choice-sub" id="mapChoiceLocation">현장 위치</div>
+  <div class="map-choice-grid">
+    <button class="green" onclick="openSelectedMap('naver')">네이버지도</button>
+    <button class="blue" onclick="openSelectedMap('kakao')">카카오맵</button>
+    <button class="gray" onclick="openSelectedMap('google')">구글맵</button>
+    <button class="red" onclick="closeMapChoice()">닫기</button>
+  </div>
+</div>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button id="navHome" onclick="goHome()">홈</button>
+  <button id="navJobs" onclick="navPrimary()">일자리</button>
+  <button id="navQR" onclick="showQR(role||lastRole||'worker')">QR</button>
+  <button id="navPay" onclick="navSecondary()">급여</button>
+</nav>
+
+<script>
+const SUPABASE_URL="https://zhbzphvqiiijfjqnktlo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const languages=[
+  {label:"🇰🇷 한국어",value:"한국어"},
+  {label:"🇺🇸 English",value:"English"},
+  {label:"🇲🇳 Монгол",value:"Монгол"},
+  {label:"🇻🇳 Tiếng Việt",value:"Tiếng Việt"},
+  {label:"🇹🇭 ไทย",value:"ไทย"},
+  {label:"🇨🇳 中文",value:"中文"},
+  {label:"🇷🇺 Русский",value:"Русский"},
+  {label:"🇳🇵 नेपाली",value:"नेपाली"},
+  {label:"🇺🇿 Oʻzbek",value:"Oʻzbek"}
+];
+let role=localStorage.getItem("crew_role")||null;
+let workerName=localStorage.getItem("worker_name")||"";
+let workerPhone=localStorage.getItem("worker_phone")||"";
+let lastRole=role;
+let currentScreen="languageScreen";
+let jobs=[];
+let applications=[];
+let attendance=[];
+let managerPendingApplications=[];
+let APP_VERSION='FlowIQ Crew OPERATIONS v1.0';
+let managerFilter='all';
+let managerSearch='';
+  
+const MASTER_PASSWORD="1234";
+const COMPANY_PASSWORDS={
+  demo_company:"0000",
+  alpha:"1111",
+  beta:"2222"
+};
+
+const COMPANY_NAMES={
+  demo_company:"FlowIQ Demo",
+  alpha:"Alpha Logistics",
+  beta:"Beta Factory"
+};
+  
+let companyId=localStorage.getItem("company_id")||"demo_company";
+const screens=["languageScreen","roleScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
+
+function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
+
+function show(id,push=false){
+  currentScreen=id;
+  screens.forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
+  document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
+
+  if(id==="workerScreen"){renderWorkerHome();renderJobs();}
+  if(id==="managerScreen")renderManager();
+  if(id==="payrollScreen")renderPayroll();
+
+  updateNav();
+  if(push)history.pushState({screen:id},"","#"+id);
+}
+
+function goScreen(id){show(id,true)}
+function selectLanguage(language){localStorage.setItem("crew_language",language);goScreen("roleScreen")}
+async function selectRole(selected){
+  role=selected;
+  lastRole=selected;
+
+  if(selected==="worker"){
+    localStorage.setItem("crew_role","worker");
+
+    if(!workerName || !workerPhone){
+      goScreen("workerInfoScreen");
+    }else{
+      await loadData();
+      goScreen("workerScreen");
+    }
+
+  }else if(selected==="manager"){
+    const code=prompt("업체 코드를 입력하세요");
+
+    if(!code){
+      alert("업체 코드가 필요합니다.");
+      return;
+    }
+
+    if(!COMPANY_PASSWORDS[code]){
+      alert("존재하지 않는 업체 코드입니다.");
+      return;
+    }
+
+    const password=prompt("업체 비밀번호 입력");
+
+    if(password!==COMPANY_PASSWORDS[code]){
+      alert("비밀번호가 틀렸습니다.");
+      return;
+    }
+
+    role="manager";
+    lastRole="manager";
+    companyId=code;
+
+    localStorage.setItem("crew_role","manager");
+    localStorage.setItem("company_id",code);
+
+    await loadData();
+    goScreen("managerScreen");
+
+  }else if(selected==="master"){
+    const password=prompt("MASTER 비밀번호 입력");
+
+    if(password!==MASTER_PASSWORD){
+      alert("비밀번호가 틀렸습니다.");
+      return;
+    }
+
+    role="master";
+    lastRole="master";
+    companyId="master";
+
+    localStorage.setItem("crew_role","master");
+
+    await loadData();
+    goScreen("managerScreen");
+    alert("MASTER MODE");
+  }
+}
+
+function saveWorkerInfo(){
+  const name=document.getElementById("workerNameInput").value.trim();
+  const phone=document.getElementById("workerPhoneInput").value.trim();
+
+  if(!name || !phone){
+    alert("이름과 연락처를 입력하세요.");
+    return;
+  }
+
+  workerName=name;
+  workerPhone=phone;
+
+  localStorage.setItem("worker_name",name);
+  localStorage.setItem("worker_phone",phone);
+
+  const pendingCheckin=localStorage.getItem("pending_checkin");
+  if(pendingCheckin){
+    localStorage.removeItem("pending_checkin");
+    location.href=location.origin+location.pathname+"?checkin="+pendingCheckin;
+    return;
+  }
+
+  goScreen("workerScreen");
+}
+  
+function resetWorkerTest(){
+  if(!confirm("새 근로자 테스트를 위해 기존 근로자 정보를 초기화할까요?")) return;
+
+  localStorage.removeItem("worker_name");
+  localStorage.removeItem("worker_phone");
+  localStorage.removeItem("crew_role");
+
+  workerName="";
+  workerPhone="";
+  role=null;
+  lastRole=null;
+
+  alert("초기화 완료. 새 근로자로 다시 시작합니다.");
+  location.reload();
+}
+
+async function loadData(){
+  let jobsQuery=db.from("jobs").select("*");
+  let applicationsQuery=db.from("applications").select("*");
+  let attendanceQuery=db.from("attendance").select("*");
+
+  if(role==="manager"){
+    jobsQuery=jobsQuery.eq("company_id",companyId);
+    applicationsQuery=applicationsQuery.eq("company_id",companyId);
+    attendanceQuery=attendanceQuery.eq("company_id",companyId);
+  }
+
+  if(role==="worker" && workerPhone){
+    applicationsQuery=applicationsQuery.eq("phone",workerPhone);
+    attendanceQuery=attendanceQuery.eq("phone",workerPhone);
+  }
+
+  const jr=await jobsQuery.order("created_at",{ascending:false});
+  const ar=await applicationsQuery.order("created_at",{ascending:false});
+  const tr=await attendanceQuery.order("created_at",{ascending:false});
+
+  if(jr.error)alert("jobs 오류: "+jr.error.message);
+  if(ar.error)alert("applications 오류: "+ar.error.message);
+  if(tr.error)alert("attendance 오류: "+tr.error.message);
+
+  jobs=jr.data||[];
+  applications=ar.data||[];
+  attendance=tr.data||[];
+
+  renderWorkerHome();
+  renderJobs();
+  renderManager();
+  renderPayroll();
+}
+
+async function seedJobsIfEmpty(){
+  await loadData();
+  if(jobs.length>0)return;
+
+  await db.from("jobs").insert([
+    {title:"성수 물류센터 상하차",location:"서울 성동구 성수동",work_time:"08:00 - 18:00",salary:150000,needed:8,applied:5,language:"한국어 / Монгол / English",type:"물류",company_id:"demo_company"},
+    {title:"하남 공장 포장 보조",location:"경기 하남시",work_time:"09:00 - 17:00",salary:120000,needed:6,applied:3,language:"한국어 / Tiếng Việt",type:"공장",company_id:"demo_company"},
+    {title:"판교 현장 자재 정리",location:"경기 성남시 분당구",work_time:"07:00 - 16:00",salary:160000,needed:10,applied:7,language:"한국어 / Русский / Oʻzbek",type:"건설",company_id:"demo_company"}
+  ]);
+
+  await loadData();
+}
+
+
+function getMyCurrentApplication(){
+  if(!workerPhone)return null;
+
+  const active=applications.find(a=>
+    a.phone===workerPhone &&
+    ["지원","승인","출근완료"].includes((a.status || "지원").trim())
+  );
+
+  return active || applications.find(a=>a.phone===workerPhone) || null;
+}
+
+function getStatusMeta(status){
+  if(status==="지원"){
+    return {label:"지원 대기",icon:"🟡",pill:"pill-pending",title:"승인 대기중",desc:"관리자 승인을 기다리고 있습니다."};
+  }
+
+  if(status==="승인"){
+    return {label:"승인 완료",icon:"🟢",pill:"pill-approved",title:"출근 준비 완료",desc:"오늘 현장으로 이동 후 QR 출근을 진행하세요."};
+  }
+
+  if(status==="출근완료"){
+    return {label:"출근 완료",icon:"🔵",pill:"pill-checked",title:"근무 진행중",desc:"출근 기록이 저장되었습니다. 급여 화면에서 예상 금액을 확인하세요."};
+  }
+
+  if(status==="거절"){
+    return {label:"거절",icon:"🔴",pill:"pill-rejected",title:"다른 공고 지원 가능",desc:"해당 공고는 거절되었습니다. 다른 일자리에 지원할 수 있습니다."};
+  }
+
+  return {label:"근무 가능",icon:"⚪",pill:"pill-ready",title:"근무 가능",desc:"원하는 공고에 지원하면 오늘 일정이 이곳에 표시됩니다."};
+}
+
+let selectedMapLocation="";
+
+function openMap(locationText){
+  if(!locationText){
+    alert("현장 위치가 없습니다.");
+    return;
+  }
+
+  selectedMapLocation=locationText;
+
+  const box=document.getElementById("mapChoice");
+  const label=document.getElementById("mapChoiceLocation");
+
+  if(label)label.innerText=locationText;
+  if(box)box.classList.remove("hidden");
+}
+
+function closeMapChoice(){
+  const box=document.getElementById("mapChoice");
+  if(box)box.classList.add("hidden");
+}
+
+function openSelectedMap(type){
+  if(!selectedMapLocation){
+    alert("현장 위치가 없습니다.");
+    return;
+  }
+
+  const q=encodeURIComponent(selectedMapLocation);
+  let url="";
+
+  if(type==="naver"){
+    url=`https://map.naver.com/v5/search/${q}`;
+  }else if(type==="kakao"){
+    url=`https://map.kakao.com/link/search/${q}`;
+  }else{
+    url=`https://www.google.com/maps/search/?api=1&query=${q}`;
+  }
+
+  window.open(url,"_blank");
+  closeMapChoice();
+}
+
+function renderWorkerHome(){
+  const panel=document.getElementById("workerHomePanel");
+  if(!panel)return;
+
+  const hideWorkerOpsClass = role==="worker" ? "worker-only-hidden" : "";
+  const minimalWorkerHideClass = role==="worker" ? "worker-minimal-hidden" : "";
+
+  const app=getMyCurrentApplication();
+  const status=(app && app.status ? app.status : "").trim() || (app ? "지원" : "근무가능");
+  const meta=getStatusMeta(status);
+  const job=app ? jobs.find(j=>Number(j.id)===Number(app.job_id)) : null;
+  const myAttendance=workerPhone ? attendance.filter(a=>a.phone===workerPhone) : [];
+  const todayPay=job ? Number(job.salary || 0) : 0;
+  const earned=myAttendance.reduce((sum,a)=>sum+Number(a.amount || 0),0);
+  const safeLocation=job ? String(job.location || "").replace(/'/g,"\\'") : "";
+
+  panel.innerHTML=`
+    <div class="worker-hero">
+      <div class="worker-status-pill ${meta.pill}">
+        <span>${meta.icon}</span>
+        <span>${meta.label}</span>
+      </div>
+
+      <div class="worker-hero-title">${meta.title}</div>
+      <div class="worker-hero-sub">${meta.desc}</div>
+
+      <div class="${minimalWorkerHideClass} status-live-bar">
+        <div class="status-step active">지원</div>
+        <div class="status-step ${status==='승인' || status==='출근완료' ? 'active' : ''}">승인</div>
+        <div class="status-step ${status==='출근완료' ? 'active' : ''}">출근</div>
+        <div class="status-step ${status==='출근완료' ? 'active' : ''}">급여</div>
+      </div>
+
+      <div class="${minimalWorkerHideClass} worker-mini-grid">
+        <div class="worker-mini-card">
+          <span>오늘 예상 급여</span>
+          <b>${job ? won(todayPay) : "대기"}</b>
+        </div>
+        <div class="worker-mini-card">
+          <span>누적 출근 급여</span>
+          <b>${earned ? won(earned) : "0원"}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} ai-language-board">
+      <div class="title">🧠 AI 실시간 번역 상태</div>
+
+      <div class="ai-language-row">
+        <div class="sub">실시간 번역 엔진</div>
+        <div class="ai-language-badge">ACTIVE</div>
+      </div>
+
+      <div class="ai-language-row">
+        <div class="sub">지원 언어 확장</div>
+        <div class="ai-language-badge">9 LANG</div>
+      </div>
+
+      <div class="ai-language-row">
+        <div class="sub">현장 자동 번역 준비</div>
+        <div class="ai-language-badge">READY</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} future-finance-board">
+      <div class="title">🌐 글로벌 송금 준비</div>
+
+      <div class="finance-row">
+        <div class="sub">해외 송금 시스템</div>
+        <div class="finance-badge">PREP</div>
+      </div>
+
+      <div class="finance-row">
+        <div class="sub">다국적 급여 지원</div>
+        <div class="finance-badge">READY</div>
+      </div>
+
+      <div class="finance-row">
+        <div class="sub">스마트 금융 연결</div>
+        <div class="finance-badge">ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} smart-pay-board">
+      <div class="title">💸 스마트 급여 상태</div>
+
+      <div class="pay-row">
+        <div class="sub">오늘 예상 정산</div>
+        <div class="pay-badge">${earned ? won(earned) : "0원"}</div>
+      </div>
+
+      <div class="pay-row">
+        <div class="sub">정산 준비 상태</div>
+        <div class="pay-badge">${myAttendance.length > 0 ? "READY" : "WAIT"}</div>
+      </div>
+
+      <div class="pay-row">
+        <div class="sub">자동 정산 시스템</div>
+        <div class="pay-badge">ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} multi-language-board">
+      <div class="title">🌐 다국어 지원 상태</div>
+
+      <div class="lang-row">
+        <div class="sub">한국어</div>
+        <div class="lang-badge">ACTIVE</div>
+      </div>
+
+      <div class="lang-row">
+        <div class="sub">English</div>
+        <div class="lang-badge">READY</div>
+      </div>
+
+      <div class="lang-row">
+        <div class="sub">Монгол / Việt / ไทย</div>
+        <div class="lang-badge">PREP</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} worker-rank-board">
+      <div class="title">🏅 근무 활동 상태</div>
+
+      <div class="rank-row">
+        <div class="sub">이번달 출근 횟수</div>
+        <div class="rank-badge">${myAttendance.length}회</div>
+      </div>
+
+      <div class="rank-row">
+        <div class="sub">현재 활동 상태</div>
+        <div class="rank-badge">${status==="출근완료" ? "ACTIVE" : "READY"}</div>
+      </div>
+
+      <div class="rank-row">
+        <div class="sub">근무 신뢰도</div>
+        <div class="rank-badge">${myAttendance.length >= 5 ? "HIGH" : "NORMAL"}</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} worker-wallet">
+      <div class="sub">💳 예상 정산 현황</div>
+
+      <div class="wallet-row">
+        <div>
+          <div class="wallet-label">누적 예상 급여</div>
+          <div class="wallet-mini">출근 완료 기준 자동 계산</div>
+        </div>
+
+        <div class="wallet-value">
+          ${earned ? won(earned) : "0원"}
+        </div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} shift-board">
+      <div class="shift-board-header">
+        <div class="title">📅 오늘 스케줄</div>
+        <div class="shift-chip">LIVE</div>
+      </div>
+
+      <div class="shift-row">
+        <div class="shift-left">
+          <div class="shift-site">${job ? job.title : "현장 대기중"}</div>
+          <div class="shift-time">${job ? job.work_time : "-"}</div>
+        </div>
+        <div class="shift-state">${status==="출근완료" ? "근무중" : "대기"}</div>
+      </div>
+
+      <div class="shift-row">
+        <div class="shift-left">
+          <div class="shift-site">현장 이동</div>
+          <div class="shift-time">길찾기 버튼 사용 가능</div>
+        </div>
+        <div class="shift-state">준비완료</div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} notice-center">
+      <div class="title">🔔 실시간 안내</div>
+
+      <div class="notice-item">
+        관리자 승인 후 QR 출근이 가능합니다.
+      </div>
+
+      <div class="notice-item">
+        길찾기 버튼으로 현장 이동 가능
+      </div>
+
+      <div class="translate-pill">
+        🌐 다국어 지원 준비 완료 · 모바일 최적화
+      </div>
+    </div>
+
+    <div class="today-site-card">
+      <div class="sub">출근 흐름</div>
+      <div class="info">지원 → 승인 → 길찾기 → QR 출근 → 급여 확인</div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} v10-worker-ready">
+      <div class="title">✅ 오늘 사용 준비</div>
+
+      <div class="v10-worker-ready-row">
+        <div class="sub">언어 선택</div>
+        <div class="v10-worker-badge">READY</div>
+      </div>
+
+      <div class="v10-worker-ready-row">
+        <div class="sub">현장 길찾기</div>
+        <div class="v10-worker-badge">READY</div>
+      </div>
+
+      <div class="v10-worker-ready-row">
+        <div class="sub">QR/GPS 출근</div>
+        <div class="v10-worker-badge">READY</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} ${hideWorkerOpsClass} today-site-card">
+      <div class="sub">집 → 현장 직행</div>
+      <div class="title">Direct-to-Site 출근 모델</div>
+      <div class="info">🧭 길찾기 → QR/GPS 출근 → 급여 기록까지 연결됩니다.</div>
+      <div class="info">🌍 외국인 근로자도 앱 하나로 현장 이동 가능</div>
+    </div>
+
+    <div class="today-site-card">
+      <div class="sub">오늘 현장</div>
+      <div class="title">${job ? job.title : "배정된 현장이 없습니다"}</div>
+      <div class="info">📍 ${job ? job.location : "지원 후 승인되면 표시됩니다"}</div>
+      <div class="info">🕒 ${job ? job.work_time : "-"}</div>
+      <div class="info">💰 ${job ? won(job.salary) : "-"}</div>
+
+      <div class="worker-actions-row">
+        <button class="blue" onclick="openMap('${safeLocation}')">🧭 길찾기</button>
+        <button class="green" onclick="showQR('worker')">📷 출근하기</button>
+      </div>
+    </div>
+  `;
+}
+
+
+function renderJobs(){
+  const el=document.getElementById("jobsList");
+  if(!el)return;
+
+  const filteredJobs =
+  role==="manager"
+    ? jobs.filter(j=>j.company_id===companyId)
+    : jobs;
+
+  el.innerHTML=filteredJobs.length
+  ? filteredJobs.map(j=>{
+    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && a.phone===workerPhone);
+    const already=!!myApplication;
+
+    return `
+    <div class="card">
+      <div class="job-head">
+        <div>
+          <div class="job-title">${j.title}</div>
+          <div class="type">${j.type}</div>
+        </div>
+        <div class="badge">₩${won(j.salary)}</div>
+      </div>
+      <div class="info">📍 ${j.location}</div>
+      <div class="info">🕒 ${j.work_time}</div>
+      <div class="info">👥 ${j.applied||0}/${j.needed}명 지원</div>
+      <div class="info">🌐 ${j.language}</div>
+
+      ${role==="worker"
+        ? `<button class="full ${already?'gray':'blue'}" onclick="applyJob(${j.id})">
+            ${already?`지원 ${myApplication.status || "완료"}`:'지원하기'}
+          </button>`
+        : ""
+      }
+
+      ${role==="master"
+        ? `<button class="full red" onclick="deleteJob(${j.id})">삭제하기</button>`
+        : ""
+      }
+    </div>`;
+  }).join("")
+  : `<div class="card"><div class="title">공고가 없습니다</div><div class="sub">관리자 앱에서 공고를 생성하세요.</div></div>`;
+}
+
+async function applyJob(jobId){
+  if(applications.some(a=>a.phone===workerPhone)){
+    return alert("이미 다른 공고에 지원했습니다. 한 번에 하나의 공고만 지원할 수 있습니다.");
+  }
+
+  const job=jobs.find(j=>Number(j.id)===Number(jobId));
+
+  if(!job){
+    return alert("공고를 찾을 수 없습니다.");
+  }
+
+  const {error}=await db.from("applications").insert({
+    job_id:jobId,
+    worker_name:workerName || "이름없음",
+    phone:workerPhone || "번호없음",
+    company_id:job.company_id,
+    status:"지원"
+  });
+
+  if(error){
+    return alert("지원 저장 오류: "+error.message);
+  }
+
+  await db.from("jobs").update({
+    applied:(job.applied||0)+1
+  }).eq("id",jobId);
+
+  await loadData();
+  alert("지원 완료!");
+}
+async function deleteJob(jobId){
+  if(!confirm("이 공고를 삭제할까요?")){
+    return;
+  }
+
+  const {error}=await db.from("jobs").delete().eq("id",jobId);
+
+  if(error){
+    alert("삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("공고가 삭제되었습니다.");
+}
+
+  function renderManager(){
+  const mChecked=document.getElementById("mChecked");
+  const workersList=document.getElementById("workersList");
+  if(!mChecked || !workersList)return;
+
+  const filteredJobs =
+    role==="manager"
+      ? jobs.filter(j=>String(j.company_id)===String(companyId))
+      : jobs;
+
+  const filteredApplications =
+    role==="manager"
+      ? applications.filter(a=>String(a.company_id)===String(companyId))
+      : applications;
+
+  const filteredAttendance =
+    role==="manager"
+      ? attendance.filter(a=>String(a.company_id)===String(companyId))
+      : attendance;
+
+  const getStatus=(a)=>String(a.status || "지원").trim() || "지원";
+  const searchedApplications=filteredApplications.filter(a=>{
+    const keyword=String(managerSearch||"").trim().toLowerCase();
+
+    if(!keyword)return true;
+
+    const job=jobs.find(j=>Number(j.id)===Number(a.job_id));
+    const text=[
+      a.worker_name,
+      a.phone,
+      a.status,
+      job?job.title:"",
+      job?job.location:""
+    ].join(" ").toLowerCase();
+
+    return text.includes(keyword);
+  });
+
+  const filteredByStatus=searchedApplications.filter(a=>{
+    const status=getStatus(a);
+
+    if(managerFilter==="all")return true;
+    if(managerFilter==="pending")return status==="지원";
+    if(managerFilter==="approved")return status==="승인";
+    if(managerFilter==="rejected")return status==="거절";
+    if(managerFilter==="checked")return status==="출근완료";
+
+    return true;
+  });
+
+  const pendingApplications=filteredByStatus.filter(a=>getStatus(a)==="지원");
+  const processedApplications=filteredByStatus.filter(a=>getStatus(a)!=="지원");
+
+  managerPendingApplications=pendingApplications;
+  const hideOpsClass = role==="manager" ? "manager-only-hidden" : "";
+  const simpleManagerHideClass = role==="manager" ? "manager-section-hidden" : "";
+
+  document.getElementById("mChecked").innerText=filteredAttendance.length;
+  document.getElementById("mApplied").innerText=pendingApplications.length;
+  document.getElementById("mJobs").innerText=filteredJobs.length;
+
+  if(role==="manager"){
+    document.getElementById("managerTitle").innerText=
+      (COMPANY_NAMES[companyId] || companyId) + " · v11.7";
+  }else{
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v11.7";
+  }
+
+  const pendingRows=pendingApplications.map((a,index)=>{
+    const job=jobs.find(j=>Number(j.id)===Number(a.job_id));
+
+    return `
+    <div class="card">
+      <div class="worker-row">
+        <div>
+          <div class="worker-name">${a.worker_name || "이름없음"} (${a.phone || "번호없음"})</div>
+          <div class="worker-meta">지원 공고: ${job?job.title:"삭제된 공고"} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</div>
+          <div class="info">상태: 지원 대기</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button type="button" class="blue approve-btn" data-index="${index}">승인</button>
+          <button type="button" class="red reject-btn" data-index="${index}">거절</button>
+
+          <div class="fast-approve-bar">
+            <button type="button" class="green" onclick="quickApprove(${a.id})">빠른승인</button>
+            <button type="button" class="gray" onclick="sendWorkerNotice('${a.phone || ""}')">알림</button>
+          </div>
+
+          ${role==="master" ? `<button type="button" class="gray" onclick="masterDeleteApplication(${a.id})">기록삭제</button>` : ``}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const processedRows=processedApplications.map(a=>{
+    const job=jobs.find(j=>Number(j.id)===Number(a.job_id));
+    const status=getStatus(a);
+    let displayStatus=status;
+
+    if(status==="출근완료"){
+      displayStatus="출근 완료";
+    }
+
+    if(status==="승인"){
+      displayStatus="승인 완료";
+    }
+
+    if(status==="거절"){
+      displayStatus="거절";
+    }
+    let statusClass="wait";
+
+    if(status==="승인"){
+      statusClass="ok";
+    }
+
+    if(status==="출근완료"){
+      statusClass="checked";
+    }
+
+    if(status==="거절"){
+      statusClass="rejected";
+    }
+
+    return `
+    <div class="card">
+      <div class="worker-row">
+        <div>
+          <div class="worker-name">${a.worker_name || "이름없음"} (${a.phone || "번호없음"})</div>
+          <div class="worker-meta">지원 공고: ${job?job.title:"삭제된 공고"} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</div>
+          <div class="info">처리 결과: ${displayStatus}</div>
+        </div>
+        <div>
+          <div class="status ${statusClass}">${displayStatus}</div>
+          ${role==="master" ? `<button type="button" class="red" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteApplication(${a.id})">삭제</button>` : ``}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const attRows=filteredAttendance.map(a=>`
+    <div class="card">
+      <div class="worker-row">
+        <div>
+          <div class="worker-name">${a.worker_name || "이름없음"} (${a.phone || "번호없음"})</div>
+          <div class="worker-meta">${a.job_title || ""} · GPS: ${a.gps || ""} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</div>
+        </div>
+        <div>
+          <div class="status checked">출근 완료</div>
+          ${role==="master" ? `<button type="button" class="red" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteAttendance(${a.id})">삭제</button>` : ``}
+        </div>
+      </div>
+    </div>`).join("");
+
+  const totalJobs=filteredJobs.length;
+  const pendingCount=filteredApplications.filter(a=>(a.status||"지원")==="지원").length;
+  const approvedCount=filteredApplications.filter(a=>(a.status||"").includes("승인")).length;
+  const attendanceCount=filteredAttendance.length;
+
+  const dashboardCards=`
+    <div class="manager-summary-grid">
+      <div class="manager-summary-card">
+        <div class="label">생성 공고</div>
+        <div class="value">${totalJobs}</div>
+        <div class="mini">현재 운영중인 공고</div>
+      </div>
+
+      <div class="manager-summary-card">
+        <div class="label">지원 대기</div>
+        <div class="value">${pendingCount}</div>
+        <div class="mini">승인 대기중</div>
+      </div>
+
+      <div class="manager-summary-card">
+        <div class="label">승인 완료</div>
+        <div class="value">${approvedCount}</div>
+        <div class="mini">출근 준비 완료</div>
+      </div>
+
+      <div class="manager-summary-card">
+        <div class="label">출근 완료</div>
+        <div class="value">${attendanceCount}</div>
+        <div class="mini">오늘 출근 기록</div>
+      </div>
+    </div>
+
+    <div class="${simpleManagerHideClass} manager-todo">
+      <div class="manager-todo-title">📋 오늘 할 일</div>
+
+      <div class="todo-row">✅ 지원자 승인 확인</div>
+      <div class="todo-row">🧭 현장 위치 안내</div>
+      <div class="todo-row">📷 QR 출근 체크</div>
+      <div class="todo-row">💳 급여 정산 확인</div>
+    </div>
+  `;
+
+  const jobRows=filteredJobs.map(j=>`
+    <div class="card">
+      <div class="job-head">
+        <div>
+          <div class="job-title">${j.title}</div>
+          <div class="type">${j.type || "공고"}</div>
+        </div>
+        <div class="badge">₩${won(j.salary)}</div>
+      </div>
+      <div class="info">📍 ${j.location || "-"}</div>
+      <div class="info">🕒 ${j.work_time || "-"}</div>
+      <div class="info">👥 ${j.applied || 0}/${j.needed || 0}명 지원</div>
+      <div class="info">🌐 ${j.language || "한국어"}</div>
+      ${(Number(j.needed||0) - Number(j.applied||0)) > 3 ? 
+        `<div class="manager-urgent">🚨 인원 부족 현장</div>` : ``}
+
+      ${role==="master" ? `
+        <div class="master-danger">MASTER 관리</div>
+        <div class="master-delete-row">
+          <button class="red" onclick="masterDeleteJob(${j.id})">공고 삭제</button>
+          <button class="gray" onclick="masterDeleteJobData(${j.id})">관련기록 삭제</button>
+        </div>
+      ` : ``}
+    </div>
+  `).join("");
+
+  workersList.innerHTML=
+    `
+      <div class="${hideOpsClass} card notice">
+        <div class="sub">현재 실행 버전</div>
+        <div class="title">${APP_VERSION}</div>
+        <div class="sub">현장 운영에 필요한 핵심 정보만 간결하게 표시합니다.</div>
+      </div>
+
+      ${role==="master" ? `
+        <div class="master-cleanup-board">
+          <div class="title">🛡️ MASTER 정리 도구</div>
+          <div class="sub">테스트 데이터가 꼬였을 때만 사용하세요.</div>
+          <div class="master-cleanup-grid">
+            <button class="red" onclick="masterClearApplications()">지원 전체 삭제</button>
+            <button class="red" onclick="masterClearAttendance()">출근 전체 삭제</button>
+          </div>
+        </div>
+      ` : ``}
+
+      <div class="manager-filter">
+        <div class="title">🔎 현장 검색 / 필터</div>
+        <input placeholder="이름, 전화번호, 공고명 검색" value="${managerSearch}" oninput="setManagerSearch(this.value)" />
+
+        <div class="manager-filter-grid">
+          <button class="${managerFilter==='all'?'blue':'gray'}" onclick="setManagerFilter('all')">전체</button>
+          <button class="${managerFilter==='pending'?'blue':'gray'}" onclick="setManagerFilter('pending')">지원 대기</button>
+          <button class="${managerFilter==='approved'?'green':'gray'}" onclick="setManagerFilter('approved')">승인 완료</button>
+          <button class="${managerFilter==='checked'?'blue':'gray'}" onclick="setManagerFilter('checked')">출근 완료</button>
+          <button class="${managerFilter==='rejected'?'red':'gray'}" onclick="setManagerFilter('rejected')">거절</button>
+          <button class="gray" onclick="resetManagerFilter()">초기화</button>
+        </div>
+      </div>
+
+      ${dashboardCards}
+
+      <div class="${hideOpsClass} safety-monitor-board">
+        <div class="title">🦺 안전 운영 모니터</div>
+
+        <div class="safety-row">
+          <div class="sub">현장 안전 상태</div>
+          <div class="safety-badge">SAFE</div>
+        </div>
+
+        <div class="safety-row">
+          <div class="sub">출근 확인 상태</div>
+          <div class="safety-badge">${attendanceCount} CHECKED</div>
+        </div>
+
+        <div class="safety-row">
+          <div class="sub">긴급 대응 시스템</div>
+          <div class="safety-badge">READY</div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} smart-site-health">
+        <div class="title">🏗️ 현장 상태 분석</div>
+
+        <div class="health-row">
+          <div class="sub">현재 운영 현장</div>
+          <div class="health-badge">${totalJobs}개</div>
+        </div>
+
+        <div class="health-row">
+          <div class="sub">안정 운영 현장</div>
+          <div class="health-badge">${attendanceCount > 0 ? "GOOD" : "WAIT"}</div>
+        </div>
+
+        <div class="health-row">
+          <div class="sub">실시간 운영 상태</div>
+          <div class="health-badge">LIVE</div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} ai-worker-match-board">
+        <div class="title">🧠 AI 근로자 매칭 상태</div>
+
+        <div class="match-row">
+          <div class="sub">추천 매칭 정확도</div>
+          <div class="match-badge">92%</div>
+        </div>
+
+        <div class="match-row">
+          <div class="sub">현재 추천 근로자</div>
+          <div class="match-badge">${approvedCount}명</div>
+        </div>
+
+        <div class="match-row">
+          <div class="sub">자동 매칭 시스템</div>
+          <div class="match-badge">ACTIVE</div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} global-network-board">
+        <div class="title">🌍 글로벌 네트워크 상태</div>
+
+        <div class="network-row">
+          <div class="sub">현재 활성 언어</div>
+          <div class="network-badge">9개</div>
+        </div>
+
+        <div class="network-row">
+          <div class="sub">실시간 운영 국가</div>
+          <div class="network-badge">KR</div>
+        </div>
+
+        <div class="network-row">
+          <div class="sub">국제 근로자 준비 상태</div>
+          <div class="network-badge">READY</div>
+        </div>
+      </div>
+
+      
+<div class="${hideOpsClass} v11-recovery-board">
+  <div class="title">🟢 v11.7 실시간 운영 코어</div>
+  <div class="sub">전체 플랫폼 유지 상태에서 v11 운영 안정화를 적용했습니다.</div>
+
+  <div class="v11-recovery-grid">
+    <div class="v11-recovery-tile">
+      <span>운영 상태</span>
+      <b>LIVE</b>
+    </div>
+
+    <div class="v11-recovery-tile">
+      <span>모바일 상태</span>
+      <b>READY</b>
+    </div>
+
+    <div class="v11-recovery-tile">
+      <span>관리자 관제</span>
+      <b>SYNCED</b>
+    </div>
+
+    <div class="v11-recovery-tile">
+      <span>근로자 흐름</span>
+      <b>ACTIVE</b>
+    </div>
+  </div>
+</div>
+
+<div class="${hideOpsClass} v105-field-ready-board">
+
+        <div class="title">✅ v11.7 현장 준비형 운영 빌드</div>
+        <div class="sub">공고, 지원, 승인, 길찾기, 출근, 정산 흐름을 실제 현장 테스트 기준으로 정리했습니다.</div>
+
+        <div class="v105-field-ready-grid">
+          <div class="v105-field-ready-tile">
+            <span>현장 운영 루프</span>
+            <b>READY</b>
+          </div>
+
+          <div class="v105-field-ready-tile">
+            <span>모바일 배포</span>
+            <b>SYNC</b>
+          </div>
+
+          <div class="v105-field-ready-tile">
+            <span>MASTER 관리</span>
+            <b>TOOLS</b>
+          </div>
+
+          <div class="v105-field-ready-tile">
+            <span>지자체 확장</span>
+            <b>PREP</b>
+          </div>
+        </div>
+
+        <div class="v105-build-badge">Field Ready Operations Build</div>
+      </div>
+
+      <div class="${hideOpsClass} v10-launch-board">
+        <div class="title">🚀 FlowIQ Crew v11.7</div>
+        <div class="sub">v11.7 통합 현장 준비형 빌드입니다. 관리자, 근로자, AI 운영, 지자체 확장 흐름을 하나의 플랫폼으로 정리했습니다.</div>
+
+        <div class="v10-launch-grid">
+          <div class="v10-launch-tile">
+            <span>모바일 실행</span>
+            <b>READY</b>
+          </div>
+
+          <div class="v10-launch-tile">
+            <span>운영 흐름</span>
+            <b>CONNECTED</b>
+          </div>
+
+          <div class="v10-launch-tile">
+            <span>관리자 관제</span>
+            <b>ACTIVE</b>
+          </div>
+
+          <div class="v10-launch-tile">
+            <span>근로자 경험</span>
+            <b>STABLE</b>
+          </div>
+        </div>
+
+        <div class="v10-ready-badge">Stable MVP Platform Build</div>
+      </div>
+
+      <div class="${hideOpsClass} civic-platform-board">
+        <div class="title">🏛️ 지자체·농어촌 확장 플랫폼</div>
+        <div class="sub">집에서 현장으로 직접 이동하는 지역 기반 글로벌 인력 운영 모델입니다.</div>
+
+        <div class="civic-grid">
+          <div class="civic-tile">
+            <span>농촌 Crew</span>
+            <b>READY</b>
+          </div>
+
+          <div class="civic-tile">
+            <span>어촌 Crew</span>
+            <b>READY</b>
+          </div>
+
+          <div class="civic-tile">
+            <span>지자체 MOU</span>
+            <b>PREP</b>
+          </div>
+
+          <div class="civic-tile">
+            <span>지역 운영</span>
+            <b>ONLINE</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} partner-model-board">
+        <div class="title">🤝 기관 협력 운영 모델</div>
+
+        <div class="partner-row">
+          <div class="sub">지자체 운영 지원</div>
+          <div class="partner-badge">MOU READY</div>
+        </div>
+
+        <div class="partner-row">
+          <div class="sub">농협·수협 연동 가능성</div>
+          <div class="partner-badge">PARTNER</div>
+        </div>
+
+        <div class="partner-row">
+          <div class="sub">다문화/외국인 지원센터</div>
+          <div class="partner-badge">CONNECT</div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} integrated-build-board">
+        <div class="title">🧩 v11.7 통합 안정화</div>
+        <div class="sub">관리자 · 근로자 · AI · 지자체 확장 흐름을 하나로 정리했습니다.</div>
+
+        <div class="integrated-grid">
+          <div class="integrated-tile">
+            <span>모바일 실행</span>
+            <b>STABLE</b>
+          </div>
+
+          <div class="integrated-tile">
+            <span>버전 관리</span>
+            <b>SYNCED</b>
+          </div>
+
+          <div class="integrated-tile">
+            <span>관리자 UX</span>
+            <b>INTEGRATED</b>
+          </div>
+
+          <div class="integrated-tile">
+            <span>근로자 UX</span>
+            <b>READY</b>
+          </div>
+        </div>
+
+        <div class="mobile-stable-badge">GitHub Pages / Mobile Ready</div>
+      </div>
+
+      <div class="${hideOpsClass} autonomous-grid-board">
+        <div class="title">⚙️ 자율 운영 그리드</div>
+        <div class="sub">현장 운영 상태를 AI 운영 흐름으로 통합합니다.</div>
+
+        <div class="autonomous-grid">
+          <div class="autonomous-tile">
+            <span>운영 모드</span>
+            <b>AUTO READY</b>
+          </div>
+
+          <div class="autonomous-tile">
+            <span>현장 연결</span>
+            <b>${totalJobs} SITE</b>
+          </div>
+
+          <div class="autonomous-tile">
+            <span>승인 흐름</span>
+            <b>${approvedCount} CREW</b>
+          </div>
+
+          <div class="autonomous-tile">
+            <span>출근 흐름</span>
+            <b>${attendanceCount} LIVE</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} ops-timeline-board">
+        <div class="title">🧭 운영 타임라인</div>
+
+        <div class="timeline-step">
+          <div class="timeline-dot"></div>
+          <div class="timeline-text">
+            <b>공고 생성</b>
+            <span>현장 수요 등록</span>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-dot"></div>
+          <div class="timeline-text">
+            <b>지원 / 승인</b>
+            <span>근로자 배치 확정</span>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-dot"></div>
+          <div class="timeline-text">
+            <b>길찾기 / 출근</b>
+            <span>집에서 현장까지 직접 이동</span>
+          </div>
+        </div>
+
+        <div class="timeline-step">
+          <div class="timeline-dot"></div>
+          <div class="timeline-text">
+            <b>정산 / 기록</b>
+            <span>급여와 운영 데이터 자동 축적</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} command-center-board">
+        <div class="title">🛰️ 글로벌 운영 관제 센터</div>
+
+        <div class="command-row">
+          <div class="sub">실시간 운영 연결</div>
+          <div class="command-badge">ONLINE</div>
+        </div>
+
+        <div class="command-row">
+          <div class="sub">근로자 네트워크</div>
+          <div class="command-badge">${approvedCount + attendanceCount} ACTIVE</div>
+        </div>
+
+        <div class="command-row">
+          <div class="sub">AI 중앙 제어</div>
+          <div class="command-badge">SYNC</div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} future-ai-board">
+        <div class="title">🚀 차세대 AI 운영 시스템</div>
+
+        <div class="future-ai-row">
+          <div class="sub">AI 자동 관제</div>
+          <div class="future-ai-badge">ACTIVE</div>
+        </div>
+
+        <div class="future-ai-row">
+          <div class="sub">현장 자동 예측</div>
+          <div class="future-ai-badge">READY</div>
+        </div>
+
+        <div class="future-ai-row">
+          <div class="sub">글로벌 운영 확장</div>
+          <div class="future-ai-badge">ONLINE</div>
+        </div>
+      </div>
+
+      <div class="${hideOpsClass} manager-ai-board">
+        <div class="title">🤖 AI 운영 분석</div>
+
+        <div class="ai-row">
+          <div class="sub">오늘 운영 상태</div>
+          <div class="ai-badge">STABLE</div>
+        </div>
+
+        <div class="ai-row">
+          <div class="sub">추천 우선 작업</div>
+          <div class="ai-badge">승인 확인</div>
+        </div>
+
+        <div class="ai-row">
+          <div class="sub">현장 위험도</div>
+          <div class="ai-badge">${pendingCount > 5 ? "HIGH" : "NORMAL"}</div>
+        </div>
+      </div>
+
+      <div class="${simpleManagerHideClass} smart-alert-board">
+        <div class="title">🧠 스마트 운영 알림</div>
+
+        <div class="smart-alert-item">
+          <div class="sub">지원 대기 확인 필요</div>
+          <div class="smart-alert-badge">${pendingCount}건</div>
+        </div>
+
+        <div class="smart-alert-item">
+          <div class="sub">출근 준비 완료 인원</div>
+          <div class="smart-alert-badge">${approvedCount}명</div>
+        </div>
+
+        <div class="smart-alert-item">
+          <div class="sub">실시간 운영 상태</div>
+          <div class="smart-alert-badge">LIVE</div>
+        </div>
+      </div>
+
+      <div class="live-crew-board">
+        <div class="title">👷 실시간 현장 인원</div>
+
+        <div class="live-crew-row">
+          <div>
+            <div class="sub">오늘 승인 인원</div>
+          </div>
+          <div class="live-badge live-green">${approvedCount}명</div>
+        </div>
+
+        <div class="live-crew-row">
+          <div>
+            <div class="sub">현재 출근 인원</div>
+          </div>
+          <div class="live-badge live-blue">${attendanceCount}명</div>
+        </div>
+      </div>
+
+      <div class="urgent-banner">
+        <div class="title">🚨 긴급 운영 상태</div>
+        <div class="sub">인원 부족 현장 및 오늘 출근 예정 인원을 확인하세요.</div>
+
+        <div class="live-alert">
+          오늘 출근 예정: ${attendanceCount + approvedCount}명
+        </div>
+      </div>
+
+      <div class="field-simple-note manager-simple-anchor">
+        <div class="title">현장 운영</div>
+        <div class="sub">오늘은 공고, 지원자, 출근자만 빠르게 확인하세요.</div>
+
+        <div class="field-simple-grid">
+          <div class="field-simple-tile">
+            <span>공고</span>
+            <b>${totalJobs}</b>
+          </div>
+
+          <div class="field-simple-tile">
+            <span>지원 대기</span>
+            <b>${pendingCount}</b>
+          </div>
+
+          <div class="field-simple-tile">
+            <span>승인</span>
+            <b>${approvedCount}</b>
+          </div>
+
+          <div class="field-simple-tile">
+            <span>출근</span>
+            <b>${attendanceCount}</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="createdJobsSection">생성한 공고</div>
+      ${jobRows || `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`}
+
+      <div class="${simpleManagerHideClass}">
+        <div class="section">지원 대기</div>
+        ${pendingRows || `<div class="card"><div class="sub">아직 지원한 근로자가 없습니다.</div></div>`}
+      </div>
+
+      <div class="section">처리 완료</div>
+      ${processedRows || `<div class="card"><div class="sub">아직 승인/거절 처리된 지원자가 없습니다.</div></div>`}
+
+      <div class="section">출근 완료</div>
+      ${attRows || `<div class="card"><div class="sub">아직 출근 기록이 없습니다.</div></div>`}
+    `;
+}
+  async function createJob(){
+  const title=fTitle.value.trim();
+  const location=fLocation.value.trim();
+  const work_time=fTime.value.trim();
+  const salary=Number(fSalary.value||0);
+  const needed=Number(fNeeded.value||0);
+  const type=fType.value;
+  const selectedLangs=[...document.querySelectorAll(".langCheck:checked")].map(x=>x.value);
+  const language=selectedLangs.length?"한국어 / "+selectedLangs.join(" / "):"한국어";
+
+  if(!title||!location||!work_time||!salary||!needed)return alert("공고명, 위치, 시간, 일급, 필요 인원을 입력하세요.");
+
+  const {error}=await db.from("jobs").insert({
+    title,
+location,
+work_time,
+salary,
+needed,
+applied:0,
+language,
+type,
+company_id:companyId
+  });
+
+  if(error)return alert("공고 저장 오류: "+error.message);
+
+  ["fTitle","fLocation","fTime","fSalary","fNeeded"].forEach(id=>document.getElementById(id).value="");
+  document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
+
+  await loadData();
+  alert("공고가 저장되었습니다.");
+  goScreen("managerScreen");
+}
+function showQR(selectedRole){
+  lastRole=selectedRole;
+  const qrImage=document.getElementById("qrImage");
+
+  if(selectedRole==="manager"){
+    qrTitle.innerText="출근 QR";
+    const job=jobs[0];
+    const qrData=job?`${location.origin}${location.pathname}?checkin=${job.id}`:`${location.origin}${location.pathname}`;
+    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(qrData)}`;
+    qrDesc.innerHTML=`근로자가 이 QR을 스캔하면 출근 처리됩니다.<br><br><button class="full blue" onclick="location.href='${qrData}'">출근 링크 테스트</button>`;
+  }else{
+    qrTitle.innerText="QR 스캔";
+    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href)}`;
+    qrDesc.innerText="관리자 QR 링크로 접속하면 자동 출근 처리됩니다.";
+  }
+
+  goScreen("qrScreen");
+}
+
+async function saveAttendance(job){
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){
+      reject("GPS를 지원하지 않는 기기입니다.");
+      return;
+    }
+
+    if(!workerName || !workerPhone){
+      reject("근로자 정보 등록 후 출근할 수 있습니다.");
+      return;
+    }
+
+    const myApplication=applications.find(
+      a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
+    );
+
+    if(!myApplication){
+      reject("지원한 공고만 출근할 수 있습니다.");
+      return;
+    }
+
+    if((myApplication.status || "지원")!=="승인"){
+      reject("관리자 승인 후 출근할 수 있습니다.");
+      return;
+    }
+
+    const alreadyCheckedIn=attendance.some(
+      a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
+    );
+
+    if(alreadyCheckedIn){
+      reject("이미 출근 처리된 공고입니다.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async position=>{
+      const lat=position.coords.latitude;
+      const lng=position.coords.longitude;
+      const gps=`${lat},${lng}`;
+
+      const {error}=await db.from("attendance").insert({
+        job_id:job.id,
+        worker_name:workerName || "이름없음",
+        phone:workerPhone || "번호없음",
+        job_title:job.title,
+        amount:job.salary,
+        company_id:job.company_id,
+        gps:gps
+      });
+
+      if(error){
+        reject(error.message);
+        return;
+      }
+
+      if(workerPhone){
+        await db
+          .from("applications")
+          .update({status:"출근완료"})
+          .eq("job_id",job.id)
+          .eq("phone",workerPhone);
+      }
+
+      resolve(gps);
+    },()=>{
+      reject("GPS 권한이 필요합니다.");
+    });
+  });
+}
+
+async function completeQR(){
+  if(lastRole==="worker"){
+    const approvedApplication=applications.find(a=>(a.status || "지원")==="승인");
+
+    if(!approvedApplication){
+      return alert("관리자 승인 완료된 공고만 출근할 수 있습니다.");
+    }
+
+    const job=jobs.find(j=>Number(j.id)===Number(approvedApplication.job_id));
+
+    if(!job){
+      return alert("출근할 공고를 찾을 수 없습니다.");
+    }
+
+    try{
+      await saveAttendance(job);
+      await loadData();
+      alert("GPS 출근 완료!");
+      goHome();
+    }catch(e){
+      alert(e);
+    }
+  }else{
+    alert("관리자 QR이 생성되었습니다. 근로자가 스캔하면 출근 처리됩니다.");
+    goHome();
+  }
+}
+
+async function autoCheckIn(){
+  const params=new URLSearchParams(location.search);
+  const checkin=params.get("checkin");
+
+  if(checkin){
+    role="worker";
+    lastRole="worker";
+    localStorage.setItem("crew_role","worker");
+
+    if(!workerName || !workerPhone){
+      localStorage.setItem("pending_checkin",checkin);
+      alert("근로자 정보 등록 후 출근할 수 있습니다.");
+      goScreen("workerInfoScreen");
+      return;
+    }
+
+    await loadData();
+    const job=jobs.find(j=>Number(j.id)===Number(checkin));
+
+    if(!job){
+      alert("공고를 찾을 수 없습니다.");
+      location.href=location.origin+location.pathname;
+      return;
+    }
+
+    try{
+      await saveAttendance(job);
+      alert("QR + GPS 출근 완료!");
+      location.href=location.origin+location.pathname;
+    }catch(e){
+      alert(e);
+      location.href=location.origin+location.pathname;
+    }
+  }
+}
+
+function showPayroll(){goScreen("payrollScreen")}
+
+function renderPayroll(){
+  const el=document.getElementById("payrollList");
+  if(!el)return;
+
+  const myAttendance=role==="worker" && workerPhone
+    ? attendance.filter(a=>a.phone===workerPhone)
+    : attendance;
+
+  el.innerHTML=myAttendance.length?myAttendance.map(a=>`
+    <div class="card">
+      <div class="job-head">
+        <div>
+          <div class="job-title">${a.job_title}</div>
+          <div class="type">출근 완료</div>
+        </div>
+        <div class="badge">₩${won(a.amount)}</div>
+      </div>
+      <div class="info">🕒 ${new Date(a.created_at).toLocaleString()}</div>
+      <div class="info">📍 GPS: ${a.gps}</div>
+      <div class="info">💳 지급 대기</div>
+    </div>`).join(""):`<div class="card"><div class="title">아직 급여 기록이 없습니다</div><div class="sub">출근 QR을 완료하면 급여 기록이 생성됩니다.</div></div>`;
+}
+
+async function refreshData(){await loadData();alert("새로고침 완료")}
+
+function goHome(){
+  if(role==="manager" || role==="master"){
+    goScreen("managerScreen");
+  }else{
+    goScreen("workerScreen");
+  }
+}
+
+function goRoleSelect(){
+  role=null;
+  lastRole=null;
+  localStorage.removeItem("crew_role");
+  localStorage.removeItem("company_id");
+  goScreen("roleScreen");
+}
+
+function goLanguageSelect(){
+  role=null;
+  lastRole=null;
+  localStorage.removeItem("crew_role");
+  localStorage.removeItem("company_id");
+  localStorage.removeItem("crew_language");
+  goScreen("languageScreen");
+}
+
+function goRoleHome(){
+  goRoleSelect();
+}
+
+function scrollToCreatedJobs(){
+  goScreen("managerScreen");
+
+  setTimeout(()=>{
+    const target=document.getElementById("createdJobsSection");
+
+    if(target){
+      target.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+    }
+  },120);
+}
+
+
+function navPrimary(){
+  if(role==="manager" || role==="master"){
+    scrollToCreatedJobs();
+  }else{
+    goScreen("workerScreen");
+  }
+}
+function navSecondary(){
+  if(role==="manager" || role==="master"){
+    goScreen("managerScreen");
+  }else{
+    showPayroll();
+  }
+}
+
+function updateNav(){
+
+  if(role==="manager"){
+    navJobs.innerText="공고";
+    navPay.innerText="현황";
+
+  }else if(role==="master"){
+    navJobs.innerText="전체공고";
+    navPay.innerText="전체현황";
+
+  }else{
+    navJobs.innerText="일자리";
+    navPay.innerText="급여";
+  }
+
+  ["navHome","navJobs","navQR","navPay"]
+    .forEach(id=>document.getElementById(id).classList.remove("active"));
+
+  if(["workerScreen","managerScreen"].includes(currentScreen)){
+    navHome.classList.add("active");
+  }
+
+  if(currentScreen==="jobFormScreen"){
+    navJobs.classList.add("active");
+  }
+
+  if(currentScreen==="qrScreen"){
+    navQR.classList.add("active");
+  }
+
+  if(currentScreen==="payrollScreen"){
+    navPay.classList.add("active");
+  }
+}
+
+window.onpopstate=e=>{
+  const id=e.state&&e.state.screen?e.state.screen:location.hash.replace("#","");
+  if(screens.includes(id))show(id,false);
+};
+
+async function init(){
+  languageGrid.innerHTML=languages.map(l=>
+    `<button onclick="selectLanguage('${l.value}')">${l.label}</button>`
+  ).join("");
+  await seedJobsIfEmpty();
+
+  const savedLanguage=localStorage.getItem("crew_language");
+
+  if(savedLanguage&&role){
+    if(role==="manager" || role==="master"){
+      show("managerScreen",false);
+    }else{
+      show("workerScreen",false);
+    }
+  }else if(savedLanguage){
+    show("roleScreen",false);
+  }else{
+    show("languageScreen",false);
+  }
+
+  history.replaceState({screen:currentScreen},"","#"+currentScreen);
+  await autoCheckIn();
+}
+
+// 개발 중에는 이전 HTML이 캐시되어 수정이 안 보이는 문제가 생길 수 있어서 서비스워커를 해제합니다.
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistrations().then(registrations=>{
+    registrations.forEach(registration=>registration.unregister());
+  });
+}
+
+if(window.caches){
+  caches.keys().then(keys=>keys.forEach(key=>caches.delete(key)));
+}
+
+
+
+
+function setManagerFilter(value){
+  managerFilter=value;
+  renderManager();
+}
+
+function setManagerSearch(value){
+  managerSearch=value;
+  renderManager();
+}
+
+function resetManagerFilter(){
+  managerFilter="all";
+  managerSearch="";
+  renderManager();
+}
+
+
+async function quickApprove(applicationId){
+  const target=applications.find(a=>Number(a.id)===Number(applicationId));
+
+  if(!target){
+    alert("지원 기록을 찾을 수 없습니다.");
+    return;
+  }
+
+  const {error}=await db
+    .from("applications")
+    .update({status:"승인"})
+    .eq("id",applicationId);
+
+  if(error){
+    alert("빠른 승인 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("빠른 승인 완료");
+}
+
+function sendWorkerNotice(phone){
+  alert("📢 근로자 알림 전송 준비\\n\\n대상: "+phone+"\\n\\n향후 푸시/문자 기능과 연결 예정");
+}
+
+
+
+async function masterClearApplications(){
+  if(role!=="master"){
+    alert("MASTER만 사용할 수 있습니다.");
+    return;
+  }
+
+  if(!confirm("지원 기록 전체를 삭제할까요? 테스트 데이터 정리용입니다.")){
+    return;
+  }
+
+  const {error}=await db.from("applications").delete().neq("id",-1);
+
+  if(error){
+    alert("지원 전체 삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("지원 기록 전체 삭제 완료");
+}
+
+async function masterClearAttendance(){
+  if(role!=="master"){
+    alert("MASTER만 사용할 수 있습니다.");
+    return;
+  }
+
+  if(!confirm("출근 기록 전체를 삭제할까요? 테스트 데이터 정리용입니다.")){
+    return;
+  }
+
+  const {error}=await db.from("attendance").delete().neq("id",-1);
+
+  if(error){
+    alert("출근 전체 삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("출근 기록 전체 삭제 완료");
+}
+
+
+async function masterDeleteJob(jobId){
+  if(role!=="master"){
+    alert("MASTER만 사용할 수 있습니다.");
+    return;
+  }
+
+  if(!confirm("이 공고를 삭제할까요? 관련 지원/출근 기록은 남아있습니다.")){
+    return;
+  }
+
+  const {error}=await db.from("jobs").delete().eq("id",jobId);
+
+  if(error){
+    alert("공고 삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("공고 삭제 완료");
+}
+
+async function masterDeleteJobData(jobId){
+  if(role!=="master"){
+    alert("MASTER만 사용할 수 있습니다.");
+    return;
+  }
+
+  if(!confirm("이 공고의 지원 기록과 출근 기록을 모두 삭제할까요? 공고는 남아있습니다.")){
+    return;
+  }
+
+  const ar=await db.from("applications").delete().eq("job_id",jobId);
+  const tr=await db.from("attendance").delete().eq("job_id",jobId);
+
+  if(ar.error){
+    alert("지원 기록 삭제 오류: "+ar.error.message);
+    return;
+  }
+
+  if(tr.error){
+    alert("출근 기록 삭제 오류: "+tr.error.message);
+    return;
+  }
+
+  await loadData();
+  alert("관련 기록 삭제 완료");
+}
+
+async function masterDeleteApplication(applicationId){
+  if(role!=="master"){
+    alert("MASTER만 사용할 수 있습니다.");
+    return;
+  }
+
+  if(!confirm("이 지원 기록을 삭제할까요?")){
+    return;
+  }
+
+  const {error}=await db.from("applications").delete().eq("id",applicationId);
+
+  if(error){
+    alert("지원 기록 삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("지원 기록 삭제 완료");
+}
+
+async function masterDeleteAttendance(attendanceId){
+  if(role!=="master"){
+    alert("MASTER만 사용할 수 있습니다.");
+    return;
+  }
+
+  if(!confirm("이 출근 기록을 삭제할까요?")){
+    return;
+  }
+
+  const {error}=await db.from("attendance").delete().eq("id",attendanceId);
+
+  if(error){
+    alert("출근 기록 삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("출근 기록 삭제 완료");
+}
+
+
+function sameApplication(a,target){
+  const id=String(target.id || "").trim();
+  const jobId=String(target.job_id || "").trim();
+  const phone=String(target.phone || "").trim();
+
+  if(id && String(a.id)===id)return true;
+
+  if(
+    jobId &&
+    phone &&
+    String(a.job_id)===jobId &&
+    String(a.phone || "")===phone
+  ){
+    return true;
+  }
+
+  return false;
+}
+
+async function saveApplicationStatus(app,status){
+  let lastError=null;
+
+  if(app.id!==undefined && app.id!==null && String(app.id).trim()!==""){
+    const r1=await db
+      .from("applications")
+      .update({status:status})
+      .eq("id",String(app.id));
+
+    if(r1.error)lastError=r1.error;
+  }
+
+  if(app.job_id!==undefined && app.phone){
+    const r2=await db
+      .from("applications")
+      .update({status:status})
+      .eq("job_id",app.job_id)
+      .eq("phone",app.phone);
+
+    if(r2.error)lastError=r2.error;
+  }
+
+  if(lastError){
+    alert(status+" 저장 오류: "+lastError.message);
+    return false;
+  }
+
+  return true;
+}
+
+async function changeApplicationStatusByIndex(index,status){
+  const app=managerPendingApplications[Number(index)];
+
+  if(!app){
+    alert("화면의 지원자를 찾지 못했습니다. 새로고침 후 다시 시도하세요.");
+    return;
+  }
+
+  applications=applications.map(a=>{
+    if(sameApplication(a,app)){
+      return {...a,status:status};
+    }
+    return a;
+  });
+
+  renderManager();
+
+  const saved=await saveApplicationStatus(app,status);
+
+  if(saved){
+    alert(status+" 완료");
+    await loadData();
+    renderManager();
+  }
+}
+
+document.addEventListener("click",async function(e){
+  const approveBtn=e.target.closest(".approve-btn");
+  const rejectBtn=e.target.closest(".reject-btn");
+
+  if(approveBtn){
+    e.preventDefault();
+    await changeApplicationStatusByIndex(approveBtn.dataset.index,"승인");
+    return;
+  }
+
+  if(rejectBtn){
+    e.preventDefault();
+    await changeApplicationStatusByIndex(rejectBtn.dataset.index,"거절");
+    return;
+  }
+});
+
+init();
+</script>
+</body>
+</html>
 
 <style>
 *{
