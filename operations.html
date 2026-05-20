@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew Operations v1.0</title>
+<title>FlowIQ Crew OPERATIONS v1.0</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1456,42 +1456,6 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   display:none !important;
 }
 
-
-.clean-manager-note{
-  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
-  border:1px solid rgba(96,165,250,.14);
-  border-radius:26px;
-  padding:18px;
-  margin-bottom:16px;
-}
-.clean-manager-actions{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  margin-bottom:18px;
-}
-.clean-manager-actions button{
-  width:100%;
-  min-height:62px;
-  border-radius:22px;
-  font-size:16px;
-}
-.manager-hide-normal{
-  display:none !important;
-}
-
-
-.operations-stable-marker{
-  background:rgba(15,23,42,.96);
-  border:1px solid rgba(96,165,250,.14);
-  border-radius:22px;
-  padding:14px 16px;
-  margin-bottom:14px;
-}
-.operations-stable-marker .sub{
-  font-size:13px;
-}
-
 </style>
 </head>
 
@@ -1563,7 +1527,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 <section id="managerScreen" class="hidden">
   <div class="card notice">
     <div class="sub">오늘 현장</div>
-    <div class="title" id="managerTitle">FlowIQ Crew DB</div>
+    <div class="title" id="managerTitle">FlowIQ Crew OPERATIONS</div>
     <div class="metric-wrap">
       <div class="metric"><b id="mChecked">0</b><span>출근</span></div>
       <div class="metric"><b id="mApplied">0</b><span>지원</span></div>
@@ -1573,7 +1537,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 
   <div class="grid2">
     <button class="blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
-    <button class="green manager-hide-normal" onclick="showQR('manager')">▦ 출근 QR</button>
+    <button class="green" onclick="showQR('manager')">▦ 출근 QR</button>
   </div>
 
   <div class="manager-section-hidden section">지원/출근 현황</div>
@@ -1583,7 +1547,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 <section id="jobFormScreen" class="hidden">
   <div class="card notice">
     <div class="title">새 공고 생성</div>
-    <div class="sub">저장하면 Supabase DB에 바로 들어갑니다.</div>
+    <div class="sub">현장에서 바로 사용할 공고를 생성합니다.</div>
   </div>
 
   <div class="card">
@@ -1689,7 +1653,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew Operations v1.0';
+let APP_VERSION='FlowIQ Crew OPERATIONS v1.0';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2332,9 +2296,9 @@ async function deleteJob(jobId){
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
-      (COMPANY_NAMES[companyId] || companyId) + " · Operations v1.0";
+      (COMPANY_NAMES[companyId] || companyId) + " · v11.7";
   }else{
-    document.getElementById("managerTitle").innerText="FlowIQ MASTER · Operations v1.0";
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v11.7";
   }
 
   const pendingRows=pendingApplications.map((a,index)=>{
@@ -2430,7 +2394,7 @@ async function deleteJob(jobId){
   const attendanceCount=filteredAttendance.length;
 
   const dashboardCards=`
-    <div class="${hideOpsClass} manager-summary-grid">
+    <div class="manager-summary-grid">
       <div class="manager-summary-card">
         <div class="label">생성 공고</div>
         <div class="value">${totalJobs}</div>
@@ -2500,17 +2464,6 @@ async function deleteJob(jobId){
         <div class="sub">현장 운영에 필요한 핵심 정보만 간결하게 표시합니다.</div>
       </div>
 
-      <div class="operations-stable-marker"><div class="sub">OPERATIONS v1.0 안정 운영본</div></div>
-
-      <div class="clean-manager-note">
-        <div class="title">오늘 현황</div>
-        <div class="sub">공고 생성, 생성한 공고, 출근 완료만 확인합니다.</div>
-      </div>
-
-      <div class="clean-manager-actions">
-        <button class="blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
-      </div>
-
       ${role==="master" ? `
         <div class="master-cleanup-board">
           <div class="title">🛡️ MASTER 정리 도구</div>
@@ -2522,7 +2475,7 @@ async function deleteJob(jobId){
         </div>
       ` : ``}
 
-      <div class="${hideOpsClass} manager-filter">
+      <div class="manager-filter">
         <div class="title">🔎 현장 검색 / 필터</div>
         <input placeholder="이름, 전화번호, 공고명 검색" value="${managerSearch}" oninput="setManagerSearch(this.value)" />
 
@@ -2616,7 +2569,7 @@ async function deleteJob(jobId){
 
       
 <div class="${hideOpsClass} v11-recovery-board">
-  <div class="title">🟢 Operations v1.0 실시간 운영 코어</div>
+  <div class="title">🟢 v11.7 실시간 운영 코어</div>
   <div class="sub">전체 플랫폼 유지 상태에서 v11 운영 안정화를 적용했습니다.</div>
 
   <div class="v11-recovery-grid">
@@ -2644,7 +2597,7 @@ async function deleteJob(jobId){
 
 <div class="${hideOpsClass} v105-field-ready-board">
 
-        <div class="title">✅ Operations v1.0 현장 준비형 운영 빌드</div>
+        <div class="title">✅ v11.7 현장 준비형 운영 빌드</div>
         <div class="sub">공고, 지원, 승인, 길찾기, 출근, 정산 흐름을 실제 현장 테스트 기준으로 정리했습니다.</div>
 
         <div class="v105-field-ready-grid">
@@ -2673,8 +2626,8 @@ async function deleteJob(jobId){
       </div>
 
       <div class="${hideOpsClass} v10-launch-board">
-        <div class="title">🚀 FlowIQ Crew Operations v1.0</div>
-        <div class="sub">Operations v1.0 통합 현장 준비형 빌드입니다. 관리자, 근로자, AI 운영, 지자체 확장 흐름을 하나의 플랫폼으로 정리했습니다.</div>
+        <div class="title">🚀 FlowIQ Crew v11.7</div>
+        <div class="sub">v11.7 통합 현장 준비형 빌드입니다. 관리자, 근로자, AI 운영, 지자체 확장 흐름을 하나의 플랫폼으로 정리했습니다.</div>
 
         <div class="v10-launch-grid">
           <div class="v10-launch-tile">
@@ -2748,7 +2701,7 @@ async function deleteJob(jobId){
       </div>
 
       <div class="${hideOpsClass} integrated-build-board">
-        <div class="title">🧩 Operations v1.0 통합 안정화</div>
+        <div class="title">🧩 v11.7 통합 안정화</div>
         <div class="sub">관리자 · 근로자 · AI · 지자체 확장 흐름을 하나로 정리했습니다.</div>
 
         <div class="integrated-grid">
@@ -2915,7 +2868,7 @@ async function deleteJob(jobId){
         </div>
       </div>
 
-      <div class="${hideOpsClass} live-crew-board">
+      <div class="live-crew-board">
         <div class="title">👷 실시간 현장 인원</div>
 
         <div class="live-crew-row">
@@ -2933,7 +2886,7 @@ async function deleteJob(jobId){
         </div>
       </div>
 
-      <div class="${hideOpsClass} urgent-banner">
+      <div class="urgent-banner">
         <div class="title">🚨 긴급 운영 상태</div>
         <div class="sub">인원 부족 현장 및 오늘 출근 예정 인원을 확인하세요.</div>
 
@@ -2975,10 +2928,10 @@ async function deleteJob(jobId){
       <div class="${simpleManagerHideClass}">
         <div class="section">지원 대기</div>
         ${pendingRows || `<div class="card"><div class="sub">아직 지원한 근로자가 없습니다.</div></div>`}
-
-        <div class="section">처리 완료</div>
-        ${processedRows || `<div class="card"><div class="sub">아직 승인/거절 처리된 지원자가 없습니다.</div></div>`}
       </div>
+
+      <div class="section">처리 완료</div>
+      ${processedRows || `<div class="card"><div class="sub">아직 승인/거절 처리된 지원자가 없습니다.</div></div>`}
 
       <div class="section">출근 완료</div>
       ${attRows || `<div class="card"><div class="sub">아직 출근 기록이 없습니다.</div></div>`}
