@@ -1,728 +1,94 @@
-<!--
-====================================================
-FlowIQ Crew OPERATIONS
-FILE    : operations.html
-VERSION : v1.1.0
-BUILD   : production-manager-core
-STATUS  : LIVE
-====================================================
-
-[ UPDATE LOG ]
-
-v1.1.0
-- Manager Home activated
-- Job creation flow added
-- Created jobs list added
-- Worker apply flow added
-- Attendance complete flow added
-- Local storage data persistence added
-- OPERATIONS clean core expanded from landing page
-
-v1.0.0
-- OPERATIONS production repository initialized
-- TEST / DEV line separated
-- OPERATIONS production landing page created
-
-====================================================
--->
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>FlowIQ Crew OPERATIONS v1.1.0</title>
-
-  <meta name="flowiq-version" content="v1.1.0" />
-  <meta name="flowiq-build" content="production-manager-core" />
-  <meta name="theme-color" content="#020617" />
-
-  <style>
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
-    html,body{
-      margin:0;
-      min-height:100%;
-      background:
-        radial-gradient(circle at top left,rgba(37,99,235,.18),transparent 30%),
-        radial-gradient(circle at bottom right,rgba(16,185,129,.10),transparent 28%),
-        #020617;
-      color:white;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    }
-
-    body{
-      display:flex;
-      justify-content:center;
-    }
-
-    .app{
-      width:100%;
-      max-width:460px;
-      min-height:100vh;
-      padding:24px 18px 104px;
-    }
-
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:18px;
-    }
-
-    .brand{
-      font-size:27px;
-      font-weight:950;
-      letter-spacing:-1px;
-    }
-
-    .brand span{
-      background:linear-gradient(90deg,#60a5fa,#34d399);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-
-    .sub{
-      color:#94a3b8;
-      font-size:14px;
-      line-height:1.45;
-    }
-
-    .version{
-      margin-top:5px;
-      color:#64748b;
-      font-size:12px;
-    }
-
-    .logo{
-      width:50px;
-      height:50px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:18px;
-      background:rgba(37,99,235,.16);
-      border:1px solid rgba(96,165,250,.18);
-      font-size:26px;
-    }
-
-    .card{
-      background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));
-      border:1px solid rgba(148,163,184,.12);
-      border-radius:28px;
-      padding:20px;
-      margin-bottom:16px;
-      box-shadow:0 16px 38px rgba(0,0,0,.32);
-    }
-
-    .hero{
-      background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(16,185,129,.10));
-      border-color:rgba(96,165,250,.24);
-    }
-
-    .title{
-      font-size:22px;
-      font-weight:950;
-      letter-spacing:-.5px;
-      margin-bottom:6px;
-    }
-
-    .section{
-      font-size:19px;
-      font-weight:950;
-      margin:24px 0 12px;
-    }
-
-    .grid2{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-
-    .grid4{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin-top:16px;
-    }
-
-    .metric{
-      background:rgba(2,6,23,.54);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:20px;
-      padding:15px;
-      text-align:center;
-    }
-
-    .metric b{
-      display:block;
-      font-size:26px;
-      font-weight:950;
-    }
-
-    .metric span{
-      font-size:12px;
-      color:#94a3b8;
-    }
-
-    button{
-      width:100%;
-      border:0;
-      min-height:54px;
-      border-radius:20px;
-      color:white;
-      background:#1e293b;
-      font-size:15px;
-      font-weight:850;
-      cursor:pointer;
-      box-shadow:0 10px 22px rgba(0,0,0,.22);
-    }
-
-    button:active{transform:scale(.98)}
-
-    .blue{background:#2563eb}
-    .green{background:#059669}
-    .gray{background:#334155}
-    .red{background:#dc2626}
-
-    .action{
-      min-height:92px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      background:linear-gradient(180deg,#0f172a,#111827);
-      border:1px solid rgba(255,255,255,.06);
-    }
-
-    .emoji{font-size:30px}
-
-    label{
-      display:block;
-      margin:8px 0 6px;
-      color:#cbd5e1;
-      font-size:13px;
-      font-weight:850;
-    }
-
-    input{
-      width:100%;
-      min-height:54px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(2,6,23,.75);
-      color:white;
-      padding:0 15px;
-      margin-bottom:12px;
-      font-size:15px;
-      outline:none;
-    }
-
-    .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 0;
-      border-top:1px solid rgba(148,163,184,.09);
-    }
-
-    .row:first-child{border-top:0}
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:7px 11px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:900;
-      white-space:nowrap;
-    }
-
-    .live{background:rgba(16,185,129,.16);color:#6ee7b7}
-    .wait{background:rgba(245,158,11,.16);color:#fde68a}
-    .done{background:rgba(59,130,246,.16);color:#bfdbfe}
-    .closed{background:rgba(148,163,184,.14);color:#cbd5e1}
-
-    .small{
-      color:#94a3b8;
-      font-size:13px;
-      line-height:1.45;
-      margin-top:4px;
-    }
-
-    .notice{
-      margin-top:14px;
-      padding:13px;
-      border-radius:18px;
-      background:rgba(37,99,235,.12);
-      border:1px solid rgba(96,165,250,.16);
-      color:#bfdbfe;
-      font-size:13px;
-      font-weight:750;
-      line-height:1.45;
-    }
-
-    .hidden{display:none!important}
-
-    .top-actions{
-      display:flex;
-      gap:8px;
-      margin-bottom:14px;
-    }
-
-    .top-actions button{
-      min-height:44px;
-      border-radius:16px;
-      font-size:13px;
-      background:rgba(15,23,42,.9);
-      box-shadow:none;
-    }
-
-    .bottom-nav{
-      position:fixed;
-      left:50%;
-      bottom:12px;
-      transform:translateX(-50%);
-      width:calc(100% - 24px);
-      max-width:440px;
-      display:none;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
-      padding:10px;
-      background:rgba(15,23,42,.96);
-      border:1px solid rgba(148,163,184,.12);
-      border-radius:26px;
-      backdrop-filter:blur(14px);
-    }
-
-    .bottom-nav button{
-      min-height:56px;
-      border-radius:18px;
-      font-size:12px;
-      background:#020617;
-      color:#cbd5e1;
-      box-shadow:none;
-    }
-
-    .bottom-nav button.active{
-      background:#2563eb;
-      color:white;
-    }
-
-    .empty{
-      text-align:center;
-      color:#64748b;
-      font-size:14px;
-      padding:24px 10px;
-    }
-
-    .salary{
-      margin-top:10px;
-      font-size:28px;
-      font-weight:950;
-      color:#6ee7b7;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowIQ Crew Operations</title>
+<meta name="theme-color" content="#020617">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(circle at top left,rgba(37,99,235,.16),transparent 34%),#020617;color:white;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center}
+.app{width:100%;max-width:440px;min-height:100vh;padding:24px 18px 96px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.brand{font-size:29px;font-weight:950;letter-spacing:-1px;background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tagline{font-size:13px;color:#94a3b8;margin-top:4px}
+.icon-box{width:48px;height:48px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:rgba(37,99,235,.20);font-size:24px}
+.card,.clean-hero{background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));border:1px solid rgba(148,163,184,.12);border-radius:28px;padding:20px;margin-bottom:14px;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.clean-hero{border-radius:32px}
+.title{font-size:21px;font-weight:900;letter-spacing:-.4px;margin-bottom:6px}
+.sub{font-size:14px;color:#94a3b8;line-height:1.45}
+.section{font-size:21px;font-weight:950;margin:26px 0 12px}
+button{border:0;border-radius:22px;min-height:56px;padding:0 16px;font-size:15px;font-weight:850;color:white;background:#1e293b;box-shadow:0 8px 22px rgba(0,0,0,.20)}
+button:active{transform:scale(.98)}
+.blue{background:#2563eb}.green{background:#059669}.red{background:#dc2626}.gray{background:#334155}.full{width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lang-grid button{min-height:66px}
+input,select{width:100%;min-height:54px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(15,23,42,.90);color:white;padding:0 14px;margin:8px 0 14px;font-size:15px;outline:none}
+label{font-size:13px;font-weight:750;color:#cbd5e1}.hidden{display:none!important}
+.status{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 13px;border-radius:999px;font-size:13px;font-weight:900}
+.wait{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(251,191,36,.22)}.ok{background:rgba(16,185,129,.18);color:#34d399;border:1px solid rgba(52,211,153,.24)}.checked{background:rgba(59,130,246,.18);color:#60a5fa;border:1px solid rgba(96,165,250,.24)}.rejected{background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(248,113,113,.24)}
+.job-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.job-title{font-size:18px;font-weight:950;line-height:1.25}
+.badge{min-width:86px;min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:16px;background:linear-gradient(135deg,#2563eb,#3b82f6);font-size:13px;font-weight:950}
+.info{color:#cbd5e1;font-size:14px;line-height:1.45;margin:9px 0}
+.metric-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.metric{background:rgba(15,23,42,.80);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:14px 8px;text-align:center}.metric b{display:block;font-size:25px;font-weight:950}.metric span{font-size:12px;color:#94a3b8}
+.worker-row{display:flex;justify-content:space-between;align-items:center;gap:10px}.worker-name{font-weight:900}.worker-meta{font-size:13px;color:#94a3b8;margin-top:4px}
+.quick-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.bottom-nav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:calc(100% - 24px);max-width:430px;display:none;grid-template-columns:repeat(4,1fr);gap:8px;background:rgba(15,23,42,.94);border:1px solid rgba(148,163,184,.14);border-radius:24px;padding:10px;backdrop-filter:blur(12px)}
+.bottom-nav button{min-height:54px;border-radius:18px;font-size:12px;background:#020617;color:#cbd5e1;box-shadow:none}.bottom-nav button.active{background:#2563eb;color:white}
+</style>
 </head>
-
 <body>
-  <main class="app">
-
-    <header class="top">
-      <div>
-        <div class="brand"><span>FlowIQ Crew</span></div>
-        <div class="sub">OPERATIONS · Workforce Control</div>
-        <div class="version">v1.1.0 · production-manager-core</div>
-      </div>
-      <div class="logo">⚙️</div>
-    </header>
-
-    <div class="top-actions hidden" id="topActions">
-      <button onclick="goHome()">홈</button>
-      <button onclick="show('roleScreen')">역할변경</button>
-      <button class="red" onclick="resetData()">초기화</button>
-    </div>
-
-    <section id="roleScreen">
-      <div class="card hero">
-        <div class="title">FlowIQ Crew OPERATIONS</div>
-        <div class="sub">
-          운영용 v1.1.0입니다. 관리자 홈, 공고 생성, 생성한 공고, 근로자 지원, 출근 완료 흐름을 연결했습니다.
-        </div>
-        <div class="notice">
-          TEST / DEV 라인과 분리된 OPERATIONS 전용 빌드입니다.
-        </div>
-      </div>
-
-      <button class="green" style="margin-bottom:12px" onclick="selectRole('manager')">🏗️ 관리자 운영 화면</button>
-      <button class="blue" onclick="selectRole('worker')">👷 근로자 화면</button>
-    </section>
-
-    <section id="managerScreen" class="hidden">
-      <div class="card hero">
-        <div class="title">오늘 운영 현황</div>
-        <div class="sub">관리자는 오늘 필요한 것만 봅니다.</div>
-
-        <div class="grid4">
-          <div class="metric"><b id="mJobs">0</b><span>공고</span></div>
-          <div class="metric"><b id="mNeed">0</b><span>필요</span></div>
-          <div class="metric"><b id="mApply">0</b><span>지원</span></div>
-          <div class="metric"><b id="mCheck">0</b><span>출근</span></div>
-        </div>
-
-        <div class="notice" id="managerNotice">운영 상태 확인 중</div>
-      </div>
-
-      <div class="grid2">
-        <button class="action green" onclick="show('jobFormScreen')"><span class="emoji">＋</span>공고 생성</button>
-        <button class="action blue" onclick="scrollJobs()"><span class="emoji">📋</span>생성한 공고</button>
-      </div>
-
-      <div class="section" id="jobsAnchor">생성한 공고</div>
-      <div id="managerJobs"></div>
-
-      <div class="section">출근 완료</div>
-      <div id="attendanceList"></div>
-    </section>
-
-    <section id="jobFormScreen" class="hidden">
-      <div class="card hero">
-        <div class="title">공고 생성</div>
-        <div class="sub">현장 운영에 필요한 핵심 정보만 입력합니다.</div>
-      </div>
-
-      <div class="card">
-        <label>현장명</label>
-        <input id="jobSite" placeholder="예: 평택 물류센터">
-
-        <label>근무 시간</label>
-        <input id="jobTime" placeholder="예: 오늘 09:00 - 18:00">
-
-        <label>필요 인원</label>
-        <input id="jobNeed" type="number" placeholder="예: 5">
-
-        <label>일급</label>
-        <input id="jobPay" type="number" placeholder="예: 120000">
-
-        <label>위치</label>
-        <input id="jobLocation" placeholder="예: 경기 평택시">
-
-        <button class="green" onclick="createJob()">공고 저장</button>
-      </div>
-    </section>
-
-    <section id="workerScreen" class="hidden">
-      <div class="card hero">
-        <span class="badge live">TODAY</span>
-        <div class="title" style="margin-top:12px" id="workerTitle">오늘 출근 준비</div>
-        <div class="sub" id="workerSub">지원 가능한 현장을 확인하세요.</div>
-        <div class="salary" id="workerSalary">예상 급여 0원</div>
-      </div>
-
-      <div class="grid2">
-        <button class="action blue" onclick="applyFirstJob()"><span class="emoji">💼</span>지원하기</button>
-        <button class="action green" onclick="checkFirstJob()"><span class="emoji">✅</span>출근 완료</button>
-      </div>
-
-      <div class="section">오늘 현장</div>
-      <div id="workerJobs"></div>
-    </section>
-
-    <nav class="bottom-nav" id="bottomNav">
-      <button id="navHome" onclick="goHome()">홈</button>
-      <button id="navCreate" onclick="show('jobFormScreen')">공고</button>
-      <button id="navJobs" onclick="goJobs()">목록</button>
-      <button id="navRole" onclick="show('roleScreen')">역할</button>
-    </nav>
-
-  </main>
-
-  <script>
-    const APP_VERSION = "v1.1.0";
-    const APP_BUILD = "production-manager-core";
-
-    let role = localStorage.getItem("flowiq_ops_role") || "";
-    let jobs = JSON.parse(localStorage.getItem("flowiq_ops_jobs") || "[]");
-    let applications = JSON.parse(localStorage.getItem("flowiq_ops_applications") || "[]");
-    let attendance = JSON.parse(localStorage.getItem("flowiq_ops_attendance") || "[]");
-
-    const screens = ["roleScreen","managerScreen","jobFormScreen","workerScreen"];
-
-    function save(){
-      localStorage.setItem("flowiq_ops_role", role);
-      localStorage.setItem("flowiq_ops_jobs", JSON.stringify(jobs));
-      localStorage.setItem("flowiq_ops_applications", JSON.stringify(applications));
-      localStorage.setItem("flowiq_ops_attendance", JSON.stringify(attendance));
-    }
-
-    function won(value){
-      return Number(value || 0).toLocaleString("ko-KR") + "원";
-    }
-
-    function show(id){
-      screens.forEach(screen => document.getElementById(screen).classList.add("hidden"));
-      document.getElementById(id).classList.remove("hidden");
-
-      document.getElementById("topActions").classList.toggle("hidden", id === "roleScreen");
-      document.getElementById("bottomNav").style.display = id === "roleScreen" ? "none" : "grid";
-
-      updateNav(id);
-      render();
-    }
-
-    function updateNav(id){
-      ["navHome","navCreate","navJobs","navRole"].forEach(id => document.getElementById(id).classList.remove("active"));
-      if(id === "managerScreen" || id === "workerScreen") document.getElementById("navHome").classList.add("active");
-      if(id === "jobFormScreen") document.getElementById("navCreate").classList.add("active");
-    }
-
-    function selectRole(selected){
-      role = selected;
-      save();
-      show(role === "manager" ? "managerScreen" : "workerScreen");
-    }
-
-    function goHome(){
-      show(role === "worker" ? "workerScreen" : "managerScreen");
-    }
-
-    function goJobs(){
-      goHome();
-      setTimeout(scrollJobs, 50);
-    }
-
-    function scrollJobs(){
-      const target = document.getElementById("jobsAnchor");
-      if(target) target.scrollIntoView({behavior:"smooth"});
-    }
-
-    function createJob(){
-      const site = document.getElementById("jobSite").value.trim();
-      const time = document.getElementById("jobTime").value.trim();
-      const need = Number(document.getElementById("jobNeed").value || 0);
-      const pay = Number(document.getElementById("jobPay").value || 0);
-      const location = document.getElementById("jobLocation").value.trim();
-
-      if(!site || !time || !need || !pay){
-        alert("현장명, 근무 시간, 필요 인원, 일급은 꼭 입력해 주세요.");
-        return;
-      }
-
-      jobs.unshift({
-        id: Date.now(),
-        site,
-        time,
-        need,
-        pay,
-        location,
-        status: "모집중",
-        createdAt: new Date().toISOString()
-      });
-
-      ["jobSite","jobTime","jobNeed","jobPay","jobLocation"].forEach(id => document.getElementById(id).value = "");
-
-      save();
-      show("managerScreen");
-    }
-
-    function applyJob(jobId){
-      const exists = applications.find(item => item.jobId === jobId);
-      if(!exists){
-        applications.push({
-          jobId,
-          name: "근로자",
-          createdAt: new Date().toISOString()
-        });
-        save();
-      }
-      render();
-    }
-
-    function checkIn(jobId){
-      const job = jobs.find(item => item.id === jobId);
-      if(!job) return;
-
-      applyJob(jobId);
-
-      const exists = attendance.find(item => item.jobId === jobId);
-      if(!exists){
-        attendance.push({
-          jobId,
-          site: job.site,
-          name: "근로자",
-          time: new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})
-        });
-        save();
-      }
-      render();
-    }
-
-    function applyFirstJob(){
-      if(!jobs.length){
-        alert("아직 생성된 공고가 없습니다.");
-        return;
-      }
-      applyJob(jobs[0].id);
-      alert("지원 완료");
-    }
-
-    function checkFirstJob(){
-      if(!jobs.length){
-        alert("아직 생성된 공고가 없습니다.");
-        return;
-      }
-      checkIn(jobs[0].id);
-      alert("출근 완료");
-    }
-
-    function closeJob(jobId){
-      const job = jobs.find(item => item.id === jobId);
-      if(job){
-        job.status = "마감";
-        save();
-        render();
-      }
-    }
-
-    function deleteJob(jobId){
-      if(!confirm("이 공고를 삭제할까요?")) return;
-
-      jobs = jobs.filter(item => item.id !== jobId);
-      applications = applications.filter(item => item.jobId !== jobId);
-      attendance = attendance.filter(item => item.jobId !== jobId);
-
-      save();
-      render();
-    }
-
-    function resetData(){
-      if(!confirm("OPERATIONS 데이터를 초기화할까요?")) return;
-
-      jobs = [];
-      applications = [];
-      attendance = [];
-
-      localStorage.removeItem("flowiq_ops_jobs");
-      localStorage.removeItem("flowiq_ops_applications");
-      localStorage.removeItem("flowiq_ops_attendance");
-
-      save();
-      render();
-    }
-
-    function render(){
-      renderManager();
-      renderWorker();
-    }
-
-    function renderManager(){
-      document.getElementById("mJobs").textContent = jobs.length;
-      document.getElementById("mNeed").textContent = jobs.reduce((sum, job) => sum + Number(job.need || 0), 0);
-      document.getElementById("mApply").textContent = applications.length;
-      document.getElementById("mCheck").textContent = attendance.length;
-
-      const notice = document.getElementById("managerNotice");
-      if(!jobs.length){
-        notice.textContent = "첫 운영 공고를 생성하세요.";
-      }else if(attendance.length < applications.length){
-        notice.textContent = "지원자 중 출근 확인이 필요한 인원이 있습니다.";
-      }else{
-        notice.textContent = "오늘 운영 흐름이 정상입니다.";
-      }
-
-      const managerJobs = document.getElementById("managerJobs");
-      managerJobs.innerHTML = jobs.length ? jobs.map(job => {
-        const applied = applications.filter(item => item.jobId === job.id).length;
-        const checked = attendance.filter(item => item.jobId === job.id).length;
-        const badgeClass = job.status === "마감" ? "closed" : "live";
-
-        return `
-          <div class="card">
-            <div class="row">
-              <div>
-                <div class="title">${job.site}</div>
-                <div class="small">${job.time} · ${job.location || "위치 미입력"}</div>
-              </div>
-              <span class="badge ${badgeClass}">${job.status}</span>
-            </div>
-
-            <div class="grid4">
-              <div class="metric"><b>${job.need}</b><span>필요</span></div>
-              <div class="metric"><b>${applied}</b><span>지원</span></div>
-              <div class="metric"><b>${checked}</b><span>출근</span></div>
-              <div class="metric"><b>${won(job.pay)}</b><span>일급</span></div>
-            </div>
-
-            <div class="grid2" style="margin-top:14px">
-              <button class="blue" onclick="applyJob(${job.id})">지원자 추가</button>
-              <button class="green" onclick="checkIn(${job.id})">출근 완료</button>
-              <button class="gray" onclick="closeJob(${job.id})">마감</button>
-              <button class="red" onclick="deleteJob(${job.id})">삭제</button>
-            </div>
-          </div>
-        `;
-      }).join("") : `<div class="card empty">아직 생성한 공고가 없습니다.</div>`;
-
-      const attendanceList = document.getElementById("attendanceList");
-      attendanceList.innerHTML = attendance.length ? attendance.map(item => `
-        <div class="card">
-          <div class="row">
-            <div>
-              <b>${item.name}</b>
-              <div class="small">${item.site}</div>
-            </div>
-            <span class="badge done">${item.time}</span>
-          </div>
-        </div>
-      `).join("") : `<div class="card empty">출근 완료 인원이 없습니다.</div>`;
-    }
-
-    function renderWorker(){
-      const first = jobs[0];
-
-      document.getElementById("workerTitle").textContent = first ? "오늘 현장 확인" : "오늘 출근 준비";
-      document.getElementById("workerSub").textContent = first ? `${first.site} · ${first.time}` : "관리자가 공고를 만들면 여기에 표시됩니다.";
-      document.getElementById("workerSalary").textContent = "예상 급여 " + (first ? won(first.pay) : "0원");
-
-      const workerJobs = document.getElementById("workerJobs");
-      workerJobs.innerHTML = jobs.length ? jobs.map(job => {
-        const applied = applications.find(item => item.jobId === job.id);
-        const checked = attendance.find(item => item.jobId === job.id);
-
-        const status = checked ? "출근 완료" : applied ? "지원 완료" : "지원 가능";
-        const cls = checked ? "done" : applied ? "wait" : "live";
-
-        return `
-          <div class="card">
-            <div class="row">
-              <div>
-                <div class="title">${job.site}</div>
-                <div class="small">${job.time} · ${job.location || "위치 미입력"}</div>
-                <div class="small">일급 ${won(job.pay)}</div>
-              </div>
-              <span class="badge ${cls}">${status}</span>
-            </div>
-
-            <div class="grid2" style="margin-top:12px">
-              <button class="blue" onclick="applyJob(${job.id})">지원하기</button>
-              <button class="green" onclick="checkIn(${job.id})">출근 완료</button>
-            </div>
-          </div>
-        `;
-      }).join("") : `<div class="card empty">오늘 등록된 현장이 없습니다.</div>`;
-    }
-
-    if(role){
-      show(role === "worker" ? "workerScreen" : "managerScreen");
-    }else{
-      show("roleScreen");
-    }
-
-    console.log("FlowIQ Crew OPERATIONS", APP_VERSION, APP_BUILD);
-  </script>
+<div class="app">
+<header class="top"><div><div class="brand">FlowIQ Crew</div><div class="tagline">Operations · v1.0</div></div><div class="icon-box">🌐</div></header>
+<section id="languageScreen"><div class="card"><div class="title">언어 선택</div><div class="sub">Choose your language.</div></div><div class="lang-grid" id="languageGrid"></div></section>
+<section id="roleScreen" class="hidden"><div class="card"><div class="title">시작하기</div><div class="sub">현장 운영에 필요한 화면만 간결하게 제공합니다.</div></div><button class="full blue" onclick="selectRole('worker')">👷 근로자</button><br><br><button class="full green" onclick="selectRole('manager')">🏗️ 관리자</button><br><br><button class="full red" onclick="selectRole('master')">🛡️ MASTER</button></section>
+<section id="workerInfoScreen" class="hidden"><div class="card"><div class="title">근로자 정보</div><div class="sub">처음 한 번만 입력합니다.</div></div><div class="card"><label>이름</label><input id="workerNameInput" placeholder="예: 바타르"><label>연락처</label><input id="workerPhoneInput" placeholder="예: 010-1234-5678"><button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button></div></section>
+<section id="workerScreen" class="hidden"><div id="workerHome"></div><div class="section">추천 일자리</div><div id="jobsList"></div></section>
+<section id="managerScreen" class="hidden"><div class="clean-hero"><div class="title">오늘 현황</div><div class="sub">공고, 지원, 출근만 빠르게 확인합니다.</div><div class="metric-wrap"><div class="metric"><b id="mJobs">0</b><span>공고</span></div><div class="metric"><b id="mApplied">0</b><span>지원</span></div><div class="metric"><b id="mChecked">0</b><span>출근</span></div></div></div><button class="full blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button><div class="section" id="createdJobsSection">생성한 공고</div><div id="managerJobsList"></div><div class="section">지원 대기</div><div id="managerPendingList"></div><div class="section">출근 완료</div><div id="managerAttendanceList"></div></section>
+<section id="jobFormScreen" class="hidden"><div class="card"><div class="title">공고 생성</div><div class="sub">필수 정보만 입력합니다.</div></div><div class="card"><label>공고명</label><input id="fTitle" placeholder="예: 성수 물류센터"><label>위치</label><input id="fLocation" placeholder="예: 서울 성동구"><label>근무 시간</label><input id="fTime" placeholder="예: 08:00 - 18:00"><label>일급</label><input id="fSalary" type="number" placeholder="예: 150000"><label>필요 인원</label><input id="fNeeded" type="number" placeholder="예: 5"><label>작업 종류</label><select id="fType"><option>물류</option><option>건설</option><option>공장</option><option>농촌</option><option>어촌</option><option>기타</option></select><button class="full blue" onclick="createJob()">공고 저장</button></div></section>
+<section id="payrollScreen" class="hidden"><div class="card"><div class="title">급여</div><div class="sub">출근 완료 기준 예상 금액입니다.</div></div><div id="payrollList"></div></section>
+<section id="qrScreen" class="hidden"><div class="card" style="text-align:center"><div class="title">출근</div><div class="sub">승인된 공고만 출근 처리됩니다.</div><br><button class="full green" onclick="completeCheckIn()">✅ 출근 완료</button></div></section>
+<section id="masterScreen" class="hidden"><div class="clean-hero"><div class="title">MASTER</div><div class="sub">운영 데이터 확인 및 정리</div><div class="metric-wrap"><div class="metric"><b id="masterJobs">0</b><span>공고</span></div><div class="metric"><b id="masterApps">0</b><span>지원</span></div><div class="metric"><b id="masterAtt">0</b><span>출근</span></div></div></div><div class="grid2"><button class="red" onclick="masterClearApplications()">지원 삭제</button><button class="red" onclick="masterClearAttendance()">출근 삭제</button></div></section>
+</div>
+<nav class="bottom-nav" id="bottomNav"><button id="navHome" onclick="goHome()">홈</button><button id="navJobs" onclick="navJobs()">공고</button><button id="navCheck" onclick="showQR()">출근</button><button id="navPay" onclick="showPayroll()">급여</button></nav>
+<script>
+const APP_VERSION="FlowIQ Crew Operations v1.0";
+const SUPABASE_URL="https://zhbzphvqiiijfjqnktlo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ6aGJ6cGh2cWlpaWZqanFua3RsbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzc5MDQxMDU3LCJleHAiOjIwOTQ2MTcwNTd9.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const COMPANY_PASSWORDS={demo_company:"0000",alpha:"1111",beta:"2222"};
+const MASTER_PASSWORD="1234";
+const languages=[{label:"🇰🇷 한국어",value:"ko"},{label:"🇺🇸 English",value:"en"},{label:"🇻🇳 Tiếng Việt",value:"vi"},{label:"🇲🇳 Монгол",value:"mn"},{label:"🇹🇭 ไทย",value:"th"},{label:"🇳🇵 नेपाली",value:"np"},{label:"🇺🇿 Oʻzbek",value:"uz"},{label:"🇨🇳 中文",value:"zh"}];
+let role=localStorage.getItem("operations_role")||null,companyId=localStorage.getItem("operations_company")||"demo_company",workerName=localStorage.getItem("operations_worker_name")||"",workerPhone=localStorage.getItem("operations_worker_phone")||"",jobs=[],applications=[],attendance=[],pendingApplications=[],currentScreen="languageScreen";
+const screens=["languageScreen","roleScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen","masterScreen"];
+function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
+function show(id){currentScreen=id;screens.forEach(s=>{const el=document.getElementById(s);if(el)el.classList.add("hidden")});document.getElementById(id).classList.remove("hidden");bottomNav.style.display=["workerScreen","managerScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";updateNav()}
+function goScreen(id){show(id)}
+function selectLanguage(lang){localStorage.setItem("operations_lang",lang);show("roleScreen")}
+async function selectRole(selected){if(selected==="worker"){role="worker";localStorage.setItem("operations_role","worker");if(!workerName||!workerPhone){show("workerInfoScreen");return}await loadData();show("workerScreen")}if(selected==="manager"){const code=prompt("업체 코드");if(!code||!COMPANY_PASSWORDS[code])return alert("업체 코드를 확인하세요.");const pw=prompt("비밀번호");if(pw!==COMPANY_PASSWORDS[code])return alert("비밀번호가 틀렸습니다.");role="manager";companyId=code;localStorage.setItem("operations_role","manager");localStorage.setItem("operations_company",code);await loadData();show("managerScreen")}if(selected==="master"){const pw=prompt("MASTER 비밀번호");if(pw!==MASTER_PASSWORD)return alert("비밀번호가 틀렸습니다.");role="master";localStorage.setItem("operations_role","master");await loadData();show("masterScreen")}}
+function saveWorkerInfo(){const name=workerNameInput.value.trim(),phone=workerPhoneInput.value.trim();if(!name||!phone)return alert("이름과 연락처를 입력하세요.");workerName=name;workerPhone=phone;localStorage.setItem("operations_worker_name",name);localStorage.setItem("operations_worker_phone",phone);loadData().then(()=>show("workerScreen"))}
+async function loadData(){let jobsQuery=db.from("jobs").select("*"),appsQuery=db.from("applications").select("*"),attQuery=db.from("attendance").select("*");if(role==="manager"){jobsQuery=jobsQuery.eq("company_id",companyId);appsQuery=appsQuery.eq("company_id",companyId);attQuery=attQuery.eq("company_id",companyId)}if(role==="worker"&&workerPhone){appsQuery=appsQuery.eq("phone",workerPhone);attQuery=attQuery.eq("phone",workerPhone)}const jr=await jobsQuery.order("created_at",{ascending:false}),ar=await appsQuery.order("created_at",{ascending:false}),tr=await attQuery.order("created_at",{ascending:false});if(jr.error)return alert("공고 오류: "+jr.error.message);if(ar.error)return alert("지원 오류: "+ar.error.message);if(tr.error)return alert("출근 오류: "+tr.error.message);jobs=jr.data||[];applications=ar.data||[];attendance=tr.data||[];renderAll()}
+function renderAll(){renderWorkerHome();renderJobs();renderManager();renderPayroll();renderMaster()}
+function getMyApp(){return applications.find(a=>a.phone===workerPhone)||null}
+function renderWorkerHome(){const el=document.getElementById("workerHome");if(!el)return;const app=getMyApp();const status=app?(app.status||"지원"):"근무 가능";const job=app?jobs.find(j=>Number(j.id)===Number(app.job_id)):null;const statusClass=status==="승인"?"ok":status==="출근완료"?"checked":status==="거절"?"rejected":"wait";const statusText=status==="지원"?"승인 대기중":status==="승인"?"승인 완료":status==="출근완료"?"출근 완료":status;el.innerHTML=`<div class="clean-hero"><span class="status ${statusClass}">${statusText}</span><div class="title" style="margin-top:12px">${job?job.title:"오늘 현장 없음"}</div><div class="sub">${job?job.location:"지원 후 승인되면 현장이 표시됩니다."}</div>${job?`<div class="info">🕒 ${job.work_time}</div><div class="info">💰 ${won(job.salary)}</div>`:""}<div class="quick-row"><button class="blue" onclick="openMap('${job?String(job.location).replace(/'/g,"\'"):""}')">길찾기</button><button class="green" onclick="showQR()">출근</button></div></div>`}
+function renderJobs(){const el=document.getElementById("jobsList");if(!el)return;el.innerHTML=jobs.length?jobs.map(j=>{const already=applications.some(a=>Number(a.job_id)===Number(j.id)&&a.phone===workerPhone);return `<div class="card"><div class="job-head"><div><div class="job-title">${j.title}</div><div class="sub">${j.type||"현장"}</div></div><div class="badge">${won(j.salary)}</div></div><div class="info">📍 ${j.location}</div><div class="info">🕒 ${j.work_time}</div><button class="full ${already?'gray':'blue'}" onclick="applyJob(${j.id})">${already?'지원 완료':'지원하기'}</button></div>`}).join(""):`<div class="card"><div class="sub">현재 공고가 없습니다.</div></div>`}
+async function applyJob(jobId){if(!workerName||!workerPhone)return show("workerInfoScreen");if(applications.some(a=>a.phone===workerPhone))return alert("이미 지원한 공고가 있습니다.");const job=jobs.find(j=>Number(j.id)===Number(jobId));if(!job)return alert("공고를 찾을 수 없습니다.");const {error}=await db.from("applications").insert({job_id:jobId,worker_name:workerName,phone:workerPhone,company_id:job.company_id,status:"지원"});if(error)return alert("지원 오류: "+error.message);await db.from("jobs").update({applied:(job.applied||0)+1}).eq("id",jobId);await loadData();alert("지원 완료")}
+function renderManager(){const jobEl=document.getElementById("managerJobsList"),pendEl=document.getElementById("managerPendingList"),attEl=document.getElementById("managerAttendanceList");if(!jobEl||!pendEl||!attEl)return;const waiting=applications.filter(a=>(a.status||"지원")==="지원");pendingApplications=waiting;mJobs.innerText=jobs.length;mApplied.innerText=waiting.length;mChecked.innerText=attendance.length;jobEl.innerHTML=jobs.length?jobs.map(j=>`<div class="card"><div class="job-head"><div><div class="job-title">${j.title}</div><div class="sub">${j.location}</div></div><div class="badge">${won(j.salary)}</div></div><div class="info">🕒 ${j.work_time}</div><div class="info">👥 ${(j.applied||0)}/${j.needed||0}</div></div>`).join(""):`<div class="card"><div class="sub">생성한 공고가 없습니다.</div></div>`;pendEl.innerHTML=waiting.length?waiting.map((a,i)=>{const job=jobs.find(j=>Number(j.id)===Number(a.job_id));return `<div class="card"><div class="worker-row"><div><div class="worker-name">${a.worker_name||"이름없음"}</div><div class="worker-meta">${a.phone||""} · ${job?job.title:"공고 없음"}</div></div><div style="display:flex;flex-direction:column;gap:8px"><button class="green" onclick="changeStatus(${i},'승인')">승인</button><button class="red" onclick="changeStatus(${i},'거절')">거절</button></div></div></div>`}).join(""):`<div class="card"><div class="sub">지원 대기자가 없습니다.</div></div>`;attEl.innerHTML=attendance.length?attendance.map(a=>`<div class="card"><div class="worker-row"><div><div class="worker-name">${a.worker_name||"이름없음"}</div><div class="worker-meta">${a.job_title||""}</div></div><span class="status checked">출근 완료</span></div></div>`).join(""):`<div class="card"><div class="sub">출근 기록이 없습니다.</div></div>`}
+async function changeStatus(index,status){const app=pendingApplications[index];if(!app)return alert("지원 기록을 찾을 수 없습니다.");const {error}=await db.from("applications").update({status}).eq("id",app.id);if(error)return alert("상태 변경 오류: "+error.message);await loadData();alert(status+" 완료")}
+async function createJob(){const title=fTitle.value.trim(),location=fLocation.value.trim(),work_time=fTime.value.trim(),salary=Number(fSalary.value||0),needed=Number(fNeeded.value||0),type=fType.value;if(!title||!location||!work_time||!salary||!needed)return alert("필수 정보를 입력하세요.");const {error}=await db.from("jobs").insert({title,location,work_time,salary,needed,type,applied:0,language:"한국어",company_id:companyId});if(error)return alert("공고 저장 오류: "+error.message);fTitle.value=fLocation.value=fTime.value=fSalary.value=fNeeded.value="";await loadData();show("managerScreen");setTimeout(()=>document.getElementById("createdJobsSection").scrollIntoView({behavior:"smooth"}),100)}
+function openMap(locationText){if(!locationText)return alert("현장 위치가 없습니다.");window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationText)}`,"_blank")}
+function showQR(){show("qrScreen")}
+async function completeCheckIn(){const app=applications.find(a=>(a.status||"지원")==="승인");if(!app)return alert("승인된 공고만 출근할 수 있습니다.");const job=jobs.find(j=>Number(j.id)===Number(app.job_id));if(!job)return alert("공고를 찾을 수 없습니다.");const {error}=await db.from("attendance").insert({job_id:job.id,worker_name:workerName,phone:workerPhone,job_title:job.title,amount:job.salary,company_id:job.company_id,gps:"manual"});if(error)return alert("출근 오류: "+error.message);await db.from("applications").update({status:"출근완료"}).eq("id",app.id);await loadData();alert("출근 완료");goHome()}
+function showPayroll(){show("payrollScreen")}
+function renderPayroll(){const el=document.getElementById("payrollList");if(!el)return;const total=attendance.reduce((s,a)=>s+Number(a.amount||0),0);el.innerHTML=attendance.length?`<div class="card"><div class="title">${won(total)}</div><div class="sub">누적 예상 급여</div></div>`:`<div class="card"><div class="sub">아직 급여 기록이 없습니다.</div></div>`}
+function renderMaster(){if(!document.getElementById("masterJobs"))return;masterJobs.innerText=jobs.length;masterApps.innerText=applications.length;masterAtt.innerText=attendance.length}
+async function masterClearApplications(){if(role!=="master")return;if(!confirm("지원 기록 전체 삭제?"))return;const {error}=await db.from("applications").delete().neq("id",-1);if(error)return alert(error.message);await loadData()}
+async function masterClearAttendance(){if(role!=="master")return;if(!confirm("출근 기록 전체 삭제?"))return;const {error}=await db.from("attendance").delete().neq("id",-1);if(error)return alert(error.message);await loadData()}
+function goHome(){if(role==="manager")show("managerScreen");else if(role==="master")show("masterScreen");else show("workerScreen")}
+function navJobs(){if(role==="manager"){show("managerScreen");setTimeout(()=>document.getElementById("createdJobsSection").scrollIntoView({behavior:"smooth"}),100)}else if(role==="worker")show("workerScreen");else show("masterScreen")}
+function updateNav(){["navHome","navJobs","navCheck","navPay"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove("active")});if(["workerScreen","managerScreen","masterScreen"].includes(currentScreen))navHome.classList.add("active");if(currentScreen==="payrollScreen")navPay.classList.add("active");if(currentScreen==="qrScreen")navCheck.classList.add("active")}
+function init(){languageGrid.innerHTML=languages.map(l=>`<button onclick="selectLanguage('${l.value}')">${l.label}</button>`).join("");const lang=localStorage.getItem("operations_lang");if(!lang)show("languageScreen");else if(role==="manager")loadData().then(()=>show("managerScreen"));else if(role==="worker"){if(workerName&&workerPhone)loadData().then(()=>show("workerScreen"));else show("workerInfoScreen")}else if(role==="master")loadData().then(()=>show("masterScreen"));else show("roleScreen")}
+init();
+</script>
 </body>
 </html>
