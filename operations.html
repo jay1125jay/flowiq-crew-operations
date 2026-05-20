@@ -2271,24 +2271,14 @@ async function deleteJob(jobId){
     return text.includes(keyword);
   });
 
-  const filteredByStatus=searchedApplications.filter(a=>{
-    const status=getStatus(a);
+  const filteredByStatus=searchedApplications;
 
-    if(managerFilter==="all")return true;
-    if(managerFilter==="pending")return status==="지원";
-    if(managerFilter==="approved")return status==="승인";
-    if(managerFilter==="rejected")return status==="거절";
-    if(managerFilter==="checked")return status==="출근완료";
-
-    return true;
-  });
-
-  const pendingApplications=filteredByStatus.filter(a=>getStatus(a)==="지원");
-  const processedApplications=filteredByStatus.filter(a=>getStatus(a)!=="지원");
+  const pendingApplications=filteredByStatus.filter(a=>["지원","지원완료","승인 대기","승인대기"].includes(getStatus(a)));
+  const processedApplications=filteredByStatus.filter(a=>!["지원","지원완료","승인 대기","승인대기"].includes(getStatus(a)));
 
   managerPendingApplications=pendingApplications;
   const hideOpsClass = role==="manager" ? "manager-only-hidden" : "";
-  const simpleManagerHideClass = role==="manager" ? "manager-section-hidden" : "";
+  const simpleManagerHideClass = "";
 
   document.getElementById("mChecked").innerText=filteredAttendance.length;
   document.getElementById("mApplied").innerText=pendingApplications.length;
@@ -2296,9 +2286,9 @@ async function deleteJob(jobId){
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
-      (COMPANY_NAMES[companyId] || companyId) + " · v11.7";
+      (COMPANY_NAMES[companyId] || companyId) + " · OPERATIONS";
   }else{
-    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v11.7";
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · OPERATIONS";
   }
 
   const pendingRows=pendingApplications.map((a,index)=>{
@@ -2313,16 +2303,10 @@ async function deleteJob(jobId){
           <div class="info">상태: 지원 대기</div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button type="button" class="blue approve-btn" data-index="${index}">승인</button>
-          <button type="button" class="red reject-btn" data-index="${index}">거절</button>
-
-          <div class="fast-approve-bar">
-            <button type="button" class="green" onclick="quickApprove(${a.id})">빠른승인</button>
-            <button type="button" class="gray" onclick="sendWorkerNotice('${a.phone || ""}')">알림</button>
-          </div>
-
-          ${role==="master" ? `<button type="button" class="gray" onclick="masterDeleteApplication(${a.id})">기록삭제</button>` : ``}
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:96px">
+          <button type="button" class="blue approve-btn" data-index="${index}" style="min-height:46px;border-radius:16px;font-size:14px">승인</button>
+          <button type="button" class="red reject-btn" data-index="${index}" style="min-height:46px;border-radius:16px;font-size:14px">거절</button>
+          ${role==="master" ? `<button type="button" class="gray" style="min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteApplication(${a.id})">기록삭제</button>` : ``}
         </div>
       </div>
     </div>`;
@@ -2474,20 +2458,6 @@ async function deleteJob(jobId){
           </div>
         </div>
       ` : ``}
-
-      <div class="manager-filter">
-        <div class="title">🔎 현장 검색 / 필터</div>
-        <input placeholder="이름, 전화번호, 공고명 검색" value="${managerSearch}" oninput="setManagerSearch(this.value)" />
-
-        <div class="manager-filter-grid">
-          <button class="${managerFilter==='all'?'blue':'gray'}" onclick="setManagerFilter('all')">전체</button>
-          <button class="${managerFilter==='pending'?'blue':'gray'}" onclick="setManagerFilter('pending')">지원 대기</button>
-          <button class="${managerFilter==='approved'?'green':'gray'}" onclick="setManagerFilter('approved')">승인 완료</button>
-          <button class="${managerFilter==='checked'?'blue':'gray'}" onclick="setManagerFilter('checked')">출근 완료</button>
-          <button class="${managerFilter==='rejected'?'red':'gray'}" onclick="setManagerFilter('rejected')">거절</button>
-          <button class="gray" onclick="resetManagerFilter()">초기화</button>
-        </div>
-      </div>
 
       ${dashboardCards}
 
