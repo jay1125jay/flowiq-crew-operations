@@ -39,11 +39,11 @@ label{font-size:13px;font-weight:750;color:#cbd5e1}.hidden{display:none!importan
 </head>
 <body>
 <div class="app">
-<header class="top"><div><div class="brand">FlowIQ Crew</div><div class="tagline">Operations · v1.0</div></div><div class="icon-box">🌐</div></header>
+<header class="top"><div><div class="brand">FlowIQ Crew</div><div class="tagline">Operations · v1.1</div></div><div class="icon-box">🌐</div></header>
 <section id="languageScreen"><div class="card"><div class="title">언어 선택</div><div class="sub">Choose your language.</div></div><div class="lang-grid" id="languageGrid"></div></section>
 <section id="roleScreen" class="hidden"><div class="card"><div class="title">시작하기</div><div class="sub">현장 운영에 필요한 화면만 간결하게 제공합니다.</div></div><button class="full blue" onclick="selectRole('worker')">👷 근로자</button><br><br><button class="full green" onclick="selectRole('manager')">🏗️ 관리자</button><br><br><button class="full red" onclick="selectRole('master')">🛡️ MASTER</button></section>
 <section id="workerInfoScreen" class="hidden"><div class="card"><div class="title">근로자 정보</div><div class="sub">처음 한 번만 입력합니다.</div></div><div class="card"><label>이름</label><input id="workerNameInput" placeholder="예: 바타르"><label>연락처</label><input id="workerPhoneInput" placeholder="예: 010-1234-5678"><button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button></div></section>
-<section id="workerScreen" class="hidden"><div id="workerHome"></div><div class="section">추천 일자리</div><div id="jobsList"></div></section>
+<section id="workerScreen" class="hidden"><div id="workerHome"></div><div class="section" id="recommendedJobsSection">추천 일자리</div><div id="jobsList"></div></section>
 <section id="managerScreen" class="hidden"><div class="clean-hero"><div class="title">오늘 현황</div><div class="sub">공고, 지원, 출근만 빠르게 확인합니다.</div><div class="metric-wrap"><div class="metric"><b id="mJobs">0</b><span>공고</span></div><div class="metric"><b id="mApplied">0</b><span>지원</span></div><div class="metric"><b id="mChecked">0</b><span>출근</span></div></div></div><button class="full blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button><div class="section" id="createdJobsSection">생성한 공고</div><div id="managerJobsList"></div><div class="section">지원 대기</div><div id="managerPendingList"></div><div class="section">출근 완료</div><div id="managerAttendanceList"></div></section>
 <section id="jobFormScreen" class="hidden"><div class="card"><div class="title">공고 생성</div><div class="sub">필수 정보만 입력합니다.</div></div><div class="card"><label>공고명</label><input id="fTitle" placeholder="예: 성수 물류센터"><label>위치</label><input id="fLocation" placeholder="예: 서울 성동구"><label>근무 시간</label><input id="fTime" placeholder="예: 08:00 - 18:00"><label>일급</label><input id="fSalary" type="number" placeholder="예: 150000"><label>필요 인원</label><input id="fNeeded" type="number" placeholder="예: 5"><label>작업 종류</label><select id="fType"><option>물류</option><option>건설</option><option>공장</option><option>농촌</option><option>어촌</option><option>기타</option></select><button class="full blue" onclick="createJob()">공고 저장</button></div></section>
 <section id="payrollScreen" class="hidden"><div class="card"><div class="title">급여</div><div class="sub">출근 완료 기준 예상 금액입니다.</div></div><div id="payrollList"></div></section>
@@ -52,7 +52,7 @@ label{font-size:13px;font-weight:750;color:#cbd5e1}.hidden{display:none!importan
 </div>
 <nav class="bottom-nav" id="bottomNav"><button id="navHome" onclick="goHome()">홈</button><button id="navJobs" onclick="navJobs()">공고</button><button id="navCheck" onclick="showQR()">출근</button><button id="navPay" onclick="showPayroll()">급여</button></nav>
 <script>
-const APP_VERSION="FlowIQ Crew Operations v1.0";
+const APP_VERSION="FlowIQ Crew Operations v1.1";
 const SUPABASE_URL="https://zhbzphvqiiijfjqnktlo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I";
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -85,7 +85,20 @@ function renderMaster(){if(!document.getElementById("masterJobs"))return;masterJ
 async function masterClearApplications(){if(role!=="master")return;if(!confirm("지원 기록 전체 삭제?"))return;const {error}=await db.from("applications").delete().neq("id",-1);if(error)return alert(error.message);await loadData()}
 async function masterClearAttendance(){if(role!=="master")return;if(!confirm("출근 기록 전체 삭제?"))return;const {error}=await db.from("attendance").delete().neq("id",-1);if(error)return alert(error.message);await loadData()}
 function goHome(){if(role==="manager")show("managerScreen");else if(role==="master")show("masterScreen");else show("workerScreen")}
-function navJobs(){if(role==="manager"){show("managerScreen");setTimeout(()=>document.getElementById("createdJobsSection").scrollIntoView({behavior:"smooth"}),100)}else if(role==="worker")show("workerScreen");else show("masterScreen")}
+function navJobs(){
+  if(role==="manager"){
+    show("managerScreen");
+    setTimeout(()=>document.getElementById("createdJobsSection").scrollIntoView({behavior:"smooth"}),100);
+  }else if(role==="worker"){
+    show("workerScreen");
+    setTimeout(()=>{
+      const target=document.getElementById("recommendedJobsSection");
+      if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
+    },100);
+  }else{
+    show("masterScreen");
+  }
+}
 function updateNav(){["navHome","navJobs","navCheck","navPay"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove("active")});if(["workerScreen","managerScreen","masterScreen"].includes(currentScreen))navHome.classList.add("active");if(currentScreen==="payrollScreen")navPay.classList.add("active");if(currentScreen==="qrScreen")navCheck.classList.add("active")}
 function init(){languageGrid.innerHTML=languages.map(l=>`<button onclick="selectLanguage('${l.value}')">${l.label}</button>`).join("");const lang=localStorage.getItem("operations_lang");if(!lang)show("languageScreen");else if(role==="manager")loadData().then(()=>show("managerScreen"));else if(role==="worker"){if(workerName&&workerPhone)loadData().then(()=>show("workerScreen"));else show("workerInfoScreen")}else if(role==="master")loadData().then(()=>show("masterScreen"));else show("roleScreen")}
 init();
