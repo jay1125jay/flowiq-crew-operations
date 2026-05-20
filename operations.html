@@ -1474,6 +1474,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   <button class="gray" onclick="goRoleSelect()">역할변경</button>
   <button class="gray" onclick="goLanguageSelect()">언어변경</button>
   <button class="red" onclick="refreshData()">새로고침</button>
+  <button class="gray" onclick="resetWorkerTest()">새 근로자</button>
 </div>
 
 <section id="languageScreen">
@@ -1780,7 +1781,24 @@ function saveWorkerInfo(){
 
   goScreen("workerScreen");
 }
-  async function loadData(){
+  
+function resetWorkerTest(){
+  if(!confirm("새 근로자 테스트를 위해 기존 근로자 정보를 초기화할까요?")) return;
+
+  localStorage.removeItem("worker_name");
+  localStorage.removeItem("worker_phone");
+  localStorage.removeItem("crew_role");
+
+  workerName="";
+  workerPhone="";
+  role=null;
+  lastRole=null;
+
+  alert("초기화 완료. 새 근로자로 다시 시작합니다.");
+  location.reload();
+}
+
+async function loadData(){
   let jobsQuery=db.from("jobs").select("*");
   let applicationsQuery=db.from("applications").select("*");
   let attendanceQuery=db.from("attendance").select("*");
@@ -2271,14 +2289,24 @@ async function deleteJob(jobId){
     return text.includes(keyword);
   });
 
-  const filteredByStatus=searchedApplications;
+  const filteredByStatus=searchedApplications.filter(a=>{
+    const status=getStatus(a);
 
-  const pendingApplications=filteredByStatus.filter(a=>["지원","지원완료","승인 대기","승인대기"].includes(getStatus(a)));
-  const processedApplications=filteredByStatus.filter(a=>!["지원","지원완료","승인 대기","승인대기"].includes(getStatus(a)));
+    if(managerFilter==="all")return true;
+    if(managerFilter==="pending")return status==="지원";
+    if(managerFilter==="approved")return status==="승인";
+    if(managerFilter==="rejected")return status==="거절";
+    if(managerFilter==="checked")return status==="출근완료";
+
+    return true;
+  });
+
+  const pendingApplications=filteredByStatus.filter(a=>getStatus(a)==="지원");
+  const processedApplications=filteredByStatus.filter(a=>getStatus(a)!=="지원");
 
   managerPendingApplications=pendingApplications;
   const hideOpsClass = role==="manager" ? "manager-only-hidden" : "";
-  const simpleManagerHideClass = "";
+  const simpleManagerHideClass = role==="manager" ? "manager-section-hidden" : "";
 
   document.getElementById("mChecked").innerText=filteredAttendance.length;
   document.getElementById("mApplied").innerText=pendingApplications.length;
@@ -2286,9 +2314,9 @@ async function deleteJob(jobId){
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
-      (COMPANY_NAMES[companyId] || companyId) + " · OPERATIONS";
+      (COMPANY_NAMES[companyId] || companyId) + " · v11.7";
   }else{
-    document.getElementById("managerTitle").innerText="FlowIQ MASTER · OPERATIONS";
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v11.7";
   }
 
   const pendingRows=pendingApplications.map((a,index)=>{
@@ -2303,10 +2331,16 @@ async function deleteJob(jobId){
           <div class="info">상태: 지원 대기</div>
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:8px;min-width:96px">
-          <button type="button" class="blue approve-btn" data-index="${index}" style="min-height:46px;border-radius:16px;font-size:14px">승인</button>
-          <button type="button" class="red reject-btn" data-index="${index}" style="min-height:46px;border-radius:16px;font-size:14px">거절</button>
-          ${role==="master" ? `<button type="button" class="gray" style="min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteApplication(${a.id})">기록삭제</button>` : ``}
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button type="button" class="blue approve-btn" data-index="${index}">승인</button>
+          <button type="button" class="red reject-btn" data-index="${index}">거절</button>
+
+          <div class="fast-approve-bar">
+            <button type="button" class="green" onclick="quickApprove(${a.id})">빠른승인</button>
+            <button type="button" class="gray" onclick="sendWorkerNotice('${a.phone || ""}')">알림</button>
+          </div>
+
+          ${role==="master" ? `<button type="button" class="gray" onclick="masterDeleteApplication(${a.id})">기록삭제</button>` : ``}
         </div>
       </div>
     </div>`;
@@ -2458,6 +2492,20 @@ async function deleteJob(jobId){
           </div>
         </div>
       ` : ``}
+
+      <div class="manager-filter">
+        <div class="title">🔎 현장 검색 / 필터</div>
+        <input placeholder="이름, 전화번호, 공고명 검색" value="${managerSearch}" oninput="setManagerSearch(this.value)" />
+
+        <div class="manager-filter-grid">
+          <button class="${managerFilter==='all'?'blue':'gray'}" onclick="setManagerFilter('all')">전체</button>
+          <button class="${managerFilter==='pending'?'blue':'gray'}" onclick="setManagerFilter('pending')">지원 대기</button>
+          <button class="${managerFilter==='approved'?'green':'gray'}" onclick="setManagerFilter('approved')">승인 완료</button>
+          <button class="${managerFilter==='checked'?'blue':'gray'}" onclick="setManagerFilter('checked')">출근 완료</button>
+          <button class="${managerFilter==='rejected'?'red':'gray'}" onclick="setManagerFilter('rejected')">거절</button>
+          <button class="gray" onclick="resetManagerFilter()">초기화</button>
+        </div>
+      </div>
 
       ${dashboardCards}
 
