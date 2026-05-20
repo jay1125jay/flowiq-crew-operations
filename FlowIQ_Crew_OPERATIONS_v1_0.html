@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowIQ Crew OPERATIONS v1.0</title>
+<meta name="theme-color" content="#020617">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;min-height:100%;background:
+radial-gradient(circle at top left,rgba(37,99,235,.18),transparent 32%),
+radial-gradient(circle at bottom right,rgba(16,185,129,.10),transparent 30%),
+#020617;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+body{display:flex;justify-content:center}
+.app{width:100%;max-width:440px;min-height:100vh;padding:24px 18px 112px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.brand{font-size:28px;font-weight:950;letter-spacing:-1px;background:linear-gradient(90deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tagline{color:#94a3b8;font-size:13px;margin-top:4px}
+.version{font-size:11px;color:#64748b;margin-top:6px}
+.logo{width:48px;height:48px;border-radius:18px;background:rgba(37,99,235,.18);display:flex;align-items:center;justify-content:center;font-size:24px}
+.card{background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));border:1px solid rgba(148,163,184,.12);border-radius:28px;padding:20px;margin-bottom:16px;box-shadow:0 14px 38px rgba(0,0,0,.34)}
+.hero{background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(16,185,129,.10));border-color:rgba(96,165,250,.24)}
+.title{font-size:21px;font-weight:900;margin-bottom:6px;letter-spacing:-.4px}
+.sub{color:#94a3b8;font-size:14px;line-height:1.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.metric{background:rgba(15,23,42,.78);border:1px solid rgba(148,163,184,.10);border-radius:22px;padding:16px;text-align:center}
+.metric b{display:block;font-size:27px;font-weight:950}
+.metric span{font-size:12px;color:#94a3b8}
+button{width:100%;border:0;color:white;background:#1e293b;border-radius:22px;min-height:56px;font-size:15px;font-weight:850;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.24)}
+button:active{transform:scale(.98)}
+.blue{background:#2563eb}.green{background:#059669}.gray{background:#334155}.red{background:#dc2626}
+.big{min-height:76px;font-size:18px;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(148,163,184,.08)}
+.row:first-child{border-top:0}
+.badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
+.live{background:rgba(16,185,129,.16);color:#6ee7b7}
+.wait{background:rgba(245,158,11,.16);color:#fde68a}
+.done{background:rgba(59,130,246,.16);color:#bfdbfe}
+.closed{background:rgba(148,163,184,.14);color:#cbd5e1}
+input,select{width:100%;min-height:54px;margin:8px 0 14px;padding:0 15px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.78);color:white;font-size:15px;outline:none}
+label{display:block;color:#cbd5e1;font-size:13px;font-weight:800}
+.hidden{display:none!important}
+.section{font-size:20px;font-weight:950;margin:24px 0 12px}
+.action{min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#0f172a,#111827);border:1px solid rgba(255,255,255,.05)}
+.emoji{font-size:30px}
+.notice{background:rgba(37,99,235,.12);border:1px solid rgba(96,165,250,.18);color:#bfdbfe;border-radius:20px;padding:13px;margin-top:12px;font-size:13px;font-weight:750;line-height:1.45}
+.top-actions{display:flex;gap:8px;margin-bottom:14px}
+.top-actions button{min-height:44px;border-radius:17px;font-size:13px;background:rgba(15,23,42,.92)}
+.bottom-nav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:calc(100% - 24px);max-width:430px;background:rgba(15,23,42,.96);border:1px solid rgba(148,163,184,.12);border-radius:26px;padding:10px;display:none;grid-template-columns:repeat(4,1fr);gap:8px}
+.bottom-nav button{min-height:56px;border-radius:18px;font-size:12px;background:#020617;color:#cbd5e1;box-shadow:none}
+.bottom-nav button.active{background:#2563eb;color:white}
+.empty{color:#64748b;font-size:14px;text-align:center;padding:22px 0}
+.small{font-size:12px;color:#94a3b8;margin-top:4px}
+.worker-main{font-size:30px;font-weight:950;letter-spacing:-.8px;margin:10px 0 6px}
+.salary{font-size:28px;font-weight:950;color:#6ee7b7;margin-top:8px}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="top">
+  <div>
+    <div class="brand">FlowIQ Crew</div>
+    <div class="tagline">OPERATIONS · Simple Workforce Control</div>
+    <div class="version" id="versionText"></div>
+  </div>
+  <div class="logo">⚙️</div>
+</header>
+
+<div class="top-actions hidden" id="topActions">
+  <button class="gray" onclick="goBack()">← 뒤로</button>
+  <button class="gray" onclick="show('roleScreen')">역할변경</button>
+  <button class="red" onclick="resetDemo()">초기화</button>
+</div>
+
+<section id="roleScreen">
+  <div class="card hero">
+    <div class="title">FlowIQ Crew OPERATIONS</div>
+    <div class="sub">운영용 클린 코어입니다. 관리자는 오늘 현황, 공고 생성, 생성한 공고, 출근 완료만 먼저 봅니다.</div>
+  </div>
+  <button class="big green" onclick="selectRole('manager')">🏗️ 관리자 운영 화면</button>
+  <button class="big blue" onclick="selectRole('worker')">👷 근로자 화면</button>
+</section>
+
+<section id="managerScreen" class="hidden">
+  <div class="card hero">
+    <div class="title">오늘 운영 현황</div>
+    <div class="sub">한눈에 보고 바로 처리하는 관리자 홈.</div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="metric"><b id="mJobs">0</b><span>생성한 공고</span></div>
+      <div class="metric"><b id="mNeed">0</b><span>필요 인원</span></div>
+      <div class="metric"><b id="mApplied">0</b><span>지원 인원</span></div>
+      <div class="metric"><b id="mChecked">0</b><span>출근 완료</span></div>
+    </div>
+    <div class="notice" id="managerNotice">운영 상태 확인 중</div>
+  </div>
+
+  <div class="grid2">
+    <button class="action green" onclick="show('jobFormScreen')"><span class="emoji">＋</span>공고 생성</button>
+    <button class="action blue" onclick="scrollToJobs()"><span class="emoji">📋</span>생성한 공고</button>
+  </div>
+
+  <div class="section" id="jobsAnchor">생성한 공고</div>
+  <div id="managerJobs"></div>
+
+  <div class="section">출근 완료</div>
+  <div id="attendanceList"></div>
+</section>
+
+<section id="jobFormScreen" class="hidden">
+  <div class="card hero">
+    <div class="title">공고 생성</div>
+    <div class="sub">현장에서 바로 입력할 수 있게 핵심만 남겼습니다.</div>
+  </div>
+  <div class="card">
+    <label>현장명</label>
+    <input id="jobSite" placeholder="예: 평택 물류센터">
+    <label>근무 시간</label>
+    <input id="jobTime" placeholder="예: 오늘 09:00 - 18:00">
+    <label>필요 인원</label>
+    <input id="jobNeed" type="number" placeholder="예: 5">
+    <label>일급</label>
+    <input id="jobPay" type="number" placeholder="예: 120000">
+    <label>위치</label>
+    <input id="jobLocation" placeholder="예: 경기 평택시">
+    <button class="green" onclick="createJob()">공고 저장</button>
+  </div>
+</section>
+
+<section id="workerScreen" class="hidden">
+  <div class="card hero">
+    <span class="badge live">TODAY</span>
+    <div class="worker-main" id="workerStatusTitle">오늘 출근 준비</div>
+    <div class="sub" id="workerStatusSub">지원 가능한 현장을 확인하세요.</div>
+    <div class="salary" id="workerSalary">예상 급여 0원</div>
+  </div>
+
+  <div class="grid2">
+    <button class="action blue" onclick="applyFirstJob()"><span class="emoji">💼</span>지원하기</button>
+    <button class="action green" onclick="checkInFirstJob()"><span class="emoji">✅</span>출근 완료</button>
+  </div>
+
+  <div class="section">오늘 현장</div>
+  <div id="workerJobs"></div>
+</section>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button id="navHome" onclick="goHome()">홈</button>
+  <button id="navCreate" onclick="show('jobFormScreen')">공고</button>
+  <button id="navJobs" onclick="goJobs()">목록</button>
+  <button id="navRole" onclick="show('roleScreen')">역할</button>
+</nav>
+</main>
+
+<script>
+const APP_NAME = "FlowIQ Crew OPERATIONS";
+const APP_VERSION = "v1.0";
+const APP_BUILD = "production-clean-core";
+document.getElementById("versionText").textContent = `${APP_NAME} ${APP_VERSION} · ${APP_BUILD}`;
+
+let role = localStorage.getItem("ops_role") || null;
+let jobs = JSON.parse(localStorage.getItem("ops_jobs") || "[]");
+let applications = JSON.parse(localStorage.getItem("ops_applications") || "[]");
+let attendance = JSON.parse(localStorage.getItem("ops_attendance") || "[]");
+
+const screens = ["roleScreen","managerScreen","jobFormScreen","workerScreen"];
+
+function save(){
+  localStorage.setItem("ops_jobs", JSON.stringify(jobs));
+  localStorage.setItem("ops_applications", JSON.stringify(applications));
+  localStorage.setItem("ops_attendance", JSON.stringify(attendance));
+  localStorage.setItem("ops_role", role || "");
+}
+
+function won(n){ return Number(n||0).toLocaleString("ko-KR")+"원"; }
+
+function show(id){
+  screens.forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.getElementById("topActions").classList.toggle("hidden", id==="roleScreen");
+  document.getElementById("bottomNav").style.display = id==="roleScreen" ? "none" : "grid";
+  render();
+  updateNav(id);
+}
+
+function updateNav(id){
+  ["navHome","navCreate","navJobs","navRole"].forEach(n=>document.getElementById(n).classList.remove("active"));
+  if(id==="managerScreen" || id==="workerScreen") document.getElementById("navHome").classList.add("active");
+  if(id==="jobFormScreen") document.getElementById("navCreate").classList.add("active");
+}
+
+function selectRole(r){
+  role = r;
+  save();
+  show(r==="manager" ? "managerScreen" : "workerScreen");
+}
+
+function goHome(){ show(role==="worker" ? "workerScreen" : "managerScreen"); }
+function goBack(){ goHome(); }
+function goJobs(){ role==="manager" ? show("managerScreen") : show("workerScreen"); setTimeout(scrollToJobs,50); }
+function scrollToJobs(){ document.getElementById("jobsAnchor")?.scrollIntoView({behavior:"smooth"}); }
+
+function createJob(){
+  const site = document.getElementById("jobSite").value.trim();
+  const time = document.getElementById("jobTime").value.trim();
+  const need = Number(document.getElementById("jobNeed").value || 0);
+  const pay = Number(document.getElementById("jobPay").value || 0);
+  const location = document.getElementById("jobLocation").value.trim();
+
+  if(!site || !time || !need || !pay){
+    alert("현장명, 시간, 인원, 일급은 꼭 입력해 주세요.");
+    return;
+  }
+
+  jobs.unshift({
+    id: Date.now(),
+    site, time, need, pay, location,
+    status: "모집중",
+    createdAt: new Date().toISOString()
+  });
+
+  ["jobSite","jobTime","jobNeed","jobPay","jobLocation"].forEach(id=>document.getElementById(id).value="");
+  save();
+  show("managerScreen");
+}
+
+function applyJob(jobId){
+  if(!applications.find(a=>a.jobId===jobId)){
+    applications.push({jobId, name:"근로자", phone:"010-0000-0000", createdAt:new Date().toISOString()});
+    save();
+    render();
+  }
+}
+
+function checkIn(jobId){
+  const job = jobs.find(j=>j.id===jobId);
+  if(!job) return;
+  if(!attendance.find(a=>a.jobId===jobId)){
+    attendance.push({jobId, site:job.site, name:"근로자", time:new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})});
+    save();
+    render();
+  }
+}
+
+function closeJob(jobId){
+  const job = jobs.find(j=>j.id===jobId);
+  if(job){ job.status = "마감"; save(); render(); }
+}
+
+function deleteJob(jobId){
+  if(!confirm("이 공고를 삭제할까요?")) return;
+  jobs = jobs.filter(j=>j.id!==jobId);
+  applications = applications.filter(a=>a.jobId!==jobId);
+  attendance = attendance.filter(a=>a.jobId!==jobId);
+  save();
+  render();
+}
+
+function applyFirstJob(){
+  if(!jobs.length){ alert("아직 생성된 공고가 없습니다."); return; }
+  applyJob(jobs[0].id);
+  alert("지원 완료");
+}
+
+function checkInFirstJob(){
+  if(!jobs.length){ alert("아직 생성된 공고가 없습니다."); return; }
+  applyJob(jobs[0].id);
+  checkIn(jobs[0].id);
+  alert("출근 완료");
+}
+
+function render(){
+  renderManager();
+  renderWorker();
+}
+
+function renderManager(){
+  const totalNeed = jobs.reduce((sum,j)=>sum+Number(j.need||0),0);
+  document.getElementById("mJobs").textContent = jobs.length;
+  document.getElementById("mNeed").textContent = totalNeed;
+  document.getElementById("mApplied").textContent = applications.length;
+  document.getElementById("mChecked").textContent = attendance.length;
+
+  const notice = document.getElementById("managerNotice");
+  if(!jobs.length) notice.textContent = "첫 운영 공고를 생성하세요.";
+  else if(attendance.length < applications.length) notice.textContent = "지원자 중 출근 확인이 필요한 인원이 있습니다.";
+  else notice.textContent = "오늘 운영 흐름이 정상입니다.";
+
+  const jobBox = document.getElementById("managerJobs");
+  jobBox.innerHTML = jobs.length ? jobs.map(j=>{
+    const applied = applications.filter(a=>a.jobId===j.id).length;
+    const checked = attendance.filter(a=>a.jobId===j.id).length;
+    const badgeClass = j.status==="마감" ? "closed" : "live";
+    return `<div class="card">
+      <div class="row">
+        <div>
+          <div class="title">${j.site}</div>
+          <div class="sub">${j.time} · ${j.location || "위치 미입력"}</div>
+        </div>
+        <span class="badge ${badgeClass}">${j.status}</span>
+      </div>
+      <div class="grid3" style="margin-top:12px">
+        <div class="metric"><b>${j.need}</b><span>필요</span></div>
+        <div class="metric"><b>${applied}</b><span>지원</span></div>
+        <div class="metric"><b>${checked}</b><span>출근</span></div>
+      </div>
+      <div class="small">일급 ${won(j.pay)}</div>
+      <div class="grid2" style="margin-top:14px">
+        <button class="blue" onclick="applyJob(${j.id})">지원자 추가</button>
+        <button class="green" onclick="checkIn(${j.id})">출근 완료</button>
+        <button class="gray" onclick="closeJob(${j.id})">마감</button>
+        <button class="red" onclick="deleteJob(${j.id})">삭제</button>
+      </div>
+    </div>`;
+  }).join("") : `<div class="card empty">아직 생성한 공고가 없습니다.</div>`;
+
+  const attBox = document.getElementById("attendanceList");
+  attBox.innerHTML = attendance.length ? attendance.map(a=>`
+    <div class="card">
+      <div class="row">
+        <div>
+          <b>${a.name}</b>
+          <div class="small">${a.site}</div>
+        </div>
+        <span class="badge done">${a.time}</span>
+      </div>
+    </div>
+  `).join("") : `<div class="card empty">출근 완료 인원이 없습니다.</div>`;
+}
+
+function renderWorker(){
+  const first = jobs[0];
+  const salary = first ? won(first.pay) : "0원";
+  document.getElementById("workerSalary").textContent = "예상 급여 " + salary;
+  document.getElementById("workerStatusTitle").textContent = first ? "오늘 현장 확인" : "오늘 출근 준비";
+  document.getElementById("workerStatusSub").textContent = first ? `${first.site} · ${first.time}` : "관리자가 공고를 만들면 여기에 표시됩니다.";
+
+  const box = document.getElementById("workerJobs");
+  box.innerHTML = jobs.length ? jobs.map(j=>{
+    const applied = applications.find(a=>a.jobId===j.id);
+    const checked = attendance.find(a=>a.jobId===j.id);
+    const status = checked ? "출근 완료" : applied ? "지원 완료" : "지원 가능";
+    const cls = checked ? "done" : applied ? "wait" : "live";
+    return `<div class="card">
+      <div class="row">
+        <div>
+          <div class="title">${j.site}</div>
+          <div class="sub">${j.time} · ${j.location || "위치 미입력"}</div>
+          <div class="small">일급 ${won(j.pay)}</div>
+        </div>
+        <span class="badge ${cls}">${status}</span>
+      </div>
+      <div class="grid2" style="margin-top:12px">
+        <button class="blue" onclick="applyJob(${j.id})">지원하기</button>
+        <button class="green" onclick="checkIn(${j.id})">출근 완료</button>
+      </div>
+    </div>`;
+  }).join("") : `<div class="card empty">오늘 등록된 현장이 없습니다.</div>`;
+}
+
+function resetDemo(){
+  if(!confirm("운영 데이터를 초기화할까요?")) return;
+  jobs=[]; applications=[]; attendance=[];
+  localStorage.removeItem("ops_jobs");
+  localStorage.removeItem("ops_applications");
+  localStorage.removeItem("ops_attendance");
+  save();
+  render();
+}
+
+if(role) show(role==="worker" ? "workerScreen" : "managerScreen");
+else show("roleScreen");
+
+console.log(`${APP_NAME} ${APP_VERSION} ${APP_BUILD}`);
+</script>
+</body>
+</html>
