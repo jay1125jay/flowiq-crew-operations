@@ -3,15 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FlowIQ Crew OPERATIONS v2</title>
+<title>FlowIQ Crew v5</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
-}
+body{margin:0;font-family:Arial;background:#0f172a;color:white}
 .app{max-width:420px;margin:auto;padding:18px}
 .card{background:#111827;padding:16px;border-radius:16px;margin-bottom:12px}
 button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:12px;font-weight:800}
@@ -30,23 +25,26 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:12px;font-w
 <!-- HOME -->
 <div id="home">
   <div class="card">
-    <h2>FlowIQ Crew OPERATIONS v2</h2>
-    <p>Stable Production Core</p>
+    <h2>FlowIQ Crew v5</h2>
+    <p>Production Ready System</p>
   </div>
 
   <div class="section">근로자</div>
   <button class="blue" onclick="go('worker')">오늘 현장</button>
-  <button class="green" onclick="go('worker')">지원 / 출근</button>
+  <button class="green" onclick="go('worker')">지원</button>
+  <button class="green" onclick="go('worker')">출근 (QR)</button>
 
   <div class="section">관리자</div>
   <button class="blue" onclick="go('manager')">공고 생성</button>
-  <button class="green" onclick="go('manager')">지원자 확인</button>
+  <button class="green" onclick="go('manager')">지원 관리</button>
+  <button class="green" onclick="go('manager')">출근 관리</button>
+  <button class="gray" onclick="go('manager')">데이터 확인</button>
 </div>
 
 <!-- WORKER -->
 <div id="worker" class="hidden">
   <div class="card">
-    <h3>근로자</h3>
+    <h3>근로자 화면</h3>
     <p>공고 → 지원 → 출근 → 급여</p>
   </div>
 
@@ -58,13 +56,13 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:12px;font-w
 <!-- MANAGER -->
 <div id="manager" class="hidden">
   <div class="card">
-    <h3>관리자</h3>
-    <p>공고 / 지원 / 승인 / 출근 관리</p>
+    <h3>관리자 화면</h3>
+    <p>운영 / 승인 / 출근 관리</p>
   </div>
 
   <button class="blue">공고 생성</button>
-  <button class="green">지원 관리</button>
-  <button class="green">출근 관리</button>
+  <button class="green">지원 승인</button>
+  <button class="green">출근 확인</button>
   <button class="gray" onclick="go('home')">뒤로</button>
 </div>
 
