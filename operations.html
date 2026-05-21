@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.1</title>
+<title>FlowIQ Crew OPERATIONS v2.2</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1593,7 +1593,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <button class="green" onclick="showQR('manager')">▦ 출근 QR</button>
   </div>
 
-  <div class="manager-section-hidden section">지원/출근 현황</div>
+  <div class="section">지원/출근 현황</div>
   <div id="workersList"></div>
 </section>
 
@@ -1706,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.1';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.2';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3679,6 +3679,96 @@ init();
       }catch(e){}
     };
   }
+})();
+</script>
+
+
+<script>
+// ===== FlowIQ Crew v2.2 Manager Approval UI Patch =====
+(function(){
+  function statusText(s){
+    const v = String(s || "지원").trim();
+    if(v === "승인" || v === "approved") return "승인 완료";
+    if(v === "거절" || v === "rejected") return "거절";
+    if(v === "출근완료" || v === "checked") return "출근 완료";
+    return "승인 대기";
+  }
+
+  function statusClass(s){
+    const v = String(s || "지원").trim();
+    if(v === "승인" || v === "approved") return "ok";
+    if(v === "거절" || v === "rejected") return "rejected";
+    if(v === "출근완료" || v === "checked") return "checked";
+    return "wait";
+  }
+
+  window.approveApplication = window.approveApplication || async function(id){
+    try{
+      const { error } = await db.from("applications").update({status:"승인"}).eq("id", id);
+      if(error){ alert("승인 오류: " + error.message); return; }
+      await loadData();
+      renderManagerApprovalUI();
+    }catch(e){ alert("승인 처리 오류"); }
+  };
+
+  window.rejectApplication = window.rejectApplication || async function(id){
+    try{
+      const { error } = await db.from("applications").update({status:"거절"}).eq("id", id);
+      if(error){ alert("거절 오류: " + error.message); return; }
+      await loadData();
+      renderManagerApprovalUI();
+    }catch(e){ alert("거절 처리 오류"); }
+  };
+
+  window.renderManagerApprovalUI = function(){
+    const list = document.getElementById("workersList");
+    if(!list) return;
+
+    const data = (applications || []).filter(a => {
+      if(role === "master") return true;
+      return !companyId || String(a.company_id || "") === String(companyId);
+    });
+
+    if(data.length === 0){
+      list.innerHTML = `<div class="card"><div class="sub">지원자가 아직 없습니다.</div></div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(a => {
+      const job = (jobs || []).find(j => Number(j.id) === Number(a.job_id));
+      const name = a.name || a.worker_name || "근로자";
+      const phone = a.phone || "";
+      const st = a.status || "지원";
+      return `
+        <div class="card">
+          <div class="worker-row">
+            <div>
+              <div class="worker-name">${name}</div>
+              <div class="worker-meta">${phone}</div>
+              <div class="worker-meta">${job ? job.title : "공고 정보 없음"}</div>
+            </div>
+            <div class="status ${statusClass(st)}">${statusText(st)}</div>
+          </div>
+          <div class="grid2" style="margin-top:12px">
+            <button class="green" onclick="approveApplication(${a.id})">승인</button>
+            <button class="red" onclick="rejectApplication(${a.id})">거절</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  };
+
+  const originalRenderManager = window.renderManager;
+  if(typeof originalRenderManager === "function"){
+    window.renderManager = function(){
+      originalRenderManager.apply(this, arguments);
+      renderManagerApprovalUI();
+    };
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(renderManagerApprovalUI, 700);
+  });
 })();
 </script>
 
