@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.0</title>
+<title>FlowIQ Crew OPERATIONS v2.1</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1706,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.0';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.1';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3619,5 +3619,68 @@ document.addEventListener("click",async function(e){
 
 init();
 </script>
+
+<script>
+// ===== FlowIQ Crew v2.1 Capacity Limit Patch =====
+(function(){
+  function getJobLimit(job){
+    return Number(job && (job.needed || job.capacity || job.people || job.headcount || 0)) || 0;
+  }
+
+  function countActiveApplicants(jobId){
+    return (applications || []).filter(a =>
+      Number(a.job_id) === Number(jobId) &&
+      !["거절","rejected","취소","cancelled"].includes(String(a.status || "지원").trim())
+    ).length;
+  }
+
+  window.canApplyJob = function(job){
+    const limit = getJobLimit(job);
+    if(!limit) return true;
+    return countActiveApplicants(job.id) < limit;
+  };
+
+  window.remainingSlots = function(job){
+    const limit = getJobLimit(job);
+    if(!limit) return 9999;
+    return Math.max(0, limit - countActiveApplicants(job.id));
+  };
+
+  const originalApplyJob = window.applyJob;
+  if(typeof originalApplyJob === "function"){
+    window.applyJob = async function(jobId){
+      const job = (jobs || []).find(j => Number(j.id) === Number(jobId));
+      if(job && !window.canApplyJob(job)){
+        alert("모집 인원이 마감되었습니다.");
+        return;
+      }
+      return originalApplyJob.apply(this, arguments);
+    };
+  }
+
+  const originalRenderJobs = window.renderJobs;
+  if(typeof originalRenderJobs === "function"){
+    window.renderJobs = function(){
+      originalRenderJobs.apply(this, arguments);
+
+      try{
+        document.querySelectorAll("[onclick^='applyJob']").forEach(btn=>{
+          const match = btn.getAttribute("onclick").match(/applyJob\(([^)]+)\)/);
+          if(!match) return;
+          const id = String(match[1]).replace(/['"]/g,"").trim();
+          const job = (jobs || []).find(j => String(j.id) === id);
+          if(job && !window.canApplyJob(job)){
+            btn.disabled = true;
+            btn.innerText = "모집 마감";
+            btn.style.opacity = "0.55";
+            btn.style.cursor = "not-allowed";
+          }
+        });
+      }catch(e){}
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
