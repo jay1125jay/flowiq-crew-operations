@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v1.0</title>
+<title>FlowIQ Crew OPERATIONS v2.0</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1463,6 +1463,51 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   display:none !important;
 }
 
+
+/* ===== FlowIQ Crew v2.0 Manager MVP Clean ===== */
+.manager-summary-grid,
+.manager-summary-card,
+.manager-filter,
+.manager-filter-grid,
+.manager-todo,
+.manager-urgent,
+.notice-center,
+.live-alert,
+.fast-approve-bar,
+.manager-ai-board,
+.global-network-board,
+.smart-alert-board,
+.worker-rank-board,
+.multi-language-board,
+.future-finance-board,
+.ai-language-board,
+.command-center-board,
+.ops-timeline-board,
+.autonomous-grid-board,
+.integrated-build-board,
+.partner-model-board,
+.v10-launch-board,
+.v105-field-ready-board,
+.v11-recovery-board,
+.field-simple-note,
+.safety-monitor-board,
+.future-ai-board,
+.smart-site-health,
+.ai-worker-match-board,
+.live-crew-board{
+  display:none !important;
+}
+
+/* manager top metrics hide */
+#managerScreen .metric-wrap{
+  display:none !important;
+}
+
+/* keep manager action area simple */
+#managerScreen .card.notice{
+  margin-bottom:14px;
+}
+
 </style>
 </head>
 
@@ -1535,7 +1580,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 <section id="managerScreen" class="hidden">
   <div class="card notice">
     <div class="sub">오늘 현장</div>
-    <div class="title" id="managerTitle">FlowIQ Crew OPERATIONS</div>
+    <div class="title" id="managerTitle">관리자 운영</div>
     <div class="metric-wrap">
       <div class="metric"><b id="mChecked">0</b><span>출근</span></div>
       <div class="metric"><b id="mApplied">0</b><span>지원</span></div>
@@ -1661,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v1.0';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.0';
 let managerFilter='all';
 let managerSearch='';
   
