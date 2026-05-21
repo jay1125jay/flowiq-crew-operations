@@ -1594,11 +1594,9 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   </div>
 
   <div class="section">등록 공고</div>
-<div id="managerJobsList"></div>
-  
+  <div id="managerJobsList"></div>
+
   <div class="section">지원/출근 현황</div>
-  <div class="section">등록 공고</div>
-<div id="managerJobsList"></div>
   <div id="workersList"></div>
 </section>
 
@@ -1711,7 +1709,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.8';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.8-company-display-fix';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2311,6 +2309,7 @@ async function deleteJob(jobId){
   function renderManager(){
   const mChecked=document.getElementById("mChecked");
   const workersList=document.getElementById("workersList");
+  const managerJobsList=document.getElementById("managerJobsList");
   if(!mChecked || !workersList)return;
 
   const filteredJobs =
@@ -2530,6 +2529,10 @@ async function deleteJob(jobId){
       ` : ``}
     </div>
   `).join("");
+
+  if(managerJobsList){
+    managerJobsList.innerHTML = jobRows || `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
+  }
 
   workersList.innerHTML=
     `
@@ -3014,14 +3017,14 @@ async function deleteJob(jobId){
 
   const {error}=await db.from("jobs").insert({
     title,
-location,
-work_time,
-salary,
-needed,
-applied:0,
-language,
-type,
-company_id:companyId
+    location,
+    work_time,
+    salary,
+    needed,
+    applied:0,
+    language,
+    type,
+    company_id:companyId
   });
 
   if(error)return alert("공고 저장 오류: "+error.message);
@@ -3030,7 +3033,7 @@ company_id:companyId
   document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
 
   await loadData();
-  alert("공고가 저장되었습니다. 업체: " + companyId);
+  alert("공고가 저장되었습니다. 업체: "+companyId);
   goScreen("managerScreen");
 }
 function showQR(selectedRole){
@@ -4104,7 +4107,6 @@ init();
     renderJobs();
 
     alert("공고가 생성되었습니다. (" + cid + ")");
-    await loadData();
   };
 })();
 </script>
