@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FlowIQ Crew v15</title>
+<title>FlowIQ Crew REAL v2</title>
 
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:white}
@@ -12,9 +12,12 @@ body{margin:0;font-family:Arial;background:#0f172a;color:white}
 button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:12px;font-weight:800}
 .blue{background:#2563eb;color:white}
 .green{background:#16a34a;color:white}
+.red{background:#dc2626;color:white}
 .gray{background:#334155;color:white}
-.section{font-size:18px;font-weight:800;margin:16px 0 8px}
+input{width:100%;padding:12px;margin-top:8px;border-radius:10px;border:0}
 .hidden{display:none}
+.section{font-size:18px;font-weight:800;margin:16px 0 8px}
+.small{font-size:12px;opacity:0.8}
 </style>
 </head>
 
@@ -24,51 +27,114 @@ button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:12px;font-w
 
 <div id="home">
   <div class="card">
-    <h2>FlowIQ Crew v15</h2>
-    <p>Production System (Final Stage)</p>
+    <h2>FlowIQ Crew REAL v2</h2>
+    <p class="small">Working System + Data + Flow</p>
   </div>
 
   <div class="section">근로자</div>
   <button class="blue" onclick="go('worker')">오늘 현장</button>
-  <button class="green" onclick="go('worker')">지원</button>
-  <button class="green" onclick="go('worker')">QR 출근</button>
+  <button class="green" onclick="go('worker')">지원 / 출근</button>
 
   <div class="section">관리자</div>
   <button class="blue" onclick="go('manager')">공고 생성</button>
-  <button class="green" onclick="go('manager')">지원 관리</button>
-  <button class="green" onclick="go('manager')">출근 관리</button>
+  <button class="green" onclick="go('manager')">공고 관리</button>
 </div>
 
+<!-- WORKER -->
 <div id="worker" class="hidden">
   <div class="card">
     <h3>근로자</h3>
-    <p>공고 → 지원 → 출근 → 급여</p>
+    <p class="small">지원 / 출근 / 기록</p>
   </div>
-  <button class="blue">지원하기</button>
-  <button class="green">QR 출근</button>
+
+  <button class="green" onclick="apply()">지원하기</button>
+  <button class="blue" onclick="checkin()">QR 출근</button>
+
+  <div class="card" id="workerLog"></div>
+
   <button class="gray" onclick="go('home')">뒤로</button>
 </div>
 
+<!-- MANAGER -->
 <div id="manager" class="hidden">
   <div class="card">
     <h3>관리자</h3>
-    <p>운영 / 승인 / 출근 관리</p>
+    <p class="small">공고 / 지원 / 출근 관리</p>
   </div>
-  <button class="blue">공고 생성</button>
-  <button class="green">지원 승인</button>
-  <button class="green">출근 확인</button>
+
+  <input id="job" placeholder="공고 입력"/>
+  <button class="blue" onclick="create()">공고 생성</button>
+
+  <div class="card">
+    <h4>공고 리스트</h4>
+    <div id="jobs"></div>
+  </div>
+
+  <div class="card">
+    <h4>로그</h4>
+    <div id="logs"></div>
+  </div>
+
   <button class="gray" onclick="go('home')">뒤로</button>
 </div>
 
 </div>
 
 <script>
-function go(page){
+
+let jobs = JSON.parse(localStorage.getItem("jobs")||"[]");
+let logs = JSON.parse(localStorage.getItem("logs")||"[]");
+
+function save(){
+  localStorage.setItem("jobs", JSON.stringify(jobs));
+  localStorage.setItem("logs", JSON.stringify(logs));
+  render();
+}
+
+function go(p){
   document.getElementById("home").classList.add("hidden");
   document.getElementById("worker").classList.add("hidden");
   document.getElementById("manager").classList.add("hidden");
-  document.getElementById(page).classList.remove("hidden");
+  document.getElementById(p).classList.remove("hidden");
+  render();
 }
+
+function create(){
+  const v = document.getElementById("job").value;
+  if(!v) return;
+  jobs.push(v);
+  logs.push("공고 생성: " + v);
+  save();
+}
+
+function apply(){
+  logs.push("지원 발생");
+  document.getElementById("workerLog").innerHTML = "지원 완료";
+  save();
+}
+
+function checkin(){
+  logs.push("출근 완료 (QR)");
+  document.getElementById("workerLog").innerHTML = "출근 완료";
+  save();
+}
+
+function render(){
+  document.getElementById("jobs").innerHTML = jobs.map((j,i)=>
+    `<div>${j} <button onclick="del(${i})" class="red">삭제</button></div>`
+  ).join("");
+
+  document.getElementById("logs").innerHTML = logs.slice(-10).map(l=>"<div>• "+l+"</div>").join("");
+}
+
+function del(i){
+  jobs.splice(i,1);
+  logs.push("공고 삭제");
+  save();
+}
+
+render();
+
 </script>
 
 </body>
