@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.7</title>
+<title>FlowIQ Crew OPERATIONS v2.8</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1706,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.7';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.8';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3684,7 +3684,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.7 Manager Approval UI Patch =====
+// ===== FlowIQ Crew v2.8 Manager Approval UI Patch =====
 (function(){
   function statusText(s){
     const v = String(s || "지원").trim();
@@ -3774,7 +3774,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.7 Manager Card Close UI =====
+// ===== FlowIQ Crew v2.8 Manager Card Close UI =====
 (function(){
   const hiddenKey = "flowiq_hidden_application_ids";
 
@@ -3877,7 +3877,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.7 Rejected Worker Block Patch =====
+// ===== FlowIQ Crew v2.8 Rejected Worker Block Patch =====
 (function(){
   function isRejectedStatus(status){
     const s = String(status || "").trim();
@@ -3943,7 +3943,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.7 Job Visibility / Company Scope Fix =====
+// ===== FlowIQ Crew v2.8 Job Visibility / Company Scope Fix =====
 (function(){
   // 공고 생성 시 company_id 누락 방지 + 저장 직후 즉시 표시 보장
   const originalCreateJob = window.createJob;
@@ -4044,7 +4044,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.7 Multi Company Job Create Fix =====
+// ===== FlowIQ Crew v2.8 Multi Company Job Create Fix =====
 (function(){
   function getCurrentCompanyId(){
     const saved = localStorage.getItem("company_id");
@@ -4105,7 +4105,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.7 Multi Company Scale Patch =====
+// ===== FlowIQ Crew v2.8 Multi Company Scale Patch =====
 // 목표: demo_company/alpha/beta 고정 방식에서 companies 테이블 기반 확장 구조로 전환
 (function(){
   window.getCompanyByCode = async function(code){
@@ -4290,6 +4290,151 @@ init();
     await loadData();
     goScreen("managerScreen");
     alert("공고가 생성되었습니다.");
+  };
+})();
+</script>
+
+
+<script>
+// ===== FlowIQ Crew v2.8 Company Create Fix =====
+(function(){
+  const FALLBACK_COMPANIES = {
+    demo_company:{company_id:"demo_company", company_name:"FlowIQ Demo", password:"0000", status:"active"},
+    alpha:{company_id:"alpha", company_name:"Alpha Logistics", password:"1111", status:"active"},
+    beta:{company_id:"beta", company_name:"Beta Factory", password:"2222", status:"active"}
+  };
+
+  window.getCompanyByCode = async function(code){
+    const cleanCode = String(code || "").trim();
+    if(!cleanCode) return null;
+
+    // 테스트 업체는 DB 조회 전에 먼저 통과
+    if(FALLBACK_COMPANIES[cleanCode]) return FALLBACK_COMPANIES[cleanCode];
+
+    // 실제 운영용 companies 테이블 조회
+    try{
+      const { data, error } = await db
+        .from("companies")
+        .select("*")
+        .eq("company_id", cleanCode)
+        .maybeSingle();
+
+      if(!error && data && data.status !== "inactive") return data;
+    }catch(e){}
+
+    return null;
+  };
+
+  window.selectRole = async function(selected){
+    role = selected;
+    lastRole = selected;
+
+    if(selected === "worker"){
+      localStorage.setItem("crew_role", "worker");
+      if(!workerName || !workerPhone){
+        goScreen("workerInfoScreen");
+      }else{
+        await loadData();
+        goScreen("workerScreen");
+      }
+      return;
+    }
+
+    if(selected === "manager"){
+      const code = prompt("업체 코드를 입력하세요");
+      if(!code){ alert("업체 코드가 필요합니다."); return; }
+
+      const company = await getCompanyByCode(code);
+      if(!company){ alert("등록되지 않은 업체입니다."); return; }
+
+      const password = prompt("업체 비밀번호 입력");
+      const expectedPassword = company.password || company.admin_password || "";
+
+      if(expectedPassword && password !== expectedPassword){
+        alert("비밀번호가 틀렸습니다.");
+        return;
+      }
+
+      role = "manager";
+      lastRole = "manager";
+      companyId = company.company_id || code;
+
+      localStorage.setItem("crew_role", "manager");
+      localStorage.setItem("company_id", companyId);
+      localStorage.setItem("company_name", company.company_name || company.name || companyId);
+
+      await loadData();
+      goScreen("managerScreen");
+      return;
+    }
+
+    if(selected === "master"){
+      const password = prompt("MASTER 비밀번호 입력");
+      if(password !== MASTER_PASSWORD){ alert("비밀번호가 틀렸습니다."); return; }
+
+      role = "master";
+      lastRole = "master";
+      companyId = "master";
+
+      localStorage.setItem("crew_role", "master");
+      localStorage.setItem("company_id", "master");
+
+      await loadData();
+      goScreen("managerScreen");
+      alert("MASTER MODE");
+    }
+  };
+
+  window.createJob = async function(){
+    const title = document.getElementById("fTitle")?.value?.trim();
+    const location = document.getElementById("fLocation")?.value?.trim();
+    const work_time = document.getElementById("fTime")?.value?.trim();
+    const salary = Number(document.getElementById("fSalary")?.value || 0);
+    const needed = Number(document.getElementById("fNeeded")?.value || 0);
+    const type = document.getElementById("fType")?.value || "기타";
+    const language = Array.from(document.querySelectorAll(".langCheck:checked")).map(x=>x.value).join(" / ") || "한국어";
+
+    if(!title || !location || !work_time || !salary || !needed){
+      alert("공고명/위치/시간/일급/필요 인원을 입력하세요.");
+      return;
+    }
+
+    if(role !== "manager" && role !== "master"){
+      alert("관리자만 공고를 생성할 수 있습니다.");
+      return;
+    }
+
+    const cid = (role === "manager")
+      ? (localStorage.getItem("company_id") || companyId || "demo_company")
+      : (companyId && companyId !== "master" ? companyId : "demo_company");
+
+    const payload = {
+      title,
+      location,
+      work_time,
+      salary,
+      needed,
+      applied: 0,
+      language,
+      type,
+      company_id: cid
+    };
+
+    const { data, error } = await db.from("jobs").insert([payload]).select();
+
+    if(error){
+      alert("공고 저장 오류: " + error.message);
+      console.log("createJob error", error, payload);
+      return;
+    }
+
+    const created = data && data[0] ? data[0] : {...payload, id:Date.now(), created_at:new Date().toISOString()};
+    jobs = [created, ...(jobs || [])];
+
+    await loadData();
+    goScreen("managerScreen");
+    renderManager();
+    alert("공고가 생성되었습니다. 업체: " + cid);
   };
 })();
 </script>
