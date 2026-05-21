@@ -63,7 +63,7 @@ body{display:flex;justify-content:center}
   box-shadow:
     0 14px 38px rgba(0,0,0,.34),
     inset 0 1px 0 rgba(255,255,255,.035);
-  backdrop-:blur(14px);
+  backdrop-filter:blur(14px);
 }
 .title{font-size:21px;font-weight:800;margin-bottom:6px}
 .sub{color:#94a3b8;font-size:14px;line-height:1.45}
@@ -105,7 +105,7 @@ button:active{
 }
 .action .emoji{
   font-size:32px;
-  :drop-shadow(0 4px 10px rgba(59,130,246,.25));
+  filter:drop-shadow(0 4px 10px rgba(59,130,246,.25));
 }
 .section{
   font-size:22px;
@@ -625,25 +625,25 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 }
 
 
-.manager-{
+.manager-filter{
   background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
   border:1px solid rgba(148,163,184,.12);
   border-radius:28px;
   padding:18px;
   margin-bottom:18px;
 }
-.manager--grid{
+.manager-filter-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
   margin-top:12px;
 }
-.manager- button{
+.manager-filter button{
   min-height:48px;
   border-radius:18px;
   font-size:13px;
 }
-.manager- input{
+.manager-filter input{
   margin-top:12px;
 }
 
@@ -1655,7 +1655,7 @@ let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
 let APP_VERSION='FlowIQ Crew OPERATIONS v1.0';
-let manager='all';
+let managerFilter='all';
 let managerSearch='';
   
 const MASTER_PASSWORD="1234";
@@ -1931,7 +1931,7 @@ function renderWorkerHome(){
   const status=(app && app.status ? app.status : "").trim() || (app ? "지원" : "근무가능");
   const meta=getStatusMeta(status);
   const job=app ? jobs.find(j=>Number(j.id)===Number(app.job_id)) : null;
-  const myAttendance=workerPhone ? attendance.(a=>a.phone===workerPhone) : [];
+  const myAttendance=workerPhone ? attendance.filter(a=>a.phone===workerPhone) : [];
   const todayPay=job ? Number(job.salary || 0) : 0;
   const earned=myAttendance.reduce((sum,a)=>sum+Number(a.amount || 0),0);
   const safeLocation=job ? String(job.location || "").replace(/'/g,"\\'") : "";
@@ -2165,13 +2165,13 @@ function renderJobs(){
   const el=document.getElementById("jobsList");
   if(!el)return;
 
-  const edJobs =
+  const filteredJobs =
   role==="manager"
-    ? jobs.(j=>j.company_id===companyId)
+    ? jobs.filter(j=>j.company_id===companyId)
     : jobs;
 
-  el.innerHTML=edJobs.length
-  ? edJobs.map(j=>{
+  el.innerHTML=filteredJobs.length
+  ? filteredJobs.map(j=>{
     const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && a.phone===workerPhone);
     const already=!!myApplication;
 
@@ -2256,23 +2256,23 @@ async function deleteJob(jobId){
   const workersList=document.getElementById("workersList");
   if(!mChecked || !workersList)return;
 
-  const edJobs =
+  const filteredJobs =
     role==="manager"
-      ? jobs.(j=>String(j.company_id)===String(companyId))
+      ? jobs.filter(j=>String(j.company_id)===String(companyId))
       : jobs;
 
-  const edApplications =
+  const filteredApplications =
     role==="manager"
-      ? applications.(a=>String(a.company_id)===String(companyId))
+      ? applications.filter(a=>String(a.company_id)===String(companyId))
       : applications;
 
-  const edAttendance =
+  const filteredAttendance =
     role==="manager"
-      ? attendance.(a=>String(a.company_id)===String(companyId))
+      ? attendance.filter(a=>String(a.company_id)===String(companyId))
       : attendance;
 
   const getStatus=(a)=>String(a.status || "지원").trim() || "지원";
-  const searchedApplications=edApplications.(a=>{
+  const searchedApplications=filteredApplications.filter(a=>{
     const keyword=String(managerSearch||"").trim().toLowerCase();
 
     if(!keyword)return true;
@@ -2289,28 +2289,28 @@ async function deleteJob(jobId){
     return text.includes(keyword);
   });
 
-  const edByStatus=searchedApplications.(a=>{
+  const filteredByStatus=searchedApplications.filter(a=>{
     const status=getStatus(a);
 
-    if(manager==="all")return true;
-    if(manager==="pending")return status==="지원";
-    if(manager==="approved")return status==="승인";
-    if(manager==="rejected")return status==="거절";
-    if(manager==="checked")return status==="출근완료";
+    if(managerFilter==="all")return true;
+    if(managerFilter==="pending")return status==="지원";
+    if(managerFilter==="approved")return status==="승인";
+    if(managerFilter==="rejected")return status==="거절";
+    if(managerFilter==="checked")return status==="출근완료";
 
     return true;
   });
 
-  const pendingApplications=edByStatus.(a=>getStatus(a)==="지원");
-  const processedApplications=edByStatus.(a=>getStatus(a)!=="지원");
+  const pendingApplications=filteredByStatus.filter(a=>getStatus(a)==="지원");
+  const processedApplications=filteredByStatus.filter(a=>getStatus(a)!=="지원");
 
   managerPendingApplications=pendingApplications;
   const hideOpsClass = role==="manager" ? "manager-only-hidden" : "";
   const simpleManagerHideClass = role==="manager" ? "manager-section-hidden" : "";
 
-  document.getElementById("mChecked").innerText=edAttendance.length;
+  document.getElementById("mChecked").innerText=filteredAttendance.length;
   document.getElementById("mApplied").innerText=pendingApplications.length;
-  document.getElementById("mJobs").innerText=edJobs.length;
+  document.getElementById("mJobs").innerText=filteredJobs.length;
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
@@ -2392,7 +2392,7 @@ async function deleteJob(jobId){
     </div>`;
   }).join("");
 
-  const attRows=edAttendance.map(a=>`
+  const attRows=filteredAttendance.map(a=>`
     <div class="card">
       <div class="worker-row">
         <div>
@@ -2406,10 +2406,10 @@ async function deleteJob(jobId){
       </div>
     </div>`).join("");
 
-  const totalJobs=edJobs.length;
-  const pendingCount=edApplications.(a=>(a.status||"지원")==="지원").length;
-  const approvedCount=edApplications.(a=>(a.status||"").includes("승인")).length;
-  const attendanceCount=edAttendance.length;
+  const totalJobs=filteredJobs.length;
+  const pendingCount=filteredApplications.filter(a=>(a.status||"지원")==="지원").length;
+  const approvedCount=filteredApplications.filter(a=>(a.status||"").includes("승인")).length;
+  const attendanceCount=filteredAttendance.length;
 
   const dashboardCards=`
     <div class="manager-summary-grid">
@@ -2448,7 +2448,7 @@ async function deleteJob(jobId){
     </div>
   `;
 
-  const jobRows=edJobs.map(j=>`
+  const jobRows=filteredJobs.map(j=>`
     <div class="card">
       <div class="job-head">
         <div>
@@ -2493,17 +2493,17 @@ async function deleteJob(jobId){
         </div>
       ` : ``}
 
-      <div class="manager-">
-        <div class="title">🔎  / </div>
+      <div class="manager-filter">
+        <div class="title">🔎 현장 검색 / 필터</div>
         <input placeholder="이름, 전화번호, 공고명 검색" value="${managerSearch}" oninput="setManagerSearch(this.value)" />
 
-        <div class="manager--grid">
-          <button class="${manager==='all'?'blue':'gray'}" onclick="setManager('all')">전체</button>
-          <button class="${manager==='pending'?'blue':'gray'}" onclick="setManager('pending')">지원 대기</button>
-          <button class="${manager==='approved'?'green':'gray'}" onclick="setManager('approved')">승인 완료</button>
-          <button class="${manager==='checked'?'blue':'gray'}" onclick="setManager('checked')">출근 완료</button>
-          <button class="${manager==='rejected'?'red':'gray'}" onclick="setManager('rejected')">거절</button>
-          <button class="gray" onclick="resetManager()">초기화</button>
+        <div class="manager-filter-grid">
+          <button class="${managerFilter==='all'?'blue':'gray'}" onclick="setManagerFilter('all')">전체</button>
+          <button class="${managerFilter==='pending'?'blue':'gray'}" onclick="setManagerFilter('pending')">지원 대기</button>
+          <button class="${managerFilter==='approved'?'green':'gray'}" onclick="setManagerFilter('approved')">승인 완료</button>
+          <button class="${managerFilter==='checked'?'blue':'gray'}" onclick="setManagerFilter('checked')">출근 완료</button>
+          <button class="${managerFilter==='rejected'?'red':'gray'}" onclick="setManagerFilter('rejected')">거절</button>
+          <button class="gray" onclick="resetManagerFilter()">초기화</button>
         </div>
       </div>
 
@@ -3148,7 +3148,7 @@ function renderPayroll(){
   if(!el)return;
 
   const myAttendance=role==="worker" && workerPhone
-    ? attendance.(a=>a.phone===workerPhone)
+    ? attendance.filter(a=>a.phone===workerPhone)
     : attendance;
 
   el.innerHTML=myAttendance.length?myAttendance.map(a=>`
@@ -3306,8 +3306,8 @@ if(window.caches){
 
 
 
-function setManager(value){
-  manager=value;
+function setManagerFilter(value){
+  managerFilter=value;
   renderManager();
 }
 
@@ -3316,8 +3316,8 @@ function setManagerSearch(value){
   renderManager();
 }
 
-function resetManager(){
-  manager="all";
+function resetManagerFilter(){
+  managerFilter="all";
   managerSearch="";
   renderManager();
 }
@@ -3579,176 +3579,5 @@ document.addEventListener("click",async function(e){
 
 init();
 </script>
-
-<script>
-// ===== FLOWIQ CORE STABILITY PATCH v1.1 =====
-(function(){
-
-  // Prevent crash if Supabase not loaded
-  if(typeof window.supabase === "undefined"){
-    console.warn("[FLOWIQ] Supabase missing -> fallback activated");
-    window.supabase = {
-      createClient: function(){
-        return {
-          from: function(){
-            return {
-              select: function(){ return { eq: function(){ return this; }, order: function(){ return Promise.resolve({data:[], error:null}); } }; },
-              insert: function(){ return Promise.resolve({error:null}); },
-              update: function(){ return Promise.resolve({error:null}); },
-              delete: function(){ return Promise.resolve({error:null}); }
-            };
-          }
-        };
-      }
-    };
-  }
-
-  // Global error safety (no app crash)
-  window.addEventListener("error", function(e){
-    console.log("[FLOWIQ SAFE ERROR]", e.message);
-  });
-
-  window.addEventListener("unhandledrejection", function(e){
-    console.log("[FLOWIQ PROMISE ERROR]", e.reason);
-  });
-
-  // Safe init after DOM ready
-  window.addEventListener("load", function(){
-    try{
-      if(typeof show === "function"){
-        // ensure safe start screen if exists
-        show("languageScreen");
-      }
-    }catch(err){
-      console.log("[FLOWIQ INIT SAFE]", err);
-    }
-  });
-
-})();
-</script>
-
-
-<script>
-// ===== ADMIN PATCH (APPROVE FIX) =====
-(function(){
-
-  let apps = JSON.parse(localStorage.getItem("apps") || "[]");
-
-  function saveApps(){
-    localStorage.setItem("apps", JSON.stringify(apps));
-  }
-
-  // ensure manager apps container exists
-  function ensureUI(){
-    const manager = document.getElementById("manager");
-    if(manager && !document.getElementById("apps")){
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = "<h4>지원 목록</h4><div id='apps'></div>";
-      manager.appendChild(div);
-    }
-  }
-
-  function renderApps(){
-    const el = document.getElementById("apps");
-    if(!el) return;
-    el.innerHTML = apps.map((a,i)=>{
-      return `
-        <div style="margin-bottom:8px;">
-          <b>${a.job || "JOB"}</b> - ${a.status || "pending"}
-          <button onclick="approveApp(${i})" style="background:#16a34a;color:white;border:none;padding:6px;border-radius:6px;width:100%;margin-top:5px;">
-            승인
-          </button>
-        </div>
-      `;
-    }).join("");
-  }
-
-  window.approveApp = function(i){
-    if(apps[i]){
-      apps[i].status = "approved";
-      saveApps();
-      renderApps();
-    }
-  }
-
-  // hook into existing apply if exists
-  window.addEventListener("load", function(){
-    ensureUI();
-    renderApps();
-
-    // update periodically
-    setInterval(()=>{
-      try{
-        apps = JSON.parse(localStorage.getItem("apps") || "[]");
-        renderApps();
-      }catch(e){}
-    }, 1500);
-  });
-
-})();
-</script>
-
-
-<script>
-// ===== ADMIN APPROVE + REJECT PATCH =====
-(function(){
-
-  let apps = JSON.parse(localStorage.getItem("apps") || "[]");
-
-  function save(){
-    localStorage.setItem("apps", JSON.stringify(apps));
-  }
-
-  function render(){
-    const el = document.getElementById("apps");
-    if(!el) return;
-
-    el.innerHTML = apps.map((a,i)=>`
-      <div style="margin-bottom:10px;padding:8px;background:#1f2937;border-radius:8px;">
-        <div><b>${a.job || "JOB"}</b></div>
-        <div>Status: ${a.status || "pending"}</div>
-
-        <button onclick="approveApp(${i})"
-          style="background:#16a34a;color:white;border:none;padding:8px;border-radius:6px;width:100%;margin-top:6px;">
-          승인
-        </button>
-
-        <button onclick="rejectApp(${i})"
-          style="background:#dc2626;color:white;border:none;padding:8px;border-radius:6px;width:100%;margin-top:6px;">
-          거절
-        </button>
-      </div>
-    `).join("");
-  }
-
-  window.approveApp = function(i){
-    if(apps[i]){
-      apps[i].status = "approved";
-      save();
-      render();
-    }
-  }
-
-  window.rejectApp = function(i){
-    if(apps[i]){
-      apps[i].status = "rejected";
-      save();
-      render();
-    }
-  }
-
-  window.addEventListener("load", function(){
-    setInterval(()=>{
-      try{
-        apps = JSON.parse(localStorage.getItem("apps") || "[]");
-        render();
-      }catch(e){}
-    }, 1200);
-  });
-
-})();
-</script>
-
 </body>
 </html>
