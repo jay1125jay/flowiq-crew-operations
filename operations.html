@@ -3627,5 +3627,67 @@ init();
 })();
 </script>
 
+
+<script>
+// ===== ADMIN PATCH (APPROVE FIX) =====
+(function(){
+
+  let apps = JSON.parse(localStorage.getItem("apps") || "[]");
+
+  function saveApps(){
+    localStorage.setItem("apps", JSON.stringify(apps));
+  }
+
+  // ensure manager apps container exists
+  function ensureUI(){
+    const manager = document.getElementById("manager");
+    if(manager && !document.getElementById("apps")){
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = "<h4>지원 목록</h4><div id='apps'></div>";
+      manager.appendChild(div);
+    }
+  }
+
+  function renderApps(){
+    const el = document.getElementById("apps");
+    if(!el) return;
+    el.innerHTML = apps.map((a,i)=>{
+      return `
+        <div style="margin-bottom:8px;">
+          <b>${a.job || "JOB"}</b> - ${a.status || "pending"}
+          <button onclick="approveApp(${i})" style="background:#16a34a;color:white;border:none;padding:6px;border-radius:6px;width:100%;margin-top:5px;">
+            승인
+          </button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  window.approveApp = function(i){
+    if(apps[i]){
+      apps[i].status = "approved";
+      saveApps();
+      renderApps();
+    }
+  }
+
+  // hook into existing apply if exists
+  window.addEventListener("load", function(){
+    ensureUI();
+    renderApps();
+
+    // update periodically
+    setInterval(()=>{
+      try{
+        apps = JSON.parse(localStorage.getItem("apps") || "[]");
+        renderApps();
+      }catch(e){}
+    }, 1500);
+  });
+
+})();
+</script>
+
 </body>
 </html>
