@@ -1463,6 +1463,13 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   display:none !important;
 }
 
+
+/* FLOWIQ PATCH: hide manager summary cards */
+.manager-summary-grid,
+.manager-summary-card{
+  display:none !important;
+}
+
 </style>
 </head>
 
@@ -2419,12 +2426,7 @@ async function deleteJob(jobId){
   const attendanceCount=filteredAttendance.length;
 
   const dashboardCards=`
-    <div class="manager-summary-grid">
-      <div class="manager-summary-card">
-        <div class="label">생성 공고</div>
-        <div class="value">${totalJobs}</div>
-        <div class="mini">현재 운영중인 공고</div>
-      </div>
+    
 
       <div class="manager-summary-card">
         <div class="label">지원 대기</div>
