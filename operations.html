@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.4</title>
+<title>FlowIQ Crew OPERATIONS v2.5</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1706,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.4';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.5';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3684,7 +3684,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.4 Manager Approval UI Patch =====
+// ===== FlowIQ Crew v2.5 Manager Approval UI Patch =====
 (function(){
   function statusText(s){
     const v = String(s || "지원").trim();
@@ -3774,7 +3774,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.4 Manager Card Close UI =====
+// ===== FlowIQ Crew v2.5 Manager Card Close UI =====
 (function(){
   const hiddenKey = "flowiq_hidden_application_ids";
 
@@ -3877,7 +3877,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.4 Rejected Worker Block Patch =====
+// ===== FlowIQ Crew v2.5 Rejected Worker Block Patch =====
 (function(){
   function isRejectedStatus(status){
     const s = String(status || "").trim();
@@ -3936,6 +3936,107 @@ init();
           }
         });
       }catch(e){}
+    };
+  }
+})();
+</script>
+
+
+<script>
+// ===== FlowIQ Crew v2.5 Job Visibility / Company Scope Fix =====
+(function(){
+  // 공고 생성 시 company_id 누락 방지 + 저장 직후 즉시 표시 보장
+  const originalCreateJob = window.createJob;
+
+  window.createJob = async function(){
+    const title = document.getElementById("fTitle")?.value?.trim();
+    const location = document.getElementById("fLocation")?.value?.trim();
+    const work_time = document.getElementById("fTime")?.value?.trim();
+    const salary = Number(document.getElementById("fSalary")?.value || 0);
+    const needed = Number(document.getElementById("fNeeded")?.value || 0);
+    const type = document.getElementById("fType")?.value || "기타";
+    const language = Array.from(document.querySelectorAll(".langCheck:checked")).map(x=>x.value).join(" / ") || "한국어";
+
+    if(!title || !location || !work_time || !salary || !needed){
+      alert("공고명/위치/시간/일급/필요 인원을 입력하세요.");
+      return;
+    }
+
+    const targetCompanyId = (role === "master")
+      ? (companyId && companyId !== "master" ? companyId : "demo_company")
+      : (companyId || "demo_company");
+
+    const payload = {
+      title,
+      location,
+      work_time,
+      salary,
+      needed,
+      applied: 0,
+      language,
+      type,
+      company_id: targetCompanyId
+    };
+
+    try{
+      const { error } = await db.from("jobs").insert([payload]);
+      if(error){
+        alert("공고 저장 오류: " + error.message);
+        return;
+      }
+
+      await loadData();
+
+      // 관리자 화면에서 방금 만든 공고 확인 가능하게 이동
+      goScreen("managerScreen");
+
+      setTimeout(()=>{
+        const list = document.getElementById("jobsList");
+        if(list) renderJobs();
+      }, 300);
+
+      alert("공고가 생성되었습니다.");
+    }catch(e){
+      alert("공고 생성 중 오류가 발생했습니다.");
+      console.log(e);
+    }
+  };
+
+  // 근로자 모드는 모든 업체 공고 확인 가능, 관리자 모드는 자기 업체만 확인
+  const originalLoadData = window.loadData;
+  if(typeof originalLoadData === "function"){
+    window.loadData = async function(){
+      let jobsQuery = db.from("jobs").select("*");
+      let applicationsQuery = db.from("applications").select("*");
+      let attendanceQuery = db.from("attendance").select("*");
+
+      if(role === "manager"){
+        jobsQuery = jobsQuery.eq("company_id", companyId);
+        applicationsQuery = applicationsQuery.eq("company_id", companyId);
+        attendanceQuery = attendanceQuery.eq("company_id", companyId);
+      }
+
+      if(role === "worker" && workerPhone){
+        applicationsQuery = applicationsQuery.eq("phone", workerPhone);
+        attendanceQuery = attendanceQuery.eq("phone", workerPhone);
+      }
+
+      const jr = await jobsQuery.order("created_at", {ascending:false});
+      const ar = await applicationsQuery.order("created_at", {ascending:false});
+      const tr = await attendanceQuery.order("created_at", {ascending:false});
+
+      if(jr.error) alert("jobs 오류: " + jr.error.message);
+      if(ar.error) alert("applications 오류: " + ar.error.message);
+      if(tr.error) alert("attendance 오류: " + tr.error.message);
+
+      jobs = jr.data || [];
+      applications = ar.data || [];
+      attendance = tr.data || [];
+
+      renderWorkerHome();
+      renderJobs();
+      renderManager();
+      renderPayroll();
     };
   }
 })();
