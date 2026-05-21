@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FlowIQ Crew OPERATIONS</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>FlowIQ Crew OPERATIONS v2</title>
 
 <style>
 body{
@@ -14,41 +12,14 @@ body{
   background:#0f172a;
   color:white;
 }
-
-.app{
-  max-width:420px;
-  margin:auto;
-  padding:18px;
-}
-
-.card{
-  background:#111827;
-  padding:16px;
-  border-radius:16px;
-  margin-bottom:12px;
-}
-
-.section{
-  font-size:18px;
-  font-weight:800;
-  margin:16px 0 8px;
-}
-
-button{
-  width:100%;
-  padding:14px;
-  margin-top:8px;
-  border:0;
-  border-radius:12px;
-  font-weight:800;
-}
-
+.app{max-width:420px;margin:auto;padding:18px}
+.card{background:#111827;padding:16px;border-radius:16px;margin-bottom:12px}
+button{width:100%;padding:14px;margin-top:8px;border:0;border-radius:12px;font-weight:800}
 .blue{background:#2563eb;color:white}
 .green{background:#16a34a;color:white}
 .gray{background:#334155;color:white}
-.red{background:#dc2626;color:white}
-
 .hidden{display:none}
+.section{font-size:18px;font-weight:800;margin:16px 0 8px}
 </style>
 </head>
 
@@ -59,8 +30,8 @@ button{
 <!-- HOME -->
 <div id="home">
   <div class="card">
-    <h2>FlowIQ Crew OPERATIONS</h2>
-    <p>Single Stable System</p>
+    <h2>FlowIQ Crew OPERATIONS v2</h2>
+    <p>Stable Production Core</p>
   </div>
 
   <div class="section">근로자</div>
@@ -69,7 +40,7 @@ button{
 
   <div class="section">관리자</div>
   <button class="blue" onclick="go('manager')">공고 생성</button>
-  <button class="green" onclick="go('manager')">생성한 공고</button>
+  <button class="green" onclick="go('manager')">지원자 확인</button>
 </div>
 
 <!-- WORKER -->
@@ -92,7 +63,7 @@ button{
   </div>
 
   <button class="blue">공고 생성</button>
-  <button class="green">지원자 확인</button>
+  <button class="green">지원 관리</button>
   <button class="green">출근 관리</button>
   <button class="gray" onclick="go('home')">뒤로</button>
 </div>
@@ -104,7 +75,6 @@ function go(page){
   document.getElementById("home").classList.add("hidden");
   document.getElementById("worker").classList.add("hidden");
   document.getElementById("manager").classList.add("hidden");
-
   document.getElementById(page).classList.remove("hidden");
 }
 </script>
