@@ -1463,21 +1463,6 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   display:none !important;
 }
 
-
-/* FLOWIQ PATCH: hide manager summary cards */
-.manager-summary-grid,
-.manager-summary-card{
-  display:none !important;
-}
-
-
-/* FLOWIQ PATCH: hide field operation summary block */
-.manager-todo,
-.field-simple-note,
-.v105-field-ready-board{
-  display:none !important;
-}
-
 </style>
 </head>
 
@@ -1500,7 +1485,1009 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 </div>
 
 <section id="languageScreen">
+  <div class="card notice">
+    <div class="title">언어 선택</div>
+    <div class="sub">Choose your language.</div>
+  </div>
+  <div class="grid2" id="languageGrid"></div>
+  </section>
+
+<section id="roleScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">시작하기</div>
+    <div class="sub">근로자 또는 업체관리자로 접속하세요.</div>
+  </div>
+  <button class="big blue" onclick="selectRole('worker')">👷 근로자 앱</button>
+
+<button class="big green" onclick="selectRole('manager')">🏗️ 업체 관리자</button>
+
+<button class="big red" onclick="selectRole('master')">🛡️ FlowIQ MASTER</button>
+</section>
+<section id="workerInfoScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">근로자 정보</div>
+    <div class="sub">이름과 연락처를 입력하세요.</div>
+  </div>
+
+  <div class="card">
+    <label>이름</label>
+    <input id="workerNameInput" placeholder="예: 바타르">
+
+    <label>연락처</label>
+    <input id="workerPhoneInput" placeholder="예: 010-1234-5678">
+
+    <button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button>
+  </div>
+</section>
+<section id="workerScreen" class="hidden">
+  <div id="workerHomePanel"></div>
+
+  <div class="grid3 worker-minimal-hidden">
+    <button class="action" onclick="goScreen('workerScreen')"><span class="emoji">💼</span>일자리</button>
+    <button class="action" onclick="showQR('worker')"><span class="emoji">📷</span>출근</button>
+    <button class="action" onclick="showPayroll()"><span class="emoji">💳</span>급여</button>
+  </div>
+
+  <div class="section">추천 일자리</div>
+  <div id="jobsList"></div>
+</section>
+
+<section id="managerScreen" class="hidden">
+  <div class="card notice">
+    <div class="sub">오늘 현장</div>
+    <div class="title" id="managerTitle">FlowIQ Crew OPERATIONS</div>
+    <div class="metric-wrap">
+      <div class="metric"><b id="mChecked">0</b><span>출근</span></div>
+      <div class="metric"><b id="mApplied">0</b><span>지원</span></div>
+      <div class="metric"><b id="mJobs">0</b><span>공고</span></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <button class="blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
+    <button class="green" onclick="showQR('manager')">▦ 출근 QR</button>
+  </div>
+
+  <div class="manager-section-hidden section">지원/출근 현황</div>
+  <div id="workersList"></div>
+</section>
+
+<section id="jobFormScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">새 공고 생성</div>
+    <div class="sub">현장에서 바로 사용할 공고를 생성합니다.</div>
+  </div>
+
+  <div class="card">
+    <label>공고명</label>
+    <input id="fTitle" placeholder="예: 성수 물류센터 상하차"/>
+
+    <label>위치</label>
+    <input id="fLocation" placeholder="예: 서울 성동구 성수동"/>
+
+    <label>근무 시간</label>
+    <input id="fTime" placeholder="예: 08:00 - 18:00"/>
+
+    <label>일급</label>
+    <input id="fSalary" type="number" placeholder="예: 150000"/>
+
+    <label>필요 인원</label>
+    <input id="fNeeded" type="number" placeholder="예: 8"/>
+
+    <label>작업 종류</label>
+    <select id="fType">
+      <option>물류</option>
+      <option>건설</option>
+      <option>공장</option>
+      <option>행사</option>
+      <option>기타</option>
+    </select>
+
+    <label>지원 언어</label>
+    <div class="lang-grid">
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="English">영어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Монгол">몽골어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Tiếng Việt">베트남어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="ไทย">태국어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="中文">중국어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Русский">러시아어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="नेपाली">네팔어</label>
+      <label class="lang-option"><input type="checkbox" class="langCheck" value="Oʻzbek">우즈베크어</label>
+    </div>
+
+    <button class="full blue" onclick="createJob()">공고 저장</button>
+  </div>
+</section>
+
+<section id="payrollScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">급여</div>
+    <div class="sub">출근 기록 기반 예상 급여입니다.</div>
+  </div>
+  <div id="payrollList"></div>
+</section>
+
+<section id="qrScreen" class="hidden">
+  <div class="card" style="text-align:center">
+    <div class="title" id="qrTitle">출근 QR</div>
+    <img id="qrImage" class="qr-box" alt="출근 QR"/>
+    <div class="sub" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
+    <button class="full green" onclick="completeQR()" style="margin-top:18px">✅ 수동 출근 테스트</button>
+  </div>
+</section>
+</main>
+
+
+<div id="mapChoice" class="map-choice hidden">
+  <div class="map-choice-title">길찾기 앱 선택</div>
+  <div class="map-choice-sub" id="mapChoiceLocation">현장 위치</div>
+  <div class="map-choice-grid">
+    <button class="green" onclick="openSelectedMap('naver')">네이버지도</button>
+    <button class="blue" onclick="openSelectedMap('kakao')">카카오맵</button>
+    <button class="gray" onclick="openSelectedMap('google')">구글맵</button>
+    <button class="red" onclick="closeMapChoice()">닫기</button>
+  </div>
+</div>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button id="navHome" onclick="goHome()">홈</button>
+  <button id="navJobs" onclick="navPrimary()">일자리</button>
+  <button id="navQR" onclick="showQR(role||lastRole||'worker')">QR</button>
+  <button id="navPay" onclick="navSecondary()">급여</button>
+</nav>
+
+<script>
+const SUPABASE_URL="https://zhbzphvqiiijfjqnktlo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const languages=[
+  {label:"🇰🇷 한국어",value:"한국어"},
+  {label:"🇺🇸 English",value:"English"},
+  {label:"🇲🇳 Монгол",value:"Монгол"},
+  {label:"🇻🇳 Tiếng Việt",value:"Tiếng Việt"},
+  {label:"🇹🇭 ไทย",value:"ไทย"},
+  {label:"🇨🇳 中文",value:"中文"},
+  {label:"🇷🇺 Русский",value:"Русский"},
+  {label:"🇳🇵 नेपाली",value:"नेपाली"},
+  {label:"🇺🇿 Oʻzbek",value:"Oʻzbek"}
+];
+let role=localStorage.getItem("crew_role")||null;
+let workerName=localStorage.getItem("worker_name")||"";
+let workerPhone=localStorage.getItem("worker_phone")||"";
+let lastRole=role;
+let currentScreen="languageScreen";
+let jobs=[];
+let applications=[];
+let attendance=[];
+let managerPendingApplications=[];
+let APP_VERSION='FlowIQ Crew OPERATIONS v1.0';
+let managerFilter='all';
+let managerSearch='';
   
+const MASTER_PASSWORD="1234";
+const COMPANY_PASSWORDS={
+  demo_company:"0000",
+  alpha:"1111",
+  beta:"2222"
+};
+
+const COMPANY_NAMES={
+  demo_company:"FlowIQ Demo",
+  alpha:"Alpha Logistics",
+  beta:"Beta Factory"
+};
+  
+let companyId=localStorage.getItem("company_id")||"demo_company";
+const screens=["languageScreen","roleScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
+
+function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
+
+function show(id,push=false){
+  currentScreen=id;
+  screens.forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
+  document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
+
+  if(id==="workerScreen"){renderWorkerHome();renderJobs();}
+  if(id==="managerScreen")renderManager();
+  if(id==="payrollScreen")renderPayroll();
+
+  updateNav();
+  if(push)history.pushState({screen:id},"","#"+id);
+}
+
+function goScreen(id){show(id,true)}
+function selectLanguage(language){localStorage.setItem("crew_language",language);goScreen("roleScreen")}
+async function selectRole(selected){
+  role=selected;
+  lastRole=selected;
+
+  if(selected==="worker"){
+    localStorage.setItem("crew_role","worker");
+
+    if(!workerName || !workerPhone){
+      goScreen("workerInfoScreen");
+    }else{
+      await loadData();
+      goScreen("workerScreen");
+    }
+
+  }else if(selected==="manager"){
+    const code=prompt("업체 코드를 입력하세요");
+
+    if(!code){
+      alert("업체 코드가 필요합니다.");
+      return;
+    }
+
+    if(!COMPANY_PASSWORDS[code]){
+      alert("존재하지 않는 업체 코드입니다.");
+      return;
+    }
+
+    const password=prompt("업체 비밀번호 입력");
+
+    if(password!==COMPANY_PASSWORDS[code]){
+      alert("비밀번호가 틀렸습니다.");
+      return;
+    }
+
+    role="manager";
+    lastRole="manager";
+    companyId=code;
+
+    localStorage.setItem("crew_role","manager");
+    localStorage.setItem("company_id",code);
+
+    await loadData();
+    goScreen("managerScreen");
+
+  }else if(selected==="master"){
+    const password=prompt("MASTER 비밀번호 입력");
+
+    if(password!==MASTER_PASSWORD){
+      alert("비밀번호가 틀렸습니다.");
+      return;
+    }
+
+    role="master";
+    lastRole="master";
+    companyId="master";
+
+    localStorage.setItem("crew_role","master");
+
+    await loadData();
+    goScreen("managerScreen");
+    alert("MASTER MODE");
+  }
+}
+
+function saveWorkerInfo(){
+  const name=document.getElementById("workerNameInput").value.trim();
+  const phone=document.getElementById("workerPhoneInput").value.trim();
+
+  if(!name || !phone){
+    alert("이름과 연락처를 입력하세요.");
+    return;
+  }
+
+  workerName=name;
+  workerPhone=phone;
+
+  localStorage.setItem("worker_name",name);
+  localStorage.setItem("worker_phone",phone);
+
+  const pendingCheckin=localStorage.getItem("pending_checkin");
+  if(pendingCheckin){
+    localStorage.removeItem("pending_checkin");
+    location.href=location.origin+location.pathname+"?checkin="+pendingCheckin;
+    return;
+  }
+
+  goScreen("workerScreen");
+}
+  
+function resetWorkerTest(){
+  if(!confirm("새 근로자 테스트를 위해 기존 근로자 정보를 초기화할까요?")) return;
+
+  localStorage.removeItem("worker_name");
+  localStorage.removeItem("worker_phone");
+  localStorage.removeItem("crew_role");
+
+  workerName="";
+  workerPhone="";
+  role=null;
+  lastRole=null;
+
+  alert("초기화 완료. 새 근로자로 다시 시작합니다.");
+  location.reload();
+}
+
+async function loadData(){
+  let jobsQuery=db.from("jobs").select("*");
+  let applicationsQuery=db.from("applications").select("*");
+  let attendanceQuery=db.from("attendance").select("*");
+
+  if(role==="manager"){
+    jobsQuery=jobsQuery.eq("company_id",companyId);
+    applicationsQuery=applicationsQuery.eq("company_id",companyId);
+    attendanceQuery=attendanceQuery.eq("company_id",companyId);
+  }
+
+  if(role==="worker" && workerPhone){
+    applicationsQuery=applicationsQuery.eq("phone",workerPhone);
+    attendanceQuery=attendanceQuery.eq("phone",workerPhone);
+  }
+
+  const jr=await jobsQuery.order("created_at",{ascending:false});
+  const ar=await applicationsQuery.order("created_at",{ascending:false});
+  const tr=await attendanceQuery.order("created_at",{ascending:false});
+
+  if(jr.error)alert("jobs 오류: "+jr.error.message);
+  if(ar.error)alert("applications 오류: "+ar.error.message);
+  if(tr.error)alert("attendance 오류: "+tr.error.message);
+
+  jobs=jr.data||[];
+  applications=ar.data||[];
+  attendance=tr.data||[];
+
+  renderWorkerHome();
+  renderJobs();
+  renderManager();
+  renderPayroll();
+}
+
+async function seedJobsIfEmpty(){
+  await loadData();
+  if(jobs.length>0)return;
+
+  await db.from("jobs").insert([
+    {title:"성수 물류센터 상하차",location:"서울 성동구 성수동",work_time:"08:00 - 18:00",salary:150000,needed:8,applied:5,language:"한국어 / Монгол / English",type:"물류",company_id:"demo_company"},
+    {title:"하남 공장 포장 보조",location:"경기 하남시",work_time:"09:00 - 17:00",salary:120000,needed:6,applied:3,language:"한국어 / Tiếng Việt",type:"공장",company_id:"demo_company"},
+    {title:"판교 현장 자재 정리",location:"경기 성남시 분당구",work_time:"07:00 - 16:00",salary:160000,needed:10,applied:7,language:"한국어 / Русский / Oʻzbek",type:"건설",company_id:"demo_company"}
+  ]);
+
+  await loadData();
+}
+
+
+function getMyCurrentApplication(){
+  if(!workerPhone)return null;
+
+  const active=applications.find(a=>
+    a.phone===workerPhone &&
+    ["지원","승인","출근완료"].includes((a.status || "지원").trim())
+  );
+
+  return active || applications.find(a=>a.phone===workerPhone) || null;
+}
+
+function getStatusMeta(status){
+  if(status==="지원"){
+    return {label:"지원 대기",icon:"🟡",pill:"pill-pending",title:"승인 대기중",desc:"관리자 승인을 기다리고 있습니다."};
+  }
+
+  if(status==="승인"){
+    return {label:"승인 완료",icon:"🟢",pill:"pill-approved",title:"출근 준비 완료",desc:"오늘 현장으로 이동 후 QR 출근을 진행하세요."};
+  }
+
+  if(status==="출근완료"){
+    return {label:"출근 완료",icon:"🔵",pill:"pill-checked",title:"근무 진행중",desc:"출근 기록이 저장되었습니다. 급여 화면에서 예상 금액을 확인하세요."};
+  }
+
+  if(status==="거절"){
+    return {label:"거절",icon:"🔴",pill:"pill-rejected",title:"다른 공고 지원 가능",desc:"해당 공고는 거절되었습니다. 다른 일자리에 지원할 수 있습니다."};
+  }
+
+  return {label:"근무 가능",icon:"⚪",pill:"pill-ready",title:"근무 가능",desc:"원하는 공고에 지원하면 오늘 일정이 이곳에 표시됩니다."};
+}
+
+let selectedMapLocation="";
+
+function openMap(locationText){
+  if(!locationText){
+    alert("현장 위치가 없습니다.");
+    return;
+  }
+
+  selectedMapLocation=locationText;
+
+  const box=document.getElementById("mapChoice");
+  const label=document.getElementById("mapChoiceLocation");
+
+  if(label)label.innerText=locationText;
+  if(box)box.classList.remove("hidden");
+}
+
+function closeMapChoice(){
+  const box=document.getElementById("mapChoice");
+  if(box)box.classList.add("hidden");
+}
+
+function openSelectedMap(type){
+  if(!selectedMapLocation){
+    alert("현장 위치가 없습니다.");
+    return;
+  }
+
+  const q=encodeURIComponent(selectedMapLocation);
+  let url="";
+
+  if(type==="naver"){
+    url=`https://map.naver.com/v5/search/${q}`;
+  }else if(type==="kakao"){
+    url=`https://map.kakao.com/link/search/${q}`;
+  }else{
+    url=`https://www.google.com/maps/search/?api=1&query=${q}`;
+  }
+
+  window.open(url,"_blank");
+  closeMapChoice();
+}
+
+function renderWorkerHome(){
+  const panel=document.getElementById("workerHomePanel");
+  if(!panel)return;
+
+  const hideWorkerOpsClass = role==="worker" ? "worker-only-hidden" : "";
+  const minimalWorkerHideClass = role==="worker" ? "worker-minimal-hidden" : "";
+
+  const app=getMyCurrentApplication();
+  const status=(app && app.status ? app.status : "").trim() || (app ? "지원" : "근무가능");
+  const meta=getStatusMeta(status);
+  const job=app ? jobs.find(j=>Number(j.id)===Number(app.job_id)) : null;
+  const myAttendance=workerPhone ? attendance.filter(a=>a.phone===workerPhone) : [];
+  const todayPay=job ? Number(job.salary || 0) : 0;
+  const earned=myAttendance.reduce((sum,a)=>sum+Number(a.amount || 0),0);
+  const safeLocation=job ? String(job.location || "").replace(/'/g,"\\'") : "";
+
+  panel.innerHTML=`
+    <div class="worker-hero">
+      <div class="worker-status-pill ${meta.pill}">
+        <span>${meta.icon}</span>
+        <span>${meta.label}</span>
+      </div>
+
+      <div class="worker-hero-title">${meta.title}</div>
+      <div class="worker-hero-sub">${meta.desc}</div>
+
+      <div class="${minimalWorkerHideClass} status-live-bar">
+        <div class="status-step active">지원</div>
+        <div class="status-step ${status==='승인' || status==='출근완료' ? 'active' : ''}">승인</div>
+        <div class="status-step ${status==='출근완료' ? 'active' : ''}">출근</div>
+        <div class="status-step ${status==='출근완료' ? 'active' : ''}">급여</div>
+      </div>
+
+      <div class="${minimalWorkerHideClass} worker-mini-grid">
+        <div class="worker-mini-card">
+          <span>오늘 예상 급여</span>
+          <b>${job ? won(todayPay) : "대기"}</b>
+        </div>
+        <div class="worker-mini-card">
+          <span>누적 출근 급여</span>
+          <b>${earned ? won(earned) : "0원"}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} ai-language-board">
+      <div class="title">🧠 AI 실시간 번역 상태</div>
+
+      <div class="ai-language-row">
+        <div class="sub">실시간 번역 엔진</div>
+        <div class="ai-language-badge">ACTIVE</div>
+      </div>
+
+      <div class="ai-language-row">
+        <div class="sub">지원 언어 확장</div>
+        <div class="ai-language-badge">9 LANG</div>
+      </div>
+
+      <div class="ai-language-row">
+        <div class="sub">현장 자동 번역 준비</div>
+        <div class="ai-language-badge">READY</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} future-finance-board">
+      <div class="title">🌐 글로벌 송금 준비</div>
+
+      <div class="finance-row">
+        <div class="sub">해외 송금 시스템</div>
+        <div class="finance-badge">PREP</div>
+      </div>
+
+      <div class="finance-row">
+        <div class="sub">다국적 급여 지원</div>
+        <div class="finance-badge">READY</div>
+      </div>
+
+      <div class="finance-row">
+        <div class="sub">스마트 금융 연결</div>
+        <div class="finance-badge">ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} smart-pay-board">
+      <div class="title">💸 스마트 급여 상태</div>
+
+      <div class="pay-row">
+        <div class="sub">오늘 예상 정산</div>
+        <div class="pay-badge">${earned ? won(earned) : "0원"}</div>
+      </div>
+
+      <div class="pay-row">
+        <div class="sub">정산 준비 상태</div>
+        <div class="pay-badge">${myAttendance.length > 0 ? "READY" : "WAIT"}</div>
+      </div>
+
+      <div class="pay-row">
+        <div class="sub">자동 정산 시스템</div>
+        <div class="pay-badge">ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} multi-language-board">
+      <div class="title">🌐 다국어 지원 상태</div>
+
+      <div class="lang-row">
+        <div class="sub">한국어</div>
+        <div class="lang-badge">ACTIVE</div>
+      </div>
+
+      <div class="lang-row">
+        <div class="sub">English</div>
+        <div class="lang-badge">READY</div>
+      </div>
+
+      <div class="lang-row">
+        <div class="sub">Монгол / Việt / ไทย</div>
+        <div class="lang-badge">PREP</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} worker-rank-board">
+      <div class="title">🏅 근무 활동 상태</div>
+
+      <div class="rank-row">
+        <div class="sub">이번달 출근 횟수</div>
+        <div class="rank-badge">${myAttendance.length}회</div>
+      </div>
+
+      <div class="rank-row">
+        <div class="sub">현재 활동 상태</div>
+        <div class="rank-badge">${status==="출근완료" ? "ACTIVE" : "READY"}</div>
+      </div>
+
+      <div class="rank-row">
+        <div class="sub">근무 신뢰도</div>
+        <div class="rank-badge">${myAttendance.length >= 5 ? "HIGH" : "NORMAL"}</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} worker-wallet">
+      <div class="sub">💳 예상 정산 현황</div>
+
+      <div class="wallet-row">
+        <div>
+          <div class="wallet-label">누적 예상 급여</div>
+          <div class="wallet-mini">출근 완료 기준 자동 계산</div>
+        </div>
+
+        <div class="wallet-value">
+          ${earned ? won(earned) : "0원"}
+        </div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} shift-board">
+      <div class="shift-board-header">
+        <div class="title">📅 오늘 스케줄</div>
+        <div class="shift-chip">LIVE</div>
+      </div>
+
+      <div class="shift-row">
+        <div class="shift-left">
+          <div class="shift-site">${job ? job.title : "현장 대기중"}</div>
+          <div class="shift-time">${job ? job.work_time : "-"}</div>
+        </div>
+        <div class="shift-state">${status==="출근완료" ? "근무중" : "대기"}</div>
+      </div>
+
+      <div class="shift-row">
+        <div class="shift-left">
+          <div class="shift-site">현장 이동</div>
+          <div class="shift-time">길찾기 버튼 사용 가능</div>
+        </div>
+        <div class="shift-state">준비완료</div>
+      </div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} notice-center">
+      <div class="title">🔔 실시간 안내</div>
+
+      <div class="notice-item">
+        관리자 승인 후 QR 출근이 가능합니다.
+      </div>
+
+      <div class="notice-item">
+        길찾기 버튼으로 현장 이동 가능
+      </div>
+
+      <div class="translate-pill">
+        🌐 다국어 지원 준비 완료 · 모바일 최적화
+      </div>
+    </div>
+
+    <div class="today-site-card">
+      <div class="sub">출근 흐름</div>
+      <div class="info">지원 → 승인 → 길찾기 → QR 출근 → 급여 확인</div>
+    </div>
+
+    <div class="${hideWorkerOpsClass} v10-worker-ready">
+      <div class="title">✅ 오늘 사용 준비</div>
+
+      <div class="v10-worker-ready-row">
+        <div class="sub">언어 선택</div>
+        <div class="v10-worker-badge">READY</div>
+      </div>
+
+      <div class="v10-worker-ready-row">
+        <div class="sub">현장 길찾기</div>
+        <div class="v10-worker-badge">READY</div>
+      </div>
+
+      <div class="v10-worker-ready-row">
+        <div class="sub">QR/GPS 출근</div>
+        <div class="v10-worker-badge">READY</div>
+      </div>
+    </div>
+
+    <div class="${minimalWorkerHideClass} ${hideWorkerOpsClass} today-site-card">
+      <div class="sub">집 → 현장 직행</div>
+      <div class="title">Direct-to-Site 출근 모델</div>
+      <div class="info">🧭 길찾기 → QR/GPS 출근 → 급여 기록까지 연결됩니다.</div>
+      <div class="info">🌍 외국인 근로자도 앱 하나로 현장 이동 가능</div>
+    </div>
+
+    <div class="today-site-card">
+      <div class="sub">오늘 현장</div>
+      <div class="title">${job ? job.title : "배정된 현장이 없습니다"}</div>
+      <div class="info">📍 ${job ? job.location : "지원 후 승인되면 표시됩니다"}</div>
+      <div class="info">🕒 ${job ? job.work_time : "-"}</div>
+      <div class="info">💰 ${job ? won(job.salary) : "-"}</div>
+
+      <div class="worker-actions-row">
+        <button class="blue" onclick="openMap('${safeLocation}')">🧭 길찾기</button>
+        <button class="green" onclick="showQR('worker')">📷 출근하기</button>
+      </div>
+    </div>
+  `;
+}
+
+
+function renderJobs(){
+  const el=document.getElementById("jobsList");
+  if(!el)return;
+
+  const filteredJobs =
+  role==="manager"
+    ? jobs.filter(j=>j.company_id===companyId)
+    : jobs;
+
+  el.innerHTML=filteredJobs.length
+  ? filteredJobs.map(j=>{
+    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && a.phone===workerPhone);
+    const already=!!myApplication;
+
+    return `
+    <div class="card">
+      <div class="job-head">
+        <div>
+          <div class="job-title">${j.title}</div>
+          <div class="type">${j.type}</div>
+        </div>
+        <div class="badge">₩${won(j.salary)}</div>
+      </div>
+      <div class="info">📍 ${j.location}</div>
+      <div class="info">🕒 ${j.work_time}</div>
+      <div class="info">👥 ${j.applied||0}/${j.needed}명 지원</div>
+      <div class="info">🌐 ${j.language}</div>
+
+      ${role==="worker"
+        ? `<button class="full ${already?'gray':'blue'}" onclick="applyJob(${j.id})">
+            ${already?`지원 ${myApplication.status || "완료"}`:'지원하기'}
+          </button>`
+        : ""
+      }
+
+      ${role==="master"
+        ? `<button class="full red" onclick="deleteJob(${j.id})">삭제하기</button>`
+        : ""
+      }
+    </div>`;
+  }).join("")
+  : `<div class="card"><div class="title">공고가 없습니다</div><div class="sub">관리자 앱에서 공고를 생성하세요.</div></div>`;
+}
+
+async function applyJob(jobId){
+  if(applications.some(a=>a.phone===workerPhone)){
+    return alert("이미 다른 공고에 지원했습니다. 한 번에 하나의 공고만 지원할 수 있습니다.");
+  }
+
+  const job=jobs.find(j=>Number(j.id)===Number(jobId));
+
+  if(!job){
+    return alert("공고를 찾을 수 없습니다.");
+  }
+
+  const {error}=await db.from("applications").insert({
+    job_id:jobId,
+    worker_name:workerName || "이름없음",
+    phone:workerPhone || "번호없음",
+    company_id:job.company_id,
+    status:"지원"
+  });
+
+  if(error){
+    return alert("지원 저장 오류: "+error.message);
+  }
+
+  await db.from("jobs").update({
+    applied:(job.applied||0)+1
+  }).eq("id",jobId);
+
+  await loadData();
+  alert("지원 완료!");
+}
+async function deleteJob(jobId){
+  if(!confirm("이 공고를 삭제할까요?")){
+    return;
+  }
+
+  const {error}=await db.from("jobs").delete().eq("id",jobId);
+
+  if(error){
+    alert("삭제 오류: "+error.message);
+    return;
+  }
+
+  await loadData();
+  alert("공고가 삭제되었습니다.");
+}
+
+  function renderManager(){
+  const mChecked=document.getElementById("mChecked");
+  const workersList=document.getElementById("workersList");
+  if(!mChecked || !workersList)return;
+
+  const filteredJobs =
+    role==="manager"
+      ? jobs.filter(j=>String(j.company_id)===String(companyId))
+      : jobs;
+
+  const filteredApplications =
+    role==="manager"
+      ? applications.filter(a=>String(a.company_id)===String(companyId))
+      : applications;
+
+  const filteredAttendance =
+    role==="manager"
+      ? attendance.filter(a=>String(a.company_id)===String(companyId))
+      : attendance;
+
+  const getStatus=(a)=>String(a.status || "지원").trim() || "지원";
+  const searchedApplications=filteredApplications.filter(a=>{
+    const keyword=String(managerSearch||"").trim().toLowerCase();
+
+    if(!keyword)return true;
+
+    const job=jobs.find(j=>Number(j.id)===Number(a.job_id));
+    const text=[
+      a.worker_name,
+      a.phone,
+      a.status,
+      job?job.title:"",
+      job?job.location:""
+    ].join(" ").toLowerCase();
+
+    return text.includes(keyword);
+  });
+
+  const filteredByStatus=searchedApplications.filter(a=>{
+    const status=getStatus(a);
+
+    if(managerFilter==="all")return true;
+    if(managerFilter==="pending")return status==="지원";
+    if(managerFilter==="approved")return status==="승인";
+    if(managerFilter==="rejected")return status==="거절";
+    if(managerFilter==="checked")return status==="출근완료";
+
+    return true;
+  });
+
+  const pendingApplications=filteredByStatus.filter(a=>getStatus(a)==="지원");
+  const processedApplications=filteredByStatus.filter(a=>getStatus(a)!=="지원");
+
+  managerPendingApplications=pendingApplications;
+  const hideOpsClass = role==="manager" ? "manager-only-hidden" : "";
+  const simpleManagerHideClass = role==="manager" ? "manager-section-hidden" : "";
+
+  document.getElementById("mChecked").innerText=filteredAttendance.length;
+  document.getElementById("mApplied").innerText=pendingApplications.length;
+  document.getElementById("mJobs").innerText=filteredJobs.length;
+
+  if(role==="manager"){
+    document.getElementById("managerTitle").innerText=
+      (COMPANY_NAMES[companyId] || companyId) + " · v11.7";
+  }else{
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v11.7";
+  }
+
+  const pendingRows=pendingApplications.map((a,index)=>{
+    const job=jobs.find(j=>Number(j.id)===Number(a.job_id));
+
+    return `
+    <div class="card">
+      <div class="worker-row">
+        <div>
+          <div class="worker-name">${a.worker_name || "이름없음"} (${a.phone || "번호없음"})</div>
+          <div class="worker-meta">지원 공고: ${job?job.title:"삭제된 공고"} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</div>
+          <div class="info">상태: 지원 대기</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button type="button" class="blue approve-btn" data-index="${index}">승인</button>
+          <button type="button" class="red reject-btn" data-index="${index}">거절</button>
+
+          <div class="fast-approve-bar">
+            <button type="button" class="green" onclick="quickApprove(${a.id})">빠른승인</button>
+            <button type="button" class="gray" onclick="sendWorkerNotice('${a.phone || ""}')">알림</button>
+          </div>
+
+          ${role==="master" ? `<button type="button" class="gray" onclick="masterDeleteApplication(${a.id})">기록삭제</button>` : ``}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const processedRows=processedApplications.map(a=>{
+    const job=jobs.find(j=>Number(j.id)===Number(a.job_id));
+    const status=getStatus(a);
+    let displayStatus=status;
+
+    if(status==="출근완료"){
+      displayStatus="출근 완료";
+    }
+
+    if(status==="승인"){
+      displayStatus="승인 완료";
+    }
+
+    if(status==="거절"){
+      displayStatus="거절";
+    }
+    let statusClass="wait";
+
+    if(status==="승인"){
+      statusClass="ok";
+    }
+
+    if(status==="출근완료"){
+      statusClass="checked";
+    }
+
+    if(status==="거절"){
+      statusClass="rejected";
+    }
+
+    return `
+    <div class="card">
+      <div class="worker-row">
+        <div>
+          <div class="worker-name">${a.worker_name || "이름없음"} (${a.phone || "번호없음"})</div>
+          <div class="worker-meta">지원 공고: ${job?job.title:"삭제된 공고"} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</div>
+          <div class="info">처리 결과: ${displayStatus}</div>
+        </div>
+        <div>
+          <div class="status ${statusClass}">${displayStatus}</div>
+          ${role==="master" ? `<button type="button" class="red" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteApplication(${a.id})">삭제</button>` : ``}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const attRows=filteredAttendance.map(a=>`
+    <div class="card">
+      <div class="worker-row">
+        <div>
+          <div class="worker-name">${a.worker_name || "이름없음"} (${a.phone || "번호없음"})</div>
+          <div class="worker-meta">${a.job_title || ""} · GPS: ${a.gps || ""} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</div>
+        </div>
+        <div>
+          <div class="status checked">출근 완료</div>
+          ${role==="master" ? `<button type="button" class="red" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteAttendance(${a.id})">삭제</button>` : ``}
+        </div>
+      </div>
+    </div>`).join("");
+
+  const totalJobs=filteredJobs.length;
+  const pendingCount=filteredApplications.filter(a=>(a.status||"지원")==="지원").length;
+  const approvedCount=filteredApplications.filter(a=>(a.status||"").includes("승인")).length;
+  const attendanceCount=filteredAttendance.length;
+
+  const dashboardCards=`
+    <div class="manager-summary-grid">
+      <div class="manager-summary-card">
+        <div class="label">생성 공고</div>
+        <div class="value">${totalJobs}</div>
+        <div class="mini">현재 운영중인 공고</div>
+      </div>
+
+      <div class="manager-summary-card">
+        <div class="label">지원 대기</div>
+        <div class="value">${pendingCount}</div>
+        <div class="mini">승인 대기중</div>
+      </div>
+
+      <div class="manager-summary-card">
+        <div class="label">승인 완료</div>
+        <div class="value">${approvedCount}</div>
+        <div class="mini">출근 준비 완료</div>
+      </div>
+
+      <div class="manager-summary-card">
+        <div class="label">출근 완료</div>
+        <div class="value">${attendanceCount}</div>
+        <div class="mini">오늘 출근 기록</div>
+      </div>
+    </div>
+
+    <div class="${simpleManagerHideClass} manager-todo">
+      <div class="manager-todo-title">📋 오늘 할 일</div>
+
+      <div class="todo-row">✅ 지원자 승인 확인</div>
+      <div class="todo-row">🧭 현장 위치 안내</div>
+      <div class="todo-row">📷 QR 출근 체크</div>
+      <div class="todo-row">💳 급여 정산 확인</div>
+    </div>
+  `;
+
+  const jobRows=filteredJobs.map(j=>`
+    <div class="card">
+      <div class="job-head">
+        <div>
+          <div class="job-title">${j.title}</div>
+          <div class="type">${j.type || "공고"}</div>
+        </div>
+        <div class="badge">₩${won(j.salary)}</div>
+      </div>
+      <div class="info">📍 ${j.location || "-"}</div>
+      <div class="info">🕒 ${j.work_time || "-"}</div>
+      <div class="info">👥 ${j.applied || 0}/${j.needed || 0}명 지원</div>
+      <div class="info">🌐 ${j.language || "한국어"}</div>
+      ${(Number(j.needed||0) - Number(j.applied||0)) > 3 ? 
+        `<div class="manager-urgent">🚨 인원 부족 현장</div>` : ``}
+
+      ${role==="master" ? `
+        <div class="master-danger">MASTER 관리</div>
+        <div class="master-delete-row">
+          <button class="red" onclick="masterDeleteJob(${j.id})">공고 삭제</button>
+          <button class="gray" onclick="masterDeleteJobData(${j.id})">관련기록 삭제</button>
+        </div>
+      ` : ``}
+    </div>
+  `).join("");
+
+  workersList.innerHTML=
+    `
+      <div class="${hideOpsClass} card notice">
+        <div class="sub">현재 실행 버전</div>
+        <div class="title">${APP_VERSION}</div>
+        <div class="sub">현장 운영에 필요한 핵심 정보만 간결하게 표시합니다.</div>
+      </div>
 
       ${role==="master" ? `
         <div class="master-cleanup-board">
@@ -1621,7 +2608,32 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   </div>
 </div>
 
+<div class="${hideOpsClass} v105-field-ready-board">
 
+        <div class="title">✅ v11.7 현장 준비형 운영 빌드</div>
+        <div class="sub">공고, 지원, 승인, 길찾기, 출근, 정산 흐름을 실제 현장 테스트 기준으로 정리했습니다.</div>
+
+        <div class="v105-field-ready-grid">
+          <div class="v105-field-ready-tile">
+            <span>현장 운영 루프</span>
+            <b>READY</b>
+          </div>
+
+          <div class="v105-field-ready-tile">
+            <span>모바일 배포</span>
+            <b>SYNC</b>
+          </div>
+
+          <div class="v105-field-ready-tile">
+            <span>MASTER 관리</span>
+            <b>TOOLS</b>
+          </div>
+
+          <div class="v105-field-ready-tile">
+            <span>지자체 확장</span>
+            <b>PREP</b>
+          </div>
+        </div>
 
         <div class="v105-build-badge">Field Ready Operations Build</div>
       </div>
@@ -1896,7 +2908,31 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
         </div>
       </div>
 
-      
+      <div class="field-simple-note manager-simple-anchor">
+        <div class="title">현장 운영</div>
+        <div class="sub">오늘은 공고, 지원자, 출근자만 빠르게 확인하세요.</div>
+
+        <div class="field-simple-grid">
+          <div class="field-simple-tile">
+            <span>공고</span>
+            <b>${totalJobs}</b>
+          </div>
+
+          <div class="field-simple-tile">
+            <span>지원 대기</span>
+            <b>${pendingCount}</b>
+          </div>
+
+          <div class="field-simple-tile">
+            <span>승인</span>
+            <b>${approvedCount}</b>
+          </div>
+
+          <div class="field-simple-tile">
+            <span>출근</span>
+            <b>${attendanceCount}</b>
+          </div>
+        </div>
       </div>
 
       <div class="section" id="createdJobsSection">생성한 공고</div>
