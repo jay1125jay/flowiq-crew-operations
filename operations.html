@@ -1456,6 +1456,13 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   display:none !important;
 }
 
+
+/* FLOWIQ PATCH: hide manager search/filter block */
+.manager-filter,
+.manager-filter-grid{
+  display:none !important;
+}
+
 </style>
 </head>
 
@@ -2493,19 +2500,7 @@ async function deleteJob(jobId){
         </div>
       ` : ``}
 
-      <div class="manager-filter">
-        <div class="title">🔎 현장 검색 / 필터</div>
-        <input placeholder="이름, 전화번호, 공고명 검색" value="${managerSearch}" oninput="setManagerSearch(this.value)" />
-
-        <div class="manager-filter-grid">
-          <button class="${managerFilter==='all'?'blue':'gray'}" onclick="setManagerFilter('all')">전체</button>
-          <button class="${managerFilter==='pending'?'blue':'gray'}" onclick="setManagerFilter('pending')">지원 대기</button>
-          <button class="${managerFilter==='approved'?'green':'gray'}" onclick="setManagerFilter('approved')">승인 완료</button>
-          <button class="${managerFilter==='checked'?'blue':'gray'}" onclick="setManagerFilter('checked')">출근 완료</button>
-          <button class="${managerFilter==='rejected'?'red':'gray'}" onclick="setManagerFilter('rejected')">거절</button>
-          <button class="gray" onclick="resetManagerFilter()">초기화</button>
-        </div>
-      </div>
+      
 
       ${dashboardCards}
 
