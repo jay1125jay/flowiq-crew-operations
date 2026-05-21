@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.2</title>
+<title>FlowIQ Crew OPERATIONS v2.3</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1706,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.2';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.3';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3684,7 +3684,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.2 Manager Approval UI Patch =====
+// ===== FlowIQ Crew v2.3 Manager Approval UI Patch =====
 (function(){
   function statusText(s){
     const v = String(s || "지원").trim();
@@ -3768,6 +3768,109 @@ init();
 
   window.addEventListener("load", function(){
     setTimeout(renderManagerApprovalUI, 700);
+  });
+})();
+</script>
+
+
+<script>
+// ===== FlowIQ Crew v2.3 Manager Card Close UI =====
+(function(){
+  const hiddenKey = "flowiq_hidden_application_ids";
+
+  function getHiddenIds(){
+    try { return JSON.parse(localStorage.getItem(hiddenKey) || "[]"); }
+    catch(e){ return []; }
+  }
+
+  function saveHiddenIds(ids){
+    localStorage.setItem(hiddenKey, JSON.stringify(ids));
+  }
+
+  window.hideManagerApplicationCard = function(id){
+    const ids = getHiddenIds();
+    const sid = String(id);
+    if(!ids.includes(sid)) ids.push(sid);
+    saveHiddenIds(ids);
+
+    const card = document.getElementById("manager-app-card-" + sid);
+    if(card) card.remove();
+  };
+
+  function statusText(s){
+    const v = String(s || "지원").trim();
+    if(v === "승인" || v === "approved") return "승인 완료";
+    if(v === "거절" || v === "rejected") return "거절";
+    if(v === "출근완료" || v === "checked") return "출근 완료";
+    return "승인 대기";
+  }
+
+  function statusClass(s){
+    const v = String(s || "지원").trim();
+    if(v === "승인" || v === "approved") return "ok";
+    if(v === "거절" || v === "rejected") return "rejected";
+    if(v === "출근완료" || v === "checked") return "checked";
+    return "wait";
+  }
+
+  window.renderManagerApprovalUI = function(){
+    const list = document.getElementById("workersList");
+    if(!list) return;
+
+    const hiddenIds = getHiddenIds();
+
+    const data = (applications || []).filter(a => {
+      if(hiddenIds.includes(String(a.id))) return false;
+      if(role === "master") return true;
+      return !companyId || String(a.company_id || "") === String(companyId);
+    });
+
+    if(data.length === 0){
+      list.innerHTML = `<div class="card"><div class="sub">표시할 지원자가 없습니다.</div></div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(a => {
+      const job = (jobs || []).find(j => Number(j.id) === Number(a.job_id));
+      const name = a.name || a.worker_name || "근로자";
+      const phone = a.phone || "";
+      const st = a.status || "지원";
+
+      return `
+        <div class="card" id="manager-app-card-${a.id}" style="position:relative;padding-top:48px">
+          <button onclick="hideManagerApplicationCard(${a.id})"
+            style="position:absolute;top:10px;right:10px;width:34px;min-height:34px;height:34px;border-radius:999px;background:#334155;color:white;font-size:18px;padding:0;box-shadow:none;">
+            ×
+          </button>
+
+          <div class="worker-row">
+            <div>
+              <div class="worker-name">${name}</div>
+              <div class="worker-meta">${phone}</div>
+              <div class="worker-meta">${job ? job.title : "공고 정보 없음"}</div>
+            </div>
+            <div class="status ${statusClass(st)}">${statusText(st)}</div>
+          </div>
+
+          <div class="grid2" style="margin-top:12px">
+            <button class="green" onclick="approveApplication(${a.id})">승인</button>
+            <button class="red" onclick="rejectApplication(${a.id})">거절</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  };
+
+  const originalRenderManager = window.renderManager;
+  if(typeof originalRenderManager === "function"){
+    window.renderManager = function(){
+      originalRenderManager.apply(this, arguments);
+      renderManagerApprovalUI();
+    };
+  }
+
+  window.addEventListener("load", function(){
+    setTimeout(renderManagerApprovalUI, 600);
   });
 })();
 </script>
