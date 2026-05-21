@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.3</title>
+<title>FlowIQ Crew OPERATIONS v2.4</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1706,7 +1706,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.3';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.4';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3684,7 +3684,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.3 Manager Approval UI Patch =====
+// ===== FlowIQ Crew v2.4 Manager Approval UI Patch =====
 (function(){
   function statusText(s){
     const v = String(s || "지원").trim();
@@ -3774,7 +3774,7 @@ init();
 
 
 <script>
-// ===== FlowIQ Crew v2.3 Manager Card Close UI =====
+// ===== FlowIQ Crew v2.4 Manager Card Close UI =====
 (function(){
   const hiddenKey = "flowiq_hidden_application_ids";
 
@@ -3872,6 +3872,72 @@ init();
   window.addEventListener("load", function(){
     setTimeout(renderManagerApprovalUI, 600);
   });
+})();
+</script>
+
+
+<script>
+// ===== FlowIQ Crew v2.4 Rejected Worker Block Patch =====
+(function(){
+  function isRejectedStatus(status){
+    const s = String(status || "").trim();
+    return ["거절","rejected","REJECTED"].includes(s);
+  }
+
+  function getCompanyIdFromJob(job){
+    return String(job && (job.company_id || companyId || "")).trim();
+  }
+
+  function hasRejectedHistoryForCompany(job){
+    if(!workerPhone || !job) return false;
+    const targetCompany = getCompanyIdFromJob(job);
+
+    return (applications || []).some(a => {
+      const samePhone = String(a.phone || "").trim() === String(workerPhone || "").trim();
+      const sameCompany = String(a.company_id || "").trim() === targetCompany;
+      return samePhone && sameCompany && isRejectedStatus(a.status);
+    });
+  }
+
+  const originalApplyJob = window.applyJob;
+
+  if(typeof originalApplyJob === "function"){
+    window.applyJob = async function(jobId){
+      const job = (jobs || []).find(j => Number(j.id) === Number(jobId));
+
+      if(job && hasRejectedHistoryForCompany(job)){
+        alert("이 업체에서 거절된 이력이 있어 다시 지원할 수 없습니다.");
+        return;
+      }
+
+      return originalApplyJob.apply(this, arguments);
+    };
+  }
+
+  const originalRenderJobs = window.renderJobs;
+
+  if(typeof originalRenderJobs === "function"){
+    window.renderJobs = function(){
+      originalRenderJobs.apply(this, arguments);
+
+      try{
+        document.querySelectorAll("[onclick^='applyJob']").forEach(btn=>{
+          const match = btn.getAttribute("onclick").match(/applyJob\(([^)]+)\)/);
+          if(!match) return;
+
+          const id = String(match[1]).replace(/['"]/g,"").trim();
+          const job = (jobs || []).find(j => String(j.id) === id);
+
+          if(job && hasRejectedHistoryForCompany(job)){
+            btn.disabled = true;
+            btn.innerText = "지원 차단";
+            btn.style.opacity = "0.55";
+            btn.style.cursor = "not-allowed";
+          }
+        });
+      }catch(e){}
+    };
+  }
 })();
 </script>
 
