@@ -1577,6 +1577,19 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   margin-top:12px;
 }
 .manager-worker-actions button{min-height:44px;border-radius:16px;font-size:13px}
+.manager-worker-actions.work-done-center{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.manager-worker-actions.work-done-center button{
+  width:72%;
+  max-width:240px;
+  min-height:48px;
+  border-radius:18px;
+  font-size:14px;
+  font-weight:900;
+}
 .manager-status-pill{
   display:inline-flex;
   align-items:center;
@@ -1778,6 +1791,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 </nav>
 
 <script>
+// FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
 const SUPABASE_URL="https://zhbzphvqiiijfjqnktlo.supabase.co";
@@ -1994,7 +2008,7 @@ function getMyCurrentApplication(){
 
   const active=applications.find(a=>
     a.phone===workerPhone &&
-    ["지원","승인","출근완료","근무완료","입금대기","입금완료"].includes((a.status || "지원").trim())
+    ["지원","승인","출근완료","근무완료","입금대기"].includes((a.status || "지원").trim())
   );
 
   return active || applications.find(a=>a.phone===workerPhone) || null;
@@ -2075,7 +2089,7 @@ function openSelectedMap(type){
 
 
 function renderProgressFlow(status){
-  const order=["지원","승인","출근완료","근무완료","입금대기","입금완료"];
+  const order=["지원","승인","출근완료","근무완료","입금대기"];
   const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"입금대기","입금완료":"입금완료"};
   const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","입금완료":"progress-paid"};
   let s=String(status||"지원").trim();
@@ -2371,7 +2385,7 @@ function renderJobs(){
     ? jobs.filter(j=>j.company_id===companyId)
     : jobs.filter(j=>getJobStatus(j)==="게시중");
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","입금완료"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기"];
   const myActiveApplication=role==="worker" && workerPhone
     ? applications.find(a=>
         String(a.phone || "").trim()===String(workerPhone || "").trim() &&
@@ -2444,7 +2458,7 @@ async function applyJob(jobId){
     return alert("필요 인원이 마감된 공고입니다.");
   }
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","입금완료"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기"];
   const myActiveApplication=applications.find(a=>
     String(a.phone || "").trim()===String(workerPhone || "").trim() &&
     activeStatuses.includes(String(a.status || "지원").trim())
@@ -2601,7 +2615,7 @@ function managerWorkerActionButtons(a,status){
     </div>`;
   }
   if(status==="출근완료"){
-    return `<div class="manager-worker-actions">
+    return `<div class="manager-worker-actions work-done-center">
       <button class="green" onclick="markWorkComplete(${id})">근무완료 체크</button>
     </div>`;
   }
