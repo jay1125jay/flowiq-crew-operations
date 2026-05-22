@@ -1891,16 +1891,9 @@ async function loadData(){
 }
 
 async function seedJobsIfEmpty(){
-  await loadData();
-  if(jobs.length>0)return;
-
-  await db.from("jobs").insert([
-    {title:"성수 물류센터 상하차",location:"서울 성동구 성수동",work_time:"08:00 - 18:00",salary:150000,needed:8,applied:5,language:"한국어 / Монгол / English",type:"물류",company_id:"demo_company"},
-    {title:"하남 공장 포장 보조",location:"경기 하남시",work_time:"09:00 - 17:00",salary:120000,needed:6,applied:3,language:"한국어 / Tiếng Việt",type:"공장",company_id:"demo_company"},
-    {title:"판교 현장 자재 정리",location:"경기 성남시 분당구",work_time:"07:00 - 16:00",salary:160000,needed:10,applied:7,language:"한국어 / Русский / Oʻzbek",type:"건설",company_id:"demo_company"}
-  ]);
-
-  await loadData();
+  // v3.1.1: 테스트 자동 공고 생성 중지
+  // 실제 현장관리자가 생성하고 MASTER가 게시승인한 공고만 사용합니다.
+  return;
 }
 
 
@@ -2273,7 +2266,7 @@ function renderJobs(){
       <div class="info">🌐 ${j.language}</div>
 
       ${role==="worker"
-        ? `<button class="full ${already?'gray':'blue'}" onclick="applyJob(${j.id})">
+        ? `<button class="full ${already?'gray':'blue'}" ${already?'disabled':''} onclick="applyJob(${j.id})">
             ${already?`지원 ${myApplication.status || "완료"}`:'지원하기'}
           </button>`
         : ""
@@ -2289,14 +2282,40 @@ function renderJobs(){
 }
 
 async function applyJob(jobId){
-  if(applications.some(a=>a.phone===workerPhone)){
-    return alert("이미 다른 공고에 지원했습니다. 한 번에 하나의 공고만 지원할 수 있습니다.");
+  if(!workerName || !workerPhone){
+    alert("근로자 정보를 먼저 입력하세요.");
+    goScreen("workerInfoScreen");
+    return;
   }
 
   const job=jobs.find(j=>Number(j.id)===Number(jobId));
 
   if(!job){
     return alert("공고를 찾을 수 없습니다.");
+  }
+
+  if(getJobStatus(job)!=="게시중"){
+    return alert("아직 게시 승인되지 않은 공고입니다.");
+  }
+
+  const mySameJob=applications.find(a=>
+    String(a.phone || "").trim()===String(workerPhone || "").trim() &&
+    Number(a.job_id)===Number(jobId) &&
+    !["취소","cancelled"].includes(String(a.status || "지원").trim())
+  );
+
+  if(mySameJob){
+    return alert("이미 이 공고에 지원했습니다.");
+  }
+
+  const rejectedSameCompany=applications.some(a=>
+    String(a.phone || "").trim()===String(workerPhone || "").trim() &&
+    String(a.company_id || "").trim()===String(job.company_id || "").trim() &&
+    ["거절","rejected","REJECTED"].includes(String(a.status || "").trim())
+  );
+
+  if(rejectedSameCompany){
+    return alert("이 업체에서 거절된 이력이 있어 다시 지원할 수 없습니다.");
   }
 
   const {error}=await db.from("applications").insert({
@@ -2318,6 +2337,7 @@ async function applyJob(jobId){
   await loadData();
   alert("지원 완료!");
 }
+
 async function deleteJob(jobId){
   if(!confirm("이 공고를 삭제할까요?")){
     return;
@@ -2398,9 +2418,9 @@ async function deleteJob(jobId){
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
-      (COMPANY_NAMES[companyId] || companyId) + " · v3.1";
+      (COMPANY_NAMES[companyId] || companyId) + " · v3.1.1";
   }else{
-    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v3.1";
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v3.1.1.1";
   }
 
   const pendingRows=pendingApplications.map((a,index)=>{
@@ -3363,7 +3383,7 @@ async function init(){
   languageGrid.innerHTML=languages.map(l=>
     `<button onclick="selectLanguage('${l.value}')">${l.label}</button>`
   ).join("");
-  await seedJobsIfEmpty();
+  await loadData();
 
   const savedLanguage=localStorage.getItem("crew_language");
 
