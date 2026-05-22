@@ -1508,6 +1508,24 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   margin-bottom:14px;
 }
 
+
+
+/* ===== FlowIQ Crew v3.2.0 Progress Flow ===== */
+.progress-flow-card{background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));border:1px solid rgba(96,165,250,.18);border-radius:28px;padding:18px;margin:14px 0;}
+.progress-flow-title{font-size:18px;font-weight:950;margin-bottom:12px;}
+.progress-flow{display:grid;grid-template-columns:1fr;gap:10px;}
+.progress-step{display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:18px;padding:12px 14px;background:rgba(30,41,59,.72);border:1px solid rgba(148,163,184,.10);color:#94a3b8;font-size:13px;font-weight:900;}
+.progress-step.done{color:white;border-color:rgba(255,255,255,.16);}
+.progress-step.current{color:white;border-color:rgba(255,255,255,.22);box-shadow:0 10px 24px rgba(0,0,0,.22);}
+.progress-step .dot{width:14px;height:14px;border-radius:999px;background:#64748b;box-shadow:0 0 0 4px rgba(100,116,139,.12);flex:0 0 auto;}
+.progress-step.done .dot,.progress-step.current .dot{background:white;box-shadow:0 0 16px rgba(255,255,255,.45);}
+.progress-apply.done,.progress-apply.current{background:linear-gradient(135deg,#2563eb,#38bdf8);}
+.progress-approve.done,.progress-approve.current{background:linear-gradient(135deg,#0f766e,#34d399);}
+.progress-checkin.done,.progress-checkin.current{background:linear-gradient(135deg,#ca8a04,#facc15);}
+.progress-complete.done,.progress-complete.current{background:linear-gradient(135deg,#ea580c,#fb923c);}
+.progress-waitpay.done,.progress-waitpay.current{background:linear-gradient(135deg,#7c3aed,#c084fc);}
+.progress-paid.done,.progress-paid.current{background:linear-gradient(135deg,#16a34a,#86efac);}
+
 </style>
 </head>
 
@@ -1904,7 +1922,7 @@ function getMyCurrentApplication(){
 
   const active=applications.find(a=>
     a.phone===workerPhone &&
-    ["지원","승인","출근완료"].includes((a.status || "지원").trim())
+    ["지원","승인","출근완료","근무완료","입금대기","입금완료"].includes((a.status || "지원").trim())
   );
 
   return active || applications.find(a=>a.phone===workerPhone) || null;
@@ -1925,6 +1943,16 @@ function getStatusMeta(status){
 
   if(status==="거절"){
     return {label:"거절",icon:"🔴",pill:"pill-rejected",title:"다른 공고 지원 가능",desc:"해당 공고는 거절되었습니다. 다른 일자리에 지원할 수 있습니다."};
+  }
+
+
+
+  if(status==="근무완료" || status==="입금대기"){
+    return {label:"입금 대기",icon:"🟣",pill:"pill-checked",title:"근무완료 · 입금 대기",desc:"현장관리자가 근무완료를 확인했습니다. MASTER 입금완료 처리를 기다립니다."};
+  }
+
+  if(status==="입금완료"){
+    return {label:"입금 완료",icon:"🟢",pill:"pill-approved",title:"정산 완료",desc:"입금 완료 처리가 끝났습니다."};
   }
 
   return {label:"근무 가능",icon:"⚪",pill:"pill-ready",title:"근무 가능",desc:"원하는 공고에 지원하면 오늘 일정이 이곳에 표시됩니다."};
@@ -1973,6 +2001,25 @@ function openSelectedMap(type){
   closeMapChoice();
 }
 
+
+function renderProgressFlow(status){
+  const order=["지원","승인","출근완료","근무완료","입금대기","입금완료"];
+  const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"입금대기","입금완료":"입금완료"};
+  const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","입금완료":"progress-paid"};
+  let s=String(status||"지원").trim();
+  if(s==="근무완료")s="입금대기";
+  const idx=Math.max(0,order.indexOf(s));
+  return `<div class="progress-flow-card">
+    <div class="progress-flow-title">진행 현황</div>
+    <div class="progress-flow">
+      ${order.map((key,i)=>{
+        const state=i<idx?"done":(i===idx?"current":"");
+        return `<div class="progress-step ${classes[key]} ${state}"><span><span class="dot"></span> ${labels[key]}</span><span>${i<idx?'완료':(i===idx?'진행중':'대기')}</span></div>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
 function renderWorkerHome(){
   const panel=document.getElementById("workerHomePanel");
   if(!panel)return;
@@ -1999,12 +2046,7 @@ function renderWorkerHome(){
       <div class="worker-hero-title">${meta.title}</div>
       <div class="worker-hero-sub">${meta.desc}</div>
 
-      <div class="${minimalWorkerHideClass} status-live-bar">
-        <div class="status-step active">지원</div>
-        <div class="status-step ${status==='승인' || status==='출근완료' ? 'active' : ''}">승인</div>
-        <div class="status-step ${status==='출근완료' ? 'active' : ''}">출근</div>
-        <div class="status-step ${status==='출근완료' ? 'active' : ''}">급여</div>
-      </div>
+      ${app ? renderProgressFlow(status) : ""}
 
       <div class="${minimalWorkerHideClass} worker-mini-grid">
         <div class="worker-mini-card">
@@ -2257,7 +2299,7 @@ function renderJobs(){
     ? jobs.filter(j=>j.company_id===companyId)
     : jobs.filter(j=>getJobStatus(j)==="게시중");
 
-  const activeStatuses=["지원","승인","출근완료"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","입금완료"];
   const myActiveApplication=role==="worker" && workerPhone
     ? applications.find(a=>
         String(a.phone || "").trim()===String(workerPhone || "").trim() &&
@@ -2330,7 +2372,7 @@ async function applyJob(jobId){
     return alert("필요 인원이 마감된 공고입니다.");
   }
 
-  const activeStatuses=["지원","승인","출근완료"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","입금완료"];
   const myActiveApplication=applications.find(a=>
     String(a.phone || "").trim()===String(workerPhone || "").trim() &&
     activeStatuses.includes(String(a.status || "지원").trim())
@@ -2495,6 +2537,14 @@ async function deleteJob(jobId){
       displayStatus="출근 완료";
     }
 
+    if(status==="근무완료" || status==="입금대기"){
+      displayStatus="근무 완료 · 입금 대기";
+    }
+
+    if(status==="입금완료"){
+      displayStatus="입금 완료";
+    }
+
     if(status==="승인"){
       displayStatus="승인 완료";
     }
@@ -2512,6 +2562,14 @@ async function deleteJob(jobId){
       statusClass="checked";
     }
 
+    if(status==="근무완료" || status==="입금대기"){
+      statusClass="checked";
+    }
+
+    if(status==="입금완료"){
+      statusClass="ok";
+    }
+
     if(status==="거절"){
       statusClass="rejected";
     }
@@ -2526,6 +2584,7 @@ async function deleteJob(jobId){
         </div>
         <div>
           <div class="status ${statusClass}">${displayStatus}</div>
+          ${role==="manager" && status==="출근완료" ? `<button type="button" class="green" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="markWorkComplete(${a.id})">근무완료 체크</button>` : ``}
           ${role==="master" ? `<button type="button" class="red" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteApplication(${a.id})">삭제</button>` : ``}
         </div>
       </div>
@@ -3290,6 +3349,15 @@ async function autoCheckIn(){
 
 function showPayroll(){goScreen("payrollScreen")}
 
+
+async function markWorkComplete(applicationId){
+  if(!confirm("이 근로자의 근무완료를 확인할까요?"))return;
+  const {error}=await db.from("applications").update({status:"근무완료"}).eq("id",applicationId);
+  if(error){alert("근무완료 저장 오류: "+error.message);return;}
+  await loadData();
+  alert("근무완료 확인 완료");
+}
+
 function renderPayroll(){
   const el=document.getElementById("payrollList");
   if(!el)return;
@@ -3309,7 +3377,7 @@ function renderPayroll(){
       </div>
       <div class="info">🕒 ${new Date(a.created_at).toLocaleString()}</div>
       <div class="info">📍 GPS: ${a.gps}</div>
-      <div class="info">💳 지급 대기</div>
+      <div class="info">💳 ${applications.find(x=>Number(x.job_id)===Number(a.job_id)&&String(x.phone)===String(a.phone))?.status==="입금완료"?"입금 완료":"입금 대기"}</div>
     </div>`).join(""):`<div class="card"><div class="title">아직 급여 기록이 없습니다</div><div class="sub">출근 QR을 완료하면 급여 기록이 생성됩니다.</div></div>`;
 }
 
