@@ -1790,7 +1790,13 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
       <div class="pay-line"><span>일당</span><b id="previewBasePay">0원</b></div>
       <div class="pay-line"><span>Crew 수수료 5%</span><b id="previewFee">0원</b></div>
       <div class="pay-total">수수료(5%) 포함 <span id="previewTotalPay">0원</span></div>
-      <div class="sub" style="margin-top:6px">근로자에게는 일당만 표시되고, 총 결제금액은 MASTER에서 확인합니다.</div>
+      <div class="card" style="margin-top:12px;background:rgba(15,23,42,.72);border:1px solid rgba(96,165,250,.18)">
+        <div class="sub">입금 계좌</div>
+        <div class="info" style="margin:8px 0 4px">은행 : 신한은행</div>
+        <div class="info" style="margin:4px 0">예금자 : 크루</div>
+        <div class="info" style="margin:4px 0 12px">계좌번호 : <b id="crewAccountNumber">123-456-789</b></div>
+        <button class="full gray" type="button" onclick="copyCrewAccount()">계좌번호 복사</button>
+      </div>
     </div>
 
     <label>필요 인원</label>
@@ -3489,6 +3495,7 @@ document.addEventListener("click",async function(e){
 });
 
 init();
+
 </script>
 
 <script>
@@ -3551,6 +3558,7 @@ init();
     };
   }
 })();
+
 </script>
 
 
@@ -3617,6 +3625,7 @@ init();
     };
   }
 })();
+
 </script>
 
 
@@ -3628,6 +3637,17 @@ init();
 
 
 
+
+<script>
+function copyCrewAccount(){
+  const account="123-456-789";
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(account).then(function(){alert("계좌번호가 복사되었습니다.");});
+  }else{
+    alert("계좌번호: "+account);
+  }
+}
+</script>
 
 </body>
 </html>
