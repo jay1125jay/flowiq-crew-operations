@@ -1728,6 +1728,15 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <label>연락처</label>
     <input id="workerPhoneInput" placeholder="예: 010-1234-5678">
 
+    <label>은행명</label>
+    <input id="workerBankInput" placeholder="예: 신한은행">
+
+    <label>계좌번호</label>
+    <input id="workerAccountInput" placeholder="예: 123-456-789">
+
+    <label>예금주</label>
+    <input id="workerHolderInput" placeholder="예: 바타르">
+
     <button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button>
   </div>
 </section>
@@ -1887,6 +1896,9 @@ const languages=[
 let role=localStorage.getItem("crew_role")||null;
 let workerName=localStorage.getItem("worker_name")||"";
 let workerPhone=localStorage.getItem("worker_phone")||"";
+let workerBank=localStorage.getItem("worker_bank")||"";
+let workerAccount=localStorage.getItem("worker_account")||"";
+let workerHolder=localStorage.getItem("worker_holder")||"";
 let lastRole=role;
 let currentScreen="languageScreen";
 let jobs=[];
@@ -1918,6 +1930,8 @@ function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
 function normalizePhone(v){return String(v||"").replace(/[^0-9]/g,"")}
 function getManagerAccounts(){try{return JSON.parse(localStorage.getItem("crew_manager_accounts")||"[]")}catch(e){return []}}
 function saveManagerAccounts(list){localStorage.setItem("crew_manager_accounts",JSON.stringify(list||[]))}
+function getWorkerAccounts(){try{return JSON.parse(localStorage.getItem("crew_worker_accounts")||"[]")}catch(e){return []}}
+function saveWorkerAccounts(list){localStorage.setItem("crew_worker_accounts",JSON.stringify(list||[]))}
 function makeCompanyIdFromPhone(phone){return "company_"+normalizePhone(phone)}
 function getCurrentCompanyName(){return localStorage.getItem("company_name") || COMPANY_NAMES[companyId] || companyId || "현장관리자"}
 function feeAmount(base){return Math.round(Number(base||0)*0.05)}
@@ -1985,6 +1999,13 @@ function show(id,push=false){
   currentScreen=id;
   screens.forEach(s=>document.getElementById(s).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
+  if(id==="workerInfoScreen"){
+    const wn=document.getElementById("workerNameInput"); if(wn)wn.value=workerName||"";
+    const wp=document.getElementById("workerPhoneInput"); if(wp)wp.value=workerPhone||"";
+    const wb=document.getElementById("workerBankInput"); if(wb)wb.value=workerBank||"";
+    const wa=document.getElementById("workerAccountInput"); if(wa)wa.value=workerAccount||"";
+    const wh=document.getElementById("workerHolderInput"); if(wh)wh.value=workerHolder||workerName||"";
+  }
   document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
   document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
 
@@ -2067,17 +2088,38 @@ async function selectRole(selected){
 function saveWorkerInfo(){
   const name=document.getElementById("workerNameInput").value.trim();
   const phone=document.getElementById("workerPhoneInput").value.trim();
+  const bank=document.getElementById("workerBankInput")?.value.trim()||"";
+  const account=document.getElementById("workerAccountInput")?.value.trim()||"";
+  const holder=document.getElementById("workerHolderInput")?.value.trim()||name;
 
   if(!name || !phone){
     alert("이름과 연락처를 입력하세요.");
     return;
   }
 
+  if(!bank || !account || !holder){
+    alert("정산을 위해 은행명, 계좌번호, 예금주를 입력하세요.");
+    return;
+  }
+
   workerName=name;
   workerPhone=phone;
+  workerBank=bank;
+  workerAccount=account;
+  workerHolder=holder;
 
   localStorage.setItem("worker_name",name);
   localStorage.setItem("worker_phone",phone);
+  localStorage.setItem("worker_bank",bank);
+  localStorage.setItem("worker_account",account);
+  localStorage.setItem("worker_holder",holder);
+
+  const workers=getWorkerAccounts();
+  const key=normalizePhone(phone);
+  const saved={name,phone,bank,account,holder,updated_at:new Date().toISOString()};
+  const idx=workers.findIndex(w=>normalizePhone(w.phone)===key);
+  if(idx>=0)workers[idx]=Object.assign({},workers[idx],saved); else workers.push(saved);
+  saveWorkerAccounts(workers);
 
   const pendingCheckin=localStorage.getItem("pending_checkin");
   if(pendingCheckin){
@@ -2094,10 +2136,16 @@ function resetWorkerTest(){
 
   localStorage.removeItem("worker_name");
   localStorage.removeItem("worker_phone");
+  localStorage.removeItem("worker_bank");
+  localStorage.removeItem("worker_account");
+  localStorage.removeItem("worker_holder");
   localStorage.removeItem("crew_role");
 
   workerName="";
   workerPhone="";
+  workerBank="";
+  workerAccount="";
+  workerHolder="";
   role=null;
   lastRole=null;
 
