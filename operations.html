@@ -1690,6 +1690,12 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
       <input id="signupBizNo" placeholder="예: 123-45-67890">
     </div>
 
+    <div id="personalResidentWrap" class="hidden">
+      <label>주민번호 뒤 첫 자리</label>
+      <input id="signupResidentNo" maxlength="1" inputmode="numeric" placeholder="예: 1">
+      <div class="sub" style="font-size:12px;margin:-6px 0 12px;color:#94a3b8">※ 서비스 운영 및 정산 절차에 필요한 최소 정보입니다.</div>
+    </div>
+
     <label>연락처</label>
     <input id="signupPhone" placeholder="예: 010-1234-5678">
 
@@ -1708,7 +1714,6 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     </div>
 
     <button class="full blue" onclick="saveSignupAccount()">가입 후 시작</button>
-    <button class="full gray" onclick="goScreen('managerLoginScreen')">이미 가입했어요</button>
   </div>
 </section>
 
@@ -1983,12 +1988,15 @@ function setSignupType(type){
   const managerLabel=document.getElementById("signupManagerLabel");
   const managerInput=document.getElementById("signupManager");
   const workerAccountWrap=document.getElementById("workerAccountSignupWrap");
+  const personalResidentWrap=document.getElementById("personalResidentWrap");
 
   if(biz)biz.classList.toggle("hidden",type!=="business");
   if(workerAccountWrap)workerAccountWrap.classList.toggle("hidden",type!=="worker");
+  if(personalResidentWrap)personalResidentWrap.classList.toggle("hidden",type!=="personal");
 
-  if(managerLabel) managerLabel.style.display = type==="worker" ? "none" : "block";
-  if(managerInput) managerInput.style.display = type==="worker" ? "none" : "block";
+  const hideManagerField = type==="worker" || type==="personal";
+  if(managerLabel) managerLabel.style.display = hideManagerField ? "none" : "block";
+  if(managerInput) managerInput.style.display = hideManagerField ? "none" : "block";
 
   if(type==="business"){
     if(nameLabel)nameLabel.innerText="회사명";
@@ -1996,8 +2004,7 @@ function setSignupType(type){
     if(managerInput){managerInput.value=""; managerInput.placeholder="예: 김담당";}
   }else if(type==="personal"){
     if(nameLabel)nameLabel.innerText="이름";
-    if(managerLabel)managerLabel.innerText="연락 담당자명";
-    if(managerInput){managerInput.value=""; managerInput.placeholder="예: 김담당";}
+    if(managerInput)managerInput.value="";
   }else{
     if(nameLabel)nameLabel.innerText="근로자 이름";
     if(managerInput)managerInput.value="근로자";
@@ -2009,6 +2016,7 @@ function saveSignupAccount(){
   const name=document.getElementById("signupName")?.value.trim()||"";
   const manager=document.getElementById("signupManager")?.value.trim()||"";
   const bizNo=document.getElementById("signupBizNo")?.value.trim()||"";
+  const residentNo=document.getElementById("signupResidentNo")?.value.trim()||"";
   const phone=document.getElementById("signupPhone")?.value.trim()||"";
   const password=document.getElementById("signupPassword")?.value||"";
   const key=normalizePhone(phone);
@@ -2039,11 +2047,12 @@ function saveSignupAccount(){
     return;
   }
 
-  if(!manager)return alert("담당자명을 입력하세요.");
+  if(type==="business"&&!manager)return alert("담당자명을 입력하세요.");
   if(type==="business"&&!bizNo)return alert("사업자등록번호를 입력하세요.");
+  if(type==="personal"&&!residentNo)return alert("주민번호 뒤 첫 자리를 입력하세요.");
   const accounts=getManagerAccounts();
   if(accounts.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-  const account={type,name,manager,bizNo,phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
+  const account={type,name,manager:manager||name,bizNo,residentNo:String(residentNo).slice(0,1),phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
   accounts.push(account); saveManagerAccounts(accounts);
   localStorage.setItem("crew_role","manager");
   localStorage.setItem("company_id",account.company_id);
