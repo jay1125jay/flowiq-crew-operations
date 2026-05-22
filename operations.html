@@ -1611,6 +1611,15 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   .manager-worker-actions{grid-template-columns:1fr}
 }
 
+
+/* v3.3.0 signup + payment fee */
+.payment-preview{background:rgba(37,99,235,.12);border:1px solid rgba(96,165,250,.22);border-radius:22px;padding:14px;margin:8px 0 16px}
+.payment-preview .pay-line{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#cbd5e1;margin:6px 0}
+.payment-preview .pay-total{font-size:18px;font-weight:950;color:#fff;margin-top:8px}
+.signup-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.payment-detail{margin-top:10px;background:rgba(16,185,129,.12);border:1px solid rgba(52,211,153,.22);border-radius:18px;padding:12px;color:#d1fae5;font-weight:850}
+.money-hidden{background:rgba(148,163,184,.13);color:#cbd5e1}
+
 </style>
 </head>
 
@@ -1647,12 +1656,65 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   </div>
   <button class="big blue" onclick="selectRole('worker')">👷 근로자 앱</button>
 
-<button class="big green" onclick="selectRole('manager')">🏗️ 현장관리자</button>
+<button class="big green" onclick="goScreen('managerLoginScreen')">🏗️ 현장관리자 로그인</button>
+<button class="big gray" onclick="goScreen('signupScreen')">📝 회원가입</button>
+<button class="full gray" onclick="selectRole('manager')">기존 테스트 코드로 접속</button>
 
   <div class="card notice" style="margin-top:14px">
     <div class="sub">MASTER는 내부 전용 페이지에서만 접속합니다.</div>
   </div>
 </section>
+
+<section id="signupScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">회원가입</div>
+    <div class="sub">사업자 또는 비사업자로 간단 가입합니다. 가입 후 바로 현장관리자로 사용할 수 있습니다.</div>
+  </div>
+  <div class="card">
+    <label>가입 유형</label>
+    <div class="signup-choice">
+      <button class="blue" onclick="setSignupType('business')">사업자</button>
+      <button class="green" onclick="setSignupType('personal')">비사업자</button>
+    </div>
+    <input type="hidden" id="signupType" value="business">
+
+    <label id="signupNameLabel">회사명</label>
+    <input id="signupName" placeholder="예: Beta Farm">
+
+    <label id="signupManagerLabel">담당자명</label>
+    <input id="signupManager" placeholder="예: 김담당">
+
+    <div id="businessNumberWrap">
+      <label>사업자등록번호</label>
+      <input id="signupBizNo" placeholder="예: 123-45-67890">
+    </div>
+
+    <label>연락처</label>
+    <input id="signupPhone" placeholder="예: 010-1234-5678">
+
+    <label>비밀번호</label>
+    <input id="signupPassword" type="password" placeholder="비밀번호">
+
+    <button class="full blue" onclick="saveManagerSignup()">가입 후 시작</button>
+    <button class="full gray" onclick="goScreen('managerLoginScreen')">이미 가입했어요</button>
+  </div>
+</section>
+
+<section id="managerLoginScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">현장관리자 로그인</div>
+    <div class="sub">가입한 연락처와 비밀번호로 접속하세요.</div>
+  </div>
+  <div class="card">
+    <label>연락처</label>
+    <input id="loginPhone" placeholder="예: 010-1234-5678">
+    <label>비밀번호</label>
+    <input id="loginPassword" type="password" placeholder="비밀번호">
+    <button class="full blue" onclick="loginManagerAccount()">로그인</button>
+    <button class="full gray" onclick="goScreen('signupScreen')">회원가입</button>
+  </div>
+</section>
+
 <section id="workerInfoScreen" class="hidden">
   <div class="card notice">
     <div class="title">근로자 정보</div>
@@ -1722,7 +1784,14 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <input id="fTime" placeholder="예: 08:00 - 18:00"/>
 
     <label>일급</label>
-    <input id="fSalary" type="number" placeholder="예: 150000"/>
+    <input id="fSalary" type="number" placeholder="예: 150000" oninput="updatePaymentPreview()"/>
+
+    <div class="payment-preview">
+      <div class="pay-line"><span>일당</span><b id="previewBasePay">0원</b></div>
+      <div class="pay-line"><span>Crew 수수료 5%</span><b id="previewFee">0원</b></div>
+      <div class="pay-total">수수료(5%) 포함 <span id="previewTotalPay">0원</span></div>
+      <div class="sub" style="margin-top:6px">근로자에게는 일당만 표시되고, 총 결제금액은 MASTER에서 확인합니다.</div>
+    </div>
 
     <label>필요 인원</label>
     <input id="fNeeded" type="number" placeholder="예: 8"/>
@@ -1836,9 +1905,75 @@ const COMPANY_NAMES={
 };
   
 let companyId=localStorage.getItem("company_id")||"demo_company";
-const screens=["languageScreen","roleScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
+const screens=["languageScreen","roleScreen","signupScreen","managerLoginScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
 
 function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
+
+function normalizePhone(v){return String(v||"").replace(/[^0-9]/g,"")}
+function getManagerAccounts(){try{return JSON.parse(localStorage.getItem("crew_manager_accounts")||"[]")}catch(e){return []}}
+function saveManagerAccounts(list){localStorage.setItem("crew_manager_accounts",JSON.stringify(list||[]))}
+function makeCompanyIdFromPhone(phone){return "company_"+normalizePhone(phone)}
+function getCurrentCompanyName(){return localStorage.getItem("company_name") || COMPANY_NAMES[companyId] || companyId || "현장관리자"}
+function feeAmount(base){return Math.round(Number(base||0)*0.05)}
+function totalPayment(base){return Number(base||0)+feeAmount(base)}
+function updatePaymentPreview(){
+  const salary=Number(document.getElementById("fSalary")?.value||0);
+  const base=document.getElementById("previewBasePay");
+  const fee=document.getElementById("previewFee");
+  const total=document.getElementById("previewTotalPay");
+  if(base)base.innerText=won(salary);
+  if(fee)fee.innerText=won(feeAmount(salary));
+  if(total)total.innerText=won(totalPayment(salary));
+}
+function togglePaymentDetail(jobId){
+  const box=document.getElementById("workerPayDetail_"+jobId);
+  if(box)box.classList.toggle("hidden");
+}
+function setSignupType(type){
+  const t=document.getElementById("signupType"); if(t)t.value=type;
+  const biz=document.getElementById("businessNumberWrap");
+  const nameLabel=document.getElementById("signupNameLabel");
+  const managerLabel=document.getElementById("signupManagerLabel");
+  if(biz)biz.classList.toggle("hidden",type!=="business");
+  if(nameLabel)nameLabel.innerText=type==="business"?"회사명":"이름";
+  if(managerLabel)managerLabel.innerText=type==="business"?"담당자명":"연락 담당자명";
+}
+function saveManagerSignup(){
+  const type=document.getElementById("signupType")?.value||"business";
+  const name=document.getElementById("signupName")?.value.trim()||"";
+  const manager=document.getElementById("signupManager")?.value.trim()||"";
+  const bizNo=document.getElementById("signupBizNo")?.value.trim()||"";
+  const phone=document.getElementById("signupPhone")?.value.trim()||"";
+  const password=document.getElementById("signupPassword")?.value||"";
+  if(!name||!manager||!phone||!password)return alert("필수 정보를 입력하세요.");
+  if(type==="business"&&!bizNo)return alert("사업자등록번호를 입력하세요.");
+  const accounts=getManagerAccounts();
+  const key=normalizePhone(phone);
+  if(accounts.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
+  const account={type,name,manager,bizNo,phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
+  accounts.push(account); saveManagerAccounts(accounts);
+  localStorage.setItem("crew_role","manager");
+  localStorage.setItem("company_id",account.company_id);
+  localStorage.setItem("company_name",account.name);
+  localStorage.setItem("manager_contact",account.phone);
+  role="manager"; lastRole="manager"; companyId=account.company_id;
+  alert("가입 완료. 현장관리자로 시작합니다.");
+  loadData().then(()=>goScreen("managerScreen"));
+}
+function loginManagerAccount(){
+  const phone=document.getElementById("loginPhone")?.value.trim()||"";
+  const password=document.getElementById("loginPassword")?.value||"";
+  const key=normalizePhone(phone);
+  const account=getManagerAccounts().find(a=>normalizePhone(a.phone)===key && a.password===password);
+  if(!account)return alert("연락처 또는 비밀번호가 맞지 않습니다.");
+  localStorage.setItem("crew_role","manager");
+  localStorage.setItem("company_id",account.company_id);
+  localStorage.setItem("company_name",account.name);
+  localStorage.setItem("manager_contact",account.phone);
+  role="manager"; lastRole="manager"; companyId=account.company_id;
+  loadData().then(()=>goScreen("managerScreen"));
+}
+
 
 function show(id,push=false){
   currentScreen=id;
@@ -1897,6 +2032,8 @@ async function selectRole(selected){
 
     localStorage.setItem("crew_role","manager");
     localStorage.setItem("company_id",code);
+    localStorage.setItem("company_name",COMPANY_NAMES[code]||code);
+    localStorage.setItem("manager_contact","");
 
     await loadData();
     goScreen("managerScreen");
@@ -2414,7 +2551,7 @@ function renderJobs(){
           <div class="type">${getJobType(j)}</div>
           ${role==="manager" ? jobStatusBadge({...j,type:`[${getVisibleJobStatus(j)}] ${getJobType(j)}`}) : ""}
         </div>
-        <div class="badge">₩${won(j.salary)}</div>
+        ${role==="worker"?`<div class="badge money-hidden">금액 숨김</div>`:`<div class="badge">관리 금액</div>`}
       </div>
       <div class="info">📍 ${j.location}</div>
       <div class="info">🕒 ${j.work_time}</div>
@@ -2422,7 +2559,9 @@ function renderJobs(){
       <div class="info">🌐 ${j.language}</div>
 
       ${role==="worker"
-        ? `<button class="full ${buttonLocked?'gray':'blue'}" ${buttonLocked?'disabled':''} onclick="applyJob(${j.id})">
+        ? `<button class="full gray" onclick="togglePaymentDetail(${j.id})">예상 지급액 보기</button>
+           <div id="workerPayDetail_${j.id}" class="payment-detail hidden">예상 지급액 ${won(j.salary)}<br><span class="sub">Crew 수수료는 업체 부담이며 근로자 지급액에서 차감하지 않습니다.</span></div>
+           <button class="full ${buttonLocked?'gray':'blue'}" ${buttonLocked?'disabled':''} onclick="applyJob(${j.id})">
             ${buttonText}
           </button>`
         : ""
@@ -2644,7 +2783,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=(COMPANY_NAMES[companyId] || companyId || "현장관리자") + " · v3.2.3";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.3.0";
   }
 
   const jobRows=filteredJobs.map(j=>{
@@ -2681,7 +2820,7 @@ function renderManager(){
       </div>
       <div class="info">📍 ${j.location || "-"}</div>
       <div class="info">🕒 ${j.work_time || "-"}</div>
-      <div class="info">💰 ${won(j.salary || 0)} · 👥 ${j.applied || jobApps.length}/${j.needed || 0}명</div>
+      <div class="info">💼 금액은 MASTER에서만 확인 · 👥 ${j.applied || jobApps.length}/${j.needed || 0}명</div>
 
       <div class="manager-count-grid">
         <div class="manager-count-tile"><b>${applyCount}</b><span>지원</span></div>
@@ -2744,10 +2883,11 @@ function toggleOtherType(){
   document.getElementById("fType").value="물류";
   document.getElementById("fTypeOther").value="";
   document.getElementById("fTypeOther").classList.add("hidden");
+  updatePaymentPreview();
   document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
 
   await loadData();
-  alert("공고가 저장되었습니다. 입금대기 상태입니다. 업체: "+companyId);
+  alert("공고가 저장되었습니다. 수수료(5%) 포함 총 결제금액: "+won(totalPayment(salary)));
   goScreen("managerScreen");
 }
 function showQR(selectedRole){
