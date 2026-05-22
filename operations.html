@@ -1682,17 +1682,20 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <label id="signupNameLabel">회사명</label>
     <input id="signupName" placeholder="예: Beta Farm">
 
-    <label id="signupManagerLabel">담당자명</label>
-    <input id="signupManager" placeholder="예: 김담당">
-
     <div id="businessNumberWrap">
       <label>사업자등록번호</label>
       <input id="signupBizNo" placeholder="예: 123-45-67890">
     </div>
 
+    <label id="signupManagerLabel">담당자명</label>
+    <input id="signupManager" placeholder="예: 김담당">
+
     <div id="personalResidentWrap" class="hidden">
-      <label>주민번호 뒤 첫 자리</label>
-      <input id="signupResidentNo" maxlength="1" inputmode="numeric" placeholder="예: 1">
+      <label>주민등록번호</label>
+      <div style="display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:center">
+        <input id="signupResidentFront" maxlength="6" inputmode="numeric" placeholder="앞 6자리">
+        <input id="signupResidentBack" maxlength="1" inputmode="numeric" placeholder="1">
+      </div>
       <div class="sub" style="font-size:12px;margin:-6px 0 12px;color:#94a3b8">※ 서비스 운영 및 정산 절차에 필요한 최소 정보입니다.</div>
     </div>
 
@@ -2011,12 +2014,27 @@ function setSignupType(type){
   }
 }
 
+
+function limitSignupResidentInputs(){
+  const front=document.getElementById("signupResidentFront");
+  const back=document.getElementById("signupResidentBack");
+  if(front)front.value=front.value.replace(/\D/g,"").slice(0,6);
+  if(back)back.value=back.value.replace(/\D/g,"").slice(0,1);
+}
+document.addEventListener("input",function(e){
+  if(e.target && (e.target.id==="signupResidentFront" || e.target.id==="signupResidentBack")){
+    limitSignupResidentInputs();
+  }
+});
+
 function saveSignupAccount(){
   const type=document.getElementById("signupType")?.value||"business";
   const name=document.getElementById("signupName")?.value.trim()||"";
   const manager=document.getElementById("signupManager")?.value.trim()||"";
   const bizNo=document.getElementById("signupBizNo")?.value.trim()||"";
-  const residentNo=document.getElementById("signupResidentNo")?.value.trim()||"";
+  const residentFront=(document.getElementById("signupResidentFront")?.value.trim()||"").replace(/\D/g,"").slice(0,6);
+  const residentBack=(document.getElementById("signupResidentBack")?.value.trim()||"").replace(/\D/g,"").slice(0,1);
+  const residentNo=residentFront&&residentBack ? residentFront+"-"+residentBack : "";
   const phone=document.getElementById("signupPhone")?.value.trim()||"";
   const password=document.getElementById("signupPassword")?.value||"";
   const key=normalizePhone(phone);
@@ -2049,10 +2067,10 @@ function saveSignupAccount(){
 
   if(type==="business"&&!manager)return alert("담당자명을 입력하세요.");
   if(type==="business"&&!bizNo)return alert("사업자등록번호를 입력하세요.");
-  if(type==="personal"&&!residentNo)return alert("주민번호 뒤 첫 자리를 입력하세요.");
+  if(type==="personal"&&(!residentFront||residentFront.length!==6||!residentBack))return alert("주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
   const accounts=getManagerAccounts();
   if(accounts.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-  const account={type,name,manager:manager||name,bizNo,residentNo:String(residentNo).slice(0,1),phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
+  const account={type,name,manager:manager||name,bizNo,residentNo,phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
   accounts.push(account); saveManagerAccounts(accounts);
   localStorage.setItem("crew_role","manager");
   localStorage.setItem("company_id",account.company_id);
