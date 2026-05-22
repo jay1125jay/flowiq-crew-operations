@@ -1932,7 +1932,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.3.6';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.3.7';
 let managerFilter='all';
 let managerSearch='';
   
@@ -1987,17 +1987,19 @@ function setSignupType(type){
   if(biz)biz.classList.toggle("hidden",type!=="business");
   if(workerAccountWrap)workerAccountWrap.classList.toggle("hidden",type!=="worker");
 
+  if(managerLabel) managerLabel.style.display = type==="worker" ? "none" : "block";
+  if(managerInput) managerInput.style.display = type==="worker" ? "none" : "block";
+
   if(type==="business"){
     if(nameLabel)nameLabel.innerText="회사명";
     if(managerLabel)managerLabel.innerText="담당자명";
-    if(managerInput)managerInput.parentElement?.classList?.remove("hidden");
+    if(managerInput){managerInput.value=""; managerInput.placeholder="예: 김담당";}
   }else if(type==="personal"){
     if(nameLabel)nameLabel.innerText="이름";
     if(managerLabel)managerLabel.innerText="연락 담당자명";
-    if(managerInput)managerInput.parentElement?.classList?.remove("hidden");
+    if(managerInput){managerInput.value=""; managerInput.placeholder="예: 김담당";}
   }else{
     if(nameLabel)nameLabel.innerText="근로자 이름";
-    if(managerLabel)managerLabel.innerText="담당자명";
     if(managerInput)managerInput.value="근로자";
   }
 }
