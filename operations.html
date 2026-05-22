@@ -1616,7 +1616,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 .payment-preview{background:rgba(37,99,235,.12);border:1px solid rgba(96,165,250,.22);border-radius:22px;padding:14px;margin:8px 0 16px}
 .payment-preview .pay-line{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#cbd5e1;margin:6px 0}
 .payment-preview .pay-total{font-size:18px;font-weight:950;color:#fff;margin-top:8px}
-.signup-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.signup-choice{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
 .payment-detail{margin-top:10px;background:rgba(16,185,129,.12);border:1px solid rgba(52,211,153,.22);border-radius:18px;padding:12px;color:#d1fae5;font-weight:850}
 .money-hidden{background:rgba(148,163,184,.13);color:#cbd5e1}
 
@@ -1654,7 +1654,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <div class="title">시작하기</div>
     <div class="sub">근로자 또는 업체관리자로 접속하세요.</div>
   </div>
-  <button class="big blue" onclick="selectRole('worker')">👷 근로자 앱</button>
+  <button class="big blue" onclick="goScreen('workerLoginScreen')">👷 근로자 로그인</button>
 
 <button class="big green" onclick="goScreen('managerLoginScreen')">🏗️ 현장관리자 로그인</button>
 <button class="big gray" onclick="goScreen('signupScreen')">📝 회원가입</button>
@@ -1675,6 +1675,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <div class="signup-choice">
       <button class="blue" onclick="setSignupType('business')">사업자</button>
       <button class="green" onclick="setSignupType('personal')">비사업자</button>
+      <button class="gray" onclick="setSignupType('worker')">근로자</button>
     </div>
     <input type="hidden" id="signupType" value="business">
 
@@ -1695,7 +1696,18 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <label>비밀번호</label>
     <input id="signupPassword" type="password" placeholder="비밀번호">
 
-    <button class="full blue" onclick="saveManagerSignup()">가입 후 시작</button>
+    <div id="workerAccountSignupWrap" class="hidden">
+      <label>은행명</label>
+      <input id="signupWorkerBank" placeholder="예: 신한은행">
+
+      <label>계좌번호</label>
+      <input id="signupWorkerAccount" placeholder="예: 123-456-789">
+
+      <label>예금주</label>
+      <input id="signupWorkerHolder" placeholder="예: 바타르">
+    </div>
+
+    <button class="full blue" onclick="saveSignupAccount()">가입 후 시작</button>
     <button class="full gray" onclick="goScreen('managerLoginScreen')">이미 가입했어요</button>
   </div>
 </section>
@@ -1712,6 +1724,21 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <input id="loginPassword" type="password" placeholder="비밀번호">
     <button class="full blue" onclick="loginManagerAccount()">로그인</button>
     <button class="full gray" onclick="goScreen('signupScreen')">회원가입</button>
+  </div>
+</section>
+
+<section id="workerLoginScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">근로자 로그인</div>
+    <div class="sub">가입한 연락처와 비밀번호로 접속하세요.</div>
+  </div>
+  <div class="card">
+    <label>연락처</label>
+    <input id="workerLoginPhone" placeholder="예: 010-1234-5678">
+    <label>비밀번호</label>
+    <input id="workerLoginPassword" type="password" placeholder="비밀번호">
+    <button class="full blue" onclick="loginWorkerAccount()">로그인</button>
+    <button class="full gray" onclick="goScreen('signupScreen');setSignupType('worker')">근로자 회원가입</button>
   </div>
 </section>
 
@@ -1905,7 +1932,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.1.4';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.3.6';
 let managerFilter='all';
 let managerSearch='';
   
@@ -1923,7 +1950,7 @@ const COMPANY_NAMES={
 };
   
 let companyId=localStorage.getItem("company_id")||"demo_company";
-const screens=["languageScreen","roleScreen","signupScreen","managerLoginScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
+const screens=["languageScreen","roleScreen","signupScreen","managerLoginScreen","workerLoginScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
 
 function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
 
@@ -1954,21 +1981,65 @@ function setSignupType(type){
   const biz=document.getElementById("businessNumberWrap");
   const nameLabel=document.getElementById("signupNameLabel");
   const managerLabel=document.getElementById("signupManagerLabel");
+  const managerInput=document.getElementById("signupManager");
+  const workerAccountWrap=document.getElementById("workerAccountSignupWrap");
+
   if(biz)biz.classList.toggle("hidden",type!=="business");
-  if(nameLabel)nameLabel.innerText=type==="business"?"회사명":"이름";
-  if(managerLabel)managerLabel.innerText=type==="business"?"담당자명":"연락 담당자명";
+  if(workerAccountWrap)workerAccountWrap.classList.toggle("hidden",type!=="worker");
+
+  if(type==="business"){
+    if(nameLabel)nameLabel.innerText="회사명";
+    if(managerLabel)managerLabel.innerText="담당자명";
+    if(managerInput)managerInput.parentElement?.classList?.remove("hidden");
+  }else if(type==="personal"){
+    if(nameLabel)nameLabel.innerText="이름";
+    if(managerLabel)managerLabel.innerText="연락 담당자명";
+    if(managerInput)managerInput.parentElement?.classList?.remove("hidden");
+  }else{
+    if(nameLabel)nameLabel.innerText="근로자 이름";
+    if(managerLabel)managerLabel.innerText="담당자명";
+    if(managerInput)managerInput.value="근로자";
+  }
 }
-function saveManagerSignup(){
+
+function saveSignupAccount(){
   const type=document.getElementById("signupType")?.value||"business";
   const name=document.getElementById("signupName")?.value.trim()||"";
   const manager=document.getElementById("signupManager")?.value.trim()||"";
   const bizNo=document.getElementById("signupBizNo")?.value.trim()||"";
   const phone=document.getElementById("signupPhone")?.value.trim()||"";
   const password=document.getElementById("signupPassword")?.value||"";
-  if(!name||!manager||!phone||!password)return alert("필수 정보를 입력하세요.");
+  const key=normalizePhone(phone);
+
+  if(!name||!phone||!password)return alert("필수 정보를 입력하세요.");
+
+  if(type==="worker"){
+    const bank=document.getElementById("signupWorkerBank")?.value.trim()||"";
+    const accountNo=document.getElementById("signupWorkerAccount")?.value.trim()||"";
+    const holder=document.getElementById("signupWorkerHolder")?.value.trim()||name;
+    if(!bank||!accountNo||!holder)return alert("근로자 계좌정보를 입력하세요.");
+
+    const workers=getWorkerAccounts();
+    if(workers.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
+    const account={type:"worker",name,phone,password,bank,account:accountNo,holder,created_at:new Date().toISOString()};
+    workers.push(account); saveWorkerAccounts(workers);
+
+    workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder;
+    localStorage.setItem("crew_role","worker");
+    localStorage.setItem("worker_name",name);
+    localStorage.setItem("worker_phone",phone);
+    localStorage.setItem("worker_bank",bank);
+    localStorage.setItem("worker_account",accountNo);
+    localStorage.setItem("worker_holder",holder);
+    role="worker"; lastRole="worker";
+    alert("가입 완료. 근로자로 시작합니다.");
+    loadData().then(()=>goScreen("workerScreen"));
+    return;
+  }
+
+  if(!manager)return alert("담당자명을 입력하세요.");
   if(type==="business"&&!bizNo)return alert("사업자등록번호를 입력하세요.");
   const accounts=getManagerAccounts();
-  const key=normalizePhone(phone);
   if(accounts.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
   const account={type,name,manager,bizNo,phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
   accounts.push(account); saveManagerAccounts(accounts);
@@ -1980,6 +2051,9 @@ function saveManagerSignup(){
   alert("가입 완료. 현장관리자로 시작합니다.");
   loadData().then(()=>goScreen("managerScreen"));
 }
+
+function saveManagerSignup(){return saveSignupAccount()}
+
 function loginManagerAccount(){
   const phone=document.getElementById("loginPhone")?.value.trim()||"";
   const password=document.getElementById("loginPassword")?.value||"";
@@ -1992,6 +2066,27 @@ function loginManagerAccount(){
   localStorage.setItem("manager_contact",account.phone);
   role="manager"; lastRole="manager"; companyId=account.company_id;
   loadData().then(()=>goScreen("managerScreen"));
+}
+
+function loginWorkerAccount(){
+  const phone=document.getElementById("workerLoginPhone")?.value.trim()||"";
+  const password=document.getElementById("workerLoginPassword")?.value||"";
+  const key=normalizePhone(phone);
+  const account=getWorkerAccounts().find(a=>normalizePhone(a.phone)===key && a.password===password);
+  if(!account)return alert("연락처 또는 비밀번호가 맞지 않습니다.");
+  workerName=account.name||"";
+  workerPhone=account.phone||"";
+  workerBank=account.bank||"";
+  workerAccount=account.account||"";
+  workerHolder=account.holder||workerName;
+  localStorage.setItem("crew_role","worker");
+  localStorage.setItem("worker_name",workerName);
+  localStorage.setItem("worker_phone",workerPhone);
+  localStorage.setItem("worker_bank",workerBank);
+  localStorage.setItem("worker_account",workerAccount);
+  localStorage.setItem("worker_holder",workerHolder);
+  role="worker"; lastRole="worker";
+  loadData().then(()=>goScreen("workerScreen"));
 }
 
 
