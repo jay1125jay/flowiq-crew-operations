@@ -1544,9 +1544,11 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   </div>
   <button class="big blue" onclick="selectRole('worker')">👷 근로자 앱</button>
 
-<button class="big green" onclick="selectRole('manager')">🏗️ 업체 관리자</button>
+<button class="big green" onclick="selectRole('manager')">🏗️ 현장관리자</button>
 
-<button class="big red" onclick="selectRole('master')">🛡️ FlowIQ MASTER</button>
+  <div class="card notice" style="margin-top:14px">
+    <div class="sub">MASTER는 내부 전용 페이지에서만 접속합니다.</div>
+  </div>
 </section>
 <section id="workerInfoScreen" class="hidden">
   <div class="card notice">
@@ -2371,9 +2373,9 @@ async function deleteJob(jobId){
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
-      (COMPANY_NAMES[companyId] || companyId) + " · v11.7";
+      (COMPANY_NAMES[companyId] || companyId) + " · v3.0";
   }else{
-    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v11.7";
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v3.0";
   }
 
   const pendingRows=pendingApplications.map((a,index)=>{
