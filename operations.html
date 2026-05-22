@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v2.8.1</title>
+<title>FlowIQ Crew OPERATIONS v2.9</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1607,8 +1607,8 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
   </div>
 
   <div class="card">
-    <label>공고명</label>
-    <input id="fTitle" placeholder="예: 성수 물류센터 상하차"/>
+    <label>업체명</label>
+    <input id="fTitle" placeholder="예: Beta Factory"/>
 
     <label>위치</label>
     <input id="fLocation" placeholder="예: 서울 성동구 성수동"/>
@@ -1623,13 +1623,14 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <input id="fNeeded" type="number" placeholder="예: 8"/>
 
     <label>작업 종류</label>
-    <select id="fType">
+    <select id="fType" onchange="toggleOtherType()">
       <option>물류</option>
       <option>건설</option>
       <option>공장</option>
       <option>행사</option>
       <option>기타</option>
     </select>
+    <input id="fTypeOther" class="hidden" placeholder="예: 철거 / 청소 / 포장"/>
 
     <label>지원 언어</label>
     <div class="lang-grid">
@@ -1709,7 +1710,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v2.8-company-display-fix';
+let APP_VERSION='FlowIQ Crew OPERATIONS v2.9';
 let managerFilter='all';
 let managerSearch='';
   
@@ -3003,17 +3004,27 @@ async function deleteJob(jobId){
       ${attRows || `<div class="card"><div class="sub">아직 출근 기록이 없습니다.</div></div>`}
     `;
 }
+function toggleOtherType(){
+  const type=document.getElementById("fType");
+  const other=document.getElementById("fTypeOther");
+  if(!type || !other)return;
+  other.classList.toggle("hidden",type.value!=="기타");
+  if(type.value!=="기타")other.value="";
+}
+
   async function createJob(){
   const title=fTitle.value.trim();
   const location=fLocation.value.trim();
   const work_time=fTime.value.trim();
   const salary=Number(fSalary.value||0);
   const needed=Number(fNeeded.value||0);
-  const type=fType.value;
+  const selectedType=fType.value;
+  const otherType=document.getElementById("fTypeOther")?.value.trim()||"";
+  const type=selectedType==="기타"?otherType:selectedType;
   const selectedLangs=[...document.querySelectorAll(".langCheck:checked")].map(x=>x.value);
   const language=selectedLangs.length?"한국어 / "+selectedLangs.join(" / "):"한국어";
 
-  if(!title||!location||!work_time||!salary||!needed)return alert("공고명, 위치, 시간, 일급, 필요 인원을 입력하세요.");
+  if(!title||!location||!work_time||!salary||!needed||!type)return alert("업체명, 위치, 시간, 일급, 필요 인원, 작업 종류를 입력하세요.");
 
   const {error}=await db.from("jobs").insert({
     title,
@@ -3030,6 +3041,9 @@ async function deleteJob(jobId){
   if(error)return alert("공고 저장 오류: "+error.message);
 
   ["fTitle","fLocation","fTime","fSalary","fNeeded"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("fType").value="물류";
+  document.getElementById("fTypeOther").value="";
+  document.getElementById("fTypeOther").classList.add("hidden");
   document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
 
   await loadData();
@@ -3950,684 +3964,14 @@ init();
 </script>
 
 
-<script>
-// ===== FlowIQ Crew v2.8 Job Visibility / Company Scope Fix =====
-(function(){
-  // 공고 생성 시 company_id 누락 방지 + 저장 직후 즉시 표시 보장
-  const originalCreateJob = window.createJob;
 
-  window.createJob = async function(){
-    const title = document.getElementById("fTitle")?.value?.trim();
-    const location = document.getElementById("fLocation")?.value?.trim();
-    const work_time = document.getElementById("fTime")?.value?.trim();
-    const salary = Number(document.getElementById("fSalary")?.value || 0);
-    const needed = Number(document.getElementById("fNeeded")?.value || 0);
-    const type = document.getElementById("fType")?.value || "기타";
-    const language = Array.from(document.querySelectorAll(".langCheck:checked")).map(x=>x.value).join(" / ") || "한국어";
 
-    if(!title || !location || !work_time || !salary || !needed){
-      alert("공고명/위치/시간/일급/필요 인원을 입력하세요.");
-      return;
-    }
 
-    const targetCompanyId = (role === "master")
-      ? (companyId && companyId !== "master" ? companyId : "demo_company")
-      : (companyId || "demo_company");
 
-    const payload = {
-      title,
-      location,
-      work_time,
-      salary,
-      needed,
-      applied: 0,
-      language,
-      type,
-      company_id: targetCompanyId
-    };
 
-    try{
-      const { error } = await db.from("jobs").insert([payload]);
-      if(error){
-        alert("공고 저장 오류: " + error.message);
-        return;
-      }
 
-      await loadData();
 
-      // 관리자 화면에서 방금 만든 공고 확인 가능하게 이동
-      goScreen("managerScreen");
 
-      setTimeout(()=>{
-        const list = document.getElementById("jobsList");
-        if(list) renderJobs();
-      }, 300);
-
-      alert("공고가 생성되었습니다.");
-    }catch(e){
-      alert("공고 생성 중 오류가 발생했습니다.");
-      console.log(e);
-    }
-  };
-
-  // 근로자 모드는 모든 업체 공고 확인 가능, 관리자 모드는 자기 업체만 확인
-  const originalLoadData = window.loadData;
-  if(typeof originalLoadData === "function"){
-    window.loadData = async function(){
-      let jobsQuery = db.from("jobs").select("*");
-      let applicationsQuery = db.from("applications").select("*");
-      let attendanceQuery = db.from("attendance").select("*");
-
-      if(role === "manager"){
-        jobsQuery = jobsQuery.eq("company_id", companyId);
-        applicationsQuery = applicationsQuery.eq("company_id", companyId);
-        attendanceQuery = attendanceQuery.eq("company_id", companyId);
-      }
-
-      if(role === "worker" && workerPhone){
-        applicationsQuery = applicationsQuery.eq("phone", workerPhone);
-        attendanceQuery = attendanceQuery.eq("phone", workerPhone);
-      }
-
-      const jr = await jobsQuery.order("created_at", {ascending:false});
-      const ar = await applicationsQuery.order("created_at", {ascending:false});
-      const tr = await attendanceQuery.order("created_at", {ascending:false});
-
-      if(jr.error) alert("jobs 오류: " + jr.error.message);
-      if(ar.error) alert("applications 오류: " + ar.error.message);
-      if(tr.error) alert("attendance 오류: " + tr.error.message);
-
-      jobs = jr.data || [];
-      applications = ar.data || [];
-      attendance = tr.data || [];
-
-      renderWorkerHome();
-      renderJobs();
-      renderManager();
-      renderPayroll();
-    };
-  }
-})();
-</script>
-
-
-<script>
-// ===== FlowIQ Crew v2.8 Multi Company Job Create Fix =====
-(function(){
-  function getCurrentCompanyId(){
-    const saved = localStorage.getItem("company_id");
-    if(saved && saved !== "master") return saved;
-    if(typeof companyId !== "undefined" && companyId && companyId !== "master") return companyId;
-    return "demo_company";
-  }
-
-  window.createJob = async function(){
-    const title = document.getElementById("fTitle")?.value?.trim();
-    const location = document.getElementById("fLocation")?.value?.trim();
-    const work_time = document.getElementById("fTime")?.value?.trim();
-    const salary = Number(document.getElementById("fSalary")?.value || 0);
-    const needed = Number(document.getElementById("fNeeded")?.value || 0);
-    const type = document.getElementById("fType")?.value || "기타";
-    const language = Array.from(document.querySelectorAll(".langCheck:checked")).map(x=>x.value).join(" / ") || "한국어";
-
-    if(!title || !location || !work_time || !salary || !needed){
-      alert("공고명/위치/시간/일급/필요 인원을 입력하세요.");
-      return;
-    }
-
-    const cid = getCurrentCompanyId();
-
-    const payload = {
-      title,
-      location,
-      work_time,
-      salary,
-      needed,
-      applied:0,
-      language,
-      type,
-      company_id: cid
-    };
-
-    const { data, error } = await db.from("jobs").insert([payload]).select();
-
-    if(error){
-      alert("공고 저장 오류: " + error.message);
-      console.log("createJob error", error, payload);
-      return;
-    }
-
-    // DB 재조회 전에도 화면에 바로 반영
-    const created = data && data[0] ? data[0] : {...payload, id: Date.now(), created_at: new Date().toISOString()};
-    jobs = [created, ...(jobs || [])];
-
-    await loadData();
-    goScreen("managerScreen");
-    renderManager();
-    renderJobs();
-
-    alert("공고가 생성되었습니다. (" + cid + ")");
-  };
-})();
-</script>
-
-
-<script>
-// ===== FlowIQ Crew v2.8 Multi Company Scale Patch =====
-// 목표: demo_company/alpha/beta 고정 방식에서 companies 테이블 기반 확장 구조로 전환
-(function(){
-  window.getCompanyByCode = async function(code){
-    const cleanCode = String(code || "").trim();
-    if(!cleanCode) return null;
-
-    // 1) 실제 운영용 companies 테이블 조회
-    try{
-      const { data, error } = await db
-        .from("companies")
-        .select("*")
-        .eq("company_id", cleanCode)
-        .eq("status", "active")
-        .maybeSingle();
-
-      if(!error && data) return data;
-    }catch(e){}
-
-    // 2) 기존 테스트 코드 fallback
-    const fallback = {
-      demo_company:{company_id:"demo_company", company_name:"FlowIQ Demo", password:"0000", status:"active"},
-      alpha:{company_id:"alpha", company_name:"Alpha Logistics", password:"1111", status:"active"},
-      beta:{company_id:"beta", company_name:"Beta Factory", password:"2222", status:"active"}
-    };
-
-    return fallback[cleanCode] || null;
-  };
-
-  // 업체 관리자 로그인 확장
-  window.selectRole = async function(selected){
-    role = selected;
-    lastRole = selected;
-
-    if(selected === "worker"){
-      localStorage.setItem("crew_role", "worker");
-
-      if(!workerName || !workerPhone){
-        goScreen("workerInfoScreen");
-      }else{
-        await loadData();
-        goScreen("workerScreen");
-      }
-      return;
-    }
-
-    if(selected === "manager"){
-      const code = prompt("업체 코드를 입력하세요");
-      if(!code){
-        alert("업체 코드가 필요합니다.");
-        return;
-      }
-
-      const company = await getCompanyByCode(code);
-      if(!company){
-        alert("등록되지 않은 업체이거나 비활성 업체입니다.");
-        return;
-      }
-
-      const password = prompt("업체 비밀번호 입력");
-      const expectedPassword = company.password || company.admin_password || COMPANY_PASSWORDS?.[code];
-
-      if(expectedPassword && password !== expectedPassword){
-        alert("비밀번호가 틀렸습니다.");
-        return;
-      }
-
-      role = "manager";
-      lastRole = "manager";
-      companyId = company.company_id || code;
-
-      localStorage.setItem("crew_role", "manager");
-      localStorage.setItem("company_id", companyId);
-      localStorage.setItem("company_name", company.company_name || company.name || companyId);
-
-      await loadData();
-      goScreen("managerScreen");
-      return;
-    }
-
-    if(selected === "master"){
-      const password = prompt("MASTER 비밀번호 입력");
-
-      if(password !== MASTER_PASSWORD){
-        alert("비밀번호가 틀렸습니다.");
-        return;
-      }
-
-      role = "master";
-      lastRole = "master";
-      companyId = "master";
-
-      localStorage.setItem("crew_role", "master");
-      localStorage.setItem("company_id", "master");
-
-      await loadData();
-      goScreen("managerScreen");
-      alert("MASTER MODE");
-    }
-  };
-
-  // 데이터 범위 분리: manager=자기 업체, master=전체, worker=전체 공고 + 자기 지원/출근
-  window.loadData = async function(){
-    let jobsQuery = db.from("jobs").select("*");
-    let applicationsQuery = db.from("applications").select("*");
-    let attendanceQuery = db.from("attendance").select("*");
-
-    if(role === "manager"){
-      const cid = localStorage.getItem("company_id") || companyId;
-      jobsQuery = jobsQuery.eq("company_id", cid);
-      applicationsQuery = applicationsQuery.eq("company_id", cid);
-      attendanceQuery = attendanceQuery.eq("company_id", cid);
-    }
-
-    if(role === "worker" && workerPhone){
-      applicationsQuery = applicationsQuery.eq("phone", workerPhone);
-      attendanceQuery = attendanceQuery.eq("phone", workerPhone);
-    }
-
-    const jr = await jobsQuery.order("created_at", {ascending:false});
-    const ar = await applicationsQuery.order("created_at", {ascending:false});
-    const tr = await attendanceQuery.order("created_at", {ascending:false});
-
-    if(jr.error) alert("jobs 오류: " + jr.error.message);
-    if(ar.error) alert("applications 오류: " + ar.error.message);
-    if(tr.error) alert("attendance 오류: " + tr.error.message);
-
-    jobs = jr.data || [];
-    applications = ar.data || [];
-    attendance = tr.data || [];
-
-    renderWorkerHome();
-    renderJobs();
-    renderManager();
-    renderPayroll();
-  };
-
-  // 공고 생성: 어떤 업체든 company_id 자동 저장
-  window.createJob = async function(){
-    const title = document.getElementById("fTitle")?.value?.trim();
-    const location = document.getElementById("fLocation")?.value?.trim();
-    const work_time = document.getElementById("fTime")?.value?.trim();
-    const salary = Number(document.getElementById("fSalary")?.value || 0);
-    const needed = Number(document.getElementById("fNeeded")?.value || 0);
-    const type = document.getElementById("fType")?.value || "기타";
-    const language = Array.from(document.querySelectorAll(".langCheck:checked")).map(x=>x.value).join(" / ") || "한국어";
-
-    if(!title || !location || !work_time || !salary || !needed){
-      alert("공고명/위치/시간/일급/필요 인원을 입력하세요.");
-      return;
-    }
-
-    const cid = localStorage.getItem("company_id") || companyId || "demo_company";
-
-    if(role !== "manager" && role !== "master"){
-      alert("관리자만 공고를 생성할 수 있습니다.");
-      return;
-    }
-
-    const payload = {
-      title,
-      location,
-      work_time,
-      salary,
-      needed,
-      applied:0,
-      language,
-      type,
-      company_id: cid === "master" ? "demo_company" : cid
-    };
-
-    const { data, error } = await db.from("jobs").insert([payload]).select();
-
-    if(error){
-      alert("공고 저장 오류: " + error.message);
-      console.log("createJob error", error, payload);
-      return;
-    }
-
-    const created = data && data[0] ? data[0] : {...payload, id:Date.now(), created_at:new Date().toISOString()};
-    jobs = [created, ...(jobs || [])];
-
-    await loadData();
-    goScreen("managerScreen");
-    alert("공고가 생성되었습니다.");
-  };
-})();
-</script>
-
-
-<script>
-// ===== FlowIQ Crew v2.8 Company Create Fix =====
-(function(){
-  const FALLBACK_COMPANIES = {
-    demo_company:{company_id:"demo_company", company_name:"FlowIQ Demo", password:"0000", status:"active"},
-    alpha:{company_id:"alpha", company_name:"Alpha Logistics", password:"1111", status:"active"},
-    beta:{company_id:"beta", company_name:"Beta Factory", password:"2222", status:"active"}
-  };
-
-  window.getCompanyByCode = async function(code){
-    const cleanCode = String(code || "").trim();
-    if(!cleanCode) return null;
-
-    // 테스트 업체는 DB 조회 전에 먼저 통과
-    if(FALLBACK_COMPANIES[cleanCode]) return FALLBACK_COMPANIES[cleanCode];
-
-    // 실제 운영용 companies 테이블 조회
-    try{
-      const { data, error } = await db
-        .from("companies")
-        .select("*")
-        .eq("company_id", cleanCode)
-        .maybeSingle();
-
-      if(!error && data && data.status !== "inactive") return data;
-    }catch(e){}
-
-    return null;
-  };
-
-  window.selectRole = async function(selected){
-    role = selected;
-    lastRole = selected;
-
-    if(selected === "worker"){
-      localStorage.setItem("crew_role", "worker");
-      if(!workerName || !workerPhone){
-        goScreen("workerInfoScreen");
-      }else{
-        await loadData();
-        goScreen("workerScreen");
-      }
-      return;
-    }
-
-    if(selected === "manager"){
-      const code = prompt("업체 코드를 입력하세요");
-      if(!code){ alert("업체 코드가 필요합니다."); return; }
-
-      const company = await getCompanyByCode(code);
-      if(!company){ alert("등록되지 않은 업체입니다."); return; }
-
-      const password = prompt("업체 비밀번호 입력");
-      const expectedPassword = company.password || company.admin_password || "";
-
-      if(expectedPassword && password !== expectedPassword){
-        alert("비밀번호가 틀렸습니다.");
-        return;
-      }
-
-      role = "manager";
-      lastRole = "manager";
-      companyId = company.company_id || code;
-
-      localStorage.setItem("crew_role", "manager");
-      localStorage.setItem("company_id", companyId);
-      localStorage.setItem("company_name", company.company_name || company.name || companyId);
-
-      await loadData();
-      goScreen("managerScreen");
-      return;
-    }
-
-    if(selected === "master"){
-      const password = prompt("MASTER 비밀번호 입력");
-      if(password !== MASTER_PASSWORD){ alert("비밀번호가 틀렸습니다."); return; }
-
-      role = "master";
-      lastRole = "master";
-      companyId = "master";
-
-      localStorage.setItem("crew_role", "master");
-      localStorage.setItem("company_id", "master");
-
-      await loadData();
-      goScreen("managerScreen");
-      alert("MASTER MODE");
-    }
-  };
-
-  window.createJob = async function(){
-    const title = document.getElementById("fTitle")?.value?.trim();
-    const location = document.getElementById("fLocation")?.value?.trim();
-    const work_time = document.getElementById("fTime")?.value?.trim();
-    const salary = Number(document.getElementById("fSalary")?.value || 0);
-    const needed = Number(document.getElementById("fNeeded")?.value || 0);
-    const type = document.getElementById("fType")?.value || "기타";
-    const language = Array.from(document.querySelectorAll(".langCheck:checked")).map(x=>x.value).join(" / ") || "한국어";
-
-    if(!title || !location || !work_time || !salary || !needed){
-      alert("공고명/위치/시간/일급/필요 인원을 입력하세요.");
-      return;
-    }
-
-    if(role !== "manager" && role !== "master"){
-      alert("관리자만 공고를 생성할 수 있습니다.");
-      return;
-    }
-
-    const cid = (role === "manager")
-      ? (localStorage.getItem("company_id") || companyId || "demo_company")
-      : (companyId && companyId !== "master" ? companyId : "demo_company");
-
-    const payload = {
-      title,
-      location,
-      work_time,
-      salary,
-      needed,
-      applied: 0,
-      language,
-      type,
-      company_id: cid
-    };
-
-    const { data, error } = await db.from("jobs").insert([payload]).select();
-
-    if(error){
-      alert("공고 저장 오류: " + error.message);
-      console.log("createJob error", error, payload);
-      return;
-    }
-
-    const created = data && data[0] ? data[0] : {...payload, id:Date.now(), created_at:new Date().toISOString()};
-    jobs = [created, ...(jobs || [])];
-
-    await loadData();
-    goScreen("managerScreen");
-    renderManager();
-    alert("공고가 생성되었습니다. 업체: " + cid);
-  };
-})();
-</script>
-
-
-<script>
-// ===== FlowIQ Crew v2.8.1 STEP 4 Worker Apply Stable Patch =====
-// 목표: 근로자 지원 → 관리자 지원자 목록 표시 흐름 안정화
-(function(){
-  try{
-    APP_VERSION = "FlowIQ Crew OPERATIONS v2.8.1";
-  }catch(e){}
-
-  function clean(v){ return String(v || "").trim(); }
-  function currentCompany(){ return clean(localStorage.getItem("company_id") || companyId || "demo_company"); }
-  function appStatusText(status){
-    const s = clean(status) || "지원";
-    if(s === "승인") return "승인 완료";
-    if(s === "거절") return "거절";
-    if(s === "출근완료") return "출근 완료";
-    return "승인 대기";
-  }
-  function appStatusClass(status){
-    const s = clean(status) || "지원";
-    if(s === "승인") return "ok";
-    if(s === "거절") return "rejected";
-    if(s === "출근완료") return "checked";
-    return "wait";
-  }
-
-  window.applyJob = async function(jobId){
-    if(role !== "worker"){
-      alert("근로자만 지원할 수 있습니다.");
-      return;
-    }
-
-    if(!clean(workerName) || !clean(workerPhone)){
-      alert("근로자 이름과 연락처를 먼저 입력하세요.");
-      goScreen("workerInfoScreen");
-      return;
-    }
-
-    const job = (jobs || []).find(j => Number(j.id) === Number(jobId));
-    if(!job){
-      alert("공고를 찾을 수 없습니다. 새로고침 후 다시 시도하세요.");
-      return;
-    }
-
-    const active = (applications || []).find(a =>
-      clean(a.phone) === clean(workerPhone) &&
-      !["거절","rejected","취소","cancelled"].includes(clean(a.status || "지원"))
-    );
-
-    if(active){
-      alert("이미 지원한 공고가 있습니다. 한 번에 하나의 공고만 지원할 수 있습니다.");
-      return;
-    }
-
-    const payload = {
-      job_id: job.id,
-      worker_name: workerName,
-      phone: workerPhone,
-      company_id: job.company_id || "demo_company",
-      status: "지원"
-    };
-
-    const { data, error } = await db.from("applications").insert([payload]).select();
-    if(error){
-      alert("지원 저장 오류: " + error.message);
-      console.log("applyJob error", error, payload);
-      return;
-    }
-
-    try{
-      await db.from("jobs").update({ applied: Number(job.applied || 0) + 1 }).eq("id", job.id);
-    }catch(e){}
-
-    const created = data && data[0] ? data[0] : {...payload, id:Date.now(), created_at:new Date().toISOString()};
-    applications = [created, ...(applications || [])];
-    jobs = (jobs || []).map(j => Number(j.id) === Number(job.id) ? {...j, applied:Number(j.applied || 0) + 1} : j);
-
-    await loadData();
-    renderWorkerHome();
-    renderJobs();
-    alert("지원 완료. 관리자 승인 대기 상태입니다.");
-  };
-
-  window.renderJobs = function(){
-    const el = document.getElementById("jobsList");
-    if(!el) return;
-
-    const data = (jobs || []);
-    if(data.length === 0){
-      el.innerHTML = `<div class="card"><div class="title">공고가 없습니다</div><div class="sub">관리자 앱에서 공고를 생성하세요.</div></div>`;
-      return;
-    }
-
-    el.innerHTML = data.map(j => {
-      const myApp = (applications || []).find(a => Number(a.job_id) === Number(j.id) && clean(a.phone) === clean(workerPhone));
-      const already = !!myApp;
-      const status = myApp ? clean(myApp.status || "지원") : "";
-      const disabled = already ? "disabled" : "";
-      const btnClass = already ? "gray" : "blue";
-      const btnText = already ? `지원 ${status || "완료"}` : "지원하기";
-
-      return `
-        <div class="card">
-          <div class="job-head">
-            <div>
-              <div class="job-title">${j.title || "공고명 없음"}</div>
-              <div class="type">${j.type || "공고"}</div>
-            </div>
-            <div class="badge">₩${won(j.salary)}</div>
-          </div>
-          <div class="info">📍 ${j.location || "-"}</div>
-          <div class="info">🕒 ${j.work_time || "-"}</div>
-          <div class="info">👥 ${j.applied || 0}/${j.needed || 0}명 지원</div>
-          <div class="info">🌐 ${j.language || "한국어"}</div>
-          <div class="info">🏢 ${j.company_id || "demo_company"}</div>
-          ${role === "worker" ? `<button class="full ${btnClass}" ${disabled} onclick="applyJob(${j.id})">${btnText}</button>` : ""}
-          ${role === "master" ? `<button class="full red" onclick="deleteJob(${j.id})">삭제하기</button>` : ""}
-        </div>`;
-    }).join("");
-  };
-
-  window.approveApplication = async function(id){
-    const { error } = await db.from("applications").update({status:"승인"}).eq("id", id);
-    if(error){ alert("승인 오류: " + error.message); return; }
-    await loadData();
-    renderManagerApprovalUI();
-    alert("승인 완료");
-  };
-
-  window.rejectApplication = async function(id){
-    const { error } = await db.from("applications").update({status:"거절"}).eq("id", id);
-    if(error){ alert("거절 오류: " + error.message); return; }
-    await loadData();
-    renderManagerApprovalUI();
-    alert("거절 완료");
-  };
-
-  window.renderManagerApprovalUI = function(){
-    const list = document.getElementById("workersList");
-    if(!list) return;
-
-    const cid = currentCompany();
-    const data = (applications || []).filter(a => {
-      if(role === "master") return true;
-      return clean(a.company_id) === cid;
-    });
-
-    if(data.length === 0){
-      list.innerHTML = `<div class="card"><div class="sub">지원자가 아직 없습니다.</div></div>`;
-      return;
-    }
-
-    list.innerHTML = data.map(a => {
-      const job = (jobs || []).find(j => Number(j.id) === Number(a.job_id));
-      const st = clean(a.status || "지원");
-      return `
-        <div class="card">
-          <div class="worker-row">
-            <div>
-              <div class="worker-name">${a.worker_name || "이름없음"}</div>
-              <div class="worker-meta">${a.phone || "번호없음"}</div>
-              <div class="worker-meta">지원 공고: ${job ? job.title : "공고 정보 없음"}</div>
-              <div class="worker-meta">업체: ${a.company_id || "-"}</div>
-            </div>
-            <div class="status ${appStatusClass(st)}">${appStatusText(st)}</div>
-          </div>
-          <div class="grid2" style="margin-top:12px">
-            <button class="green" onclick="approveApplication(${a.id})">승인</button>
-            <button class="red" onclick="rejectApplication(${a.id})">거절</button>
-          </div>
-        </div>`;
-    }).join("");
-  };
-
-  const baseRenderManager = window.renderManager;
-  window.renderManager = function(){
-    if(typeof baseRenderManager === "function") baseRenderManager.apply(this, arguments);
-    renderManagerApprovalUI();
-  };
-})();
-</script>
 
 </body>
 </html>
