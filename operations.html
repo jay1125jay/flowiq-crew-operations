@@ -2557,7 +2557,7 @@ function renderJobs(){
           <div class="type">${getJobType(j)}</div>
           ${role==="manager" ? jobStatusBadge({...j,type:`[${getVisibleJobStatus(j)}] ${getJobType(j)}`}) : ""}
         </div>
-        ${role==="worker"?`<div class="badge money-hidden">금액 숨김</div>`:`<div class="badge">관리 금액</div>`}
+        ${role!=="worker"?`<div class="badge">관리 금액</div>`:""}
       </div>
       <div class="info">📍 ${j.location}</div>
       <div class="info">🕒 ${j.work_time}</div>
@@ -2565,8 +2565,8 @@ function renderJobs(){
       <div class="info">🌐 ${j.language}</div>
 
       ${role==="worker"
-        ? `<button class="full gray" onclick="togglePaymentDetail(${j.id})">예상 지급액 보기</button>
-           <div id="workerPayDetail_${j.id}" class="payment-detail hidden">예상 지급액 ${won(j.salary)}<br><span class="sub">Crew 수수료는 업체 부담이며 근로자 지급액에서 차감하지 않습니다.</span></div>
+        ? `<button class="full gray" onclick="togglePaymentDetail(${j.id})">지급액 보기</button>
+           <div id="workerPayDetail_${j.id}" class="payment-detail hidden">지급액 ${won(j.salary)}<br><span class="sub">Crew 수수료는 업체 부담이며 근로자 지급액에서 차감하지 않습니다.</span></div>
            <button class="full ${buttonLocked?'gray':'blue'}" ${buttonLocked?'disabled':''} onclick="applyJob(${j.id})">
             ${buttonText}
           </button>`
@@ -2826,7 +2826,7 @@ function renderManager(){
       </div>
       <div class="info">📍 ${j.location || "-"}</div>
       <div class="info">🕒 ${j.work_time || "-"}</div>
-      <div class="info">💼 금액은 MASTER에서만 확인 · 👥 ${j.applied || jobApps.length}/${j.needed || 0}명</div>
+      <div class="info">👥 ${j.applied || jobApps.length}/${j.needed || 0}명</div>
 
       <div class="manager-count-grid">
         <div class="manager-count-tile"><b>${applyCount}</b><span>지원</span></div>
