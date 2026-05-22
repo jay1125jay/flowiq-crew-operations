@@ -1605,7 +1605,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 <section id="jobFormScreen" class="hidden">
   <div class="card notice">
     <div class="title">새 공고 생성</div>
-    <div class="sub">현장에서 바로 사용할 공고를 생성합니다.</div>
+    <div class="sub">공고 생성 후 MASTER 입금확인/게시승인을 거쳐 근로자에게 노출됩니다.</div>
   </div>
 
   <div class="card">
@@ -2219,6 +2219,30 @@ function renderWorkerHome(){
 }
 
 
+function getJobRawType(job){
+  return String(job?.type || "공고").trim();
+}
+
+function getJobStatus(job){
+  const raw=getJobRawType(job);
+  const match=raw.match(/^\[(입금대기|입금확인|게시중)\]\s*/);
+  return match ? match[1] : "게시중";
+}
+
+function getJobType(job){
+  return getJobRawType(job).replace(/^\[(입금대기|입금확인|게시중)\]\s*/, "").trim() || "공고";
+}
+
+function makePendingType(type){
+  return "[입금대기] " + String(type || "공고").replace(/^\[(입금대기|입금확인|게시중)\]\s*/, "").trim();
+}
+
+function jobStatusBadge(job){
+  const status=getJobStatus(job);
+  const color=status==="게시중"?"#059669":(status==="입금확인"?"#2563eb":"#f59e0b");
+  return `<span style="display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:${color};color:white;font-size:12px;font-weight:900">${status}</span>`;
+}
+
 function renderJobs(){
   const el=document.getElementById("jobsList");
   if(!el)return;
@@ -2226,7 +2250,7 @@ function renderJobs(){
   const filteredJobs =
   role==="manager"
     ? jobs.filter(j=>j.company_id===companyId)
-    : jobs;
+    : jobs.filter(j=>getJobStatus(j)==="게시중");
 
   el.innerHTML=filteredJobs.length
   ? filteredJobs.map(j=>{
@@ -2238,7 +2262,8 @@ function renderJobs(){
       <div class="job-head">
         <div>
           <div class="job-title">${j.title}</div>
-          <div class="type">${j.type}</div>
+          <div class="type">${getJobType(j)}</div>
+          ${role==="manager" ? jobStatusBadge(j) : ""}
         </div>
         <div class="badge">₩${won(j.salary)}</div>
       </div>
@@ -2373,9 +2398,9 @@ async function deleteJob(jobId){
 
   if(role==="manager"){
     document.getElementById("managerTitle").innerText=
-      (COMPANY_NAMES[companyId] || companyId) + " · v3.0";
+      (COMPANY_NAMES[companyId] || companyId) + " · v3.1";
   }else{
-    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v3.0";
+    document.getElementById("managerTitle").innerText="FlowIQ MASTER · v3.1";
   }
 
   const pendingRows=pendingApplications.map((a,index)=>{
@@ -2512,7 +2537,8 @@ async function deleteJob(jobId){
       <div class="job-head">
         <div>
           <div class="job-title">${j.title}</div>
-          <div class="type">${j.type || "공고"}</div>
+          <div class="type">${getJobType(j)}</div>
+          ${jobStatusBadge(j)}
         </div>
         <div class="badge">₩${won(j.salary)}</div>
       </div>
@@ -2520,6 +2546,7 @@ async function deleteJob(jobId){
       <div class="info">🕒 ${j.work_time || "-"}</div>
       <div class="info">👥 ${j.applied || 0}/${j.needed || 0}명 지원</div>
       <div class="info">🌐 ${j.language || "한국어"}</div>
+      <div class="info">상태: ${getJobStatus(j)}</div>
       ${(Number(j.needed||0) - Number(j.applied||0)) > 3 ? 
         `<div class="manager-urgent">🚨 인원 부족 현장</div>` : ``}
 
@@ -3036,7 +3063,7 @@ function toggleOtherType(){
     needed,
     applied:0,
     language,
-    type,
+    type:makePendingType(type),
     company_id:companyId
   });
 
@@ -3049,7 +3076,7 @@ function toggleOtherType(){
   document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
 
   await loadData();
-  alert("공고가 저장되었습니다. 업체: "+companyId);
+  alert("공고가 저장되었습니다. 입금대기 상태입니다. 업체: "+companyId);
   goScreen("managerScreen");
 }
 function showQR(selectedRole){
