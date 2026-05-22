@@ -2432,6 +2432,26 @@ async function deleteJob(jobId){
   alert("공고가 삭제되었습니다.");
 }
 
+function managerWorkDoneControl(a,status){
+  const id=Number(a.id);
+  if(status==="출근완료"){
+    return `<button type="button" class="green" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="markWorkComplete(${id})">근무완료 체크</button>`;
+  }
+  if(status==="근무완료" || status==="입금대기"){
+    return `<div class="status checked" style="margin-top:8px;min-height:42px;font-size:12px">근무완료</div>`;
+  }
+  if(status==="입금완료"){
+    return `<div class="status ok" style="margin-top:8px;min-height:42px;font-size:12px">입금완료</div>`;
+  }
+  if(status==="승인"){
+    return `<div class="status wait" style="margin-top:8px;min-height:42px;font-size:12px">출근 전</div>`;
+  }
+  if(status==="지원"){
+    return `<div class="status wait" style="margin-top:8px;min-height:42px;font-size:12px">승인 대기</div>`;
+  }
+  return ``;
+}
+
   function renderManager(){
   const mChecked=document.getElementById("mChecked");
   const workersList=document.getElementById("workersList");
@@ -2584,7 +2604,7 @@ async function deleteJob(jobId){
         </div>
         <div>
           <div class="status ${statusClass}">${displayStatus}</div>
-          ${role==="manager" && status==="출근완료" ? `<button type="button" class="green" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="markWorkComplete(${a.id})">근무완료 체크</button>` : ``}
+          ${role==="manager" ? managerWorkDoneControl(a,status) : ``}
           ${role==="master" ? `<button type="button" class="red" style="margin-top:8px;min-height:42px;border-radius:16px;font-size:12px" onclick="masterDeleteApplication(${a.id})">삭제</button>` : ``}
         </div>
       </div>
