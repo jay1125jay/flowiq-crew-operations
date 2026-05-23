@@ -1630,6 +1630,138 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 .settle-checking{background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff}
 .settle-done{background:linear-gradient(135deg,#059669,#22c55e);color:#fff}
 
+
+
+/* ===== FlowIQ Crew v3.5.0 Premium Button UI ===== */
+:root{
+  --btn-shadow-soft:0 10px 26px rgba(0,0,0,.26);
+  --btn-shadow-blue:0 12px 28px rgba(37,99,235,.34);
+  --btn-shadow-cyan:0 12px 28px rgba(6,182,212,.30);
+  --btn-shadow-emerald:0 12px 28px rgba(16,185,129,.30);
+  --btn-shadow-amber:0 12px 28px rgba(245,158,11,.30);
+  --btn-shadow-violet:0 12px 28px rgba(139,92,246,.30);
+  --btn-shadow-red:0 12px 28px rgba(220,38,38,.28);
+}
+button{
+  position:relative;
+  overflow:hidden;
+  letter-spacing:-.2px;
+  border:1px solid rgba(255,255,255,.08) !important;
+  background:linear-gradient(135deg,#1e293b,#0f172a) !important;
+  box-shadow:var(--btn-shadow-soft), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+button::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.16),transparent);
+  transform:translateX(-120%);
+  transition:.45s ease;
+  pointer-events:none;
+}
+button:active{transform:scale(.985)}
+button:hover::after{transform:translateX(120%)}
+button:disabled{
+  background:linear-gradient(135deg,#334155,#1e293b) !important;
+  color:#94a3b8 !important;
+  opacity:.58 !important;
+  box-shadow:none !important;
+}
+.blue{
+  background:linear-gradient(135deg,#1d4ed8,#38bdf8) !important;
+  box-shadow:var(--btn-shadow-blue), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+.green{
+  background:linear-gradient(135deg,#047857,#34d399) !important;
+  box-shadow:var(--btn-shadow-emerald), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+.gray{
+  background:linear-gradient(135deg,#334155,#111827) !important;
+  color:#e2e8f0 !important;
+}
+.red{
+  background:linear-gradient(135deg,#b91c1c,#fb7185) !important;
+  box-shadow:var(--btn-shadow-red), inset 0 1px 0 rgba(255,255,255,.16) !important;
+}
+.yellow{
+  background:linear-gradient(135deg,#b45309,#f59e0b) !important;
+  box-shadow:var(--btn-shadow-amber), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+/* 기능별 색상 분리 */
+button[onclick*="showQR"],
+button[onclick*="completeQR"],
+button[onclick*="openSelectedMap"],
+button[onclick*="openMap"]{
+  background:linear-gradient(135deg,#0891b2,#22d3ee) !important;
+  box-shadow:var(--btn-shadow-cyan), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+button[onclick*="createJob"],
+button[onclick*="saveSignupAccount"],
+button[onclick*="login"],
+button[onclick*="Login"]{
+  background:linear-gradient(135deg,#2563eb,#7c3aed) !important;
+  box-shadow:var(--btn-shadow-blue), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+button[onclick*="Approve"],
+button[onclick*="approve"],
+button[onclick*="게시승인"]{
+  background:linear-gradient(135deg,#059669,#86efac) !important;
+  box-shadow:var(--btn-shadow-emerald), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+button[onclick*="markWorkComplete"],
+button[onclick*="근무완료"]{
+  background:linear-gradient(135deg,#ea580c,#fbbf24) !important;
+  color:#fff !important;
+  box-shadow:var(--btn-shadow-amber), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+button[onclick*="managerConfirmCashPaid"],
+button[onclick*="지급"],
+button[onclick*="setJobStatus"]{
+  background:linear-gradient(135deg,#7c3aed,#ec4899) !important;
+  box-shadow:var(--btn-shadow-violet), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+button[onclick*="workerConfirmCashReceived"],
+button[onclick*="markWorkerPaid"]{
+  background:linear-gradient(135deg,#10b981,#22c55e) !important;
+  box-shadow:var(--btn-shadow-emerald), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+button[onclick*="Reject"],
+button[onclick*="reject"],
+button[onclick*="delete"],
+button[onclick*="Delete"],
+button[onclick*="공고마감"],
+button[onclick*="closeMapChoice"]{
+  background:linear-gradient(135deg,#be123c,#f43f5e) !important;
+  box-shadow:var(--btn-shadow-red), inset 0 1px 0 rgba(255,255,255,.16) !important;
+}
+button[onclick*="refresh"],
+button[onclick*="refreshData"],
+button[onclick*="goRoleSelect"],
+button[onclick*="goLanguageSelect"],
+button[onclick*="history.back"],
+button[onclick*="toggle"],
+button[onclick*="copyCrewAccount"]{
+  background:linear-gradient(135deg,#475569,#1e293b) !important;
+  box-shadow:0 8px 20px rgba(15,23,42,.28), inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+/* 하단 탭은 과한 발광 방지 */
+.bottom-nav button{
+  background:#020617 !important;
+  box-shadow:none !important;
+}
+.bottom-nav button.active{
+  background:linear-gradient(135deg,#2563eb,#7c3aed) !important;
+  box-shadow:0 8px 22px rgba(37,99,235,.38) !important;
+}
+/* 눌러야 할 핵심 버튼 강조 */
+.manager-worker-actions button,
+.manager-worker-actions.work-done-center button,
+.payment-preview button,
+#qrActionBtn{
+  border-width:1px !important;
+  filter:saturate(1.08);
+}
+
 </style>
 </head>
 
@@ -1928,7 +2060,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 </nav>
 
 <script>
-// FlowIQ Crew v3.4.6 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
+// FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
