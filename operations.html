@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.4.8 QR STABLE</title>
+<title>FlowIQ Crew OPERATIONS v3.4.9 QR DUPLICATE FIX</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2167,7 +2167,7 @@ button.blue.full,button.green.full{
 </nav>
 
 <script>
-// FlowIQ Crew v3.4.8 - QR 스캔 안정화: 공고별 QR, 로그인 후 스캔, 수동 출근 차단.
+// FlowIQ Crew v3.4.9 - QR 중복 출근 차단 + 출근완료 후 팝업 반복 방지.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
@@ -2634,6 +2634,21 @@ function getMyCurrentApplication(){
   return active || applications.find(a=>a.phone===workerPhone) || null;
 }
 
+function isCheckedInStatus(status){
+  const s=String(status||"").trim();
+  return ["출근완료","근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(s);
+}
+
+function canWorkerScanQR(app){
+  if(!app)return {ok:false,message:"승인된 현장이 없습니다. 먼저 공고에 지원해주세요."};
+  const s=String(app.status||"지원").trim();
+  if(s==="승인")return {ok:true,message:"QR 출근 가능"};
+  if(s==="지원")return {ok:false,message:"관리자 승인 후 출근할 수 있습니다."};
+  if(isCheckedInStatus(s))return {ok:false,message:"이미 출근 완료된 현장입니다."};
+  if(s==="거절")return {ok:false,message:"거절된 공고는 출근할 수 없습니다."};
+  return {ok:false,message:"현재 상태에서는 QR 출근을 할 수 없습니다."};
+}
+
 function getStatusMeta(status){
   if(status==="지원"){
     return {label:"지원 대기",icon:"🟡",pill:"pill-pending",title:"승인 대기중",desc:"관리자 승인을 기다리고 있습니다."};
@@ -2987,7 +3002,7 @@ function renderWorkerHome(){
 
       <div class="worker-actions-row">
         <button class="blue" onclick="openMap('${safeLocation}')">🧭 길찾기</button>
-        <button class="green" onclick="openQRScanner()">📷 출근하기</button>
+        ${app && canWorkerScanQR(app).ok ? `<button class="green" onclick="openQRScanner()">📷 QR 출근</button>` : `<button class="gray" type="button" onclick="showWorkerCheckinBlocked()">${app && isCheckedInStatus(status) ? '✅ 출근완료' : '📷 QR 출근'}</button>`}
       </div>
     </div>
   `;
@@ -3426,6 +3441,12 @@ function toggleOtherType(){
   alert("공고가 저장되었습니다. 수수료(5%) 포함 총 결제금액: "+won(totalPayment(salary)));
   goScreen("managerScreen");
 }
+function showWorkerCheckinBlocked(){
+  const app=getMyCurrentApplication();
+  const check=canWorkerScanQR(app);
+  alert(check.message);
+}
+
 function showQR(selectedRole, jobId=null){
   lastRole=selectedRole;
   const qrImage=document.getElementById("qrImage");
@@ -3482,17 +3503,19 @@ async function saveAttendance(job){
       return;
     }
 
-    if((myApplication.status || "지원")!=="승인"){
-      reject("관리자 승인 후 출근할 수 있습니다.");
-      return;
-    }
+    const currentStatus=String(myApplication.status || "지원").trim();
 
     const alreadyCheckedIn=attendance.some(
       a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
     );
 
-    if(alreadyCheckedIn){
-      reject("이미 출근 처리된 공고입니다.");
+    if(alreadyCheckedIn || isCheckedInStatus(currentStatus)){
+      reject("이미 출근 완료된 현장입니다.");
+      return;
+    }
+
+    if(currentStatus!=="승인"){
+      reject("관리자 승인 후 출근할 수 있습니다.");
       return;
     }
 
@@ -3584,6 +3607,13 @@ let qrScannerBusy=false;
 function openQRScanner(){
   lastRole="worker";
   role="worker";
+  const app=getMyCurrentApplication();
+  const check=canWorkerScanQR(app);
+  if(!check.ok){
+    alert(check.message);
+    goHome();
+    return;
+  }
   goScreen("qrScannerScreen");
   const st=document.getElementById("qrScannerStatus");
   if(st)st.innerText="현장관리자가 보여주는 출근 QR을 카메라로 스캔하세요.";
@@ -3600,6 +3630,9 @@ async function startQRScanner(){
   const status=document.getElementById("qrScannerStatus");
   if(!video || !status)return;
   if(!workerName || !workerPhone){alert("근로자 로그인 후 QR 출근이 가능합니다.");goScreen("workerLoginScreen");return;}
+  const app=getMyCurrentApplication();
+  const check=canWorkerScanQR(app);
+  if(!check.ok){alert(check.message);goHome();return;}
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){alert("이 브라우저는 카메라 스캔을 지원하지 않습니다.");return;}
   try{
     stopQRScanner();
@@ -3642,8 +3675,13 @@ async function handleScannedQR(data){
     goHome();
   }catch(e){
     qrScannerBusy=false;
-    if(status)status.innerText=String(e||"QR 출근 처리에 실패했습니다.");
-    alert(e);
+    const msg=String(e||"QR 출근 처리에 실패했습니다.");
+    if(status)status.innerText=msg;
+    alert(msg);
+    if(msg.includes("이미 출근 완료")){
+      stopQRScanner();
+      goHome();
+    }
   }
 }
 
