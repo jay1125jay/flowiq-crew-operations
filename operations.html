@@ -1959,7 +1959,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.0';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.1';
 let managerFilter='all';
 let managerSearch='';
   
@@ -1988,8 +1988,18 @@ function getWorkerAccounts(){try{return JSON.parse(localStorage.getItem("crew_wo
 function saveWorkerAccounts(list){localStorage.setItem("crew_worker_accounts",JSON.stringify(list||[]))}
 function makeCompanyIdFromPhone(phone){return "company_"+normalizePhone(phone)}
 function getCurrentCompanyName(){return localStorage.getItem("company_name") || COMPANY_NAMES[companyId] || companyId || "현장관리자"}
-function feeAmount(base){return Math.round(Number(base||0)*0.05)}
-function totalPayment(base){return Number(base||0)+feeAmount(base)}
+function moneyBase(value){
+  const n=Number(String(value||0).replace(/[^0-9.-]/g,""));
+  return Number.isFinite(n) ? Math.round(n) : 0;
+}
+function feeAmount(base){
+  const b=moneyBase(base);
+  return Math.ceil((b * 5) / 100);
+}
+function totalPayment(base){
+  const b=moneyBase(base);
+  return b + feeAmount(b);
+}
 function updatePaymentPreview(){
   const salary=Number(document.getElementById("fSalary")?.value||0);
   const base=document.getElementById("previewBasePay");
@@ -2790,8 +2800,8 @@ function renderJobs(){
       <div class="info">🌐 ${j.language}</div>
 
       ${role==="worker"
-        ? `<button class="full gray" onclick="togglePaymentDetail(${j.id})">지급액 보기</button>
-           <div id="workerPayDetail_${j.id}" class="payment-detail hidden">지급액 ${won(j.salary)}<br><span class="sub">Crew 수수료는 업체 부담이며 근로자 지급액에서 차감하지 않습니다.</span></div>
+        ? `${!full ? `<button class="full gray" onclick="togglePaymentDetail(${j.id})">지급액 보기</button>
+           <div id="workerPayDetail_${j.id}" class="payment-detail hidden">지급액 ${won(j.salary)}<br><span class="sub">Crew 수수료는 업체 부담이며 근로자 지급액에서 차감하지 않습니다.</span></div>` : `<div class="info">공고마감</div>`}
            <button class="full ${buttonLocked?'gray':'blue'}" ${buttonLocked?'disabled':''} onclick="applyJob(${j.id})">
             ${buttonText}
           </button>`
@@ -2857,11 +2867,7 @@ async function applyJob(jobId){
     worker_name:workerName || "이름없음",
     phone:workerPhone || "번호없음",
     company_id:job.company_id,
-    status:"지원",
-    bank_name:workerBank || "",
-    account_number:workerAccount || "",
-    account_holder:workerHolder || workerName || "",
-    payment_method:workerPaymentMethod || ((workerBank&&workerAccount)?"account":"later")
+    status:"지원"
   });
 
   if(error){
@@ -3124,7 +3130,7 @@ function toggleOtherType(){
   const title=fTitle.value.trim();
   const location=fLocation.value.trim();
   const work_time=fTime.value.trim();
-  const salary=Number(fSalary.value||0);
+  const salary=moneyBase(fSalary.value||0);
   const needed=Number(fNeeded.value||0);
   const selectedType=fType.value;
   const otherType=document.getElementById("fTypeOther")?.value.trim()||"";
