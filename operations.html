@@ -1903,7 +1903,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <div class="title" id="qrTitle">출근 QR</div>
     <img id="qrImage" class="qr-box" alt="출근 QR"/>
     <div class="sub" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
-    <button class="full green" onclick="completeQR()" style="margin-top:18px">✅ 수동 출근 테스트</button>
+    <button id="qrActionBtn" class="full green" onclick="completeQR()" style="margin-top:18px">✅ QR 생성 확인</button>
   </div>
 </section>
 </main>
@@ -1928,6 +1928,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 </nav>
 
 <script>
+// FlowIQ Crew v3.4.6 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
@@ -3181,17 +3182,27 @@ function toggleOtherType(){
 function showQR(selectedRole){
   lastRole=selectedRole;
   const qrImage=document.getElementById("qrImage");
+  const qrActionBtn=document.getElementById("qrActionBtn");
 
   if(selectedRole==="manager"){
     qrTitle.innerText="출근 QR";
-    const job=jobs[0];
+    const managerJobs=jobs.filter(j=>role==="manager"?String(j.company_id)===String(companyId):true);
+    const job=managerJobs[0] || jobs[0];
     const qrData=job?`${location.origin}${location.pathname}?checkin=${job.id}`:`${location.origin}${location.pathname}`;
     qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(qrData)}`;
-    qrDesc.innerHTML=`근로자가 이 QR을 스캔하면 출근 처리됩니다.<br><br><button class="full blue" onclick="location.href='${qrData}'">출근 링크 테스트</button>`;
+    qrDesc.innerHTML=`근로자가 이 QR을 스캔해야 출근 처리됩니다.<br><br><span style="color:#94a3b8;font-size:13px">근로자 단독 수동 출근은 차단됩니다.</span>`;
+    if(qrActionBtn){
+      qrActionBtn.style.display="block";
+      qrActionBtn.innerText="QR 생성 확인";
+      qrActionBtn.className="full green";
+    }
   }else{
-    qrTitle.innerText="QR 스캔";
+    qrTitle.innerText="출근 QR 안내";
     qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href)}`;
-    qrDesc.innerText="관리자 QR 링크로 접속하면 자동 출근 처리됩니다.";
+    qrDesc.innerText="현장관리자가 보여주는 출근 QR을 스캔해야 출근 처리됩니다.";
+    if(qrActionBtn){
+      qrActionBtn.style.display="none";
+    }
   }
 
   goScreen("qrScreen");
@@ -3269,30 +3280,11 @@ async function saveAttendance(job){
 
 async function completeQR(){
   if(lastRole==="worker"){
-    const approvedApplication=applications.find(a=>(a.status || "지원")==="승인");
-
-    if(!approvedApplication){
-      return alert("관리자 승인 완료된 공고만 출근할 수 있습니다.");
-    }
-
-    const job=jobs.find(j=>Number(j.id)===Number(approvedApplication.job_id));
-
-    if(!job){
-      return alert("출근할 공고를 찾을 수 없습니다.");
-    }
-
-    try{
-      await saveAttendance(job);
-      await loadData();
-      alert("GPS 출근 완료!");
-      goHome();
-    }catch(e){
-      alert(e);
-    }
-  }else{
-    alert("관리자 QR이 생성되었습니다. 근로자가 스캔하면 출근 처리됩니다.");
-    goHome();
+    return alert("현장관리자가 보여주는 출근 QR을 스캔해야 출근 처리됩니다.");
   }
+
+  alert("출근 QR이 준비되었습니다. 근로자가 이 QR을 스캔하면 출근 처리됩니다.");
+  goHome();
 }
 
 async function autoCheckIn(){
