@@ -1762,6 +1762,89 @@ button[onclick*="copyCrewAccount"]{
   filter:saturate(1.08);
 }
 
+
+
+/* ===== FlowIQ Crew v3.5.1 Minimal Premium UI =====
+:root{
+  --fiq-bg:#020617;
+  --fiq-card:#0f172a;
+  --fiq-card2:#111827;
+  --fiq-line:rgba(148,163,184,.14);
+  --fiq-text:#f8fafc;
+  --fiq-sub:#94a3b8;
+  --fiq-blue:#2563eb;
+  --fiq-blue2:#1d4ed8;
+  --fiq-green:#059669;
+  --fiq-green2:#047857;
+  --fiq-amber:#d97706;
+  --fiq-amber2:#b45309;
+  --fiq-red:#dc2626;
+  --fiq-red2:#b91c1c;
+  --fiq-slate:#334155;
+}
+button{
+  background:linear-gradient(180deg,#1e293b,#0f172a) !important;
+  color:var(--fiq-text) !important;
+  border:1px solid rgba(148,163,184,.16) !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.22) !important;
+}
+button:hover{filter:brightness(1.06)}
+button:active{transform:scale(.985)}
+.blue, button.blue{
+  background:linear-gradient(135deg,var(--fiq-blue),var(--fiq-blue2)) !important;
+  border-color:rgba(96,165,250,.30) !important;
+  box-shadow:0 10px 26px rgba(37,99,235,.24) !important;
+}
+.green, button.green{
+  background:linear-gradient(135deg,var(--fiq-green),var(--fiq-green2)) !important;
+  border-color:rgba(52,211,153,.26) !important;
+  box-shadow:0 10px 26px rgba(5,150,105,.20) !important;
+}
+.gray, button.gray{
+  background:linear-gradient(180deg,#334155,#1e293b) !important;
+  border-color:rgba(148,163,184,.18) !important;
+  box-shadow:0 8px 20px rgba(15,23,42,.22) !important;
+}
+.red, button.red{
+  background:linear-gradient(135deg,var(--fiq-red),var(--fiq-red2)) !important;
+  border-color:rgba(248,113,113,.28) !important;
+  box-shadow:0 10px 26px rgba(220,38,38,.22) !important;
+}
+/* action-specific but still restrained */
+button[onclick*="approve"],button[onclick*="Approve"],button[onclick*="게시승인"],button[onclick*="confirmDeposit"],button[onclick*="markPaid"]{
+  background:linear-gradient(135deg,var(--fiq-blue),var(--fiq-blue2)) !important;
+}
+button[onclick*="complete"],button[onclick*="WorkComplete"],button[onclick*="settle"],button[onclick*="Receipt"],button[onclick*="수령"],button[onclick*="지급"]{
+  background:linear-gradient(135deg,var(--fiq-green),var(--fiq-green2)) !important;
+}
+button[onclick*="close"],button[onclick*="deadline"],button[onclick*="마감"]{
+  background:linear-gradient(135deg,var(--fiq-amber),var(--fiq-amber2)) !important;
+}
+button[onclick*="reject"],button[onclick*="delete"],button[onclick*="Delete"],button[onclick*="trash"]{
+  background:linear-gradient(135deg,var(--fiq-red),var(--fiq-red2)) !important;
+}
+.card,.manager-card-clean,.payment-preview{
+  border-color:var(--fiq-line) !important;
+  box-shadow:0 12px 32px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+.badge,.type,.manager-status-pill,.settle-state{
+  box-shadow:none !important;
+}
+/* reduce rainbow progress: only current/done remain elegant */
+.progress-step.done,.progress-step.current{
+  background:linear-gradient(135deg,#1e3a8a,#2563eb) !important;
+}
+.progress-paid.done,.progress-paid.current,.progress-complete.done{
+  background:linear-gradient(135deg,#065f46,#059669) !important;
+}
+.progress-waitpay.current,.progress-waitpay.done,.progress-complete.current{
+  background:linear-gradient(135deg,#92400e,#d97706) !important;
+}
+/* subtle focus for must-click buttons */
+button.blue.full,button.green.full{
+  box-shadow:0 12px 28px rgba(37,99,235,.18) !important;
+}
+
 </style>
 </head>
 
