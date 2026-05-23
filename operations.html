@@ -1959,7 +1959,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.1';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.2';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2033,8 +2033,9 @@ function hasWorkerAccountData(app){
 function settlementStatusLabel(status){
   const s=String(status||"").trim();
   if(s==="입금완료")return `<span class="settle-state settle-done">🟢 정산완료</span>`;
-  if(s==="지급확인중")return `<span class="settle-state settle-checking">🟠 지급확인중</span>`;
-  if(s==="근무완료" || s==="입금대기")return `<span class="settle-state settle-wait">🟡 지급대기</span>`;
+  if(s==="지급확인중")return `<span class="settle-state settle-checking">🟠 근로자 수령확인 대기</span>`;
+  if(s==="수령확인완료")return `<span class="settle-state settle-checking">🟠 MASTER 정산대기</span>`;
+  if(s==="근무완료" || s==="입금대기")return `<span class="settle-state settle-wait">🟡 관리자 지급확인 대기</span>`;
   return "";
 }
 function setSignupType(type){
@@ -2409,6 +2410,10 @@ function getStatusMeta(status){
     return {label:"입금 대기",icon:"🟣",pill:"pill-checked",title:"근무완료 · 입금 대기",desc:"현장관리자가 근무완료를 확인했습니다. MASTER 입금완료 처리를 기다립니다."};
   }
 
+  if(status==="수령확인완료"){
+    return {label:"정산 대기",icon:"🟠",pill:"pill-pending",title:"수령확인 완료 · MASTER 정산 대기",desc:"근로자 수령 확인이 완료되었습니다. MASTER 정산완료 처리를 기다립니다."};
+  }
+
   if(status==="입금완료"){
     return {label:"입금 완료",icon:"🟢",pill:"pill-approved",title:"정산 완료",desc:"입금 완료 처리가 끝났습니다."};
   }
@@ -2461,9 +2466,9 @@ function openSelectedMap(type){
 
 
 function renderProgressFlow(status){
-  const order=["지원","승인","출근완료","근무완료","입금대기"];
-  const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"지급대기","지급확인중":"지급확인중","입금완료":"정산완료"};
-  const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","지급확인중":"progress-waitpay","입금완료":"progress-paid"};
+  const order=["지원","승인","출근완료","근무완료","지급확인중","수령확인완료","입금완료"];
+  const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"지급대기","지급확인중":"수령확인대기","수령확인완료":"정산대기","입금완료":"정산완료"};
+  const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","지급확인중":"progress-waitpay","수령확인완료":"progress-waitpay","입금완료":"progress-paid"};
   let s=String(status||"지원").trim();
   if(s==="근무완료")s="입금대기";
   const idx=Math.max(0,order.indexOf(s));
@@ -2763,7 +2768,7 @@ function renderJobs(){
     ? jobs.filter(j=>j.company_id===companyId)
     : jobs.filter(j=>getJobStatus(j)==="게시중");
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
   const myActiveApplication=role==="worker" && workerPhone
     ? applications.find(a=>
         String(a.phone || "").trim()===String(workerPhone || "").trim() &&
@@ -2838,7 +2843,7 @@ async function applyJob(jobId){
     return alert("필요 인원이 마감된 공고입니다.");
   }
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
   const myActiveApplication=applications.find(a=>
     String(a.phone || "").trim()===String(workerPhone || "").trim() &&
     activeStatuses.includes(String(a.status || "지원").trim())
@@ -2892,10 +2897,15 @@ async function managerConfirmCashPaid(id){
 
 async function workerConfirmCashReceived(id){
   if(!confirm("실제 수령을 확인했습니까?"))return;
-  const {error}=await db.from("applications").update({status:"입금완료"}).eq("id",id);
+  const app=applications.find(a=>Number(a.id)===Number(id));
+  const status=String(app&&app.status||"").trim();
+  if(status!=="지급확인중"){
+    return alert("현장관리자의 지급 확인 후 수령 확인할 수 있습니다.");
+  }
+  const {error}=await db.from("applications").update({status:"수령확인완료"}).eq("id",id);
   if(error){alert("수령 확인 오류: "+error.message);return;}
   await loadData();
-  alert("수령 확인 완료. 정산완료 처리되었습니다.");
+  alert("수령 확인 완료. MASTER 정산완료를 기다립니다.");
 }
 
 async function deleteJob(jobId){
@@ -2922,6 +2932,9 @@ function managerWorkDoneControl(a,status){
   if(status==="근무완료" || status==="입금대기"){
     return `<div class="status checked" style="margin-top:8px;min-height:42px;font-size:12px">근무완료</div>`;
   }
+  if(status==="수령확인완료"){
+    return `<div class="status checked" style="margin-top:8px;min-height:42px;font-size:12px">MASTER 정산대기</div>`;
+  }
   if(status==="입금완료"){
     return `<div class="status ok" style="margin-top:8px;min-height:42px;font-size:12px">입금완료</div>`;
   }
@@ -2940,7 +2953,8 @@ function managerAppStatusLabel(status){
   if(s==="승인")return "승인 완료";
   if(s==="출근완료")return "출근 완료";
   if(s==="근무완료" || s==="입금대기")return "근무 완료";
-  if(s==="지급확인중")return "지급 확인중";
+  if(s==="지급확인중")return "근로자 수령확인 대기";
+  if(s==="수령확인완료")return "MASTER 정산대기";
   if(s==="입금완료")return "정산 완료";
   if(s==="거절")return "거절";
   return s;
@@ -2953,6 +2967,7 @@ function managerStatusClass(status){
   if(s==="출근완료")return "manager-status-blue";
   if(s==="근무완료" || s==="입금대기")return "manager-status-orange";
   if(s==="지급확인중")return "manager-status-blue";
+  if(s==="수령확인완료")return "manager-status-orange";
   if(s==="입금완료")return "manager-status-green";
   if(s==="거절")return "manager-status-red";
   return "manager-status-wait";
@@ -3018,16 +3033,16 @@ function managerWorkerActionButtons(a,status){
     </div>`;
   }
   if(status==="근무완료" || status==="입금대기"){
-    if(!hasWorkerAccountData(a)){
-      return `<div class="settle-note">지급 후 반드시 근로자와 함께 확인해주세요.<br>허위 확인 시 책임은 지급자에게 있습니다.</div>
+    return `<div class="settle-note">지급 후 반드시 근로자와 함께 확인해주세요.<br>허위 확인 시 책임은 지급자에게 있습니다.</div>
       <div class="manager-worker-actions work-done-center">
         <button class="yellow" onclick="managerConfirmCashPaid(${id})">지급 확인</button>
       </div>`;
-    }
-    return `<div class="status checked" style="margin-top:8px;min-height:42px;font-size:12px">MASTER 입금대기</div>`;
   }
   if(status==="지급확인중"){
     return `<div class="settle-note">근로자 수령 확인 대기중입니다.</div>`;
+  }
+  if(status==="수령확인완료"){
+    return `<div class="status checked" style="margin-top:8px;min-height:42px;font-size:12px">MASTER 정산대기</div>`;
   }
   if(status==="입금완료"){
     return `<div class="status ok" style="margin-top:8px;min-height:42px;font-size:12px">정산완료</div>`;
@@ -3050,7 +3065,7 @@ function renderManager(){
 
   const pendingCount=filteredApplications.filter(a=>String(a.status||"지원").trim()==="지원").length;
   const checkedCount=filteredApplications.filter(a=>String(a.status||"").trim()==="출근완료").length;
-  const doneCount=filteredApplications.filter(a=>["근무완료","입금대기","지급확인중","입금완료"].includes(String(a.status||"").trim())).length;
+  const doneCount=filteredApplications.filter(a=>["근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(String(a.status||"").trim())).length;
 
   if(mChecked)mChecked.innerText=checkedCount;
   if(mApplied)mApplied.innerText=pendingCount;
@@ -3065,7 +3080,7 @@ function renderManager(){
     const applyCount=jobApps.filter(a=>String(a.status||"지원").trim()==="지원").length;
     const approveCount=jobApps.filter(a=>String(a.status||"").trim()==="승인").length;
     const checkCount=jobApps.filter(a=>String(a.status||"").trim()==="출근완료").length;
-    const workDoneCount=jobApps.filter(a=>["근무완료","입금대기","지급확인중","입금완료"].includes(String(a.status||"").trim())).length;
+    const workDoneCount=jobApps.filter(a=>["근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(String(a.status||"").trim())).length;
 
     const workerRows=jobApps.length ? jobApps.map(a=>{
       const status=String(a.status||"지원").trim()||"지원";
@@ -3348,7 +3363,7 @@ function renderPayroll(){
       </div>
       <div class="info">🕒 ${new Date(a.created_at).toLocaleString()}</div>
       <div class="info">📍 GPS: ${a.gps}</div>
-      <div class="info">💳 ${applications.find(x=>Number(x.job_id)===Number(a.job_id)&&String(x.phone)===String(a.phone))?.status==="입금완료"?"입금 완료":"입금 대기"}</div>
+      <div class="info">💳 ${applications.find(x=>Number(x.job_id)===Number(a.job_id)&&String(x.phone)===String(a.phone))?.status==="입금완료"?"입금 완료":"정산 대기"}</div>
     </div>`).join(""):`<div class="card"><div class="title">아직 급여 기록이 없습니다</div><div class="sub">출근 QR을 완료하면 급여 기록이 생성됩니다.</div></div>`;
 }
 
