@@ -1620,6 +1620,16 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 .payment-detail{margin-top:10px;background:rgba(16,185,129,.12);border:1px solid rgba(52,211,153,.22);border-radius:18px;padding:12px;color:#d1fae5;font-weight:850}
 .money-hidden{background:rgba(148,163,184,.13);color:#cbd5e1}
 
+
+.account-choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 14px}
+.account-choice label{display:flex;align-items:center;gap:8px;background:#020617;border:1px solid #334155;border-radius:16px;padding:12px;font-size:13px}
+.account-choice input{width:auto;min-height:auto;margin:0}
+.settle-note{background:rgba(245,158,11,.12);border:1px solid rgba(251,191,36,.20);color:#fde68a;border-radius:16px;padding:12px;font-size:12px;line-height:1.45;margin-top:10px}
+.settle-state{display:inline-flex;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:950;margin-top:8px}
+.settle-wait{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff}
+.settle-checking{background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff}
+.settle-done{background:linear-gradient(135deg,#059669,#22c55e);color:#fff}
+
 </style>
 </head>
 
@@ -1706,14 +1716,22 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <input id="signupPassword" type="password" placeholder="비밀번호">
 
     <div id="workerAccountSignupWrap" class="hidden">
-      <label>은행명</label>
-      <input id="signupWorkerBank" placeholder="예: 신한은행">
+      <label>지급 방식</label>
+      <div class="account-choice">
+        <label><input type="radio" name="signupPaymentMethod" value="account" checked onchange="toggleWorkerAccountFields()">계좌 있음</label>
+        <label><input type="radio" name="signupPaymentMethod" value="later" onchange="toggleWorkerAccountFields()">나중에 등록</label>
+      </div>
+      <div id="signupWorkerAccountFields">
+        <label>은행명</label>
+        <input id="signupWorkerBank" placeholder="예: 신한은행">
 
-      <label>계좌번호</label>
-      <input id="signupWorkerAccount" placeholder="예: 123-456-789">
+        <label>계좌번호</label>
+        <input id="signupWorkerAccount" placeholder="예: 123-456-789">
 
-      <label>예금주</label>
-      <input id="signupWorkerHolder" placeholder="예: 바타르">
+        <label>예금주</label>
+        <input id="signupWorkerHolder" placeholder="예: 바타르">
+      </div>
+      <div id="signupWorkerNoAccountNote" class="settle-note hidden">계좌는 근무 후에도 등록할 수 있습니다. 계좌가 없을 경우 지급 확인과 수령 확인이 모두 완료되어야 정산완료 처리됩니다.</div>
     </div>
 
     <button class="full blue" onclick="saveSignupAccount()">가입 후 시작</button>
@@ -1763,10 +1781,10 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
     <label>연락처</label>
     <input id="workerPhoneInput" placeholder="예: 010-1234-5678">
 
-    <label>은행명</label>
+    <label>은행명 <span style="color:#94a3b8;font-size:12px">(선택)</span></label>
     <input id="workerBankInput" placeholder="예: 신한은행">
 
-    <label>계좌번호</label>
+    <label>계좌번호 <span style="color:#94a3b8;font-size:12px">(선택)</span></label>
     <input id="workerAccountInput" placeholder="예: 123-456-789">
 
     <label>예금주</label>
@@ -1934,13 +1952,14 @@ let workerPhone=localStorage.getItem("worker_phone")||"";
 let workerBank=localStorage.getItem("worker_bank")||"";
 let workerAccount=localStorage.getItem("worker_account")||"";
 let workerHolder=localStorage.getItem("worker_holder")||"";
+let workerPaymentMethod=localStorage.getItem("worker_payment_method")||"account";
 let lastRole=role;
 let currentScreen="languageScreen";
 let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.3.7';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.0';
 let managerFilter='all';
 let managerSearch='';
   
@@ -1984,6 +2003,30 @@ function togglePaymentDetail(jobId){
   const box=document.getElementById("workerPayDetail_"+jobId);
   if(box)box.classList.toggle("hidden");
 }
+function getSignupPaymentMethod(){
+  const checked=document.querySelector('input[name="signupPaymentMethod"]:checked');
+  return checked ? checked.value : "account";
+}
+function toggleWorkerAccountFields(){
+  const method=getSignupPaymentMethod();
+  const fields=document.getElementById("signupWorkerAccountFields");
+  const note=document.getElementById("signupWorkerNoAccountNote");
+  if(fields)fields.classList.toggle("hidden",method!=="account");
+  if(note)note.classList.toggle("hidden",method!=="later");
+}
+function hasWorkerAccountData(app){
+  const saved=getWorkerAccounts().find(w=>normalizePhone(w.phone)===normalizePhone(app&&app.phone));
+  const bank=(app&& (app.bank_name||app.bank||app.account_bank)) || (saved&&saved.bank) || workerBank || "";
+  const account=(app&& (app.account_number||app.account||app.bank_account)) || (saved&&saved.account) || workerAccount || "";
+  return !!(String(bank).trim() && String(account).trim());
+}
+function settlementStatusLabel(status){
+  const s=String(status||"").trim();
+  if(s==="입금완료")return `<span class="settle-state settle-done">🟢 정산완료</span>`;
+  if(s==="지급확인중")return `<span class="settle-state settle-checking">🟠 지급확인중</span>`;
+  if(s==="근무완료" || s==="입금대기")return `<span class="settle-state settle-wait">🟡 지급대기</span>`;
+  return "";
+}
 function setSignupType(type){
   const t=document.getElementById("signupType"); if(t)t.value=type;
   const biz=document.getElementById("businessNumberWrap");
@@ -1995,6 +2038,7 @@ function setSignupType(type){
 
   if(biz)biz.classList.toggle("hidden",type!=="business");
   if(workerAccountWrap)workerAccountWrap.classList.toggle("hidden",type!=="worker");
+  if(type==="worker")setTimeout(toggleWorkerAccountFields,0);
   if(personalResidentWrap)personalResidentWrap.classList.toggle("hidden",type!=="personal");
 
   const hideManagerField = type==="worker" || type==="personal";
@@ -2042,23 +2086,26 @@ function saveSignupAccount(){
   if(!name||!phone||!password)return alert("필수 정보를 입력하세요.");
 
   if(type==="worker"){
-    const bank=document.getElementById("signupWorkerBank")?.value.trim()||"";
-    const accountNo=document.getElementById("signupWorkerAccount")?.value.trim()||"";
-    const holder=document.getElementById("signupWorkerHolder")?.value.trim()||name;
-    if(!bank||!accountNo||!holder)return alert("근로자 계좌정보를 입력하세요.");
+    const paymentMethod=getSignupPaymentMethod();
+    const bank=paymentMethod==="account" ? (document.getElementById("signupWorkerBank")?.value.trim()||"") : "";
+    const accountNo=paymentMethod==="account" ? (document.getElementById("signupWorkerAccount")?.value.trim()||"") : "";
+    const holder=paymentMethod==="account" ? (document.getElementById("signupWorkerHolder")?.value.trim()||name) : name;
+    if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
 
     const workers=getWorkerAccounts();
     if(workers.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-    const account={type:"worker",name,phone,password,bank,account:accountNo,holder,created_at:new Date().toISOString()};
+    const account={type:"worker",name,phone,password,payment_method:paymentMethod,bank,account:accountNo,holder,created_at:new Date().toISOString()};
     workers.push(account); saveWorkerAccounts(workers);
 
-    workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder;
+    workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder; workerPaymentMethod=paymentMethod;
     localStorage.setItem("crew_role","worker");
     localStorage.setItem("worker_name",name);
     localStorage.setItem("worker_phone",phone);
+    localStorage.setItem("worker_payment_method",paymentMethod);
     localStorage.setItem("worker_bank",bank);
     localStorage.setItem("worker_account",accountNo);
     localStorage.setItem("worker_holder",holder);
+  localStorage.setItem("worker_payment_method",workerPaymentMethod);
     role="worker"; lastRole="worker";
     alert("가입 완료. 근로자로 시작합니다.");
     loadData().then(()=>goScreen("workerScreen"));
@@ -2108,12 +2155,14 @@ function loginWorkerAccount(){
   workerBank=account.bank||"";
   workerAccount=account.account||"";
   workerHolder=account.holder||workerName;
+  workerPaymentMethod=account.payment_method||((workerBank&&workerAccount)?"account":"later");
   localStorage.setItem("crew_role","worker");
   localStorage.setItem("worker_name",workerName);
   localStorage.setItem("worker_phone",workerPhone);
   localStorage.setItem("worker_bank",workerBank);
   localStorage.setItem("worker_account",workerAccount);
   localStorage.setItem("worker_holder",workerHolder);
+  localStorage.setItem("worker_payment_method",workerPaymentMethod);
   role="worker"; lastRole="worker";
   loadData().then(()=>goScreen("workerScreen"));
 }
@@ -2221,10 +2270,7 @@ function saveWorkerInfo(){
     return;
   }
 
-  if(!bank || !account || !holder){
-    alert("정산을 위해 은행명, 계좌번호, 예금주를 입력하세요.");
-    return;
-  }
+  workerPaymentMethod=(bank&&account)?"account":"later";
 
   workerName=name;
   workerPhone=phone;
@@ -2263,6 +2309,7 @@ function resetWorkerTest(){
   localStorage.removeItem("worker_bank");
   localStorage.removeItem("worker_account");
   localStorage.removeItem("worker_holder");
+  localStorage.removeItem("worker_payment_method");
   localStorage.removeItem("crew_role");
 
   workerName="";
@@ -2405,8 +2452,8 @@ function openSelectedMap(type){
 
 function renderProgressFlow(status){
   const order=["지원","승인","출근완료","근무완료","입금대기"];
-  const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"입금대기","입금완료":"입금완료"};
-  const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","입금완료":"progress-paid"};
+  const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"지급대기","지급확인중":"지급확인중","입금완료":"정산완료"};
+  const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","지급확인중":"progress-waitpay","입금완료":"progress-paid"};
   let s=String(status||"지원").trim();
   if(s==="근무완료")s="입금대기";
   const idx=Math.max(0,order.indexOf(s));
@@ -2460,6 +2507,12 @@ function renderWorkerHome(){
         </div>
       </div>
     </div>
+    ${app && status==="지급확인중" ? `
+      <div class="card notice">
+        <div class="title">🟠 수령 확인 대기</div>
+        <div class="sub">실제 수령 후 확인해주세요.<br>허위 확인 시 정산 변경이 제한될 수 있습니다.</div>
+        <button class="full green" onclick="workerConfirmCashReceived(${app.id})">수령 확인</button>
+      </div>` : ""}
 
     <div class="${hideWorkerOpsClass} ai-language-board">
       <div class="title">🧠 AI 실시간 번역 상태</div>
@@ -2700,7 +2753,7 @@ function renderJobs(){
     ? jobs.filter(j=>j.company_id===companyId)
     : jobs.filter(j=>getJobStatus(j)==="게시중");
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중"];
   const myActiveApplication=role==="worker" && workerPhone
     ? applications.find(a=>
         String(a.phone || "").trim()===String(workerPhone || "").trim() &&
@@ -2775,7 +2828,7 @@ async function applyJob(jobId){
     return alert("필요 인원이 마감된 공고입니다.");
   }
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기"];
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중"];
   const myActiveApplication=applications.find(a=>
     String(a.phone || "").trim()===String(workerPhone || "").trim() &&
     activeStatuses.includes(String(a.status || "지원").trim())
@@ -2804,7 +2857,11 @@ async function applyJob(jobId){
     worker_name:workerName || "이름없음",
     phone:workerPhone || "번호없음",
     company_id:job.company_id,
-    status:"지원"
+    status:"지원",
+    bank_name:workerBank || "",
+    account_number:workerAccount || "",
+    account_holder:workerHolder || workerName || "",
+    payment_method:workerPaymentMethod || ((workerBank&&workerAccount)?"account":"later")
   });
 
   if(error){
@@ -2817,6 +2874,22 @@ async function applyJob(jobId){
 
   await loadData();
   alert("지원 완료!");
+}
+
+async function managerConfirmCashPaid(id){
+  if(!confirm("현장 지급을 확인 처리할까요?"))return;
+  const {error}=await db.from("applications").update({status:"지급확인중"}).eq("id",id);
+  if(error){alert("지급 확인 오류: "+error.message);return;}
+  await loadData();
+  alert("지급 확인 처리됨. 근로자 수령 확인을 기다립니다.");
+}
+
+async function workerConfirmCashReceived(id){
+  if(!confirm("실제 수령을 확인했습니까?"))return;
+  const {error}=await db.from("applications").update({status:"입금완료"}).eq("id",id);
+  if(error){alert("수령 확인 오류: "+error.message);return;}
+  await loadData();
+  alert("수령 확인 완료. 정산완료 처리되었습니다.");
 }
 
 async function deleteJob(jobId){
@@ -2861,7 +2934,8 @@ function managerAppStatusLabel(status){
   if(s==="승인")return "승인 완료";
   if(s==="출근완료")return "출근 완료";
   if(s==="근무완료" || s==="입금대기")return "근무 완료";
-  if(s==="입금완료")return "입금 완료";
+  if(s==="지급확인중")return "지급 확인중";
+  if(s==="입금완료")return "정산 완료";
   if(s==="거절")return "거절";
   return s;
 }
@@ -2872,6 +2946,7 @@ function managerStatusClass(status){
   if(s==="승인")return "manager-status-ok";
   if(s==="출근완료")return "manager-status-blue";
   if(s==="근무완료" || s==="입금대기")return "manager-status-orange";
+  if(s==="지급확인중")return "manager-status-blue";
   if(s==="입금완료")return "manager-status-green";
   if(s==="거절")return "manager-status-red";
   return "manager-status-wait";
@@ -2936,6 +3011,21 @@ function managerWorkerActionButtons(a,status){
       <button class="green" onclick="markWorkComplete(${id})">근무완료 체크</button>
     </div>`;
   }
+  if(status==="근무완료" || status==="입금대기"){
+    if(!hasWorkerAccountData(a)){
+      return `<div class="settle-note">지급 후 반드시 근로자와 함께 확인해주세요.<br>허위 확인 시 책임은 지급자에게 있습니다.</div>
+      <div class="manager-worker-actions work-done-center">
+        <button class="yellow" onclick="managerConfirmCashPaid(${id})">지급 확인</button>
+      </div>`;
+    }
+    return `<div class="status checked" style="margin-top:8px;min-height:42px;font-size:12px">MASTER 입금대기</div>`;
+  }
+  if(status==="지급확인중"){
+    return `<div class="settle-note">근로자 수령 확인 대기중입니다.</div>`;
+  }
+  if(status==="입금완료"){
+    return `<div class="status ok" style="margin-top:8px;min-height:42px;font-size:12px">정산완료</div>`;
+  }
   return ``;
 }
 
@@ -2954,7 +3044,7 @@ function renderManager(){
 
   const pendingCount=filteredApplications.filter(a=>String(a.status||"지원").trim()==="지원").length;
   const checkedCount=filteredApplications.filter(a=>String(a.status||"").trim()==="출근완료").length;
-  const doneCount=filteredApplications.filter(a=>["근무완료","입금대기","입금완료"].includes(String(a.status||"").trim())).length;
+  const doneCount=filteredApplications.filter(a=>["근무완료","입금대기","지급확인중","입금완료"].includes(String(a.status||"").trim())).length;
 
   if(mChecked)mChecked.innerText=checkedCount;
   if(mApplied)mApplied.innerText=pendingCount;
@@ -2969,7 +3059,7 @@ function renderManager(){
     const applyCount=jobApps.filter(a=>String(a.status||"지원").trim()==="지원").length;
     const approveCount=jobApps.filter(a=>String(a.status||"").trim()==="승인").length;
     const checkCount=jobApps.filter(a=>String(a.status||"").trim()==="출근완료").length;
-    const workDoneCount=jobApps.filter(a=>["근무완료","입금대기","입금완료"].includes(String(a.status||"").trim())).length;
+    const workDoneCount=jobApps.filter(a=>["근무완료","입금대기","지급확인중","입금완료"].includes(String(a.status||"").trim())).length;
 
     const workerRows=jobApps.length ? jobApps.map(a=>{
       const status=String(a.status||"지원").trim()||"지원";
@@ -2983,6 +3073,7 @@ function renderManager(){
             <div class="worker-meta">${j.title || "공고 정보 없음"}</div>
           </div>
           <div class="manager-status-pill ${managerStatusClass(status)}">${managerAppStatusLabel(status)}</div>
+          ${settlementStatusLabel(status)}
         </div>
         ${managerWorkerActionButtons(a,status)}
       </div>`;
