@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.4.5</title>
+<title>FlowIQ Crew OPERATIONS v3.4.7 QR SCAN</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 <style>
 *{
@@ -1845,6 +1846,44 @@ button.blue.full,button.green.full{
   box-shadow:0 12px 28px rgba(37,99,235,.18) !important;
 }
 
+
+/* ===== FlowIQ Crew v3.4.7 Real QR Scan ===== */
+.qr-scan-box{
+  width:100%;
+  aspect-ratio:1/1;
+  background:#020617;
+  border:1px solid rgba(96,165,250,.24);
+  border-radius:30px;
+  overflow:hidden;
+  margin:18px 0;
+  position:relative;
+  box-shadow:0 18px 44px rgba(0,0,0,.36);
+}
+#qrScannerVideo{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.qr-scan-frame{
+  position:absolute;
+  inset:12%;
+  border:3px solid rgba(34,211,238,.86);
+  border-radius:24px;
+  box-shadow:0 0 0 999px rgba(2,6,23,.36),0 0 32px rgba(34,211,238,.35);
+  pointer-events:none;
+}
+.qr-scan-status{
+  background:rgba(15,23,42,.88);
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:12px;
+  color:#cbd5e1;
+  font-size:13px;
+  line-height:1.45;
+  margin-bottom:12px;
+}
+
 </style>
 </head>
 
@@ -2013,7 +2052,7 @@ button.blue.full,button.green.full{
 
   <div class="grid3 worker-minimal-hidden">
     <button class="action" onclick="goScreen('workerScreen')"><span class="emoji">💼</span>일자리</button>
-    <button class="action" onclick="showQR('worker')"><span class="emoji">📷</span>출근</button>
+    <button class="action" onclick="openQRScanner()"><span class="emoji">📷</span>QR 스캔</button>
     <button class="action" onclick="showPayroll()"><span class="emoji">💳</span>급여</button>
   </div>
 
@@ -2113,6 +2152,23 @@ button.blue.full,button.green.full{
   <div id="payrollList"></div>
 </section>
 
+
+<section id="qrScannerScreen" class="hidden">
+  <div class="card notice">
+    <div class="title">QR 출근 스캔</div>
+    <div class="sub">현장관리자가 보여주는 출근 QR을 카메라로 스캔하세요.</div>
+  </div>
+  <div class="card">
+    <div class="qr-scan-status" id="qrScannerStatus">카메라를 시작하려면 아래 버튼을 누르세요.</div>
+    <div class="qr-scan-box">
+      <video id="qrScannerVideo" muted playsinline></video>
+      <div class="qr-scan-frame"></div>
+    </div>
+    <button class="full blue" onclick="startQRScanner()">카메라로 QR 스캔</button>
+    <button class="full gray" onclick="stopQRScanner();goHome()">닫기</button>
+  </div>
+</section>
+
 <section id="qrScreen" class="hidden">
   <div class="card" style="text-align:center">
     <div class="title" id="qrTitle">출근 QR</div>
@@ -2138,7 +2194,7 @@ button.blue.full,button.green.full{
 <nav class="bottom-nav" id="bottomNav">
   <button id="navHome" onclick="goHome()">홈</button>
   <button id="navJobs" onclick="navPrimary()">일자리</button>
-  <button id="navQR" onclick="showQR(role||lastRole||'worker')">QR</button>
+  <button id="navQR" onclick="(role||lastRole)==='worker'?openQRScanner():showQR(role||lastRole||'worker')">QR</button>
   <button id="navPay" onclick="navSecondary()">급여</button>
 </nav>
 
@@ -3412,12 +3468,8 @@ function showQR(selectedRole){
       qrActionBtn.className="full green";
     }
   }else{
-    qrTitle.innerText="출근 QR 안내";
-    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href)}`;
-    qrDesc.innerText="현장관리자가 보여주는 출근 QR을 스캔해야 출근 처리됩니다.";
-    if(qrActionBtn){
-      qrActionBtn.style.display="none";
-    }
+    openQRScanner();
+    return;
   }
 
   goScreen("qrScreen");
@@ -3537,6 +3589,112 @@ async function autoCheckIn(){
     }
   }
 }
+
+let qrScannerStream=null;
+let qrScannerTimer=null;
+let qrScannerBusy=false;
+
+function openQRScanner(){
+  lastRole="worker";
+  role="worker";
+  goScreen("qrScannerScreen");
+  const st=document.getElementById("qrScannerStatus");
+  if(st)st.innerText="현장관리자가 보여주는 출근 QR을 카메라로 스캔하세요.";
+}
+
+function stopQRScanner(){
+  if(qrScannerTimer){
+    clearInterval(qrScannerTimer);
+    qrScannerTimer=null;
+  }
+  if(qrScannerStream){
+    qrScannerStream.getTracks().forEach(t=>t.stop());
+    qrScannerStream=null;
+  }
+  qrScannerBusy=false;
+}
+
+async function startQRScanner(){
+  const video=document.getElementById("qrScannerVideo");
+  const status=document.getElementById("qrScannerStatus");
+  if(!video || !status)return;
+
+  if(!workerName || !workerPhone){
+    alert("근로자 로그인 후 QR 출근이 가능합니다.");
+    goScreen("workerLoginScreen");
+    return;
+  }
+
+  try{
+    stopQRScanner();
+    status.innerText="카메라 권한을 허용해주세요.";
+    qrScannerStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:"environment"}},
+      audio:false
+    });
+    video.srcObject=qrScannerStream;
+    await video.play();
+
+    status.innerText="QR을 화면 중앙에 맞춰주세요.";
+    const canvas=document.createElement("canvas");
+    const ctx=canvas.getContext("2d");
+
+    qrScannerTimer=setInterval(async ()=>{
+      if(qrScannerBusy || video.readyState!==video.HAVE_ENOUGH_DATA)return;
+      canvas.width=video.videoWidth;
+      canvas.height=video.videoHeight;
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const code=window.jsQR ? jsQR(imageData.data,canvas.width,canvas.height) : null;
+      if(code && code.data){
+        qrScannerBusy=true;
+        await handleScannedQR(code.data);
+      }
+    },420);
+  }catch(e){
+    status.innerText="카메라를 열 수 없습니다. 브라우저 권한을 확인해주세요.";
+    alert("카메라 권한이 필요합니다.");
+  }
+}
+
+async function handleScannedQR(data){
+  const status=document.getElementById("qrScannerStatus");
+  try{
+    let url;
+    try{
+      url=new URL(data);
+    }catch(e){
+      url=new URL(data,location.origin);
+    }
+
+    const checkin=url.searchParams.get("checkin");
+    if(!checkin){
+      qrScannerBusy=false;
+      if(status)status.innerText="출근 QR이 아닙니다. 현장관리자 QR을 스캔해주세요.";
+      return;
+    }
+
+    await loadData();
+    const job=jobs.find(j=>Number(j.id)===Number(checkin));
+    if(!job){
+      qrScannerBusy=false;
+      if(status)status.innerText="공고를 찾을 수 없습니다.";
+      return;
+    }
+
+    if(status)status.innerText="출근 처리 중입니다...";
+    await saveAttendance(job);
+    stopQRScanner();
+    await loadData();
+    alert("출근 확인되었습니다.");
+    goHome();
+  }catch(e){
+    qrScannerBusy=false;
+    if(status)status.innerText=String(e || "QR 출근 처리에 실패했습니다.");
+    alert(e);
+  }
+}
+
 
 function showPayroll(){goScreen("payrollScreen")}
 
