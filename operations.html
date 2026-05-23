@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.1.4</title>
+<title>FlowIQ Crew OPERATIONS v3.4.5</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1928,6 +1928,7 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 </nav>
 
 <script>
+// FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
@@ -2407,11 +2408,15 @@ function getStatusMeta(status){
 
 
   if(status==="근무완료" || status==="입금대기"){
-    return {label:"입금 대기",icon:"🟣",pill:"pill-checked",title:"근무완료 · 입금 대기",desc:"현장관리자가 근무완료를 확인했습니다. MASTER 입금완료 처리를 기다립니다."};
+    return {label:"근무완료",icon:"🟧",pill:"pill-checked",title:"근무완료 확인됨",desc:"현장관리자가 근무완료를 확인했습니다. 지급 확인을 기다립니다."};
+  }
+
+  if(status==="지급확인중"){
+    return {label:"수령 확인 대기",icon:"🟠",pill:"pill-pending",title:"수령 확인 대기",desc:"현장관리자가 지급 확인을 완료했습니다. 실제 수령 후 확인해주세요."};
   }
 
   if(status==="수령확인완료"){
-    return {label:"정산 대기",icon:"🟠",pill:"pill-pending",title:"수령확인 완료 · MASTER 정산 대기",desc:"근로자 수령 확인이 완료되었습니다. MASTER 정산완료 처리를 기다립니다."};
+    return {label:"MASTER 정산대기",icon:"🟠",pill:"pill-pending",title:"수령확인 완료 · MASTER 정산 대기",desc:"근로자 수령 확인이 완료되었습니다. MASTER 정산완료 처리를 기다립니다."};
   }
 
   if(status==="입금완료"){
@@ -2467,11 +2472,29 @@ function openSelectedMap(type){
 
 function renderProgressFlow(status){
   const order=["지원","승인","출근완료","근무완료","지급확인중","수령확인완료","입금완료"];
-  const labels={"지원":"지원완료","승인":"승인완료","출근완료":"출근완료","근무완료":"근무완료","입금대기":"지급대기","지급확인중":"수령확인대기","수령확인완료":"정산대기","입금완료":"정산완료"};
-  const classes={"지원":"progress-apply","승인":"progress-approve","출근완료":"progress-checkin","근무완료":"progress-complete","입금대기":"progress-waitpay","지급확인중":"progress-waitpay","수령확인완료":"progress-waitpay","입금완료":"progress-paid"};
+  const labels={
+    "지원":"지원완료",
+    "승인":"승인완료",
+    "출근완료":"출근완료",
+    "근무완료":"근무완료",
+    "입금대기":"근무완료",
+    "지급확인중":"수령확인대기",
+    "수령확인완료":"MASTER 정산대기",
+    "입금완료":"정산완료"
+  };
+  const classes={
+    "지원":"progress-apply",
+    "승인":"progress-approve",
+    "출근완료":"progress-checkin",
+    "근무완료":"progress-complete",
+    "지급확인중":"progress-waitpay",
+    "수령확인완료":"progress-waitpay",
+    "입금완료":"progress-paid"
+  };
   let s=String(status||"지원").trim();
-  if(s==="근무완료")s="입금대기";
-  const idx=Math.max(0,order.indexOf(s));
+  if(s==="입금대기")s="근무완료";
+  if(!order.includes(s))s="지원";
+  const idx=order.indexOf(s);
   return `<div class="progress-flow-card">
     <div class="progress-flow-title">진행 현황</div>
     <div class="progress-flow">
