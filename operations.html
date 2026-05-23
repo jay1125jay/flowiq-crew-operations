@@ -1959,7 +1959,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.2';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.3';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2987,31 +2987,6 @@ async function managerRejectApplication(applicationId){
   alert("거절 완료");
 }
 
-async function managerCheckInApplication(applicationId){
-  const app=applications.find(a=>Number(a.id)===Number(applicationId));
-  if(!app){alert("지원자를 찾을 수 없습니다.");return;}
-  if(!confirm("이 근로자를 출근완료로 처리할까요?"))return;
-
-  const {error}=await db.from("applications").update({status:"출근완료"}).eq("id",applicationId);
-  if(error){alert("출근확인 오류: "+error.message);return;}
-
-  const job=jobs.find(j=>Number(j.id)===Number(app.job_id));
-  const exists=(attendance||[]).some(a=>Number(a.job_id)===Number(app.job_id) && String(a.phone||"")===String(app.phone||""));
-  if(!exists){
-    await db.from("attendance").insert({
-      job_id:app.job_id,
-      job_title:job?job.title:"",
-      worker_name:app.worker_name||app.name||"",
-      phone:app.phone||"",
-      amount:job?Number(job.salary||0):0,
-      company_id:app.company_id || (job?job.company_id:companyId),
-      gps:"manager-confirm"
-    });
-  }
-
-  await loadData();
-  alert("출근확인 완료");
-}
 
 function managerWorkerActionButtons(a,status){
   const id=Number(a.id);
@@ -3022,10 +2997,10 @@ function managerWorkerActionButtons(a,status){
     </div>`;
   }
   if(status==="승인"){
-    return `<div class="manager-worker-actions">
-      <button class="blue" onclick="managerCheckInApplication(${id})">출근확인</button>
-      <button class="red" onclick="managerRejectApplication(${id})">거절</button>
-    </div>`;
+    return `<div class="settle-note">근로자가 QR로 출근하면 자동으로 출근완료 처리됩니다.</div>
+      <div class="manager-worker-actions">
+        <button class="red" onclick="managerRejectApplication(${id})">거절</button>
+      </div>`;
   }
   if(status==="출근완료"){
     return `<div class="manager-worker-actions work-done-center">
@@ -3129,7 +3104,7 @@ function renderManager(){
   managerJobsList.innerHTML=jobRows || `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
   workersList.innerHTML=`<div class="card notice">
     <div class="title">현장관리자 운영센터</div>
-    <div class="sub">지원자 승인, 출근확인, 근무완료 체크는 위 공고 카드의 “지원자 보기”에서 처리합니다.</div>
+    <div class="sub">지원자 승인과 근무완료 체크는 위 공고 카드의 “지원자 보기”에서 처리합니다. 출근은 근로자 QR 출근으로만 기록됩니다.</div>
   </div>`;
 }
 
