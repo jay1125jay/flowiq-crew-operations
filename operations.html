@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.4.7 QR SCAN</title>
+<title>FlowIQ Crew OPERATIONS v3.4.8 QR STABLE</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1847,42 +1847,11 @@ button.blue.full,button.green.full{
 }
 
 
-/* ===== FlowIQ Crew v3.4.7 Real QR Scan ===== */
-.qr-scan-box{
-  width:100%;
-  aspect-ratio:1/1;
-  background:#020617;
-  border:1px solid rgba(96,165,250,.24);
-  border-radius:30px;
-  overflow:hidden;
-  margin:18px 0;
-  position:relative;
-  box-shadow:0 18px 44px rgba(0,0,0,.36);
-}
-#qrScannerVideo{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-.qr-scan-frame{
-  position:absolute;
-  inset:12%;
-  border:3px solid rgba(34,211,238,.86);
-  border-radius:24px;
-  box-shadow:0 0 0 999px rgba(2,6,23,.36),0 0 32px rgba(34,211,238,.35);
-  pointer-events:none;
-}
-.qr-scan-status{
-  background:rgba(15,23,42,.88);
-  border:1px solid rgba(148,163,184,.14);
-  border-radius:18px;
-  padding:12px;
-  color:#cbd5e1;
-  font-size:13px;
-  line-height:1.45;
-  margin-bottom:12px;
-}
+/* ===== FlowIQ Crew v3.4.8 Real QR Scan Stable ===== */
+.qr-scan-box{position:relative;width:100%;aspect-ratio:1/1;background:#020617;border:1px solid rgba(96,165,250,.22);border-radius:28px;overflow:hidden;margin:18px 0;}
+#qrScannerVideo{width:100%;height:100%;object-fit:cover;background:#020617;}
+.qr-scan-frame{position:absolute;inset:18%;border:3px solid rgba(34,211,238,.86);border-radius:24px;box-shadow:0 0 0 9999px rgba(2,6,23,.34),0 0 24px rgba(34,211,238,.35);pointer-events:none;}
+.qr-scan-status{background:rgba(15,23,42,.86);border:1px solid rgba(148,163,184,.14);border-radius:18px;padding:12px;color:#cbd5e1;font-size:13px;line-height:1.45;margin-top:12px;}
 
 </style>
 </head>
@@ -2052,7 +2021,7 @@ button.blue.full,button.green.full{
 
   <div class="grid3 worker-minimal-hidden">
     <button class="action" onclick="goScreen('workerScreen')"><span class="emoji">💼</span>일자리</button>
-    <button class="action" onclick="openQRScanner()"><span class="emoji">📷</span>QR 스캔</button>
+    <button class="action" onclick="openQRScanner()"><span class="emoji">📷</span>출근</button>
     <button class="action" onclick="showPayroll()"><span class="emoji">💳</span>급여</button>
   </div>
 
@@ -2153,12 +2122,11 @@ button.blue.full,button.green.full{
 </section>
 
 
+
 <section id="qrScannerScreen" class="hidden">
   <div class="card notice">
     <div class="title">QR 출근 스캔</div>
     <div class="sub">현장관리자가 보여주는 출근 QR을 카메라로 스캔하세요.</div>
-  </div>
-  <div class="card">
     <div class="qr-scan-status" id="qrScannerStatus">카메라를 시작하려면 아래 버튼을 누르세요.</div>
     <div class="qr-scan-box">
       <video id="qrScannerVideo" muted playsinline></video>
@@ -2194,12 +2162,12 @@ button.blue.full,button.green.full{
 <nav class="bottom-nav" id="bottomNav">
   <button id="navHome" onclick="goHome()">홈</button>
   <button id="navJobs" onclick="navPrimary()">일자리</button>
-  <button id="navQR" onclick="(role||lastRole)==='worker'?openQRScanner():showQR(role||lastRole||'worker')">QR</button>
+  <button id="navQR" onclick="showQR(role||lastRole||'worker')">QR</button>
   <button id="navPay" onclick="navSecondary()">급여</button>
 </nav>
 
 <script>
-// FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
+// FlowIQ Crew v3.4.8 - QR 스캔 안정화: 공고별 QR, 로그인 후 스캔, 수동 출근 차단.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
@@ -2250,7 +2218,7 @@ const COMPANY_NAMES={
 };
   
 let companyId=localStorage.getItem("company_id")||"demo_company";
-const screens=["languageScreen","roleScreen","signupScreen","managerLoginScreen","workerLoginScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
+const screens=["languageScreen","roleScreen","signupScreen","managerLoginScreen","workerLoginScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScannerScreen","qrScreen"];
 
 function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
 
@@ -2448,6 +2416,12 @@ function loginWorkerAccount(){
   localStorage.setItem("worker_holder",workerHolder);
   localStorage.setItem("worker_payment_method",workerPaymentMethod);
   role="worker"; lastRole="worker";
+  const pendingCheckin=localStorage.getItem("pending_checkin");
+  if(pendingCheckin){
+    localStorage.removeItem("pending_checkin");
+    location.href=location.origin+location.pathname+"?checkin="+pendingCheckin;
+    return;
+  }
   loadData().then(()=>goScreen("workerScreen"));
 }
 
@@ -2464,7 +2438,7 @@ function show(id,push=false){
     const wh=document.getElementById("workerHolderInput"); if(wh)wh.value=workerHolder||workerName||"";
   }
   document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
-  document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
+  document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScannerScreen","qrScreen"].includes(id)?"grid":"none";
 
   if(id==="workerScreen"){renderWorkerHome();renderJobs();}
   if(id==="managerScreen")renderManager();
@@ -3013,7 +2987,7 @@ function renderWorkerHome(){
 
       <div class="worker-actions-row">
         <button class="blue" onclick="openMap('${safeLocation}')">🧭 길찾기</button>
-        <button class="green" onclick="showQR('worker')">📷 출근하기</button>
+        <button class="green" onclick="openQRScanner()">📷 출근하기</button>
       </div>
     </div>
   `;
@@ -3389,6 +3363,8 @@ function renderManager(){
         <div class="manager-count-tile"><b>${workDoneCount}</b><span>근무완료</span></div>
       </div>
 
+      <button class="full green" onclick="showQR('manager',${Number(j.id)})">▦ 이 공고 출근 QR</button>
+
       <details class="manager-worker-panel">
         <summary>지원자 보기</summary>
         ${workerRows}
@@ -3450,7 +3426,7 @@ function toggleOtherType(){
   alert("공고가 저장되었습니다. 수수료(5%) 포함 총 결제금액: "+won(totalPayment(salary)));
   goScreen("managerScreen");
 }
-function showQR(selectedRole){
+function showQR(selectedRole, jobId=null){
   lastRole=selectedRole;
   const qrImage=document.getElementById("qrImage");
   const qrActionBtn=document.getElementById("qrActionBtn");
@@ -3458,22 +3434,32 @@ function showQR(selectedRole){
   if(selectedRole==="manager"){
     qrTitle.innerText="출근 QR";
     const managerJobs=jobs.filter(j=>role==="manager"?String(j.company_id)===String(companyId):true);
-    const job=managerJobs[0] || jobs[0];
-    const qrData=job?`${location.origin}${location.pathname}?checkin=${job.id}`:`${location.origin}${location.pathname}`;
+    let job=null;
+    if(jobId!==null && jobId!==undefined){
+      job=managerJobs.find(j=>Number(j.id)===Number(jobId)) || jobs.find(j=>Number(j.id)===Number(jobId));
+    }
+    if(!job){
+      job=managerJobs[0] || jobs[0];
+    }
+    if(!job){
+      alert("QR을 생성할 공고가 없습니다.");
+      return;
+    }
+    const qrData=`${location.origin}${location.pathname}?checkin=${job.id}`;
     qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(qrData)}`;
-    qrDesc.innerHTML=`근로자가 이 QR을 스캔해야 출근 처리됩니다.<br><br><span style="color:#94a3b8;font-size:13px">근로자 단독 수동 출근은 차단됩니다.</span>`;
+    qrDesc.innerHTML=`<b>${job.title || "공고"}</b><br>${job.location || ""}<br><br>근로자가 이 QR을 스캔해야 출근 처리됩니다.<br><span style="color:#94a3b8;font-size:13px">승인된 근로자만 출근 처리됩니다.</span>`;
     if(qrActionBtn){
       qrActionBtn.style.display="block";
-      qrActionBtn.innerText="QR 생성 확인";
+      qrActionBtn.innerText="QR 준비 완료";
       qrActionBtn.className="full green";
     }
-  }else{
-    openQRScanner();
+    goScreen("qrScreen");
     return;
   }
 
-  goScreen("qrScreen");
+  openQRScanner();
 }
+
 
 async function saveAttendance(job){
   return new Promise((resolve,reject)=>{
@@ -3565,8 +3551,8 @@ async function autoCheckIn(){
 
     if(!workerName || !workerPhone){
       localStorage.setItem("pending_checkin",checkin);
-      alert("근로자 정보 등록 후 출근할 수 있습니다.");
-      goScreen("workerInfoScreen");
+      alert("근로자 로그인 후 출근할 수 있습니다.");
+      goScreen("workerLoginScreen");
       return;
     }
 
@@ -3590,6 +3576,7 @@ async function autoCheckIn(){
   }
 }
 
+
 let qrScannerStream=null;
 let qrScannerTimer=null;
 let qrScannerBusy=false;
@@ -3603,14 +3590,8 @@ function openQRScanner(){
 }
 
 function stopQRScanner(){
-  if(qrScannerTimer){
-    clearInterval(qrScannerTimer);
-    qrScannerTimer=null;
-  }
-  if(qrScannerStream){
-    qrScannerStream.getTracks().forEach(t=>t.stop());
-    qrScannerStream=null;
-  }
+  if(qrScannerTimer){clearInterval(qrScannerTimer);qrScannerTimer=null;}
+  if(qrScannerStream){qrScannerStream.getTracks().forEach(t=>t.stop());qrScannerStream=null;}
   qrScannerBusy=false;
 }
 
@@ -3618,38 +3599,24 @@ async function startQRScanner(){
   const video=document.getElementById("qrScannerVideo");
   const status=document.getElementById("qrScannerStatus");
   if(!video || !status)return;
-
-  if(!workerName || !workerPhone){
-    alert("근로자 로그인 후 QR 출근이 가능합니다.");
-    goScreen("workerLoginScreen");
-    return;
-  }
-
+  if(!workerName || !workerPhone){alert("근로자 로그인 후 QR 출근이 가능합니다.");goScreen("workerLoginScreen");return;}
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){alert("이 브라우저는 카메라 스캔을 지원하지 않습니다.");return;}
   try{
     stopQRScanner();
     status.innerText="카메라 권한을 허용해주세요.";
-    qrScannerStream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:"environment"}},
-      audio:false
-    });
+    qrScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
     video.srcObject=qrScannerStream;
     await video.play();
-
     status.innerText="QR을 화면 중앙에 맞춰주세요.";
     const canvas=document.createElement("canvas");
     const ctx=canvas.getContext("2d");
-
     qrScannerTimer=setInterval(async ()=>{
       if(qrScannerBusy || video.readyState!==video.HAVE_ENOUGH_DATA)return;
-      canvas.width=video.videoWidth;
-      canvas.height=video.videoHeight;
+      canvas.width=video.videoWidth;canvas.height=video.videoHeight;
       ctx.drawImage(video,0,0,canvas.width,canvas.height);
       const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
       const code=window.jsQR ? jsQR(imageData.data,canvas.width,canvas.height) : null;
-      if(code && code.data){
-        qrScannerBusy=true;
-        await handleScannedQR(code.data);
-      }
+      if(code && code.data){qrScannerBusy=true;await handleScannedQR(code.data);}
     },420);
   }catch(e){
     status.innerText="카메라를 열 수 없습니다. 브라우저 권한을 확인해주세요.";
@@ -3661,27 +3628,12 @@ async function handleScannedQR(data){
   const status=document.getElementById("qrScannerStatus");
   try{
     let url;
-    try{
-      url=new URL(data);
-    }catch(e){
-      url=new URL(data,location.origin);
-    }
-
+    try{url=new URL(data);}catch(e){url=new URL(data,location.origin);}
     const checkin=url.searchParams.get("checkin");
-    if(!checkin){
-      qrScannerBusy=false;
-      if(status)status.innerText="출근 QR이 아닙니다. 현장관리자 QR을 스캔해주세요.";
-      return;
-    }
-
+    if(!checkin){qrScannerBusy=false;if(status)status.innerText="출근 QR이 아닙니다.";return;}
     await loadData();
     const job=jobs.find(j=>Number(j.id)===Number(checkin));
-    if(!job){
-      qrScannerBusy=false;
-      if(status)status.innerText="공고를 찾을 수 없습니다.";
-      return;
-    }
-
+    if(!job){qrScannerBusy=false;if(status)status.innerText="공고를 찾을 수 없습니다.";return;}
     if(status)status.innerText="출근 처리 중입니다...";
     await saveAttendance(job);
     stopQRScanner();
@@ -3690,11 +3642,10 @@ async function handleScannedQR(data){
     goHome();
   }catch(e){
     qrScannerBusy=false;
-    if(status)status.innerText=String(e || "QR 출근 처리에 실패했습니다.");
+    if(status)status.innerText=String(e||"QR 출근 처리에 실패했습니다.");
     alert(e);
   }
 }
-
 
 function showPayroll(){goScreen("payrollScreen")}
 
