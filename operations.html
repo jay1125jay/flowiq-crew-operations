@@ -1959,7 +1959,7 @@ let jobs=[];
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.3';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.4.4';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2381,7 +2381,7 @@ function getMyCurrentApplication(){
 
   const active=applications.find(a=>
     a.phone===workerPhone &&
-    ["지원","승인","출근완료","근무완료","입금대기"].includes((a.status || "지원").trim())
+    ["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"].includes((a.status || "지원").trim())
   );
 
   return active || applications.find(a=>a.phone===workerPhone) || null;
