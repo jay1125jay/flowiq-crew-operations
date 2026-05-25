@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.8.5 MANAGER LIVE AUTO SYNC</title>
+<title>FlowIQ Crew OPERATIONS v3.8.8 MANAGER TRUE LIVE SYNC</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2279,7 +2279,6 @@ button.blue.full,button.green.full{
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.7.2 - 정산완료/입금완료 공고는 오늘 현장에서 제외.
 // FlowIQ Crew v3.8.4 - 지원취소 + 승인 전 오늘 현장 숨김 + 관리자 라이브 동기화 강화.
-// FlowIQ Crew v3.8.7 - 정원 마감 시 승인되지 않은 지원자는 자동 미선정 처리 후 다른 공고 지원 가능.
 // FlowIQ Crew v3.7.3 - 공고별 출근 QR 전체 URL 생성 및 링크 복사 지원.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
@@ -2333,7 +2332,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.5 MANAGER LIVE AUTO SYNC';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.8 MANAGER_TRUE_LIVE_SYNC';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -3048,8 +3047,6 @@ async function loadData(){
   allApplications=allAr.data||applications||[];
   attendance=tr.data||[];
 
-  await autoReleaseUnapprovedApplicationsForFullJobs();
-
   renderWorkerHome();
   renderJobs();
   renderManager();
@@ -3434,7 +3431,6 @@ function normalizeAppStatus(status){
   const s=String(status || "").trim();
   if(["승인","승인완료","approved","approve"].includes(s))return "승인";
   if(["거절","거절완료","rejected","reject"].includes(s))return "거절";
-  if(["미선정","자동미선정","마감미선정","not_selected","unselected"].includes(s))return "미선정";
   if(["지원취소","취소","cancel","cancelled","canceled"].includes(s))return "지원취소";
   if(["지원","지원완료","pending","applied"].includes(s))return "지원";
   return s;
@@ -3454,46 +3450,6 @@ function getApprovedSlotCount(jobId){
 function isJobFull(job){
   const needed=Number(job && job.needed || 0);
   return needed > 0 && getApprovedSlotCount(job.id) >= needed;
-}
-
-function isReleasedApplicationStatus(status){
-  const s=normalizeAppStatus(status);
-  return ["지원취소","미선정","거절","입금완료"].includes(s);
-}
-
-async function autoReleaseUnapprovedApplicationsForFullJobs(){
-  const jobList=jobs || [];
-  const source=(allApplications && allApplications.length ? allApplications : applications) || [];
-  const updates=[];
-
-  jobList.forEach(job=>{
-    const needed=Number(job && job.needed || 0);
-    if(!needed)return;
-    const jobApps=source.filter(a=>Number(a.job_id)===Number(job.id));
-    const approvedCount=jobApps.filter(a=>isApprovedSlotStatus(a.status)).length;
-    if(approvedCount < needed)return;
-
-    jobApps
-      .filter(a=>normalizeAppStatus(a.status)==="지원")
-      .forEach(a=>{ if(a.id)updates.push(Number(a.id)); });
-  });
-
-  const ids=[...new Set(updates)].filter(Boolean);
-  if(!ids.length)return 0;
-
-  const {error}=await db.from("applications").update({status:"미선정"}).in("id",ids);
-  if(error){
-    console.warn("auto release unapproved failed:", error.message);
-    return 0;
-  }
-
-  const markReleased=a=>{
-    if(ids.includes(Number(a.id)))return Object.assign({},a,{status:"미선정"});
-    return a;
-  };
-  applications=(applications||[]).map(markReleased);
-  allApplications=(allApplications||[]).map(markReleased);
-  return ids.length;
 }
 
 function getVisibleJobStatus(job){
@@ -3521,7 +3477,7 @@ function renderJobs(){
 
   el.innerHTML=filteredJobs.length
   ? filteredJobs.map(j=>{
-    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && String(a.phone || "").trim()===String(workerPhone || "").trim() && !["지원취소","미선정"].includes(normalizeAppStatus(a.status)));
+    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && String(a.phone || "").trim()===String(workerPhone || "").trim() && normalizeAppStatus(a.status)!=="지원취소");
     const myAppStatus=normalizeAppStatus(myApplication && myApplication.status);
     const already=!!myApplication && myAppStatus!=="지원취소";
     const pendingCancel=already && myAppStatus==="지원";
@@ -3735,7 +3691,6 @@ function managerAppStatusLabel(status){
   if(s==="수령확인완료")return "MASTER 정산대기";
   if(s==="입금완료")return "정산 완료";
   if(s==="거절")return "거절";
-  if(s==="미선정")return "미선정";
   if(s==="지원취소")return "지원취소";
   return s;
 }
@@ -3750,7 +3705,6 @@ function managerStatusClass(status){
   if(s==="수령확인완료")return "manager-status-orange";
   if(s==="입금완료")return "manager-status-green";
   if(s==="거절")return "manager-status-red";
-  if(s==="미선정")return "manager-status-red";
   if(s==="지원취소")return "manager-status-red";
   return "manager-status-wait";
 }
@@ -3766,10 +3720,6 @@ async function managerApproveApplication(applicationId){
 
   const {error}=await db.from("applications").update({status:"승인"}).eq("id",applicationId);
   if(error){alert("승인 오류: "+error.message);return;}
-
-  // 승인으로 정원이 충족되면 아직 승인되지 않은 지원자들은 자동 미선정 처리합니다.
-  await loadData();
-  await autoReleaseUnapprovedApplicationsForFullJobs();
   await loadData();
   alert("승인 완료");
 }
@@ -3828,11 +3778,6 @@ function renderManager(){
   const managerTitle=document.getElementById("managerTitle");
   if(!workersList || !managerJobsList)return;
 
-  const openManagerJobIds = new Set(
-    Array.from(document.querySelectorAll('#managerJobsList details.manager-worker-panel[open]'))
-      .map(d => String(d.dataset.jobId || ''))
-      .filter(Boolean)
-  );
   const filteredJobs=role==="manager" ? jobs.filter(j=>String(j.company_id)===String(companyId)) : jobs;
   const filteredApplications=role==="manager" ? getSyncedApplicationsForCurrentManager() : ((allApplications && allApplications.length ? allApplications : applications) || []);
   const filteredAttendance=role==="manager" ? attendance.filter(a=>String(a.company_id)===String(companyId)) : attendance;
@@ -3846,7 +3791,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.6";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.4";
   }
 
   const jobRows=filteredJobs.map(j=>{
@@ -3898,7 +3843,7 @@ function renderManager(){
         <button class="blue" onclick="showQR('manager',${Number(j.id)})">이 공고 출근 QR</button>
       </div>
 
-      <details class="manager-worker-panel" data-job-id="${Number(j.id)}">
+      <details class="manager-worker-panel">
         <summary>지원자 보기</summary>
         ${workerRows}
       </details>
@@ -3906,10 +3851,6 @@ function renderManager(){
   }).join("");
 
   managerJobsList.innerHTML=jobRows || `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
-  openManagerJobIds.forEach(jobId => {
-    const panel = managerJobsList.querySelector(`details.manager-worker-panel[data-job-id="${jobId}"]`);
-    if(panel) panel.open = true;
-  });
   workersList.innerHTML=`<div class="card notice">
     <div class="title">현장관리자 운영센터</div>
     <div class="sub">지원자 승인과 근무완료 체크는 위 공고 카드의 “지원자 보기”에서 처리합니다. 출근은 근로자 QR 출근으로만 기록됩니다.</div>
@@ -4824,8 +4765,6 @@ function copyCrewAccount(){
       applications = nextApps;
       attendance = nextAttendance;
 
-      await autoReleaseUnapprovedApplicationsForFullJobs();
-
       if(currentScreen === 'managerScreen'){
         renderManager();
         requestAnimationFrame(() => renderManager());
@@ -4870,209 +4809,165 @@ function copyCrewAccount(){
 })();
 </script>
 
+
+
 <script>
-/* ===== FlowIQ Crew v3.8.5 Manager Live Auto Sync Final Fix ===== */
+/* ===== FlowIQ Crew v3.8.8 Manager True Live Sync Fix =====
+   목표: 근로자 지원 → 관리자 화면 자동 반영 + 알림음.
+   원칙: 새로고침/즉시갱신 없이 Supabase를 기준으로 jobs/applications/attendance를 재조회하고 렌더링한다.
+*/
 (function(){
-  const LIVE_SYNC_MS = 1200;
-  let flowiqManagerLiveTimer = null;
-  let flowiqManagerLiveBusy = false;
-  let flowiqManagerBaselineReady = false;
-  let flowiqLastPendingKeySet = new Set();
+  const MANAGER_SYNC_MS = 1200;
+  let managerTrueLiveTimer = null;
+  let managerTrueLiveBusy = false;
+  let managerTrueLiveBootstrapped = false;
+  let managerTrueLiveKnownKeys = new Set();
+  let managerTrueLiveLastSignature = '';
 
-  function flowiqIsManagerLiveScreen(){
-    return role === "manager" && currentScreen === "managerScreen";
+  function appStatusForLive(a){
+    try{ return typeof normalizeAppStatus === 'function' ? normalizeAppStatus(a && a.status) : String((a && a.status) || '').trim(); }
+    catch(e){ return String((a && a.status) || '').trim(); }
   }
 
-  function flowiqPendingKey(app){
-    return String(app && (app.id || (app.job_id + "_" + app.phone + "_" + (app.created_at || ""))));
+  function pendingKey(a){
+    return String(a && (a.id || ((a.job_id || '') + '_' + (a.phone || '') + '_' + (a.created_at || ''))));
   }
 
-  function flowiqGetPendingFromApps(apps){
-    return (apps || []).filter(a => {
-      const status = typeof normalizeAppStatus === "function"
-        ? normalizeAppStatus(a.status || "")
-        : String(a.status || "").trim();
-      return status === "지원";
-    });
+  function managerJobIdsFrom(list){
+    return (list || []).map(j => Number(j.id)).filter(Boolean);
   }
 
-  async function flowiqUnlockAlertByGesture(){
+  function pendingKeysFrom(list){
+    return (list || [])
+      .filter(a => appStatusForLive(a) === '지원')
+      .map(pendingKey)
+      .filter(Boolean);
+  }
+
+  function makeSignature(jobList, appList){
+    const jobsPart = (jobList || []).map(j => [j.id, j.type, j.needed, j.updated_at || j.created_at || ''].join(':')).join('|');
+    const appsPart = (appList || []).map(a => [a.id, a.job_id, appStatusForLive(a), a.updated_at || a.created_at || ''].join(':')).join('|');
+    return jobsPart + '::' + appsPart;
+  }
+
+  function ensureManagerSoundReadySoft(){
+    managerAlertEnabled = true;
+    try{ localStorage.setItem('manager_alert_enabled','1'); }catch(e){}
     try{
-      managerAlertEnabled = true;
-      localStorage.setItem("manager_alert_enabled","1");
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if(AudioContext && !managerAlertAudioCtx){
-        managerAlertAudioCtx = new AudioContext();
-      }
-      if(managerAlertAudioCtx && managerAlertAudioCtx.state === "suspended"){
-        await managerAlertAudioCtx.resume();
-      }
-    }catch(e){
-      console.warn("manager alert unlock failed", e);
-    }
+      if(AudioContext && !managerAlertAudioCtx) managerAlertAudioCtx = new AudioContext();
+      if(managerAlertAudioCtx && managerAlertAudioCtx.state === 'suspended') managerAlertAudioCtx.resume().catch(()=>{});
+    }catch(e){ console.warn('manager sound soft unlock failed', e); }
   }
 
-  document.addEventListener("click", function(e){
-    if(role === "manager" || e.target.closest("#managerLoginScreen") || e.target.closest("#managerScreen")){
-      flowiqUnlockAlertByGesture();
+  document.addEventListener('click', function(e){
+    if(role === 'manager' || e.target.closest('#managerLoginScreen') || e.target.closest('#managerScreen')){
+      ensureManagerSoundReadySoft();
     }
   }, true);
 
-  function flowiqUpdateManagerSyncStamp(){
-    const stamp = document.getElementById("managerLiveSyncStamp");
-    if(stamp){
-      stamp.innerText = "자동 갱신 ON · 최근 반영: " + new Date().toLocaleTimeString("ko-KR") + " · v3.8.6";
+  async function fetchManagerLiveData(){
+    const jr = await db.from('jobs')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending:false });
+    if(jr.error) throw jr.error;
+    const nextJobs = jr.data || [];
+    const jobIds = managerJobIdsFrom(nextJobs);
+
+    let nextApps = [];
+    let nextAttendance = [];
+
+    if(jobIds.length){
+      const ar = await db.from('applications')
+        .select('*')
+        .in('job_id', jobIds)
+        .order('created_at', { ascending:false });
+      if(ar.error) throw ar.error;
+      nextApps = ar.data || [];
+
+      const tr = await db.from('attendance')
+        .select('*')
+        .in('job_id', jobIds)
+        .order('created_at', { ascending:false });
+      if(tr.error) console.warn('manager attendance sync warning:', tr.error.message);
+      nextAttendance = tr.data || [];
     }
+
+    return { nextJobs, nextApps, nextAttendance };
   }
 
-  function flowiqRenderManagerNow(){
-    if(!flowiqIsManagerLiveScreen())return;
-    try{
-      if(typeof renderManager === "function"){
-        renderManager();
-        requestAnimationFrame(() => {
-          try{
-            renderManager();
-            flowiqUpdateManagerSyncStamp();
-          }catch(e){}
-        });
-      }
-      flowiqUpdateManagerSyncStamp();
-    }catch(e){
-      console.warn("manager render failed", e);
-    }
-  }
-
-  async function flowiqManagerLiveSync(force=false){
-    if(role !== "manager" || flowiqManagerLiveBusy)return;
-    flowiqManagerLiveBusy = true;
+  async function managerTrueLiveSync(force=false){
+    if(role !== 'manager' || currentScreen !== 'managerScreen') return;
+    if(managerTrueLiveBusy) return;
+    managerTrueLiveBusy = true;
 
     try{
-      const jr = await db.from("jobs")
-        .select("*")
-        .eq("company_id", companyId)
-        .order("created_at", {ascending:false});
-
-      if(jr.error)throw jr.error;
-
-      const nextJobs = jr.data || [];
-      const jobIds = nextJobs.map(j => Number(j.id)).filter(Boolean);
-
-      let nextApps = [];
-      let nextAttendance = [];
-
-      if(jobIds.length){
-        const ar = await db.from("applications")
-          .select("*")
-          .in("job_id", jobIds)
-          .order("created_at", {ascending:false});
-
-        if(ar.error)throw ar.error;
-        nextApps = ar.data || [];
-
-        const tr = await db.from("attendance")
-          .select("*")
-          .in("job_id", jobIds)
-          .order("created_at", {ascending:false});
-
-        if(tr.error){
-          console.warn("attendance live sync warning", tr.error.message);
-        }else{
-          nextAttendance = tr.data || [];
-        }
-      }
-
-      const pendingApps = flowiqGetPendingFromApps(nextApps);
-      const nextPendingKeys = new Set(pendingApps.map(flowiqPendingKey));
-      const newPending = [...nextPendingKeys].filter(k => !flowiqLastPendingKeySet.has(k));
+      const { nextJobs, nextApps, nextAttendance } = await fetchManagerLiveData();
+      const nextPendingKeys = pendingKeysFrom(nextApps);
+      const nextPendingSet = new Set(nextPendingKeys);
+      const newKeys = nextPendingKeys.filter(k => !managerTrueLiveKnownKeys.has(k));
+      const nextSignature = makeSignature(nextJobs, nextApps);
+      const changed = nextSignature !== managerTrueLiveLastSignature;
 
       jobs = nextJobs;
-      applications = nextApps;
       allApplications = nextApps;
+      applications = nextApps;
       attendance = nextAttendance;
 
-      await autoReleaseUnapprovedApplicationsForFullJobs();
-
-      if(flowiqIsManagerLiveScreen()){
-        flowiqRenderManagerNow();
+      if(!managerTrueLiveBootstrapped){
+        managerTrueLiveBootstrapped = true;
+        managerTrueLiveKnownKeys = nextPendingSet;
+        managerTrueLiveLastSignature = nextSignature;
+        if(typeof renderManager === 'function') renderManager();
+      }else{
+        if(changed || force){
+          if(typeof renderManager === 'function') renderManager();
+        }
+        if(newKeys.length > 0){
+          ensureManagerSoundReadySoft();
+          if(typeof playManagerAlertSound === 'function') await playManagerAlertSound(false);
+          if(navigator.vibrate) navigator.vibrate([180,80,180,80,220]);
+          if(typeof showManagerNewApplicantNotice === 'function'){
+            showManagerNewApplicantNotice(newKeys.length, '🔔 신규 지원자가 등록되었습니다.');
+          }
+        }
+        managerTrueLiveKnownKeys = nextPendingSet;
+        managerTrueLiveLastSignature = nextSignature;
       }
 
-      if(flowiqManagerBaselineReady && newPending.length > 0){
-        managerAlertEnabled = true;
-        localStorage.setItem("manager_alert_enabled","1");
-        await flowiqUnlockAlertByGesture();
-        if(typeof playManagerAlertSound === "function"){
-          await playManagerAlertSound(false);
-        }
-        if(navigator.vibrate){
-          navigator.vibrate([180,80,180,80,220]);
-        }
-        if(typeof showManagerNewApplicantNotice === "function"){
-          showManagerNewApplicantNotice(newPending.length, "🔔 신규 지원자가 등록되었습니다.");
-        }
+      managerKnownPendingKeys = Array.from(nextPendingSet);
+      managerLastPendingCount = nextPendingSet.size;
+
+      const stamp = document.getElementById('managerLiveSyncStamp');
+      if(stamp){
+        stamp.innerText = '자동 갱신 ON · 최근 반영: ' + new Date().toLocaleTimeString('ko-KR');
       }
-
-      flowiqLastPendingKeySet = nextPendingKeys;
-      flowiqManagerBaselineReady = true;
-      managerKnownPendingKeys = [...nextPendingKeys];
-      managerLastPendingCount = nextPendingKeys.size;
-
     }catch(err){
-      console.warn("manager live auto sync failed", err);
-      if(force){
-        alert("관리자 자동 갱신 오류: " + (err.message || err));
-      }
+      console.warn('manager true live sync failed:', err);
+      if(force) alert('관리자 자동 갱신 오류: ' + (err.message || err));
     }finally{
-      flowiqManagerLiveBusy = false;
+      managerTrueLiveBusy = false;
     }
   }
 
+  window.managerAutoRefreshTick = managerTrueLiveSync;
   window.startManagerAutoRefresh = function(){
-    if(role !== "manager")return;
-    managerAlertEnabled = true;
-    localStorage.setItem("manager_alert_enabled","1");
-    if(flowiqManagerLiveTimer)clearInterval(flowiqManagerLiveTimer);
-
-    // 현재 화면에 있던 지원자는 기준값으로만 잡고, 이후 새 지원부터 알림을 울립니다.
-    const currentPending = typeof getManagerPendingKeys === "function" ? getManagerPendingKeys() : [];
-    flowiqLastPendingKeySet = new Set(currentPending);
-    flowiqManagerBaselineReady = false;
-
-    flowiqManagerLiveTimer = setInterval(() => flowiqManagerLiveSync(false), LIVE_SYNC_MS);
-    setTimeout(() => flowiqManagerLiveSync(false), 150);
-    setTimeout(() => flowiqManagerLiveSync(false), 900);
+    if(role !== 'manager') return;
+    ensureManagerSoundReadySoft();
+    if(managerTrueLiveTimer) clearInterval(managerTrueLiveTimer);
+    managerTrueLiveTimer = setInterval(() => managerTrueLiveSync(false), MANAGER_SYNC_MS);
+    setTimeout(() => managerTrueLiveSync(true), 100);
   };
-
   window.stopManagerAutoRefresh = function(){
-    if(flowiqManagerLiveTimer){
-      clearInterval(flowiqManagerLiveTimer);
-      flowiqManagerLiveTimer = null;
-    }
+    if(managerTrueLiveTimer){ clearInterval(managerTrueLiveTimer); managerTrueLiveTimer = null; }
   };
 
-  // 기존 함수 호출도 최종 동기화 로직으로 연결합니다.
-  window.managerAutoRefreshTick = async function(force=false){
-    await flowiqManagerLiveSync(force);
-  };
-
-  // 페이지가 이미 관리자 화면인 상태에서 이 패치가 로드되는 경우 자동 시작합니다.
-  setTimeout(() => {
-    if(flowiqIsManagerLiveScreen()){
-      window.startManagerAutoRefresh();
-    }
-  }, 500);
-
-  // 브라우저가 다시 활성화될 때도 즉시 한 번 동기화합니다.
-  document.addEventListener("visibilitychange", () => {
-    if(!document.hidden && role === "manager"){
-      flowiqManagerLiveSync(false);
-    }
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && role === 'manager' && currentScreen === 'managerScreen') managerTrueLiveSync(true);
   });
-
-  window.addEventListener("focus", () => {
-    if(role === "manager"){
-      flowiqManagerLiveSync(false);
-    }
+  window.addEventListener('focus', function(){
+    if(role === 'manager' && currentScreen === 'managerScreen') managerTrueLiveSync(true);
   });
 })();
 </script>
