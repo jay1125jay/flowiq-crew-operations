@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.6.8</title>
+<title>FlowIQ Crew OPERATIONS v3.7.0 REGION FILTER</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1847,6 +1847,54 @@ button.blue.full,button.green.full{
 
 
 
+
+/* ===== FlowIQ Crew v3.7.0 Region Filter ===== */
+.region-filter{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:4px 0 12px;
+  margin-bottom:6px;
+  scrollbar-width:none;
+}
+.region-filter::-webkit-scrollbar{display:none}
+.region-chip{
+  flex:0 0 auto;
+  min-height:42px;
+  padding:0 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  background:rgba(15,23,42,.88) !important;
+  border:1px solid rgba(148,163,184,.18) !important;
+  color:#cbd5e1 !important;
+  box-shadow:none !important;
+}
+.region-chip.active{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;
+  border-color:rgba(96,165,250,.38) !important;
+  color:#fff !important;
+}
+.region-empty{
+  border:1px dashed rgba(148,163,184,.25);
+  background:rgba(15,23,42,.68);
+  border-radius:24px;
+  padding:18px;
+  color:#94a3b8;
+  font-size:14px;
+  line-height:1.5;
+}
+.region-badge{
+  display:inline-flex;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(37,99,235,.14);
+  color:#bfdbfe;
+  font-size:12px;
+  font-weight:900;
+  margin-top:8px;
+}
+
 </style>
 </head>
 
@@ -1949,6 +1997,8 @@ button.blue.full,button.green.full{
         <input id="signupWorkerHolder" placeholder="예: 바타르">
       </div>
       <div id="signupWorkerNoAccountNote" class="settle-note hidden">계좌는 근무 후에도 등록할 수 있습니다. 계좌가 없을 경우 지급 확인과 수령 확인이 모두 완료되어야 정산완료 처리됩니다.</div>
+<div class="privacy-note">※ 본인확인/정산 확인용입니다. 실제 운영 전에는 보안 저장소와 접근권한 설정이 필요합니다.</div>
+      </div>
     </div>
 
     <button class="full blue" onclick="saveSignupAccount()">가입 후 시작</button>
@@ -2006,6 +2056,8 @@ button.blue.full,button.green.full{
 
     <label>예금주</label>
     <input id="workerHolderInput" placeholder="예: 바타르">
+<div class="privacy-note">※ 본인확인/정산 확인용입니다. 실제 운영 전에는 보안 저장소와 접근권한 설정이 필요합니다.</div>
+    </div>
 
     <button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button>
   </div>
@@ -2018,6 +2070,9 @@ button.blue.full,button.green.full{
     <button class="action" onclick="showQR('worker')"><span class="emoji">📷</span>출근</button>
     <button class="action" onclick="showPayroll()"><span class="emoji">💳</span>급여</button>
   </div>
+
+  <div class="section">지역별 공고</div>
+  <div id="workerRegionFilter" class="region-filter"></div>
 
   <div class="section">추천 일자리</div>
   <div id="jobsList"></div>
@@ -2057,7 +2112,7 @@ button.blue.full,button.green.full{
     <input id="fTitle" placeholder="예: Beta Factory"/>
 
     <label>위치</label>
-    <input id="fLocation" placeholder="예: 서울 성동구 성수동"/>
+    <input id="fLocation" placeholder="예: 경기 화성시 장안면 ○○로 123, 상세주소 포함"/>
 
     <label>근무 시간</label>
     <input id="fTime" placeholder="예: 08:00 - 18:00"/>
@@ -2141,7 +2196,6 @@ button.blue.full,button.green.full{
 <script>
 // FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
-// FlowIQ Crew v3.6.8 - worker resident minimum tax field added.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
@@ -2154,7 +2208,7 @@ function uploadSignupToGoogleSheet(payload){
   try{
     const data=Object.assign({}, payload||{}, {
       app:"FlowIQ Crew",
-      version:"v3.6.8",
+      version:"v3.6.6",
       sent_at:new Date().toISOString()
     });
     fetch(GOOGLE_SHEET_WEBAPP_URL,{
@@ -2186,14 +2240,14 @@ let workerBank=localStorage.getItem("worker_bank")||"";
 let workerAccount=localStorage.getItem("worker_account")||"";
 let workerHolder=localStorage.getItem("worker_holder")||"";
 let workerPaymentMethod=localStorage.getItem("worker_payment_method")||"account";
-
 let lastRole=role;
 let currentScreen="languageScreen";
 let jobs=[];
+let workerRegionFilter=localStorage.getItem("worker_region_filter")||"전체";
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.6.5';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.0 REGION FILTER';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2214,6 +2268,46 @@ let companyId=localStorage.getItem("company_id")||"demo_company";
 const screens=["languageScreen","roleScreen","signupScreen","managerLoginScreen","workerLoginScreen","workerInfoScreen","workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"];
 
 function won(n){return Number(n||0).toLocaleString("ko-KR")+"원"}
+
+const KOREA_REGIONS=["전체","서울","경기","인천","부산","대구","광주","대전","울산","세종","강원","충북","충남","전북","전남","경북","경남","제주"];
+function getJobRegion(location){
+  const s=String(location||"").replace(/\s+/g," ").trim();
+  const rules=[
+    ["서울",["서울","서울시","서울특별시"]],
+    ["경기",["경기","경기도"]],
+    ["인천",["인천","인천시","인천광역시"]],
+    ["부산",["부산","부산시","부산광역시"]],
+    ["대구",["대구","대구시","대구광역시"]],
+    ["광주",["광주","광주시","광주광역시"]],
+    ["대전",["대전","대전시","대전광역시"]],
+    ["울산",["울산","울산시","울산광역시"]],
+    ["세종",["세종","세종시","세종특별자치시"]],
+    ["강원",["강원","강원도","강원특별자치도"]],
+    ["충북",["충북","충청북도"]],
+    ["충남",["충남","충청남도"]],
+    ["전북",["전북","전라북도","전북특별자치도"]],
+    ["전남",["전남","전라남도"]],
+    ["경북",["경북","경상북도"]],
+    ["경남",["경남","경상남도"]],
+    ["제주",["제주","제주도","제주특별자치도"]]
+  ];
+  for(const [region,keys] of rules){
+    if(keys.some(k=>s.includes(k)))return region;
+  }
+  return "기타";
+}
+function setWorkerRegionFilter(region){
+  workerRegionFilter=region||"전체";
+  localStorage.setItem("worker_region_filter",workerRegionFilter);
+  renderJobs();
+}
+function renderWorkerRegionFilter(){
+  const el=document.getElementById("workerRegionFilter");
+  if(!el)return;
+  if(role!=="worker"){el.innerHTML="";return;}
+  el.innerHTML=KOREA_REGIONS.map(r=>`<button type="button" class="region-chip ${workerRegionFilter===r?"active":""}" onclick="setWorkerRegionFilter('${r}')">${r}</button>`).join("");
+}
+
 
 function normalizePhone(v){return String(v||"").replace(/[^0-9]/g,"")}
 function getManagerAccounts(){try{return JSON.parse(localStorage.getItem("crew_manager_accounts")||"[]")}catch(e){return []}}
@@ -2331,14 +2425,13 @@ function saveSignupAccount(){
 
   if(!name||!phone||!password)return alert("필수 정보를 입력하세요.");
 
-  if(type==="worker" && (!residentFront||residentFront.length!==6||!residentBack))return alert("근로자 주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
-
   if(type==="worker"){
+    if(!residentFront||residentFront.length!==6||!residentBack)return alert("주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
     const paymentMethod=getSignupPaymentMethod();
     const bank=paymentMethod==="account" ? (document.getElementById("signupWorkerBank")?.value.trim()||"") : "";
     const accountNo=paymentMethod==="account" ? (document.getElementById("signupWorkerAccount")?.value.trim()||"") : "";
     const holder=paymentMethod==="account" ? (document.getElementById("signupWorkerHolder")?.value.trim()||name) : name;
-if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
+    if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
 
     const workers=getWorkerAccounts();
     if(workers.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
@@ -2354,19 +2447,18 @@ if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계�
       bank,
       account:accountNo,
       holder,
-      paymentMethod,
-});
+      paymentMethod});
 
     workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder; workerPaymentMethod=paymentMethod; 
     localStorage.setItem("crew_role","worker");
     localStorage.setItem("worker_name",name);
     localStorage.setItem("worker_phone",phone);
+    localStorage.setItem("worker_resident",residentNo);
     localStorage.setItem("worker_payment_method",paymentMethod);
     localStorage.setItem("worker_bank",bank);
     localStorage.setItem("worker_account",accountNo);
     localStorage.setItem("worker_holder",holder);
-localStorage.setItem("worker_payment_method",workerPaymentMethod);
-    role="worker"; lastRole="worker";
+      role="worker"; lastRole="worker";
     alert("가입 완료. 근로자로 시작합니다.");
     loadData().then(()=>goScreen("workerScreen"));
     return;
@@ -2429,7 +2521,7 @@ function loginWorkerAccount(){
   workerAccount=account.account||"";
   workerHolder=account.holder||workerName;
   workerPaymentMethod=account.payment_method||((workerBank&&workerAccount)?"account":"later");
-  
+  workerPrivacyFileName=account.privacy_file||"";
   localStorage.setItem("crew_role","worker");
   localStorage.setItem("worker_name",workerName);
   localStorage.setItem("worker_phone",workerPhone);
@@ -2437,7 +2529,8 @@ function loginWorkerAccount(){
   localStorage.setItem("worker_account",workerAccount);
   localStorage.setItem("worker_holder",workerHolder);
   localStorage.setItem("worker_payment_method",workerPaymentMethod);
-role="worker"; lastRole="worker";
+  localStorage.setItem("worker_privacy_file",workerPrivacyFileName);
+  role="worker"; lastRole="worker";
   loadData().then(()=>goScreen("workerScreen"));
 }
 
@@ -2452,7 +2545,8 @@ function show(id,push=false){
     const wb=document.getElementById("workerBankInput"); if(wb)wb.value=workerBank||"";
     const wa=document.getElementById("workerAccountInput"); if(wa)wa.value=workerAccount||"";
     const wh=document.getElementById("workerHolderInput"); if(wh)wh.value=workerHolder||workerName||"";
-}
+    const pf=document.getElementById("workerPrivacyFileName"); if(pf){pf.innerText=workerPrivacyFileName?"기존 첨부: "+workerPrivacyFileName:""; pf.classList.toggle("hidden",!workerPrivacyFileName);}
+  }
   document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
   document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
 
@@ -2538,7 +2632,8 @@ function saveWorkerInfo(){
   const bank=document.getElementById("workerBankInput")?.value.trim()||"";
   const account=document.getElementById("workerAccountInput")?.value.trim()||"";
   const holder=document.getElementById("workerHolderInput")?.value.trim()||name;
-if(!name || !phone){
+
+  if(!name || !phone){
     alert("이름과 연락처를 입력하세요.");
     return;
   }
@@ -2557,7 +2652,7 @@ if(!name || !phone){
   localStorage.setItem("worker_bank",bank);
   localStorage.setItem("worker_account",account);
   localStorage.setItem("worker_holder",holder);
-const workers=getWorkerAccounts();
+  const workers=getWorkerAccounts();
   const key=normalizePhone(phone);
   const saved={name,phone,bank,account,holder,updated_at:new Date().toISOString()};
   const idx=workers.findIndex(w=>normalizePhone(w.phone)===key);
@@ -3002,13 +3097,15 @@ function getVisibleJobStatus(job){
 }
 
 function renderJobs(){
+  renderWorkerRegionFilter();
   const el=document.getElementById("jobsList");
   if(!el)return;
 
   const filteredJobs =
   role==="manager"
     ? jobs.filter(j=>j.company_id===companyId)
-    : jobs.filter(j=>getJobStatus(j)==="게시중");
+    : jobs.filter(j=>getJobStatus(j)==="게시중")
+        .filter(j=>workerRegionFilter==="전체" || getJobRegion(j.location)===workerRegionFilter);
 
   const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
   const myActiveApplication=role==="worker" && workerPhone
@@ -3037,6 +3134,7 @@ function renderJobs(){
         <div>
           <div class="job-title">${j.title}</div>
           <div class="type">${getJobType(j)}</div>
+          ${role==="worker"?`<div class="region-badge">${getJobRegion(j.location)}</div>`:""}
           ${role==="manager" ? jobStatusBadge({...j,type:`[${getVisibleJobStatus(j)}] ${getJobType(j)}`}) : ""}
         </div>
         ${role!=="worker"?`<div class="badge">관리 금액</div>`:""}
@@ -3061,7 +3159,7 @@ function renderJobs(){
       }
     </div>`;
   }).join("")
-  : `<div class="card"><div class="title">공고가 없습니다</div><div class="sub">관리자 앱에서 공고를 생성하세요.</div></div>`;
+  : `<div class="region-empty"><b>공고가 없습니다</b><br>${role==="worker"&&workerRegionFilter!=="전체" ? workerRegionFilter+" 지역에 게시중인 공고가 없습니다. 전체를 눌러 다른 지역 공고를 확인하세요." : "관리자 앱에서 공고를 생성하세요."}</div>`;
 }
 
 async function applyJob(jobId){
@@ -3322,6 +3420,7 @@ function renderManager(){
         <div>
           <div class="job-title">${j.title || "업체명 없음"}</div>
           <div class="type">${getJobType(j)}</div>
+          ${role==="worker"?`<div class="region-badge">${getJobRegion(j.location)}</div>`:""}
         </div>
         <div class="badge">${getVisibleJobStatus(j)}</div>
       </div>
