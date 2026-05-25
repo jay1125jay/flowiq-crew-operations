@@ -2301,7 +2301,7 @@ let workerRegionFilter=localStorage.getItem("worker_region_filter")||"전체";
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.5 MANAGER SOUND FIX';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.7 SUPABASE LOGIN';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -2383,6 +2383,50 @@ function saveManagerAccounts(list){localStorage.setItem("crew_manager_accounts",
 function getWorkerAccounts(){try{return JSON.parse(localStorage.getItem("crew_worker_accounts")||"[]")}catch(e){return []}}
 function saveWorkerAccounts(list){localStorage.setItem("crew_worker_accounts",JSON.stringify(list||[]))}
 function makeCompanyIdFromPhone(phone){return "company_"+normalizePhone(phone)}
+function normalizeAccountType(type){
+  const t=String(type||"").trim();
+  if(t==="business"||t==="사업자")return "business";
+  if(t==="personal"||t==="비사업자")return "personal";
+  if(t==="worker"||t==="근로자")return "worker";
+  return t||"worker";
+}
+function accountTypeLabel(type){
+  const t=normalizeAccountType(type);
+  if(t==="business")return "사업자";
+  if(t==="personal")return "비사업자";
+  if(t==="worker")return "근로자";
+  return t||"";
+}
+async function createAccountRecord(record){
+  const payload={
+    type:normalizeAccountType(record.type),
+    name:String(record.name||"").trim(),
+    phone:normalizePhone(record.phone),
+    password:String(record.password||""),
+    business_no:record.business_no||record.bizNo||"",
+    resident:record.resident||record.residentNo||"",
+    bank:record.bank||"",
+    account:record.account||record.accountNo||"",
+    holder:record.holder||""
+  };
+  const {error}=await db.from("accounts").insert([payload]);
+  if(error){
+    if(String(error.message||"").includes("duplicate") || String(error.code||"")==="23505"){
+      throw new Error("이미 가입된 연락처입니다.");
+    }
+    throw error;
+  }
+  return payload;
+}
+async function findAccountRecord(phone,password,types){
+  const key=normalizePhone(phone);
+  const allowed=(types||[]).map(normalizeAccountType);
+  let query=db.from("accounts").select("*").eq("phone",key).eq("password",String(password||"")).limit(10);
+  const {data,error}=await query;
+  if(error)throw error;
+  const rows=Array.isArray(data)?data:[];
+  return rows.find(a=>!allowed.length || allowed.includes(normalizeAccountType(a.type))) || null;
+}
 function getCurrentCompanyName(){return localStorage.getItem("company_name") || COMPANY_NAMES[companyId] || companyId || "현장관리자"}
 function moneyBase(value){
   const n=Number(String(value||0).replace(/[^0-9.-]/g,""));
@@ -2597,7 +2641,7 @@ document.addEventListener("input",function(e){
   }
 });
 
-function saveSignupAccount(){
+async function saveSignupAccount(){
   const type=document.getElementById("signupType")?.value||"business";
   const name=document.getElementById("signupName")?.value.trim()||"";
   const manager=document.getElementById("signupManager")?.value.trim()||"";
@@ -2605,119 +2649,146 @@ function saveSignupAccount(){
   const residentFront=(document.getElementById("signupResidentFront")?.value.trim()||"").replace(/\D/g,"").slice(0,6);
   const residentBack=(document.getElementById("signupResidentBack")?.value.trim()||"").replace(/\D/g,"").slice(0,1);
   const residentNo=residentFront&&residentBack ? residentFront+"-"+residentBack : "";
-  const phone=document.getElementById("signupPhone")?.value.trim()||"";
+  const phoneRaw=document.getElementById("signupPhone")?.value.trim()||"";
+  const phone=normalizePhone(phoneRaw);
   const password=document.getElementById("signupPassword")?.value||"";
-  const key=normalizePhone(phone);
 
   if(!name||!phone||!password)return alert("필수 정보를 입력하세요.");
 
-  if(type==="worker"){
-    if(!residentFront||residentFront.length!==6||!residentBack)return alert("주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
-    const paymentMethod=getSignupPaymentMethod();
-    const bank=paymentMethod==="account" ? (document.getElementById("signupWorkerBank")?.value.trim()||"") : "";
-    const accountNo=paymentMethod==="account" ? (document.getElementById("signupWorkerAccount")?.value.trim()||"") : "";
-    const holder=paymentMethod==="account" ? (document.getElementById("signupWorkerHolder")?.value.trim()||name) : name;
-    if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
+  try{
+    if(type==="worker"){
+      if(!residentFront||residentFront.length!==6||!residentBack)return alert("주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
+      const paymentMethod=getSignupPaymentMethod();
+      const bank=paymentMethod==="account" ? (document.getElementById("signupWorkerBank")?.value.trim()||"") : "";
+      const accountNo=paymentMethod==="account" ? (document.getElementById("signupWorkerAccount")?.value.trim()||"") : "";
+      const holder=paymentMethod==="account" ? (document.getElementById("signupWorkerHolder")?.value.trim()||name) : name;
+      if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
 
-    const workers=getWorkerAccounts();
-    if(workers.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-    const account={type:"worker",name,phone,password,residentNo,payment_method:paymentMethod,bank,account:accountNo,holder,created_at:new Date().toISOString()};
-    workers.push(account); saveWorkerAccounts(workers);
-    uploadSignupToGoogleSheet({
-      type:"근로자",
-      name,
-      phone,
-      password,
-      businessNo:"",
-      resident:residentNo,
-      bank,
-      account:accountNo,
-      holder,
-      paymentMethod});
+      const account={type:"worker",name,phone,password,residentNo,payment_method:paymentMethod,bank,account:accountNo,holder,created_at:new Date().toISOString()};
+      await createAccountRecord({type:"worker",name,phone,password,residentNo,bank,account:accountNo,holder});
 
-    workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder; workerPaymentMethod=paymentMethod; 
-    localStorage.setItem("crew_role","worker");
-    localStorage.setItem("worker_name",name);
-    localStorage.setItem("worker_phone",phone);
-    localStorage.setItem("worker_resident",residentNo);
-    localStorage.setItem("worker_payment_method",paymentMethod);
-    localStorage.setItem("worker_bank",bank);
-    localStorage.setItem("worker_account",accountNo);
-    localStorage.setItem("worker_holder",holder);
+      const workers=getWorkerAccounts().filter(a=>normalizePhone(a.phone)!==phone);
+      workers.push(account); saveWorkerAccounts(workers);
+      uploadSignupToGoogleSheet({
+        type:"근로자",
+        typeKey:"worker",
+        name,
+        phone:phoneRaw||phone,
+        password,
+        businessNo:"",
+        resident:residentNo,
+        bank,
+        account:accountNo,
+        holder,
+        paymentMethod});
+
+      workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder; workerPaymentMethod=paymentMethod; 
+      localStorage.setItem("crew_role","worker");
+      localStorage.setItem("worker_name",name);
+      localStorage.setItem("worker_phone",phone);
+      localStorage.setItem("worker_resident",residentNo);
+      localStorage.setItem("worker_payment_method",paymentMethod);
+      localStorage.setItem("worker_bank",bank);
+      localStorage.setItem("worker_account",accountNo);
+      localStorage.setItem("worker_holder",holder);
       role="worker"; lastRole="worker";
-    alert("가입 완료. 근로자로 시작합니다.");
-    loadData().then(()=>goScreen("workerScreen"));
-    return;
+      alert("가입 완료. 근로자로 시작합니다.");
+      loadData().then(()=>goScreen("workerScreen"));
+      return;
+    }
+
+    if(type==="business"&&!manager)return alert("담당자명을 입력하세요.");
+    if(type==="business"&&!bizNo)return alert("사업자등록번호를 입력하세요.");
+    if(type==="personal"&&(!residentFront||residentFront.length!==6||!residentBack))return alert("주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
+
+    const account={type,name,manager:manager||name,bizNo,residentNo,phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
+    await createAccountRecord({type,name,phone,password,bizNo,residentNo,holder:manager||name});
+
+    const accounts=getManagerAccounts().filter(a=>normalizePhone(a.phone)!==phone);
+    accounts.push(account); saveManagerAccounts(accounts);
+    uploadSignupToGoogleSheet({
+      type:type==="business"?"사업자":"비사업자",
+      typeKey:type,
+      name,
+      phone:phoneRaw||phone,
+      password,
+      businessNo:bizNo,
+      resident:residentNo,
+      bank:"",
+      account:"",
+      holder:"",
+      manager:manager||name,
+      companyId:account.company_id
+    });
+    localStorage.setItem("crew_role","manager");
+    localStorage.setItem("company_id",account.company_id);
+    localStorage.setItem("company_name",account.name);
+    localStorage.setItem("manager_contact",phone);
+    role="manager"; lastRole="manager"; companyId=account.company_id;
+    alert("가입 완료. 현장관리자로 시작합니다.");
+    loadData().then(()=>goScreen("managerScreen"));
+  }catch(err){
+    console.error("signup failed",err);
+    alert(err && err.message ? err.message : "가입 저장 중 오류가 발생했습니다.");
   }
-
-  if(type==="business"&&!manager)return alert("담당자명을 입력하세요.");
-  if(type==="business"&&!bizNo)return alert("사업자등록번호를 입력하세요.");
-  if(type==="personal"&&(!residentFront||residentFront.length!==6||!residentBack))return alert("주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
-  const accounts=getManagerAccounts();
-  if(accounts.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-  const account={type,name,manager:manager||name,bizNo,residentNo,phone,password,company_id:makeCompanyIdFromPhone(phone),created_at:new Date().toISOString()};
-  accounts.push(account); saveManagerAccounts(accounts);
-  uploadSignupToGoogleSheet({
-    type:type==="business"?"사업자":"비사업자",
-    name,
-    phone,
-    password,
-    businessNo:bizNo,
-    resident:residentNo,
-    bank:"",
-    account:"",
-    holder:"",
-    manager:manager||name,
-    companyId:account.company_id
-  });
-  localStorage.setItem("crew_role","manager");
-  localStorage.setItem("company_id",account.company_id);
-  localStorage.setItem("company_name",account.name);
-  localStorage.setItem("manager_contact",account.phone);
-  role="manager"; lastRole="manager"; companyId=account.company_id;
-  alert("가입 완료. 현장관리자로 시작합니다.");
-  loadData().then(()=>goScreen("managerScreen"));
 }
-
 function saveManagerSignup(){return saveSignupAccount()}
 
-function loginManagerAccount(){
-  const phone=document.getElementById("loginPhone")?.value.trim()||"";
+async function loginManagerAccount(){
+  const phoneRaw=document.getElementById("loginPhone")?.value.trim()||"";
   const password=document.getElementById("loginPassword")?.value||"";
-  const key=normalizePhone(phone);
-  const account=getManagerAccounts().find(a=>normalizePhone(a.phone)===key && a.password===password);
-  if(!account)return alert("연락처 또는 비밀번호가 맞지 않습니다.");
-  localStorage.setItem("crew_role","manager");
-  localStorage.setItem("company_id",account.company_id);
-  localStorage.setItem("company_name",account.name);
-  localStorage.setItem("manager_contact",account.phone);
-  role="manager"; lastRole="manager"; companyId=account.company_id;
-  loadData().then(()=>goScreen("managerScreen"));
+  const key=normalizePhone(phoneRaw);
+  try{
+    let account=await findAccountRecord(key,password,["business","personal"]);
+    if(!account){
+      const local=getManagerAccounts().find(a=>normalizePhone(a.phone)===key && a.password===password);
+      if(local)account={type:local.type,name:local.name,phone:normalizePhone(local.phone),password:local.password,business_no:local.bizNo||"",resident:local.residentNo||""};
+    }
+    if(!account)return alert("연락처 또는 비밀번호가 맞지 않습니다.");
+    const phone=normalizePhone(account.phone);
+    localStorage.setItem("crew_role","manager");
+    localStorage.setItem("company_id",makeCompanyIdFromPhone(phone));
+    localStorage.setItem("company_name",account.name||"현장관리자");
+    localStorage.setItem("manager_contact",phone);
+    role="manager"; lastRole="manager"; companyId=makeCompanyIdFromPhone(phone);
+    loadData().then(()=>goScreen("managerScreen"));
+  }catch(err){
+    console.error("manager login failed",err);
+    alert("로그인 조회 중 오류가 발생했습니다. Supabase accounts 테이블을 확인해주세요.");
+  }
 }
 
-function loginWorkerAccount(){
-  const phone=document.getElementById("workerLoginPhone")?.value.trim()||"";
+async function loginWorkerAccount(){
+  const phoneRaw=document.getElementById("workerLoginPhone")?.value.trim()||"";
   const password=document.getElementById("workerLoginPassword")?.value||"";
-  const key=normalizePhone(phone);
-  const account=getWorkerAccounts().find(a=>normalizePhone(a.phone)===key && a.password===password);
-  if(!account)return alert("연락처 또는 비밀번호가 맞지 않습니다.");
-  workerName=account.name||"";
-  workerPhone=account.phone||"";
-  workerBank=account.bank||"";
-  workerAccount=account.account||"";
-  workerHolder=account.holder||workerName;
-  workerPaymentMethod=account.payment_method||((workerBank&&workerAccount)?"account":"later");
-  localStorage.setItem("crew_role","worker");
-  localStorage.setItem("worker_name",workerName);
-  localStorage.setItem("worker_phone",workerPhone);
-  localStorage.setItem("worker_bank",workerBank);
-  localStorage.setItem("worker_account",workerAccount);
-  localStorage.setItem("worker_holder",workerHolder);
-  localStorage.setItem("worker_payment_method",workerPaymentMethod);
-  role="worker"; lastRole="worker";
-  loadData().then(()=>goScreen("workerScreen"));
+  const key=normalizePhone(phoneRaw);
+  try{
+    let account=await findAccountRecord(key,password,["worker"]);
+    if(!account){
+      const local=getWorkerAccounts().find(a=>normalizePhone(a.phone)===key && a.password===password);
+      if(local)account={type:"worker",name:local.name,phone:normalizePhone(local.phone),password:local.password,resident:local.residentNo||"",bank:local.bank||"",account:local.account||"",holder:local.holder||local.name||""};
+    }
+    if(!account)return alert("연락처 또는 비밀번호가 맞지 않습니다.");
+    workerName=account.name||"";
+    workerPhone=normalizePhone(account.phone)||"";
+    workerBank=account.bank||"";
+    workerAccount=account.account||"";
+    workerHolder=account.holder||workerName;
+    workerPaymentMethod=(workerBank&&workerAccount)?"account":"later";
+    localStorage.setItem("crew_role","worker");
+    localStorage.setItem("worker_name",workerName);
+    localStorage.setItem("worker_phone",workerPhone);
+    localStorage.setItem("worker_bank",workerBank);
+    localStorage.setItem("worker_account",workerAccount);
+    localStorage.setItem("worker_holder",workerHolder);
+    localStorage.setItem("worker_payment_method",workerPaymentMethod);
+    role="worker"; lastRole="worker";
+    loadData().then(()=>goScreen("workerScreen"));
+  }catch(err){
+    console.error("worker login failed",err);
+    alert("로그인 조회 중 오류가 발생했습니다. Supabase accounts 테이블을 확인해주세요.");
+  }
 }
-
 
 function show(id,push=false){
   currentScreen=id;
