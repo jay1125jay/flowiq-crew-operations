@@ -2007,7 +2007,6 @@ button.blue.full,button.green.full{
         <input id="signupWorkerHolder" placeholder="예: 바타르">
       </div>
       <div id="signupWorkerNoAccountNote" class="settle-note hidden">계좌는 근무 후에도 등록할 수 있습니다. 계좌가 없을 경우 지급 확인과 수령 확인이 모두 완료되어야 정산완료 처리됩니다.</div>
-<div class="privacy-note">※ 본인확인/정산 확인용입니다. 실제 운영 전에는 보안 저장소와 접근권한 설정이 필요합니다.</div>
       </div>
     </div>
 
@@ -2066,7 +2065,6 @@ button.blue.full,button.green.full{
 
     <label>예금주</label>
     <input id="workerHolderInput" placeholder="예: 바타르">
-<div class="privacy-note">※ 본인확인/정산 확인용입니다. 실제 운영 전에는 보안 저장소와 접근권한 설정이 필요합니다.</div>
     </div>
 
     <button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button>
@@ -2205,6 +2203,7 @@ button.blue.full,button.green.full{
 <script>
 // FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
+// FlowIQ Crew v3.7.2 - 정산완료/입금완료 공고는 오늘 현장에서 제외.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
@@ -2538,7 +2537,6 @@ function loginWorkerAccount(){
   workerAccount=account.account||"";
   workerHolder=account.holder||workerName;
   workerPaymentMethod=account.payment_method||((workerBank&&workerAccount)?"account":"later");
-  workerPrivacyFileName=account.privacy_file||"";
   localStorage.setItem("crew_role","worker");
   localStorage.setItem("worker_name",workerName);
   localStorage.setItem("worker_phone",workerPhone);
@@ -2546,7 +2544,6 @@ function loginWorkerAccount(){
   localStorage.setItem("worker_account",workerAccount);
   localStorage.setItem("worker_holder",workerHolder);
   localStorage.setItem("worker_payment_method",workerPaymentMethod);
-  localStorage.setItem("worker_privacy_file",workerPrivacyFileName);
   role="worker"; lastRole="worker";
   loadData().then(()=>goScreen("workerScreen"));
 }
@@ -2562,7 +2559,6 @@ function show(id,push=false){
     const wb=document.getElementById("workerBankInput"); if(wb)wb.value=workerBank||"";
     const wa=document.getElementById("workerAccountInput"); if(wa)wa.value=workerAccount||"";
     const wh=document.getElementById("workerHolderInput"); if(wh)wh.value=workerHolder||workerName||"";
-    const pf=document.getElementById("workerPrivacyFileName"); if(pf){pf.innerText=workerPrivacyFileName?"기존 첨부: "+workerPrivacyFileName:""; pf.classList.toggle("hidden",!workerPrivacyFileName);}
   }
   document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
   document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
@@ -2753,12 +2749,12 @@ async function seedJobsIfEmpty(){
 function getMyCurrentApplication(){
   if(!workerPhone)return null;
 
-  const active=applications.find(a=>
-    a.phone===workerPhone &&
-    ["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"].includes((a.status || "지원").trim())
-  );
+  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
 
-  return active || applications.find(a=>a.phone===workerPhone) || null;
+  return applications.find(a=>
+    String(a.phone||"")===String(workerPhone||"") &&
+    activeStatuses.includes(String(a.status || "지원").trim())
+  ) || null;
 }
 
 function getStatusMeta(status){
@@ -3063,18 +3059,24 @@ function renderWorkerHome(){
       <div class="info">🌍 외국인 근로자도 앱 하나로 현장 이동 가능</div>
     </div>
 
+    ${app && job ? `
     <div class="today-site-card">
       <div class="sub">오늘 현장</div>
-      <div class="title">${job ? job.title : "배정된 현장이 없습니다"}</div>
-      <div class="info">📍 ${job ? job.location : "지원 후 승인되면 표시됩니다"}</div>
-      <div class="info">🕒 ${job ? job.work_time : "-"}</div>
-      <div class="info">💰 ${job ? won(job.salary) : "-"}</div>
+      <div class="title">${job.title}</div>
+      <div class="info">📍 ${job.location || "위치 정보 없음"}</div>
+      <div class="info">🕒 ${job.work_time || "-"}</div>
+      <div class="info">💰 ${won(job.salary)}</div>
 
       <div class="worker-actions-row">
         <button class="blue" onclick="openMap('${safeLocation}')">🧭 길찾기</button>
         <button class="green" onclick="showQR('worker')">📷 출근하기</button>
       </div>
-    </div>
+    </div>` : `
+    <div class="today-site-card">
+      <div class="sub">현재 현장</div>
+      <div class="title">진행 중인 현장이 없습니다</div>
+      <div class="info">새 공고에 지원하면 현장 정보가 표시됩니다.</div>
+    </div>`}
   `;
 }
 
