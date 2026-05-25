@@ -1905,6 +1905,46 @@ button.blue.full,button.green.full{
   margin-top:8px;
 }
 
+
+/* ===== FlowIQ Crew v3.7.4 Manager Alert + Auto Refresh ===== */
+.manager-alert-panel{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98));
+  border:1px solid rgba(96,165,250,.20);
+  border-radius:24px;
+  padding:14px;
+  margin-top:12px;
+}
+.manager-alert-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.manager-alert-row b{font-size:14px}
+.manager-alert-row span{font-size:12px;color:#94a3b8}
+.manager-alert-panel button{
+  min-height:42px;
+  border-radius:16px;
+  font-size:13px;
+  padding:0 14px;
+}
+.manager-alert-live{
+  color:#bfdbfe;
+  font-size:12px;
+  margin-top:8px;
+  line-height:1.45;
+}
+.manager-alert-new{
+  margin-top:10px;
+  background:rgba(37,99,235,.16);
+  border:1px solid rgba(96,165,250,.24);
+  color:#dbeafe;
+  padding:10px 12px;
+  border-radius:16px;
+  font-size:13px;
+  font-weight:900;
+}
+
 </style>
 </head>
 
@@ -2261,9 +2301,15 @@ let workerRegionFilter=localStorage.getItem("worker_region_filter")||"전체";
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.1 REGION DROPDOWN';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.5 MANAGER SOUND FIX';
 let managerFilter='all';
 let managerSearch='';
+let managerAutoRefreshTimer=null;
+let managerAlertEnabled=localStorage.getItem('manager_alert_enabled')==='1';
+let managerAlertAudioCtx=null;
+let managerKnownPendingKeys=[];
+let managerLastPendingCount=0;
+let managerSyncing=false;
   
 const MASTER_PASSWORD="1234";
 const COMPANY_PASSWORDS={
@@ -2388,6 +2434,124 @@ function settlementStatusLabel(status){
   if(s==="수령확인완료")return `<span class="settle-state settle-checking">🟠 MASTER 정산대기</span>`;
   if(s==="근무완료" || s==="입금대기")return `<span class="settle-state settle-wait">🟡 관리자 지급확인 대기</span>`;
   return "";
+}
+function getManagerPendingApplications(){
+  return (applications||[]).filter(a=>
+    String(a.company_id||'')===String(companyId||'') &&
+    String(a.status||'지원').trim()==='지원'
+  );
+}
+function getManagerPendingKeys(){
+  return getManagerPendingApplications().map(a=>String(a.id || (a.job_id+'_'+a.phone+'_'+(a.created_at||''))));
+}
+function renderManagerAlertPanel(){
+  const pending=getManagerPendingApplications().length;
+  const enabled=managerAlertEnabled;
+  return `<div class="manager-alert-panel">
+    <div class="manager-alert-row">
+      <div>
+        <b>🔔 지원자 알림</b><br>
+        <span>자동 새로고침 ON · 대기 지원 ${pending}명</span>
+      </div>
+      <button class="${enabled?'green':'blue'}" onclick="enableManagerAlertSound()">${enabled?'알림 ON':'알림 시작'}</button>
+    </div>
+    <div class="manager-alert-row" style="margin-top:10px">
+      <button class="gray" onclick="testManagerAlertSound()">알림 테스트</button>
+      <button class="gray" onclick="managerAutoRefreshTick()">즉시 갱신</button>
+    </div>
+    <div class="manager-alert-live">소리는 MASTER/관리자 화면에서 <b>알림 시작</b>을 한 번 눌러야 켜집니다. 소리가 작으면 휴대폰 무음모드/브라우저 볼륨을 확인하세요.</div>
+    <div id="managerNewApplicantNotice" class="manager-alert-new hidden">신규 지원자가 등록되었습니다.</div>
+  </div>`;
+}
+async function unlockManagerAlertAudio(){
+  try{
+    const AudioContext=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContext)return false;
+    if(!managerAlertAudioCtx)managerAlertAudioCtx=new AudioContext();
+    if(managerAlertAudioCtx.state==='suspended')await managerAlertAudioCtx.resume();
+    return managerAlertAudioCtx.state==='running';
+  }catch(e){console.warn('audio unlock failed',e);return false;}
+}
+async function enableManagerAlertSound(){
+  managerAlertEnabled=true;
+  localStorage.setItem('manager_alert_enabled','1');
+  await unlockManagerAlertAudio();
+  playManagerAlertSound(true);
+  showManagerNewApplicantNotice(0);
+  renderManager();
+}
+async function testManagerAlertSound(){
+  managerAlertEnabled=true;
+  localStorage.setItem('manager_alert_enabled','1');
+  await unlockManagerAlertAudio();
+  playManagerAlertSound(false);
+  if(navigator.vibrate)navigator.vibrate([120,60,120]);
+  alert('알림 테스트를 실행했습니다. 소리가 안 나면 휴대폰 무음모드/볼륨/브라우저 권한을 확인하세요.');
+}
+function playTone(ctx,freq,start,duration,volume){
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+  osc.type='sine';
+  osc.frequency.setValueAtTime(freq,start);
+  gain.gain.setValueAtTime(0.0001,start);
+  gain.gain.exponentialRampToValueAtTime(volume,start+0.025);
+  gain.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start+duration+0.03);
+}
+function playManagerAlertSound(short=false){
+  if(!managerAlertEnabled)return;
+  try{
+    const ctx=managerAlertAudioCtx;
+    if(!ctx || ctx.state!=='running')return;
+    const now=ctx.currentTime;
+    if(short){
+      playTone(ctx,740,now,0.16,0.28);
+    }else{
+      playTone(ctx,880,now,0.18,0.32);
+      playTone(ctx,1160,now+0.22,0.22,0.34);
+    }
+    if(navigator.vibrate)navigator.vibrate(short?80:[120,60,120]);
+  }catch(e){console.warn('alert sound blocked',e)}
+}
+function showManagerNewApplicantNotice(count){
+  const el=document.getElementById('managerNewApplicantNotice');
+  if(!el)return;
+  el.textContent=`🔔 신규 지원자 ${count}명 등록됨`;
+  el.classList.remove('hidden');
+  setTimeout(()=>el.classList.add('hidden'),3500);
+}
+function updateManagerPendingBaseline(){
+  managerKnownPendingKeys=getManagerPendingKeys();
+  managerLastPendingCount=managerKnownPendingKeys.length;
+}
+async function managerAutoRefreshTick(){
+  if(role!=='manager' || currentScreen!=='managerScreen' || managerSyncing)return;
+  managerSyncing=true;
+  const before=new Set(managerKnownPendingKeys.length?managerKnownPendingKeys:getManagerPendingKeys());
+  try{
+    await loadData();
+    const after=getManagerPendingKeys();
+    const newKeys=after.filter(k=>!before.has(k));
+    if(newKeys.length>0){
+      playManagerAlertSound(false);
+      showManagerNewApplicantNotice(newKeys.length);
+    }
+    managerKnownPendingKeys=after;
+    managerLastPendingCount=after.length;
+  }finally{
+    managerSyncing=false;
+  }
+}
+function startManagerAutoRefresh(){
+  if(managerAutoRefreshTimer)return;
+  updateManagerPendingBaseline();
+  managerAutoRefreshTimer=setInterval(managerAutoRefreshTick,5000);
+}
+function stopManagerAutoRefresh(){
+  if(managerAutoRefreshTimer){clearInterval(managerAutoRefreshTimer); managerAutoRefreshTimer=null;}
 }
 function setSignupType(type){
   const t=document.getElementById("signupType"); if(t)t.value=type;
@@ -2570,7 +2734,8 @@ function show(id,push=false){
   document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
 
   if(id==="workerScreen"){renderWorkerHome();renderJobs();}
-  if(id==="managerScreen")renderManager();
+  if(id==="managerScreen"){renderManager(); startManagerAutoRefresh();}
+  else{stopManagerAutoRefresh();}
   if(id==="payrollScreen")renderPayroll();
 
   updateNav();
@@ -3111,10 +3276,21 @@ function jobStatusBadge(job){
   return `<span style="display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:${color};color:white;font-size:12px;font-weight:900">${status}</span>`;
 }
 
+function isApprovedSlotStatus(status){
+  const s=String(status || "").trim();
+  return ["승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(s);
+}
+
+function getApprovedSlotCount(jobId){
+  return (applications || []).filter(a=>
+    Number(a.job_id)===Number(jobId) &&
+    isApprovedSlotStatus(a.status)
+  ).length;
+}
+
 function isJobFull(job){
   const needed=Number(job && job.needed || 0);
-  const applied=Number(job && job.applied || 0);
-  return needed > 0 && applied >= needed;
+  return needed > 0 && getApprovedSlotCount(job.id) >= needed;
 }
 
 function getVisibleJobStatus(job){
@@ -3166,7 +3342,7 @@ function renderJobs(){
       </div>
       <div class="info">📍 ${j.location}</div>
       <div class="info">🕒 ${j.work_time}</div>
-      <div class="info">👥 ${j.applied||0}/${j.needed}명 지원 ${isJobFull(j)?" · 공고마감":""}</div>
+      <div class="info">👥 승인 ${getApprovedSlotCount(j.id)}/${j.needed}명 ${isJobFull(j)?" · 공고마감":""}</div>
       <div class="info">🌐 ${j.language}</div>
 
       ${role==="worker"
@@ -3339,6 +3515,14 @@ function managerStatusClass(status){
 }
 
 async function managerApproveApplication(applicationId){
+  const app=applications.find(a=>Number(a.id)===Number(applicationId));
+  const job=app ? jobs.find(j=>Number(j.id)===Number(app.job_id)) : null;
+
+  if(job && isJobFull(job)){
+    alert("필요 인원이 이미 승인 완료되었습니다. 거절/취소로 자리가 생기면 다시 승인할 수 있습니다.");
+    return;
+  }
+
   const {error}=await db.from("applications").update({status:"승인"}).eq("id",applicationId);
   if(error){alert("승인 오류: "+error.message);return;}
   await loadData();
@@ -3418,7 +3602,7 @@ function renderManager(){
   const jobRows=filteredJobs.map(j=>{
     const jobApps=filteredApplications.filter(a=>Number(a.job_id)===Number(j.id));
     const applyCount=jobApps.filter(a=>String(a.status||"지원").trim()==="지원").length;
-    const approveCount=jobApps.filter(a=>String(a.status||"").trim()==="승인").length;
+    const approveCount=getApprovedSlotCount(j.id);
     const checkCount=jobApps.filter(a=>String(a.status||"").trim()==="출근완료").length;
     const workDoneCount=jobApps.filter(a=>["근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(String(a.status||"").trim())).length;
 
@@ -3451,7 +3635,7 @@ function renderManager(){
       </div>
       <div class="info">📍 ${j.location || "-"}</div>
       <div class="info">🕒 ${j.work_time || "-"}</div>
-      <div class="info">👥 ${j.applied || jobApps.length}/${j.needed || 0}명</div>
+      <div class="info">👥 승인 ${getApprovedSlotCount(j.id)}/${j.needed || 0}명</div>
 
       <div class="manager-count-grid">
         <div class="manager-count-tile"><b>${applyCount}</b><span>지원</span></div>
@@ -3475,6 +3659,7 @@ function renderManager(){
   workersList.innerHTML=`<div class="card notice">
     <div class="title">현장관리자 운영센터</div>
     <div class="sub">지원자 승인과 근무완료 체크는 위 공고 카드의 “지원자 보기”에서 처리합니다. 출근은 근로자 QR 출근으로만 기록됩니다.</div>
+    ${renderManagerAlertPanel()}
   </div>`;
 }
 
@@ -3738,7 +3923,7 @@ function renderPayroll(){
     </div>`).join(""):`<div class="card"><div class="title">아직 급여 기록이 없습니다</div><div class="sub">출근 QR을 완료하면 급여 기록이 생성됩니다.</div></div>`;
 }
 
-async function refreshData(){await loadData();alert("새로고침 완료")}
+async function refreshData(){await loadData(); if(role==="manager")updateManagerPendingBaseline(); alert("새로고침 완료")}
 
 function goHome(){
   if(role==="manager" || role==="master"){
@@ -3818,6 +4003,7 @@ async function init(){
     `<button onclick="selectLanguage('${l.value}')">${l.label}</button>`
   ).join("");
   await loadData();
+  if(role==="manager")updateManagerPendingBaseline();
 
   const savedLanguage=localStorage.getItem("crew_language");
 
@@ -4134,9 +4320,12 @@ init();
   }
 
   function countActiveApplicants(jobId){
+    if(typeof window.getApprovedSlotCount === "function"){
+      return window.getApprovedSlotCount(jobId);
+    }
     return (applications || []).filter(a =>
       Number(a.job_id) === Number(jobId) &&
-      !["거절","rejected","취소","cancelled"].includes(String(a.status || "지원").trim())
+      ["승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(String(a.status || "").trim())
     ).length;
   }
 
