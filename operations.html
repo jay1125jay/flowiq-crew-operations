@@ -2278,6 +2278,7 @@ button.blue.full,button.green.full{
 // FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.7.2 - 정산완료/입금완료 공고는 오늘 현장에서 제외.
+// FlowIQ Crew v3.8.4 - 지원취소 + 승인 전 오늘 현장 숨김 + 관리자 라이브 동기화 강화.
 // FlowIQ Crew v3.7.3 - 공고별 출근 QR 전체 URL 생성 및 링크 복사 지원.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
@@ -2331,7 +2332,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.2 MANAGER ALERT LIVE SYNC';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.4 WORKER_CANCEL_LIVE_SYNC';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -2521,7 +2522,7 @@ function getSyncedApplicationsForCurrentManager(){
 }
 function getManagerPendingApplications(){
   return getSyncedApplicationsForCurrentManager().filter(a=>
-    String(a.status||'지원').trim()==='지원'
+    normalizeAppStatus(a.status||'')==='지원'
   );
 }
 function getManagerPendingKeys(){
@@ -2656,7 +2657,7 @@ async function managerAutoRefreshTick(force=false){
 function startManagerAutoRefresh(){
   if(managerAutoRefreshTimer)return;
   updateManagerPendingBaseline();
-  managerAutoRefreshTimer=setInterval(()=>managerAutoRefreshTick(false),2500);
+  managerAutoRefreshTimer=setInterval(()=>managerAutoRefreshTick(false),1500);
   setTimeout(()=>managerAutoRefreshTick(true),400);
 }
 function stopManagerAutoRefresh(){
@@ -3062,11 +3063,13 @@ async function seedJobsIfEmpty(){
 function getMyCurrentApplication(){
   if(!workerPhone)return null;
 
-  const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
+  // 오늘 현장은 승인 이후의 실제 근무 흐름만 표시합니다.
+  // 지원 대기 상태는 공고 카드의 취소 버튼으로만 관리합니다.
+  const activeStatuses=["승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
 
   return applications.find(a=>
     String(a.phone||"")===String(workerPhone||"") &&
-    activeStatuses.includes(String(a.status || "지원").trim())
+    activeStatuses.includes(normalizeAppStatus(a.status || ""))
   ) || null;
 }
 
@@ -3428,6 +3431,7 @@ function normalizeAppStatus(status){
   const s=String(status || "").trim();
   if(["승인","승인완료","approved","approve"].includes(s))return "승인";
   if(["거절","거절완료","rejected","reject"].includes(s))return "거절";
+  if(["지원취소","취소","cancel","cancelled","canceled"].includes(s))return "지원취소";
   if(["지원","지원완료","pending","applied"].includes(s))return "지원";
   return s;
 }
@@ -3467,21 +3471,23 @@ function renderJobs(){
   const myActiveApplication=role==="worker" && workerPhone
     ? applications.find(a=>
         String(a.phone || "").trim()===String(workerPhone || "").trim() &&
-        activeStatuses.includes(String(a.status || "지원").trim())
+        activeStatuses.includes(normalizeAppStatus(a.status || ""))
       )
     : null;
 
   el.innerHTML=filteredJobs.length
   ? filteredJobs.map(j=>{
-    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && String(a.phone || "").trim()===String(workerPhone || "").trim());
-    const already=!!myApplication;
+    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && String(a.phone || "").trim()===String(workerPhone || "").trim() && normalizeAppStatus(a.status)!=="지원취소");
+    const myAppStatus=normalizeAppStatus(myApplication && myApplication.status);
+    const already=!!myApplication && myAppStatus!=="지원취소";
+    const pendingCancel=already && myAppStatus==="지원";
     const full=isJobFull(j);
     const blockedByOther=!!(myActiveApplication && Number(myActiveApplication.job_id)!==Number(j.id));
     const buttonLocked=already || blockedByOther || full;
     const buttonText=full
       ? "공고마감"
       : (already
-        ? `지원 ${myApplication.status || "완료"}`
+        ? (pendingCancel ? "지원 대기중" : `지원 ${myApplication.status || "완료"}`)
         : (blockedByOther ? "진행중 공고 있음" : "지원하기"));
 
     return `
@@ -3503,9 +3509,9 @@ function renderJobs(){
       ${role==="worker"
         ? `${!full ? `<button class="full gray" onclick="togglePaymentDetail(${j.id})">지급액 보기</button>
            <div id="workerPayDetail_${j.id}" class="payment-detail hidden">지급액 ${won(j.salary)}<br><span class="sub">Crew 수수료는 업체 부담이며 근로자 지급액에서 차감하지 않습니다.</span></div>` : `<div class="info">공고마감</div>`}
-           <button class="full ${buttonLocked?'gray':'blue'}" ${buttonLocked?'disabled':''} onclick="applyJob(${j.id})">
-            ${buttonText}
-          </button>`
+           ${pendingCancel
+             ? `<button class="full red" onclick="cancelApplication(${Number(myApplication.id)})">지원 취소</button>`
+             : `<button class="full ${buttonLocked?'gray':'blue'}" ${buttonLocked?'disabled':''} onclick="applyJob(${j.id})">${buttonText}</button>`}`
         : ""
       }
 
@@ -3553,7 +3559,7 @@ async function applyJob(jobId){
   const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
   const myActiveApplication=applications.find(a=>
     String(a.phone || "").trim()===String(workerPhone || "").trim() &&
-    activeStatuses.includes(String(a.status || "지원").trim())
+    activeStatuses.includes(normalizeAppStatus(a.status || ""))
   );
 
   if(myActiveApplication){
@@ -3592,6 +3598,27 @@ async function applyJob(jobId){
 
   await loadData();
   alert("지원 완료!");
+}
+
+
+async function cancelApplication(applicationId){
+  const app=applications.find(a=>Number(a.id)===Number(applicationId)) || (allApplications||[]).find(a=>Number(a.id)===Number(applicationId));
+  const status=normalizeAppStatus(app && app.status);
+  if(!app){
+    return alert("지원 기록을 찾을 수 없습니다.");
+  }
+  if(status!=="지원"){
+    await loadData();
+    return alert("승인 전 지원만 취소할 수 있습니다.");
+  }
+  if(!confirm("이 공고 지원을 취소할까요?"))return;
+  const {error}=await db.from("applications").update({status:"지원취소"}).eq("id",applicationId);
+  if(error){
+    alert("지원 취소 오류: "+error.message);
+    return;
+  }
+  await loadData();
+  alert("지원이 취소되었습니다.");
 }
 
 async function managerConfirmCashPaid(id){
@@ -3655,7 +3682,7 @@ function managerWorkDoneControl(a,status){
 }
 
 function managerAppStatusLabel(status){
-  const s=String(status||"지원").trim()||"지원";
+  const s=normalizeAppStatus(status)||"지원";
   if(s==="지원")return "지원 대기";
   if(s==="승인")return "승인 완료";
   if(s==="출근완료")return "출근 완료";
@@ -3664,11 +3691,12 @@ function managerAppStatusLabel(status){
   if(s==="수령확인완료")return "MASTER 정산대기";
   if(s==="입금완료")return "정산 완료";
   if(s==="거절")return "거절";
+  if(s==="지원취소")return "지원취소";
   return s;
 }
 
 function managerStatusClass(status){
-  const s=String(status||"지원").trim()||"지원";
+  const s=normalizeAppStatus(status)||"지원";
   if(s==="지원")return "manager-status-wait";
   if(s==="승인")return "manager-status-ok";
   if(s==="출근완료")return "manager-status-blue";
@@ -3677,6 +3705,7 @@ function managerStatusClass(status){
   if(s==="수령확인완료")return "manager-status-orange";
   if(s==="입금완료")return "manager-status-green";
   if(s==="거절")return "manager-status-red";
+  if(s==="지원취소")return "manager-status-red";
   return "manager-status-wait";
 }
 
@@ -3753,7 +3782,7 @@ function renderManager(){
   const filteredApplications=role==="manager" ? getSyncedApplicationsForCurrentManager() : ((allApplications && allApplications.length ? allApplications : applications) || []);
   const filteredAttendance=role==="manager" ? attendance.filter(a=>String(a.company_id)===String(companyId)) : attendance;
 
-  const pendingCount=filteredApplications.filter(a=>String(a.status||"지원").trim()==="지원").length;
+  const pendingCount=filteredApplications.filter(a=>normalizeAppStatus(a.status||"")==="지원").length;
   const checkedCount=filteredApplications.filter(a=>String(a.status||"").trim()==="출근완료").length;
   const doneCount=filteredApplications.filter(a=>["근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(String(a.status||"").trim())).length;
 
@@ -3762,18 +3791,18 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.3";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.4";
   }
 
   const jobRows=filteredJobs.map(j=>{
-    const jobApps=getApplicationsForJob(j.id).filter(a=>role!=="manager" || String(a.company_id||"")===String(companyId||"") || true);
-    const applyCount=jobApps.filter(a=>String(a.status||"지원").trim()==="지원").length;
+    const jobApps=getApplicationsForJob(j.id).filter(a=>normalizeAppStatus(a.status)!=="지원취소").filter(a=>role!=="manager" || String(a.company_id||"")===String(companyId||"") || true);
+    const applyCount=jobApps.filter(a=>normalizeAppStatus(a.status||"")==="지원").length;
     const approveCount=getApprovedSlotCount(j.id);
     const checkCount=jobApps.filter(a=>String(a.status||"").trim()==="출근완료").length;
     const workDoneCount=jobApps.filter(a=>["근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(String(a.status||"").trim())).length;
 
     const workerRows=jobApps.length ? jobApps.map(a=>{
-      const status=String(a.status||"지원").trim()||"지원";
+      const status=normalizeAppStatus(a.status||"지원")||"지원";
       const name=a.worker_name || a.name || "이름없음";
       const phone=a.phone || "번호없음";
       return `<div class="manager-worker-card">
