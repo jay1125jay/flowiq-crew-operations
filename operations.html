@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.7.0 REGION FILTER</title>
+<title>FlowIQ Crew OPERATIONS v3.8.5 MANAGER LIVE AUTO SYNC</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2332,7 +2332,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.4 WORKER_CANCEL_LIVE_SYNC';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.5 MANAGER LIVE AUTO SYNC';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -3791,7 +3791,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.4";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.5";
   }
 
   const jobRows=filteredJobs.map(j=>{
@@ -4806,6 +4806,211 @@ function copyCrewAccount(){
   window.stopManagerAutoRefresh = function(){
     if(liveTimer){ clearInterval(liveTimer); liveTimer = null; }
   };
+})();
+</script>
+
+<script>
+/* ===== FlowIQ Crew v3.8.5 Manager Live Auto Sync Final Fix ===== */
+(function(){
+  const LIVE_SYNC_MS = 1200;
+  let flowiqManagerLiveTimer = null;
+  let flowiqManagerLiveBusy = false;
+  let flowiqManagerBaselineReady = false;
+  let flowiqLastPendingKeySet = new Set();
+
+  function flowiqIsManagerLiveScreen(){
+    return role === "manager" && currentScreen === "managerScreen";
+  }
+
+  function flowiqPendingKey(app){
+    return String(app && (app.id || (app.job_id + "_" + app.phone + "_" + (app.created_at || ""))));
+  }
+
+  function flowiqGetPendingFromApps(apps){
+    return (apps || []).filter(a => {
+      const status = typeof normalizeAppStatus === "function"
+        ? normalizeAppStatus(a.status || "")
+        : String(a.status || "").trim();
+      return status === "지원";
+    });
+  }
+
+  async function flowiqUnlockAlertByGesture(){
+    try{
+      managerAlertEnabled = true;
+      localStorage.setItem("manager_alert_enabled","1");
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if(AudioContext && !managerAlertAudioCtx){
+        managerAlertAudioCtx = new AudioContext();
+      }
+      if(managerAlertAudioCtx && managerAlertAudioCtx.state === "suspended"){
+        await managerAlertAudioCtx.resume();
+      }
+    }catch(e){
+      console.warn("manager alert unlock failed", e);
+    }
+  }
+
+  document.addEventListener("click", function(e){
+    if(role === "manager" || e.target.closest("#managerLoginScreen") || e.target.closest("#managerScreen")){
+      flowiqUnlockAlertByGesture();
+    }
+  }, true);
+
+  function flowiqUpdateManagerSyncStamp(){
+    const stamp = document.getElementById("managerLiveSyncStamp");
+    if(stamp){
+      stamp.innerText = "자동 갱신 ON · 최근 반영: " + new Date().toLocaleTimeString("ko-KR") + " · v3.8.5";
+    }
+  }
+
+  function flowiqRenderManagerNow(){
+    if(!flowiqIsManagerLiveScreen())return;
+    try{
+      if(typeof renderManager === "function"){
+        renderManager();
+        requestAnimationFrame(() => {
+          try{
+            renderManager();
+            flowiqUpdateManagerSyncStamp();
+          }catch(e){}
+        });
+      }
+      flowiqUpdateManagerSyncStamp();
+    }catch(e){
+      console.warn("manager render failed", e);
+    }
+  }
+
+  async function flowiqManagerLiveSync(force=false){
+    if(role !== "manager" || flowiqManagerLiveBusy)return;
+    flowiqManagerLiveBusy = true;
+
+    try{
+      const jr = await db.from("jobs")
+        .select("*")
+        .eq("company_id", companyId)
+        .order("created_at", {ascending:false});
+
+      if(jr.error)throw jr.error;
+
+      const nextJobs = jr.data || [];
+      const jobIds = nextJobs.map(j => Number(j.id)).filter(Boolean);
+
+      let nextApps = [];
+      let nextAttendance = [];
+
+      if(jobIds.length){
+        const ar = await db.from("applications")
+          .select("*")
+          .in("job_id", jobIds)
+          .order("created_at", {ascending:false});
+
+        if(ar.error)throw ar.error;
+        nextApps = ar.data || [];
+
+        const tr = await db.from("attendance")
+          .select("*")
+          .in("job_id", jobIds)
+          .order("created_at", {ascending:false});
+
+        if(tr.error){
+          console.warn("attendance live sync warning", tr.error.message);
+        }else{
+          nextAttendance = tr.data || [];
+        }
+      }
+
+      const pendingApps = flowiqGetPendingFromApps(nextApps);
+      const nextPendingKeys = new Set(pendingApps.map(flowiqPendingKey));
+      const newPending = [...nextPendingKeys].filter(k => !flowiqLastPendingKeySet.has(k));
+
+      jobs = nextJobs;
+      applications = nextApps;
+      allApplications = nextApps;
+      attendance = nextAttendance;
+
+      if(flowiqIsManagerLiveScreen()){
+        flowiqRenderManagerNow();
+      }
+
+      if(flowiqManagerBaselineReady && newPending.length > 0){
+        managerAlertEnabled = true;
+        localStorage.setItem("manager_alert_enabled","1");
+        await flowiqUnlockAlertByGesture();
+        if(typeof playManagerAlertSound === "function"){
+          await playManagerAlertSound(false);
+        }
+        if(navigator.vibrate){
+          navigator.vibrate([180,80,180,80,220]);
+        }
+        if(typeof showManagerNewApplicantNotice === "function"){
+          showManagerNewApplicantNotice(newPending.length, "🔔 신규 지원자가 등록되었습니다.");
+        }
+      }
+
+      flowiqLastPendingKeySet = nextPendingKeys;
+      flowiqManagerBaselineReady = true;
+      managerKnownPendingKeys = [...nextPendingKeys];
+      managerLastPendingCount = nextPendingKeys.size;
+
+    }catch(err){
+      console.warn("manager live auto sync failed", err);
+      if(force){
+        alert("관리자 자동 갱신 오류: " + (err.message || err));
+      }
+    }finally{
+      flowiqManagerLiveBusy = false;
+    }
+  }
+
+  window.startManagerAutoRefresh = function(){
+    if(role !== "manager")return;
+    managerAlertEnabled = true;
+    localStorage.setItem("manager_alert_enabled","1");
+    if(flowiqManagerLiveTimer)clearInterval(flowiqManagerLiveTimer);
+
+    // 현재 화면에 있던 지원자는 기준값으로만 잡고, 이후 새 지원부터 알림을 울립니다.
+    const currentPending = typeof getManagerPendingKeys === "function" ? getManagerPendingKeys() : [];
+    flowiqLastPendingKeySet = new Set(currentPending);
+    flowiqManagerBaselineReady = false;
+
+    flowiqManagerLiveTimer = setInterval(() => flowiqManagerLiveSync(false), LIVE_SYNC_MS);
+    setTimeout(() => flowiqManagerLiveSync(false), 150);
+    setTimeout(() => flowiqManagerLiveSync(false), 900);
+  };
+
+  window.stopManagerAutoRefresh = function(){
+    if(flowiqManagerLiveTimer){
+      clearInterval(flowiqManagerLiveTimer);
+      flowiqManagerLiveTimer = null;
+    }
+  };
+
+  // 기존 함수 호출도 최종 동기화 로직으로 연결합니다.
+  window.managerAutoRefreshTick = async function(force=false){
+    await flowiqManagerLiveSync(force);
+  };
+
+  // 페이지가 이미 관리자 화면인 상태에서 이 패치가 로드되는 경우 자동 시작합니다.
+  setTimeout(() => {
+    if(flowiqIsManagerLiveScreen()){
+      window.startManagerAutoRefresh();
+    }
+  }, 500);
+
+  // 브라우저가 다시 활성화될 때도 즉시 한 번 동기화합니다.
+  document.addEventListener("visibilitychange", () => {
+    if(!document.hidden && role === "manager"){
+      flowiqManagerLiveSync(false);
+    }
+  });
+
+  window.addEventListener("focus", () => {
+    if(role === "manager"){
+      flowiqManagerLiveSync(false);
+    }
+  });
 })();
 </script>
 
