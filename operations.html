@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.6.7</title>
+<title>FlowIQ Crew OPERATIONS v3.6.8</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2141,6 +2141,7 @@ button.blue.full,button.green.full{
 <script>
 // FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
+// FlowIQ Crew v3.6.8 - worker resident minimum tax field added.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
@@ -2153,7 +2154,7 @@ function uploadSignupToGoogleSheet(payload){
   try{
     const data=Object.assign({}, payload||{}, {
       app:"FlowIQ Crew",
-      version:"v3.6.6",
+      version:"v3.6.8",
       sent_at:new Date().toISOString()
     });
     fetch(GOOGLE_SHEET_WEBAPP_URL,{
@@ -2284,7 +2285,7 @@ function setSignupType(type){
   if(biz)biz.classList.toggle("hidden",type!=="business");
   if(workerAccountWrap)workerAccountWrap.classList.toggle("hidden",type!=="worker");
   if(type==="worker")setTimeout(toggleWorkerAccountFields,0);
-  if(personalResidentWrap)personalResidentWrap.classList.toggle("hidden",type!=="personal");
+  if(personalResidentWrap)personalResidentWrap.classList.toggle("hidden",!(type==="personal" || type==="worker"));
 
   const hideManagerField = type==="worker" || type==="personal";
   if(managerLabel) managerLabel.style.display = hideManagerField ? "none" : "block";
@@ -2330,6 +2331,8 @@ function saveSignupAccount(){
 
   if(!name||!phone||!password)return alert("필수 정보를 입력하세요.");
 
+  if(type==="worker" && (!residentFront||residentFront.length!==6||!residentBack))return alert("근로자 주민등록번호 앞 6자리와 뒤 첫 자리를 입력하세요.");
+
   if(type==="worker"){
     const paymentMethod=getSignupPaymentMethod();
     const bank=paymentMethod==="account" ? (document.getElementById("signupWorkerBank")?.value.trim()||"") : "";
@@ -2339,7 +2342,7 @@ if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계�
 
     const workers=getWorkerAccounts();
     if(workers.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-    const account={type:"worker",name,phone,password,payment_method:paymentMethod,bank,account:accountNo,holder,created_at:new Date().toISOString()};
+    const account={type:"worker",name,phone,password,residentNo,payment_method:paymentMethod,bank,account:accountNo,holder,created_at:new Date().toISOString()};
     workers.push(account); saveWorkerAccounts(workers);
     uploadSignupToGoogleSheet({
       type:"근로자",
@@ -2347,7 +2350,7 @@ if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계�
       phone,
       password,
       businessNo:"",
-      resident:"",
+      resident:residentNo,
       bank,
       account:accountNo,
       holder,
