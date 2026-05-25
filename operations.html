@@ -3401,7 +3401,13 @@ function getJobRawType(job){
 function getJobStatus(job){
   const raw=getJobRawType(job);
   const match=raw.match(/^\[(입금대기|입금확인|게시중|공고마감)\]\s*/);
-  return match ? match[1] : "게시중";
+  // MASTER가 명시적으로 [게시중] 처리한 공고만 근로자에게 공개합니다.
+  // 상태값이 없는 과거/비정상 공고는 안전하게 입금대기로 간주합니다.
+  return match ? match[1] : "입금대기";
+}
+
+function isJobPublished(job){
+  return getJobStatus(job)==="게시중";
 }
 
 function getJobType(job){
@@ -3454,7 +3460,7 @@ function renderJobs(){
   const filteredJobs =
   role==="manager"
     ? jobs.filter(j=>j.company_id===companyId)
-    : jobs.filter(j=>getJobStatus(j)==="게시중")
+    : jobs.filter(j=>isJobPublished(j))
         .filter(j=>workerRegionFilter==="전체" || getJobRegion(j.location)===workerRegionFilter);
 
   const activeStatuses=["지원","승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료"];
@@ -3525,11 +3531,22 @@ async function applyJob(jobId){
     return alert("공고를 찾을 수 없습니다.");
   }
 
-  if(getJobStatus(job)!=="게시중"){
-    return alert("아직 게시 승인되지 않은 공고입니다.");
+  // 브라우저/기기 캐시가 달라도 실제 Supabase 공고 상태를 최종 기준으로 확인합니다.
+  const liveJobResult=await db.from("jobs").select("*").eq("id",jobId).single();
+  if(liveJobResult.error || !liveJobResult.data){
+    return alert("공고 상태 확인 오류: "+(liveJobResult.error?.message||"공고 없음"));
+  }
+  const liveJob=liveJobResult.data;
+  const liveIndex=jobs.findIndex(j=>Number(j.id)===Number(jobId));
+  if(liveIndex>=0)jobs[liveIndex]=liveJob;
+
+  if(!isJobPublished(liveJob)){
+    await loadData();
+    return alert("아직 MASTER 게시승인되지 않은 공고입니다.");
   }
 
-  if(isJobFull(job)){
+  if(isJobFull(liveJob)){
+    await loadData();
     return alert("필요 인원이 마감된 공고입니다.");
   }
 
@@ -3549,7 +3566,7 @@ async function applyJob(jobId){
 
   const rejectedSameCompany=applications.some(a=>
     String(a.phone || "").trim()===String(workerPhone || "").trim() &&
-    String(a.company_id || "").trim()===String(job.company_id || "").trim() &&
+    String(a.company_id || "").trim()===String(liveJob.company_id || "").trim() &&
     ["거절","rejected","REJECTED"].includes(String(a.status || "").trim())
   );
 
@@ -3561,7 +3578,7 @@ async function applyJob(jobId){
     job_id:jobId,
     worker_name:workerName || "이름없음",
     phone:workerPhone || "번호없음",
-    company_id:job.company_id,
+    company_id:liveJob.company_id,
     status:"지원"
   });
 
@@ -3570,7 +3587,7 @@ async function applyJob(jobId){
   }
 
   await db.from("jobs").update({
-    applied:(job.applied||0)+1
+    applied:(liveJob.applied||0)+1
   }).eq("id",jobId);
 
   await loadData();
@@ -3745,7 +3762,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.2";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.3";
   }
 
   const jobRows=filteredJobs.map(j=>{
