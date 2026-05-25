@@ -2235,14 +2235,9 @@ button.blue.full,button.green.full{
   </div>
 </div>
 
-<nav class="bottom-nav" id="bottomNav">
-  <button id="navHome" onclick="goHome()">홈</button>
-  <button id="navJobs" onclick="navPrimary()">일자리</button>
-  <button id="navQR" onclick="showQR(role||lastRole||'worker')">QR</button>
-  <button id="navPay" onclick="navSecondary()">급여</button>
-</nav>
 
 <script>
+// FlowIQ Crew v3.6.3 - 근로자 진행현황 UI와 하단 네비 제거, MVP 단순화.
 // FlowIQ Crew v3.4.9 - QR 중복 출근 차단 + 출근완료 후 팝업 반복 방지.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.6.0 - 업체/공고별 고정 출근 QR + 근로자 카메라 스캔 출근.
@@ -2547,7 +2542,8 @@ function show(id,push=false){
     const wh=document.getElementById("workerHolderInput"); if(wh)wh.value=workerHolder||workerName||"";
   }
   document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
-  document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScannerScreen","qrScreen"].includes(id)?"grid":"none";
+  const bottomNav=document.getElementById("bottomNav");
+  if(bottomNav) bottomNav.style.display="none";
 
   if(id==="workerScreen"){renderWorkerHome();renderJobs();}
   if(id==="managerScreen")renderManager();
@@ -2901,8 +2897,6 @@ function renderWorkerHome(){
 
       <div class="worker-hero-title">${meta.title}</div>
       <div class="worker-hero-sub">${meta.desc}</div>
-
-      ${app ? renderProgressFlow(status) : ""}
 
       <div class="${minimalWorkerHideClass} worker-mini-grid">
         <div class="worker-mini-card">
