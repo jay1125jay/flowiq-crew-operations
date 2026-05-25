@@ -2299,6 +2299,7 @@ let currentScreen="languageScreen";
 let jobs=[];
 let workerRegionFilter=localStorage.getItem("worker_region_filter")||"전체";
 let applications=[];
+let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
 let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.7 SUPABASE LOGIN';
@@ -2479,9 +2480,18 @@ function settlementStatusLabel(status){
   if(s==="근무완료" || s==="입금대기")return `<span class="settle-state settle-wait">🟡 관리자 지급확인 대기</span>`;
   return "";
 }
+function getManagerJobIds(){
+  return new Set((jobs||[]).map(j=>Number(j.id)).filter(Boolean));
+}
+function getSyncedApplicationsForCurrentManager(){
+  const source=(allApplications && allApplications.length ? allApplications : applications) || [];
+  const jobIds=getManagerJobIds();
+  return source.filter(a=>
+    String(a.company_id||'')===String(companyId||'') || jobIds.has(Number(a.job_id))
+  );
+}
 function getManagerPendingApplications(){
-  return (applications||[]).filter(a=>
-    String(a.company_id||'')===String(companyId||'') &&
+  return getSyncedApplicationsForCurrentManager().filter(a=>
     String(a.status||'지원').trim()==='지원'
   );
 }
@@ -2950,10 +2960,13 @@ function resetWorkerTest(){
 async function loadData(){
   let jobsQuery=db.from("jobs").select("*");
   let applicationsQuery=db.from("applications").select("*");
+  let allApplicationsQuery=db.from("applications").select("*");
   let attendanceQuery=db.from("attendance").select("*");
 
   if(role==="manager"){
     jobsQuery=jobsQuery.eq("company_id",companyId);
+    // 관리자 화면의 승인/거절 카운트는 기기별 캐시가 아니라 Supabase 전체 applications 기준으로 재계산합니다.
+    // company_id가 누락되었거나 계정 전환 중이어도 job_id 기준으로 보정합니다.
     applicationsQuery=applicationsQuery.eq("company_id",companyId);
     attendanceQuery=attendanceQuery.eq("company_id",companyId);
   }
@@ -2965,14 +2978,17 @@ async function loadData(){
 
   const jr=await jobsQuery.order("created_at",{ascending:false});
   const ar=await applicationsQuery.order("created_at",{ascending:false});
+  const allAr=await allApplicationsQuery.order("created_at",{ascending:false});
   const tr=await attendanceQuery.order("created_at",{ascending:false});
 
   if(jr.error)alert("jobs 오류: "+jr.error.message);
   if(ar.error)alert("applications 오류: "+ar.error.message);
+  if(allAr.error)console.warn("all applications sync 오류:",allAr.error.message);
   if(tr.error)alert("attendance 오류: "+tr.error.message);
 
   jobs=jr.data||[];
   applications=ar.data||[];
+  allApplications=allAr.data||applications||[];
   attendance=tr.data||[];
 
   renderWorkerHome();
@@ -3347,16 +3363,23 @@ function jobStatusBadge(job){
   return `<span style="display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:${color};color:white;font-size:12px;font-weight:900">${status}</span>`;
 }
 
-function isApprovedSlotStatus(status){
+function normalizeAppStatus(status){
   const s=String(status || "").trim();
+  if(["승인","승인완료","approved","approve"].includes(s))return "승인";
+  if(["거절","거절완료","rejected","reject"].includes(s))return "거절";
+  if(["지원","지원완료","pending","applied"].includes(s))return "지원";
+  return s;
+}
+function isApprovedSlotStatus(status){
+  const s=normalizeAppStatus(status);
   return ["승인","출근완료","근무완료","입금대기","지급확인중","수령확인완료","입금완료"].includes(s);
 }
-
+function getApplicationsForJob(jobId){
+  const source=(allApplications && allApplications.length ? allApplications : applications) || [];
+  return source.filter(a=>Number(a.job_id)===Number(jobId));
+}
 function getApprovedSlotCount(jobId){
-  return (applications || []).filter(a=>
-    Number(a.job_id)===Number(jobId) &&
-    isApprovedSlotStatus(a.status)
-  ).length;
+  return getApplicationsForJob(jobId).filter(a=>isApprovedSlotStatus(a.status)).length;
 }
 
 function isJobFull(job){
@@ -3655,7 +3678,7 @@ function renderManager(){
   if(!workersList || !managerJobsList)return;
 
   const filteredJobs=role==="manager" ? jobs.filter(j=>String(j.company_id)===String(companyId)) : jobs;
-  const filteredApplications=role==="manager" ? applications.filter(a=>String(a.company_id)===String(companyId)) : applications;
+  const filteredApplications=role==="manager" ? getSyncedApplicationsForCurrentManager() : ((allApplications && allApplications.length ? allApplications : applications) || []);
   const filteredAttendance=role==="manager" ? attendance.filter(a=>String(a.company_id)===String(companyId)) : attendance;
 
   const pendingCount=filteredApplications.filter(a=>String(a.status||"지원").trim()==="지원").length;
@@ -3667,11 +3690,11 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.3.0";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.7.8";
   }
 
   const jobRows=filteredJobs.map(j=>{
-    const jobApps=filteredApplications.filter(a=>Number(a.job_id)===Number(j.id));
+    const jobApps=getApplicationsForJob(j.id).filter(a=>role!=="manager" || String(a.company_id||"")===String(companyId||"") || true);
     const applyCount=jobApps.filter(a=>String(a.status||"지원").trim()==="지원").length;
     const approveCount=getApprovedSlotCount(j.id);
     const checkCount=jobApps.filter(a=>String(a.status||"").trim()==="출근완료").length;
