@@ -1848,32 +1848,42 @@ button.blue.full,button.green.full{
 
 
 
-/* ===== FlowIQ Crew v3.7.0 Region Filter ===== */
-.region-filter{
+/* ===== FlowIQ Crew v3.7.1 Region Dropdown ===== */
+.region-filter-card{
+  background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96));
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:24px;
+  padding:16px;
+  margin:8px 0 16px;
+}
+.region-filter-head{
   display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding:4px 0 12px;
-  margin-bottom:6px;
-  scrollbar-width:none;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
 }
-.region-filter::-webkit-scrollbar{display:none}
-.region-chip{
-  flex:0 0 auto;
-  min-height:42px;
-  padding:0 14px;
-  border-radius:999px;
-  font-size:13px;
+.region-filter-head b{
+  font-size:16px;
+  font-weight:950;
+}
+.region-current{
+  color:#93c5fd;
+  font-size:12px;
   font-weight:900;
-  background:rgba(15,23,42,.88) !important;
-  border:1px solid rgba(148,163,184,.18) !important;
-  color:#cbd5e1 !important;
-  box-shadow:none !important;
+  background:rgba(37,99,235,.14);
+  border:1px solid rgba(96,165,250,.20);
+  padding:6px 10px;
+  border-radius:999px;
+  white-space:nowrap;
 }
-.region-chip.active{
-  background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;
-  border-color:rgba(96,165,250,.38) !important;
-  color:#fff !important;
+.region-select{
+  margin:0;
+  min-height:52px;
+  border-radius:18px;
+  font-weight:900;
+  background:rgba(2,6,23,.84);
+  border:1px solid rgba(148,163,184,.18);
 }
 .region-empty{
   border:1px dashed rgba(148,163,184,.25);
@@ -2071,8 +2081,7 @@ button.blue.full,button.green.full{
     <button class="action" onclick="showPayroll()"><span class="emoji">💳</span>급여</button>
   </div>
 
-  <div class="section">지역별 공고</div>
-  <div id="workerRegionFilter" class="region-filter"></div>
+  <div id="workerRegionFilter" class="region-filter-card"></div>
 
   <div class="section">추천 일자리</div>
   <div id="jobsList"></div>
@@ -2247,7 +2256,7 @@ let workerRegionFilter=localStorage.getItem("worker_region_filter")||"전체";
 let applications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.0 REGION FILTER';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.1 REGION DROPDOWN';
 let managerFilter='all';
 let managerSearch='';
   
@@ -2305,7 +2314,15 @@ function renderWorkerRegionFilter(){
   const el=document.getElementById("workerRegionFilter");
   if(!el)return;
   if(role!=="worker"){el.innerHTML="";return;}
-  el.innerHTML=KOREA_REGIONS.map(r=>`<button type="button" class="region-chip ${workerRegionFilter===r?"active":""}" onclick="setWorkerRegionFilter('${r}')">${r}</button>`).join("");
+  el.innerHTML=`
+    <div class="region-filter-head">
+      <b>지역별 공고</b>
+      <span class="region-current">현재: ${workerRegionFilter}</span>
+    </div>
+    <select id="workerRegionSelect" class="region-select" onchange="setWorkerRegionFilter(this.value)">
+      ${KOREA_REGIONS.map(r=>`<option value="${r}" ${workerRegionFilter===r?"selected":""}>${r==="전체"?"전체 지역":r}</option>`).join("")}
+    </select>
+  `;
 }
 
 
@@ -3159,7 +3176,7 @@ function renderJobs(){
       }
     </div>`;
   }).join("")
-  : `<div class="region-empty"><b>공고가 없습니다</b><br>${role==="worker"&&workerRegionFilter!=="전체" ? workerRegionFilter+" 지역에 게시중인 공고가 없습니다. 전체를 눌러 다른 지역 공고를 확인하세요." : "관리자 앱에서 공고를 생성하세요."}</div>`;
+  : `<div class="region-empty"><b>공고가 없습니다</b><br>${role==="worker"&&workerRegionFilter!=="전체" ? workerRegionFilter+" 지역에 게시중인 공고가 없습니다. 전체 지역을 선택해 다른 지역 공고를 확인하세요." : "관리자 앱에서 공고를 생성하세요."}</div>`;
 }
 
 async function applyJob(jobId){
