@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.6.0 QR FIELD SIMPLE</title>
+<title>FlowIQ Crew OPERATIONS v3.6.2 AUTO FLOW</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1913,6 +1913,20 @@ button.blue.full,button.green.full{
   background:rgba(245,158,11,.12);
 }
 
+
+/* ===== FlowIQ Crew v3.6.2 Auto Flow UI ===== */
+.flow-toast{
+  position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(18px);
+  width:calc(100% - 36px);max-width:400px;z-index:99999;
+  background:rgba(15,23,42,.96);border:1px solid rgba(96,165,250,.24);
+  color:#f8fafc;border-radius:22px;padding:14px 16px;font-size:14px;font-weight:900;
+  box-shadow:0 18px 42px rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:.22s ease;
+}
+.flow-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.flow-toast.ok{border-color:rgba(52,211,153,.30)}
+.flow-toast.warn{border-color:rgba(245,158,11,.34)}
+.flow-toast.error{border-color:rgba(248,113,113,.34)}
+
 </style>
 </head>
 
@@ -2208,6 +2222,8 @@ button.blue.full,button.green.full{
 </main>
 
 
+<div id="flowToast" class="flow-toast"></div>
+
 <div id="mapChoice" class="map-choice hidden">
   <div class="map-choice-title">길찾기 앱 선택</div>
   <div class="map-choice-sub" id="mapChoiceLocation">현장 위치</div>
@@ -2230,12 +2246,41 @@ button.blue.full,button.green.full{
 // FlowIQ Crew v3.4.9 - QR 중복 출근 차단 + 출근완료 후 팝업 반복 방지.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.6.0 - 업체/공고별 고정 출근 QR + 근로자 카메라 스캔 출근.
+// FlowIQ Crew v3.6.2 - 버튼 후 자동 화면 갱신 + 진행 단계 즉시 반영.
+// FlowIQ Crew v3.6.1 - 수수료 5% 반올림 계산 통일 및 1원 오차 수정.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
 const SUPABASE_URL="https://zhbzphvqiiijfjqnktlo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I";
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let autoFlowTimer=null;
+let flowToastTimer=null;
+function showToast(message,type="ok"){
+  const el=document.getElementById("flowToast");
+  if(!el){return;}
+  el.className="flow-toast "+(type||"ok");
+  el.textContent=message;
+  requestAnimationFrame(()=>el.classList.add("show"));
+  clearTimeout(flowToastTimer);
+  flowToastTimer=setTimeout(()=>el.classList.remove("show"),1800);
+}
+async function refreshFlowUI(message=""){
+  await loadData();
+  updateNav();
+  if(message)showToast(message);
+}
+function startAutoFlowRefresh(){
+  if(autoFlowTimer)clearInterval(autoFlowTimer);
+  autoFlowTimer=setInterval(async()=>{
+    if(document.hidden)return;
+    if(["workerScreen","managerScreen","payrollScreen"].includes(currentScreen)){
+      try{await loadData();updateNav();}catch(e){console.warn("auto refresh skipped",e);}
+    }
+  },3500);
+}
+
 
 const languages=[
   {label:"🇰🇷 한국어",value:"한국어"},
@@ -2296,11 +2341,14 @@ function moneyBase(value){
 }
 function feeAmount(base){
   const b=moneyBase(base);
-  return Math.ceil((b * 5) / 100);
+  // 수수료 5%는 정수 반올림으로 통일한다.
+  // Math.ceil 사용 시 특정 금액에서 1원이 더 차감/합산되는 문제가 발생할 수 있다.
+  return Math.round((b * 5) / 100);
 }
 function totalPayment(base){
   const b=moneyBase(base);
-  return b + feeAmount(b);
+  const fee=feeAmount(b);
+  return b + fee;
 }
 function updatePaymentPreview(){
   const salary=Number(document.getElementById("fSalary")?.value||0);
@@ -3228,16 +3276,15 @@ async function applyJob(jobId){
     applied:(job.applied||0)+1
   }).eq("id",jobId);
 
-  await loadData();
-  alert("지원 완료!");
+  await refreshFlowUI("지원 완료");
+  goScreen("workerScreen");
 }
 
 async function managerConfirmCashPaid(id){
   if(!confirm("현장 지급을 확인 처리할까요?"))return;
   const {error}=await db.from("applications").update({status:"지급확인중"}).eq("id",id);
   if(error){alert("지급 확인 오류: "+error.message);return;}
-  await loadData();
-  alert("지급 확인 처리됨. 근로자 수령 확인을 기다립니다.");
+  await refreshFlowUI("지급 확인 완료");
 }
 
 async function workerConfirmCashReceived(id){
@@ -3249,8 +3296,8 @@ async function workerConfirmCashReceived(id){
   }
   const {error}=await db.from("applications").update({status:"수령확인완료"}).eq("id",id);
   if(error){alert("수령 확인 오류: "+error.message);return;}
-  await loadData();
-  alert("수령 확인 완료. MASTER 정산완료를 기다립니다.");
+  await refreshFlowUI("수령 확인 완료");
+  goScreen("workerScreen");
 }
 
 async function deleteJob(jobId){
@@ -3321,15 +3368,13 @@ function managerStatusClass(status){
 async function managerApproveApplication(applicationId){
   const {error}=await db.from("applications").update({status:"승인"}).eq("id",applicationId);
   if(error){alert("승인 오류: "+error.message);return;}
-  await loadData();
-  alert("승인 완료");
+  await refreshFlowUI("승인 완료");
 }
 
 async function managerRejectApplication(applicationId){
   const {error}=await db.from("applications").update({status:"거절"}).eq("id",applicationId);
   if(error){alert("거절 오류: "+error.message);return;}
-  await loadData();
-  alert("거절 완료");
+  await refreshFlowUI("거절 완료");
 }
 
 
@@ -3725,8 +3770,7 @@ async function handleScannedQR(data){
     if(status){status.className="qr-scan-status ok";status.innerText="출근 처리 중입니다...";}
     await saveAttendance(job);
     stopQRScanner();
-    await loadData();
-    alert("출근 확인되었습니다.");
+    await refreshFlowUI("출근 확인되었습니다");
     goHome();
   }catch(e){
     qrScannerBusy=false;
@@ -3747,8 +3791,7 @@ async function markWorkComplete(applicationId){
   if(!confirm("이 근로자의 근무완료를 확인할까요?"))return;
   const {error}=await db.from("applications").update({status:"근무완료"}).eq("id",applicationId);
   if(error){alert("근무완료 저장 오류: "+error.message);return;}
-  await loadData();
-  alert("근무완료 확인 완료");
+  await refreshFlowUI("근무완료 확인 완료");
 }
 
 function renderPayroll(){
@@ -3774,7 +3817,7 @@ function renderPayroll(){
     </div>`).join(""):`<div class="card"><div class="title">아직 급여 기록이 없습니다</div><div class="sub">출근 QR을 완료하면 급여 기록이 생성됩니다.</div></div>`;
 }
 
-async function refreshData(){await loadData();alert("새로고침 완료")}
+async function refreshData(){await refreshFlowUI("상태 갱신 완료")}
 
 function goHome(){
   if(role==="manager" || role==="master"){
@@ -3898,6 +3941,7 @@ async function init(){
 
   history.replaceState({screen:currentScreen},"","#"+currentScreen);
   await autoCheckIn();
+  startAutoFlowRefresh();
 }
 
 // 개발 중에는 이전 HTML이 캐시되어 수정이 안 보이는 문제가 생길 수 있어서 서비스워커를 해제합니다.
