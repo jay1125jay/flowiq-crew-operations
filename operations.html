@@ -2279,6 +2279,7 @@ button.blue.full,button.green.full{
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.7.2 - 정산완료/입금완료 공고는 오늘 현장에서 제외.
 // FlowIQ Crew v3.8.4 - 지원취소 + 승인 전 오늘 현장 숨김 + 관리자 라이브 동기화 강화.
+// FlowIQ Crew v3.8.7 - 정원 마감 시 승인되지 않은 지원자는 자동 미선정 처리 후 다른 공고 지원 가능.
 // FlowIQ Crew v3.7.3 - 공고별 출근 QR 전체 URL 생성 및 링크 복사 지원.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
@@ -3047,6 +3048,8 @@ async function loadData(){
   allApplications=allAr.data||applications||[];
   attendance=tr.data||[];
 
+  await autoReleaseUnapprovedApplicationsForFullJobs();
+
   renderWorkerHome();
   renderJobs();
   renderManager();
@@ -3431,6 +3434,7 @@ function normalizeAppStatus(status){
   const s=String(status || "").trim();
   if(["승인","승인완료","approved","approve"].includes(s))return "승인";
   if(["거절","거절완료","rejected","reject"].includes(s))return "거절";
+  if(["미선정","자동미선정","마감미선정","not_selected","unselected"].includes(s))return "미선정";
   if(["지원취소","취소","cancel","cancelled","canceled"].includes(s))return "지원취소";
   if(["지원","지원완료","pending","applied"].includes(s))return "지원";
   return s;
@@ -3450,6 +3454,46 @@ function getApprovedSlotCount(jobId){
 function isJobFull(job){
   const needed=Number(job && job.needed || 0);
   return needed > 0 && getApprovedSlotCount(job.id) >= needed;
+}
+
+function isReleasedApplicationStatus(status){
+  const s=normalizeAppStatus(status);
+  return ["지원취소","미선정","거절","입금완료"].includes(s);
+}
+
+async function autoReleaseUnapprovedApplicationsForFullJobs(){
+  const jobList=jobs || [];
+  const source=(allApplications && allApplications.length ? allApplications : applications) || [];
+  const updates=[];
+
+  jobList.forEach(job=>{
+    const needed=Number(job && job.needed || 0);
+    if(!needed)return;
+    const jobApps=source.filter(a=>Number(a.job_id)===Number(job.id));
+    const approvedCount=jobApps.filter(a=>isApprovedSlotStatus(a.status)).length;
+    if(approvedCount < needed)return;
+
+    jobApps
+      .filter(a=>normalizeAppStatus(a.status)==="지원")
+      .forEach(a=>{ if(a.id)updates.push(Number(a.id)); });
+  });
+
+  const ids=[...new Set(updates)].filter(Boolean);
+  if(!ids.length)return 0;
+
+  const {error}=await db.from("applications").update({status:"미선정"}).in("id",ids);
+  if(error){
+    console.warn("auto release unapproved failed:", error.message);
+    return 0;
+  }
+
+  const markReleased=a=>{
+    if(ids.includes(Number(a.id)))return Object.assign({},a,{status:"미선정"});
+    return a;
+  };
+  applications=(applications||[]).map(markReleased);
+  allApplications=(allApplications||[]).map(markReleased);
+  return ids.length;
 }
 
 function getVisibleJobStatus(job){
@@ -3477,7 +3521,7 @@ function renderJobs(){
 
   el.innerHTML=filteredJobs.length
   ? filteredJobs.map(j=>{
-    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && String(a.phone || "").trim()===String(workerPhone || "").trim() && normalizeAppStatus(a.status)!=="지원취소");
+    const myApplication=applications.find(a=>Number(a.job_id)===Number(j.id) && String(a.phone || "").trim()===String(workerPhone || "").trim() && !["지원취소","미선정"].includes(normalizeAppStatus(a.status)));
     const myAppStatus=normalizeAppStatus(myApplication && myApplication.status);
     const already=!!myApplication && myAppStatus!=="지원취소";
     const pendingCancel=already && myAppStatus==="지원";
@@ -3691,6 +3735,7 @@ function managerAppStatusLabel(status){
   if(s==="수령확인완료")return "MASTER 정산대기";
   if(s==="입금완료")return "정산 완료";
   if(s==="거절")return "거절";
+  if(s==="미선정")return "미선정";
   if(s==="지원취소")return "지원취소";
   return s;
 }
@@ -3705,6 +3750,7 @@ function managerStatusClass(status){
   if(s==="수령확인완료")return "manager-status-orange";
   if(s==="입금완료")return "manager-status-green";
   if(s==="거절")return "manager-status-red";
+  if(s==="미선정")return "manager-status-red";
   if(s==="지원취소")return "manager-status-red";
   return "manager-status-wait";
 }
@@ -3720,6 +3766,10 @@ async function managerApproveApplication(applicationId){
 
   const {error}=await db.from("applications").update({status:"승인"}).eq("id",applicationId);
   if(error){alert("승인 오류: "+error.message);return;}
+
+  // 승인으로 정원이 충족되면 아직 승인되지 않은 지원자들은 자동 미선정 처리합니다.
+  await loadData();
+  await autoReleaseUnapprovedApplicationsForFullJobs();
   await loadData();
   alert("승인 완료");
 }
@@ -4774,6 +4824,8 @@ function copyCrewAccount(){
       applications = nextApps;
       attendance = nextAttendance;
 
+      await autoReleaseUnapprovedApplicationsForFullJobs();
+
       if(currentScreen === 'managerScreen'){
         renderManager();
         requestAnimationFrame(() => renderManager());
@@ -4938,6 +4990,8 @@ function copyCrewAccount(){
       applications = nextApps;
       allApplications = nextApps;
       attendance = nextAttendance;
+
+      await autoReleaseUnapprovedApplicationsForFullJobs();
 
       if(flowiqIsManagerLiveScreen()){
         flowiqRenderManagerNow();
