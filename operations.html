@@ -254,18 +254,18 @@ label{display:block;color:#cbd5e1;font-size:13px;font-weight:700}
 .lang-option{display:flex;align-items:center;gap:8px;background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;color:#e2e8f0;font-size:14px;font-weight:700}
 .lang-option input{width:auto;min-height:auto;margin:0}
 .qr-box{
-  width:240px;
-  height:240px;
+  width:min(82vw,330px);
+  height:min(82vw,330px);
   margin:24px auto;
   background:white;
   color:#020617;
-  border-radius:36px;
+  border-radius:24px;
   display:flex;
   align-items:center;
   justify-content:center;
   font-size:132px;
   box-shadow:0 20px 50px rgba(0,0,0,.35);
-  padding:14px;
+  padding:18px;
 }
 .bottom-nav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:calc(100% - 24px);max-width:430px;background:rgba(15,23,42,.94);border:1px solid #1e293b;border-radius:26px;padding:10px;display:none;grid-template-columns:repeat(4,1fr);gap:8px}
 .bottom-nav button{
@@ -2182,6 +2182,11 @@ button.blue.full,button.green.full{
     <div class="title" id="qrTitle">출근 QR</div>
     <img id="qrImage" class="qr-box" alt="출근 QR"/>
     <div class="sub" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
+    <div id="qrLinkBox" class="card hidden" style="margin-top:14px;background:rgba(15,23,42,.72);border:1px solid rgba(96,165,250,.18)">
+      <div class="sub">출근 링크</div>
+      <div id="qrLinkText" class="info" style="word-break:break-all;font-size:12px"></div>
+      <button class="full gray" type="button" onclick="copyCheckinLink()">출근 링크 복사</button>
+    </div>
     <button id="qrActionBtn" class="full green" onclick="completeQR()" style="margin-top:18px">✅ QR 생성 확인</button>
   </div>
 </section>
@@ -2204,6 +2209,7 @@ button.blue.full,button.green.full{
 // FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.7.2 - 정산완료/입금완료 공고는 오늘 현장에서 제외.
+// FlowIQ Crew v3.7.3 - 공고별 출근 QR 전체 URL 생성 및 링크 복사 지원.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
@@ -3454,6 +3460,10 @@ function renderManager(){
         <div class="manager-count-tile"><b>${workDoneCount}</b><span>근무완료</span></div>
       </div>
 
+      <div class="manager-worker-actions work-done-center" style="margin-top:10px">
+        <button class="blue" onclick="showQR('manager',${Number(j.id)})">이 공고 출근 QR</button>
+      </div>
+
       <details class="manager-worker-panel">
         <summary>지원자 보기</summary>
         ${workerRows}
@@ -3515,27 +3525,62 @@ function toggleOtherType(){
   alert("공고가 저장되었습니다. 수수료(5%) 포함 총 결제금액: "+won(totalPayment(salary)));
   goScreen("managerScreen");
 }
-function showQR(selectedRole){
+let currentCheckinLink="";
+const FLOWIQ_PUBLIC_BASE_URL="https://jay1125jay.github.io/-flowiq-crew-phon/";
+function getPublicAppBaseUrl(){
+  if(location.protocol.startsWith("http")){
+    return location.origin + location.pathname;
+  }
+  return FLOWIQ_PUBLIC_BASE_URL;
+}
+function makeCheckinUrl(jobId){
+  const base=getPublicAppBaseUrl().split("?")[0].replace(/#.*$/,'');
+  return `${base}?checkin=${encodeURIComponent(jobId)}`;
+}
+function copyCheckinLink(){
+  if(!currentCheckinLink)return alert("복사할 출근 링크가 없습니다.");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(currentCheckinLink).then(()=>alert("출근 링크가 복사되었습니다."));
+  }else{
+    prompt("출근 링크를 복사하세요", currentCheckinLink);
+  }
+}
+function showQR(selectedRole, jobId=null){
   lastRole=selectedRole;
   const qrImage=document.getElementById("qrImage");
   const qrActionBtn=document.getElementById("qrActionBtn");
+  const qrLinkBox=document.getElementById("qrLinkBox");
+  const qrLinkText=document.getElementById("qrLinkText");
 
   if(selectedRole==="manager"){
-    qrTitle.innerText="출근 QR";
     const managerJobs=jobs.filter(j=>role==="manager"?String(j.company_id)===String(companyId):true);
-    const job=managerJobs[0] || jobs[0];
-    const qrData=job?`${location.origin}${location.pathname}?checkin=${job.id}`:`${location.origin}${location.pathname}`;
-    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(qrData)}`;
-    qrDesc.innerHTML=`근로자가 이 QR을 스캔해야 출근 처리됩니다.<br><br><span style="color:#94a3b8;font-size:13px">근로자 단독 수동 출근은 차단됩니다.</span>`;
+    const job = jobId
+      ? managerJobs.find(j=>Number(j.id)===Number(jobId)) || jobs.find(j=>Number(j.id)===Number(jobId))
+      : managerJobs[0] || jobs[0];
+
+    if(!job){
+      alert("출근 QR을 만들 공고가 없습니다.");
+      return;
+    }
+
+    const qrData=makeCheckinUrl(job.id);
+    currentCheckinLink=qrData;
+    qrTitle.innerText="공고별 출근 QR";
+    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=18&data=${encodeURIComponent(qrData)}`;
+    qrDesc.innerHTML=`<b>${job.title || "공고"}</b><br>${job.location || "위치 정보 없음"}<br><br>근로자는 휴대폰 기본 카메라로 이 QR을 스캔하면 해당 공고에 출근 처리됩니다.`;
+    if(qrLinkBox)qrLinkBox.classList.remove("hidden");
+    if(qrLinkText)qrLinkText.innerText=qrData;
     if(qrActionBtn){
       qrActionBtn.style.display="block";
-      qrActionBtn.innerText="QR 생성 확인";
+      qrActionBtn.innerText="QR 확인 완료";
       qrActionBtn.className="full green";
     }
   }else{
-    qrTitle.innerText="출근 QR 안내";
-    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href)}`;
-    qrDesc.innerText="현장관리자가 보여주는 출근 QR을 스캔해야 출근 처리됩니다.";
+    currentCheckinLink="";
+    qrTitle.innerText="QR 출근 안내";
+    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=18&data=${encodeURIComponent(getPublicAppBaseUrl())}`;
+    qrDesc.innerText="현장에 비치된 공고별 출근 QR을 휴대폰 기본 카메라로 스캔하세요.";
+    if(qrLinkBox)qrLinkBox.classList.add("hidden");
     if(qrActionBtn){
       qrActionBtn.style.display="none";
     }
