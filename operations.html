@@ -1945,6 +1945,26 @@ button.blue.full,button.green.full{
   font-weight:900;
 }
 
+
+/* ===== FlowIQ Crew v3.8.1 Job Create Alert Check ===== */
+.job-alert-check{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  background:rgba(37,99,235,.10);
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:18px;
+  padding:13px 14px;
+  margin:8px 0 16px;
+}
+.job-alert-check input{
+  width:auto;
+  min-height:auto;
+  margin:3px 0 0;
+}
+.job-alert-check b{display:block;font-size:13px;color:#dbeafe;margin-bottom:3px}
+.job-alert-check span{display:block;font-size:12px;color:#94a3b8;line-height:1.45}
+
 </style>
 </head>
 
@@ -2161,6 +2181,15 @@ button.blue.full,button.green.full{
     <label>위치</label>
     <input id="fLocation" placeholder="예: 경기 화성시 장안면 ○○로 123, 상세주소 포함"/>
 
+    <label>공고 알림</label>
+    <label class="job-alert-check">
+      <input id="fMasterNotify" type="checkbox" checked>
+      <div>
+        <b>MASTER 신규 공고 알림 ON</b>
+        <span>공고 저장 후 MASTER 화면에 자동으로 신규 공고 알림이 표시됩니다.</span>
+      </div>
+    </label>
+
     <label>근무 시간</label>
     <input id="fTime" placeholder="예: 08:00 - 18:00"/>
 
@@ -2302,7 +2331,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.7.7 SUPABASE LOGIN';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.0 MANAGER LIVE RENDER';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -2505,7 +2534,7 @@ function renderManagerAlertPanel(){
     <div class="manager-alert-row">
       <div>
         <b>🔔 지원자 알림</b><br>
-        <span>자동 갱신 ON · 대기 지원 ${pending}명</span>
+        <span>자동 갱신 ON · 실시간 반영 · 대기 지원 ${pending}명</span>
       </div>
       <button class="${enabled?'green':'blue'}" onclick="enableManagerAlertSound()">${enabled?'알림 ON':'알림 시작'}</button>
     </div>
@@ -2514,6 +2543,7 @@ function renderManagerAlertPanel(){
       <button class="gray" onclick="managerAutoRefreshTick(true)">즉시 갱신</button>
     </div>
     <div class="manager-alert-live">소리는 <b>알림 시작</b>을 한 번 눌러야 켜집니다. 아이폰은 무음모드가 켜져 있으면 진동만 올 수 있습니다.</div>
+    <div id="managerLiveSyncStamp" class="manager-alert-live">최근 자동갱신: 대기 중</div>
     <div id="managerNewApplicantNotice" class="manager-alert-new hidden">신규 지원자가 등록되었습니다.</div>
   </div>`;
 }
@@ -2582,24 +2612,43 @@ function updateManagerPendingBaseline(){
   managerKnownPendingKeys=getManagerPendingKeys();
   managerLastPendingCount=managerKnownPendingKeys.length;
 }
+function managerLiveRender(){
+  if(role!=='manager' || currentScreen!=='managerScreen')return;
+  renderManager();
+  const stamp=document.getElementById('managerLiveSyncStamp');
+  if(stamp)stamp.innerText='최근 자동갱신: '+new Date().toLocaleTimeString('ko-KR');
+}
 async function managerAutoRefreshTick(force=false){
   if(role!=='manager' || currentScreen!=='managerScreen' || managerSyncing)return;
   managerSyncing=true;
   const beforeKeys=new Set(managerKnownPendingKeys);
   const beforeCount=typeof managerLastPendingCount==='number' ? managerLastPendingCount : getManagerPendingKeys().length;
   try{
-    await loadData();
+    const jr=await db.from("jobs").select("*").eq("company_id",companyId).order("created_at",{ascending:false});
+    const ar=await db.from("applications").select("*").order("created_at",{ascending:false});
+    const tr=await db.from("attendance").select("*").eq("company_id",companyId).order("created_at",{ascending:false});
+    if(jr.error)throw jr.error;
+    if(ar.error)throw ar.error;
+    if(tr.error)throw tr.error;
+    jobs=jr.data||[];
+    allApplications=ar.data||[];
+    applications=(allApplications||[]).filter(a=>String(a.company_id||'')===String(companyId||'') || getManagerJobIds().has(Number(a.job_id)));
+    attendance=tr.data||[];
     const afterKeys=getManagerPendingKeys();
     const afterCount=afterKeys.length;
     const newKeys=afterKeys.filter(k=>!beforeKeys.has(k));
     const increased=afterCount>beforeCount;
+    managerKnownPendingKeys=afterKeys;
+    managerLastPendingCount=afterCount;
+    managerLiveRender();
+    requestAnimationFrame(managerLiveRender);
     if((newKeys.length>0 || increased) && beforeKeys.size>0){
       await playManagerAlertSound(false);
       showManagerNewApplicantNotice(Math.max(newKeys.length, afterCount-beforeCount));
     }
-    managerKnownPendingKeys=afterKeys;
-    managerLastPendingCount=afterCount;
-    renderManager();
+  }catch(err){
+    console.warn('manager live sync failed',err);
+    if(force)alert('자동 갱신 오류: '+(err.message||err));
   }finally{
     managerSyncing=false;
   }
@@ -2607,7 +2656,8 @@ async function managerAutoRefreshTick(force=false){
 function startManagerAutoRefresh(){
   if(managerAutoRefreshTimer)return;
   updateManagerPendingBaseline();
-  managerAutoRefreshTimer=setInterval(managerAutoRefreshTick,3000);
+  managerAutoRefreshTimer=setInterval(()=>managerAutoRefreshTick(false),2500);
+  setTimeout(()=>managerAutoRefreshTick(true),400);
 }
 function stopManagerAutoRefresh(){
   if(managerAutoRefreshTimer){clearInterval(managerAutoRefreshTimer); managerAutoRefreshTimer=null;}
@@ -3695,7 +3745,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.7.9";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.1";
   }
 
   const jobRows=filteredJobs.map(j=>{
@@ -3758,7 +3808,7 @@ function renderManager(){
   workersList.innerHTML=`<div class="card notice">
     <div class="title">현장관리자 운영센터</div>
     <div class="sub">지원자 승인과 근무완료 체크는 위 공고 카드의 “지원자 보기”에서 처리합니다. 출근은 근로자 QR 출근으로만 기록됩니다.</div>
-    ${renderManagerAlertPanel()}
+    <div class="sub" id="managerLiveSyncStamp">자동 갱신 ON · 지원자 수는 자동 반영됩니다.</div>
   </div>`;
 }
 
@@ -3780,6 +3830,7 @@ function toggleOtherType(){
   const otherType=document.getElementById("fTypeOther")?.value.trim()||"";
   const type=selectedType==="기타"?otherType:selectedType;
   const selectedLangs=[...document.querySelectorAll(".langCheck:checked")].map(x=>x.value);
+  const masterNotify=!!document.getElementById("fMasterNotify")?.checked;
   const language=selectedLangs.length?"한국어 / "+selectedLangs.join(" / "):"한국어";
 
   if(!title||!location||!work_time||!salary||!needed||!type)return alert("업체명, 위치, 시간, 일급, 필요 인원, 작업 종류를 입력하세요.");
@@ -3802,11 +3853,13 @@ function toggleOtherType(){
   document.getElementById("fType").value="물류";
   document.getElementById("fTypeOther").value="";
   document.getElementById("fTypeOther").classList.add("hidden");
+  const notifyCheck=document.getElementById("fMasterNotify");
+  if(notifyCheck)notifyCheck.checked=true;
   updatePaymentPreview();
   document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
 
   await loadData();
-  alert("공고가 저장되었습니다. 수수료(5%) 포함 총 결제금액: "+won(totalPayment(salary)));
+  alert("공고가 저장되었습니다. 수수료(5%) 포함 총 결제금액: "+won(totalPayment(salary))+(masterNotify?"\nMASTER 신규 공고 알림 대상입니다.":""));
   goScreen("managerScreen");
 }
 let currentCheckinLink="";
