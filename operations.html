@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.6.4</title>
+<title>FlowIQ Crew OPERATIONS v3.6.7</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1846,32 +1846,6 @@ button.blue.full,button.green.full{
 }
 
 
-/* ===== FlowIQ Crew v3.6.5 Privacy Upload ===== */
-.privacy-upload-box{
-  background:rgba(15,23,42,.72);
-  border:1px dashed rgba(148,163,184,.30);
-  border-radius:20px;
-  padding:14px;
-  margin:8px 0 14px;
-}
-.privacy-upload-box input[type="file"]{
-  padding:14px;
-  height:auto;
-  min-height:54px;
-}
-.privacy-note{
-  color:#94a3b8;
-  font-size:12px;
-  line-height:1.45;
-  margin-top:4px;
-}
-.privacy-file-name{
-  color:#bfdbfe;
-  font-size:12px;
-  font-weight:800;
-  margin-top:8px;
-  word-break:break-all;
-}
 
 </style>
 </head>
@@ -1975,13 +1949,6 @@ button.blue.full,button.green.full{
         <input id="signupWorkerHolder" placeholder="예: 바타르">
       </div>
       <div id="signupWorkerNoAccountNote" class="settle-note hidden">계좌는 근무 후에도 등록할 수 있습니다. 계좌가 없을 경우 지급 확인과 수령 확인이 모두 완료되어야 정산완료 처리됩니다.</div>
-
-      <label>개인정보 업로드 <span style="color:#94a3b8;font-size:12px">(선택)</span></label>
-      <div class="privacy-upload-box">
-        <input id="signupWorkerPrivacyFile" type="file" accept="image/*,.pdf" onchange="showPrivacyFileName('signupWorkerPrivacyFile','signupWorkerPrivacyFileName')">
-        <div id="signupWorkerPrivacyFileName" class="privacy-file-name hidden"></div>
-        <div class="privacy-note">※ 본인확인/정산 확인용입니다. 실제 운영 전에는 보안 저장소와 접근권한 설정이 필요합니다.</div>
-      </div>
     </div>
 
     <button class="full blue" onclick="saveSignupAccount()">가입 후 시작</button>
@@ -2039,13 +2006,6 @@ button.blue.full,button.green.full{
 
     <label>예금주</label>
     <input id="workerHolderInput" placeholder="예: 바타르">
-
-    <label>개인정보 업로드 <span style="color:#94a3b8;font-size:12px">(선택)</span></label>
-    <div class="privacy-upload-box">
-      <input id="workerPrivacyFileInput" type="file" accept="image/*,.pdf" onchange="showPrivacyFileName('workerPrivacyFileInput','workerPrivacyFileName')">
-      <div id="workerPrivacyFileName" class="privacy-file-name hidden"></div>
-      <div class="privacy-note">※ 본인확인/정산 확인용입니다. 실제 운영 전에는 보안 저장소와 접근권한 설정이 필요합니다.</div>
-    </div>
 
     <button class="full blue" onclick="saveWorkerInfo()">저장 후 시작</button>
   </div>
@@ -2225,7 +2185,7 @@ let workerBank=localStorage.getItem("worker_bank")||"";
 let workerAccount=localStorage.getItem("worker_account")||"";
 let workerHolder=localStorage.getItem("worker_holder")||"";
 let workerPaymentMethod=localStorage.getItem("worker_payment_method")||"account";
-let workerPrivacyFileName=localStorage.getItem("worker_privacy_file")||"";
+
 let lastRole=role;
 let currentScreen="languageScreen";
 let jobs=[];
@@ -2296,19 +2256,6 @@ function toggleWorkerAccountFields(){
   const note=document.getElementById("signupWorkerNoAccountNote");
   if(fields)fields.classList.toggle("hidden",method!=="account");
   if(note)note.classList.toggle("hidden",method!=="later");
-}
-
-function getSelectedFileName(inputId){
-  const input=document.getElementById(inputId);
-  if(!input || !input.files || !input.files[0])return "";
-  return input.files[0].name || "";
-}
-function showPrivacyFileName(inputId,targetId){
-  const name=getSelectedFileName(inputId);
-  const target=document.getElementById(targetId);
-  if(!target)return;
-  target.innerText=name ? "첨부됨: "+name : "";
-  target.classList.toggle("hidden",!name);
 }
 
 function hasWorkerAccountData(app){
@@ -2388,12 +2335,11 @@ function saveSignupAccount(){
     const bank=paymentMethod==="account" ? (document.getElementById("signupWorkerBank")?.value.trim()||"") : "";
     const accountNo=paymentMethod==="account" ? (document.getElementById("signupWorkerAccount")?.value.trim()||"") : "";
     const holder=paymentMethod==="account" ? (document.getElementById("signupWorkerHolder")?.value.trim()||name) : name;
-    const privacyFile=getSelectedFileName("signupWorkerPrivacyFile");
-    if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
+if(paymentMethod==="account" && (!bank||!accountNo||!holder))return alert("계좌 있음 선택 시 은행명, 계좌번호, 예금주를 입력하세요.");
 
     const workers=getWorkerAccounts();
     if(workers.some(a=>normalizePhone(a.phone)===key))return alert("이미 가입된 연락처입니다.");
-    const account={type:"worker",name,phone,password,payment_method:paymentMethod,bank,account:accountNo,holder,privacy_file:privacyFile,created_at:new Date().toISOString()};
+    const account={type:"worker",name,phone,password,payment_method:paymentMethod,bank,account:accountNo,holder,created_at:new Date().toISOString()};
     workers.push(account); saveWorkerAccounts(workers);
     uploadSignupToGoogleSheet({
       type:"근로자",
@@ -2406,10 +2352,9 @@ function saveSignupAccount(){
       account:accountNo,
       holder,
       paymentMethod,
-      privacyFile
-    });
+});
 
-    workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder; workerPaymentMethod=paymentMethod; workerPrivacyFileName=privacyFile;
+    workerName=name; workerPhone=phone; workerBank=bank; workerAccount=accountNo; workerHolder=holder; workerPaymentMethod=paymentMethod; 
     localStorage.setItem("crew_role","worker");
     localStorage.setItem("worker_name",name);
     localStorage.setItem("worker_phone",phone);
@@ -2417,8 +2362,7 @@ function saveSignupAccount(){
     localStorage.setItem("worker_bank",bank);
     localStorage.setItem("worker_account",accountNo);
     localStorage.setItem("worker_holder",holder);
-    localStorage.setItem("worker_privacy_file",privacyFile);
-  localStorage.setItem("worker_payment_method",workerPaymentMethod);
+localStorage.setItem("worker_payment_method",workerPaymentMethod);
     role="worker"; lastRole="worker";
     alert("가입 완료. 근로자로 시작합니다.");
     loadData().then(()=>goScreen("workerScreen"));
@@ -2482,7 +2426,7 @@ function loginWorkerAccount(){
   workerAccount=account.account||"";
   workerHolder=account.holder||workerName;
   workerPaymentMethod=account.payment_method||((workerBank&&workerAccount)?"account":"later");
-  workerPrivacyFileName=account.privacy_file||"";
+  
   localStorage.setItem("crew_role","worker");
   localStorage.setItem("worker_name",workerName);
   localStorage.setItem("worker_phone",workerPhone);
@@ -2490,8 +2434,7 @@ function loginWorkerAccount(){
   localStorage.setItem("worker_account",workerAccount);
   localStorage.setItem("worker_holder",workerHolder);
   localStorage.setItem("worker_payment_method",workerPaymentMethod);
-  localStorage.setItem("worker_privacy_file",workerPrivacyFileName);
-  role="worker"; lastRole="worker";
+role="worker"; lastRole="worker";
   loadData().then(()=>goScreen("workerScreen"));
 }
 
@@ -2506,8 +2449,7 @@ function show(id,push=false){
     const wb=document.getElementById("workerBankInput"); if(wb)wb.value=workerBank||"";
     const wa=document.getElementById("workerAccountInput"); if(wa)wa.value=workerAccount||"";
     const wh=document.getElementById("workerHolderInput"); if(wh)wh.value=workerHolder||workerName||"";
-    const pf=document.getElementById("workerPrivacyFileName"); if(pf){pf.innerText=workerPrivacyFileName?"기존 첨부: "+workerPrivacyFileName:""; pf.classList.toggle("hidden",!workerPrivacyFileName);}
-  }
+}
   document.getElementById("topActions").classList.toggle("hidden",id==="languageScreen");
   document.getElementById("bottomNav").style.display=["workerScreen","managerScreen","jobFormScreen","payrollScreen","qrScreen"].includes(id)?"grid":"none";
 
@@ -2593,9 +2535,7 @@ function saveWorkerInfo(){
   const bank=document.getElementById("workerBankInput")?.value.trim()||"";
   const account=document.getElementById("workerAccountInput")?.value.trim()||"";
   const holder=document.getElementById("workerHolderInput")?.value.trim()||name;
-  const privacyFile=getSelectedFileName("workerPrivacyFileInput") || workerPrivacyFileName || "";
-
-  if(!name || !phone){
+if(!name || !phone){
     alert("이름과 연락처를 입력하세요.");
     return;
   }
@@ -2607,18 +2547,16 @@ function saveWorkerInfo(){
   workerBank=bank;
   workerAccount=account;
   workerHolder=holder;
-  workerPrivacyFileName=privacyFile;
+  
 
   localStorage.setItem("worker_name",name);
   localStorage.setItem("worker_phone",phone);
   localStorage.setItem("worker_bank",bank);
   localStorage.setItem("worker_account",account);
   localStorage.setItem("worker_holder",holder);
-  localStorage.setItem("worker_privacy_file",privacyFile);
-
-  const workers=getWorkerAccounts();
+const workers=getWorkerAccounts();
   const key=normalizePhone(phone);
-  const saved={name,phone,bank,account,holder,privacy_file:privacyFile,updated_at:new Date().toISOString()};
+  const saved={name,phone,bank,account,holder,updated_at:new Date().toISOString()};
   const idx=workers.findIndex(w=>normalizePhone(w.phone)===key);
   if(idx>=0)workers[idx]=Object.assign({},workers[idx],saved); else workers.push(saved);
   saveWorkerAccounts(workers);
