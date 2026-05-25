@@ -2331,7 +2331,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.0 MANAGER LIVE RENDER';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.2 MANAGER ALERT LIVE SYNC';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -3745,7 +3745,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.1";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.8.2";
   }
 
   const jobRows=filteredJobs.map(j=>{
@@ -4616,6 +4616,151 @@ function copyCrewAccount(){
     alert("계좌번호: "+account);
   }
 }
+</script>
+
+
+<script>
+/* ===== FlowIQ Crew v3.8.2 Manager Alert + Live Sync Hard Fix ===== */
+(function(){
+  const SYNC_MS = 2500;
+  let liveTimer = null;
+  let liveBusy = false;
+  let alertReadyRequested = false;
+
+  function flowiqManagerJobIds(){
+    return (jobs || []).map(j => Number(j.id)).filter(Boolean);
+  }
+
+  async function flowiqPrepareManagerAlert(){
+    try{
+      managerAlertEnabled = true;
+      localStorage.setItem('manager_alert_enabled','1');
+      alertReadyRequested = true;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if(AudioContext && !managerAlertAudioCtx){
+        managerAlertAudioCtx = new AudioContext();
+      }
+      if(managerAlertAudioCtx && managerAlertAudioCtx.state === 'suspended'){
+        await managerAlertAudioCtx.resume();
+      }
+      return !!(managerAlertAudioCtx && managerAlertAudioCtx.state === 'running');
+    }catch(e){
+      console.warn('manager alert prepare failed', e);
+      return false;
+    }
+  }
+
+  document.addEventListener('click', function(e){
+    const inManagerLogin = !!e.target.closest('#managerLoginScreen');
+    const inManagerScreen = !!e.target.closest('#managerScreen');
+    const managerIntent = inManagerLogin || inManagerScreen || role === 'manager';
+    if(managerIntent){ flowiqPrepareManagerAlert(); }
+  }, true);
+
+  const originalRenderManager = window.renderManager;
+  window.renderManager = function(){
+    if(typeof originalRenderManager === 'function'){
+      originalRenderManager.apply(this, arguments);
+    }
+    try{
+      const workersList = document.getElementById('workersList');
+      if(workersList && !document.getElementById('managerNewApplicantNotice')){
+        const box = document.createElement('div');
+        box.id = 'managerNewApplicantNotice';
+        box.className = 'manager-alert-new hidden';
+        box.style.marginTop = '10px';
+        box.textContent = '신규 지원자가 등록되었습니다.';
+        workersList.appendChild(box);
+      }
+      const stamp = document.getElementById('managerLiveSyncStamp');
+      if(stamp){
+        stamp.innerText = '자동 갱신 ON · 최근 반영: ' + new Date().toLocaleTimeString('ko-KR');
+      }
+    }catch(e){ console.warn('manager render addon failed', e); }
+  };
+
+  window.managerAutoRefreshTick = async function(force=false){
+    if(role !== 'manager' || liveBusy) return;
+    liveBusy = true;
+
+    const beforeKeys = new Set(typeof getManagerPendingKeys === 'function' ? getManagerPendingKeys() : []);
+    const beforeCount = beforeKeys.size;
+
+    try{
+      const jr = await db.from('jobs')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', {ascending:false});
+      if(jr.error) throw jr.error;
+
+      const nextJobs = jr.data || [];
+      const jobIds = nextJobs.map(j => Number(j.id)).filter(Boolean);
+      let nextApps = [];
+      let nextAttendance = [];
+
+      if(jobIds.length){
+        const ar = await db.from('applications')
+          .select('*')
+          .in('job_id', jobIds)
+          .order('created_at', {ascending:false});
+        if(ar.error) throw ar.error;
+        nextApps = ar.data || [];
+
+        const tr = await db.from('attendance')
+          .select('*')
+          .in('job_id', jobIds)
+          .order('created_at', {ascending:false});
+        if(tr.error) console.warn('attendance live sync warning', tr.error.message);
+        nextAttendance = tr.data || [];
+      }
+
+      jobs = nextJobs;
+      allApplications = nextApps;
+      applications = nextApps;
+      attendance = nextAttendance;
+
+      if(currentScreen === 'managerScreen'){
+        renderManager();
+        requestAnimationFrame(() => renderManager());
+      }
+
+      const afterKeys = typeof getManagerPendingKeys === 'function' ? getManagerPendingKeys() : [];
+      const afterSet = new Set(afterKeys);
+      const newKeys = afterKeys.filter(k => !beforeKeys.has(k));
+      managerKnownPendingKeys = afterKeys;
+      managerLastPendingCount = afterKeys.length;
+
+      if((newKeys.length > 0 || afterSet.size > beforeCount) && beforeCount >= 0){
+        managerAlertEnabled = true;
+        localStorage.setItem('manager_alert_enabled','1');
+        await flowiqPrepareManagerAlert();
+        if(typeof playManagerAlertSound === 'function') await playManagerAlertSound(false);
+        if(typeof showManagerNewApplicantNotice === 'function'){
+          showManagerNewApplicantNotice(Math.max(newKeys.length, afterSet.size - beforeCount), '🔔 신규 지원자가 등록되었습니다.');
+        }
+      }
+    }catch(err){
+      console.warn('manager live sync hard fix failed', err);
+      if(force) alert('관리자 자동 갱신 오류: ' + (err.message || err));
+    }finally{
+      liveBusy = false;
+    }
+  };
+
+  window.startManagerAutoRefresh = function(){
+    if(role !== 'manager') return;
+    managerAlertEnabled = true;
+    localStorage.setItem('manager_alert_enabled','1');
+    if(typeof updateManagerPendingBaseline === 'function') updateManagerPendingBaseline();
+    if(liveTimer) clearInterval(liveTimer);
+    liveTimer = setInterval(() => managerAutoRefreshTick(false), SYNC_MS);
+    setTimeout(() => managerAutoRefreshTick(true), 250);
+  };
+
+  window.stopManagerAutoRefresh = function(){
+    if(liveTimer){ clearInterval(liveTimer); liveTimer = null; }
+  };
+})();
 </script>
 
 </body>
