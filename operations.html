@@ -2505,15 +2505,15 @@ function renderManagerAlertPanel(){
     <div class="manager-alert-row">
       <div>
         <b>🔔 지원자 알림</b><br>
-        <span>자동 새로고침 ON · 대기 지원 ${pending}명</span>
+        <span>자동 갱신 ON · 대기 지원 ${pending}명</span>
       </div>
       <button class="${enabled?'green':'blue'}" onclick="enableManagerAlertSound()">${enabled?'알림 ON':'알림 시작'}</button>
     </div>
     <div class="manager-alert-row" style="margin-top:10px">
       <button class="gray" onclick="testManagerAlertSound()">알림 테스트</button>
-      <button class="gray" onclick="managerAutoRefreshTick()">즉시 갱신</button>
+      <button class="gray" onclick="managerAutoRefreshTick(true)">즉시 갱신</button>
     </div>
-    <div class="manager-alert-live">소리는 MASTER/관리자 화면에서 <b>알림 시작</b>을 한 번 눌러야 켜집니다. 소리가 작으면 휴대폰 무음모드/브라우저 볼륨을 확인하세요.</div>
+    <div class="manager-alert-live">소리는 <b>알림 시작</b>을 한 번 눌러야 켜집니다. 아이폰은 무음모드가 켜져 있으면 진동만 올 수 있습니다.</div>
     <div id="managerNewApplicantNotice" class="manager-alert-new hidden">신규 지원자가 등록되었습니다.</div>
   </div>`;
 }
@@ -2529,18 +2529,18 @@ async function unlockManagerAlertAudio(){
 async function enableManagerAlertSound(){
   managerAlertEnabled=true;
   localStorage.setItem('manager_alert_enabled','1');
-  await unlockManagerAlertAudio();
-  playManagerAlertSound(true);
-  showManagerNewApplicantNotice(0);
-  renderManager();
+  const ok=await unlockManagerAlertAudio();
+  playManagerAlertSound(false);
+  showManagerNewApplicantNotice(0, ok ? '알림이 켜졌습니다.' : '알림 시작됨 · 소리가 안 나면 무음모드를 확인하세요.');
+  setTimeout(()=>renderManager(),200);
 }
 async function testManagerAlertSound(){
   managerAlertEnabled=true;
   localStorage.setItem('manager_alert_enabled','1');
   await unlockManagerAlertAudio();
   playManagerAlertSound(false);
-  if(navigator.vibrate)navigator.vibrate([120,60,120]);
-  alert('알림 테스트를 실행했습니다. 소리가 안 나면 휴대폰 무음모드/볼륨/브라우저 권한을 확인하세요.');
+  if(navigator.vibrate)navigator.vibrate([160,70,160]);
+  showManagerNewApplicantNotice(0,'알림 테스트 실행됨');
 }
 function playTone(ctx,freq,start,duration,volume){
   const osc=ctx.createOscillator();
@@ -2548,53 +2548,58 @@ function playTone(ctx,freq,start,duration,volume){
   osc.type='sine';
   osc.frequency.setValueAtTime(freq,start);
   gain.gain.setValueAtTime(0.0001,start);
-  gain.gain.exponentialRampToValueAtTime(volume,start+0.025);
+  gain.gain.exponentialRampToValueAtTime(volume,start+0.02);
   gain.gain.exponentialRampToValueAtTime(0.0001,start+duration);
   osc.connect(gain);
   gain.connect(ctx.destination);
   osc.start(start);
-  osc.stop(start+duration+0.03);
+  osc.stop(start+duration+0.04);
 }
-function playManagerAlertSound(short=false){
+async function playManagerAlertSound(short=false){
   if(!managerAlertEnabled)return;
   try{
+    await unlockManagerAlertAudio();
     const ctx=managerAlertAudioCtx;
-    if(!ctx || ctx.state!=='running')return;
-    const now=ctx.currentTime;
-    if(short){
-      playTone(ctx,740,now,0.16,0.28);
-    }else{
-      playTone(ctx,880,now,0.18,0.32);
-      playTone(ctx,1160,now+0.22,0.22,0.34);
+    if(ctx && ctx.state==='running'){
+      const now=ctx.currentTime;
+      playTone(ctx,880,now,0.20,0.45);
+      if(!short){
+        playTone(ctx,1180,now+0.24,0.24,0.48);
+        playTone(ctx,920,now+0.52,0.18,0.38);
+      }
     }
-    if(navigator.vibrate)navigator.vibrate(short?80:[120,60,120]);
+    if(navigator.vibrate)navigator.vibrate(short?120:[180,80,180,80,220]);
   }catch(e){console.warn('alert sound blocked',e)}
 }
-function showManagerNewApplicantNotice(count){
+function showManagerNewApplicantNotice(count,msg){
   const el=document.getElementById('managerNewApplicantNotice');
   if(!el)return;
-  el.textContent=`🔔 신규 지원자 ${count}명 등록됨`;
+  el.textContent=msg || `🔔 신규 지원자 ${count}명 등록됨`;
   el.classList.remove('hidden');
-  setTimeout(()=>el.classList.add('hidden'),3500);
+  setTimeout(()=>el.classList.add('hidden'),4500);
 }
 function updateManagerPendingBaseline(){
   managerKnownPendingKeys=getManagerPendingKeys();
   managerLastPendingCount=managerKnownPendingKeys.length;
 }
-async function managerAutoRefreshTick(){
+async function managerAutoRefreshTick(force=false){
   if(role!=='manager' || currentScreen!=='managerScreen' || managerSyncing)return;
   managerSyncing=true;
-  const before=new Set(managerKnownPendingKeys.length?managerKnownPendingKeys:getManagerPendingKeys());
+  const beforeKeys=new Set(managerKnownPendingKeys);
+  const beforeCount=typeof managerLastPendingCount==='number' ? managerLastPendingCount : getManagerPendingKeys().length;
   try{
     await loadData();
-    const after=getManagerPendingKeys();
-    const newKeys=after.filter(k=>!before.has(k));
-    if(newKeys.length>0){
-      playManagerAlertSound(false);
-      showManagerNewApplicantNotice(newKeys.length);
+    const afterKeys=getManagerPendingKeys();
+    const afterCount=afterKeys.length;
+    const newKeys=afterKeys.filter(k=>!beforeKeys.has(k));
+    const increased=afterCount>beforeCount;
+    if((newKeys.length>0 || increased) && beforeKeys.size>0){
+      await playManagerAlertSound(false);
+      showManagerNewApplicantNotice(Math.max(newKeys.length, afterCount-beforeCount));
     }
-    managerKnownPendingKeys=after;
-    managerLastPendingCount=after.length;
+    managerKnownPendingKeys=afterKeys;
+    managerLastPendingCount=afterCount;
+    renderManager();
   }finally{
     managerSyncing=false;
   }
@@ -2602,7 +2607,7 @@ async function managerAutoRefreshTick(){
 function startManagerAutoRefresh(){
   if(managerAutoRefreshTimer)return;
   updateManagerPendingBaseline();
-  managerAutoRefreshTimer=setInterval(managerAutoRefreshTick,5000);
+  managerAutoRefreshTimer=setInterval(managerAutoRefreshTick,3000);
 }
 function stopManagerAutoRefresh(){
   if(managerAutoRefreshTimer){clearInterval(managerAutoRefreshTimer); managerAutoRefreshTimer=null;}
@@ -3690,7 +3695,7 @@ function renderManager(){
   if(mJobs)mJobs.innerText=filteredJobs.length;
 
   if(managerTitle){
-    managerTitle.innerText=getCurrentCompanyName() + " · v3.7.8";
+    managerTitle.innerText=getCurrentCompanyName() + " · v3.7.9";
   }
 
   const jobRows=filteredJobs.map(j=>{
