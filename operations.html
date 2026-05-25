@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.4.9 QR DUPLICATE FIX</title>
+<title>FlowIQ Crew OPERATIONS v3.6.0 QR FIELD SIMPLE</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1757,8 +1757,7 @@ button[onclick*="copyCrewAccount"]{
 /* 눌러야 할 핵심 버튼 강조 */
 .manager-worker-actions button,
 .manager-worker-actions.work-done-center button,
-.payment-preview button,
-#qrActionBtn{
+.payment-preview button{
   border-width:1px !important;
   filter:saturate(1.08);
 }
@@ -1852,6 +1851,67 @@ button.blue.full,button.green.full{
 #qrScannerVideo{width:100%;height:100%;object-fit:cover;background:#020617;}
 .qr-scan-frame{position:absolute;inset:18%;border:3px solid rgba(34,211,238,.86);border-radius:24px;box-shadow:0 0 0 9999px rgba(2,6,23,.34),0 0 24px rgba(34,211,238,.35);pointer-events:none;}
 .qr-scan-status{background:rgba(15,23,42,.86);border:1px solid rgba(148,163,184,.14);border-radius:18px;padding:12px;color:#cbd5e1;font-size:13px;line-height:1.45;margin-top:12px;}
+
+
+/* ===== FlowIQ Crew v3.6.0 QR Field Simple Mode ===== */
+.qr-box{
+  width:min(86vw,360px) !important;
+  height:min(86vw,360px) !important;
+  max-width:360px !important;
+  max-height:360px !important;
+  padding:22px !important;
+  border-radius:28px !important;
+  background:#fff !important;
+  box-shadow:0 24px 60px rgba(0,0,0,.42),0 0 0 10px rgba(255,255,255,.04) !important;
+}
+.field-qr-card{
+  text-align:center;
+  background:linear-gradient(180deg,rgba(2,6,23,.98),rgba(15,23,42,.98)) !important;
+  border:1px solid rgba(96,165,250,.22) !important;
+}
+.field-qr-title{
+  font-size:28px;
+  font-weight:950;
+  letter-spacing:-.8px;
+  margin-bottom:8px;
+}
+.field-qr-meta{
+  color:#cbd5e1;
+  font-size:14px;
+  line-height:1.55;
+  margin:10px 0 0;
+}
+.field-qr-id{
+  display:inline-flex;
+  margin-top:12px;
+  padding:8px 13px;
+  border-radius:999px;
+  background:rgba(37,99,235,.14);
+  color:#bfdbfe;
+  border:1px solid rgba(96,165,250,.22);
+  font-size:12px;
+  font-weight:900;
+}
+.qr-scan-box{
+  aspect-ratio:3/4 !important;
+  border-radius:30px !important;
+}
+.qr-scan-frame{
+  inset:12% !important;
+  border-width:4px !important;
+  border-color:rgba(34,211,238,.95) !important;
+  box-shadow:0 0 0 9999px rgba(2,6,23,.25),0 0 30px rgba(34,211,238,.46) !important;
+}
+.qr-scan-status.ok{
+  border-color:rgba(34,197,94,.32);
+  color:#bbf7d0;
+  background:rgba(5,150,105,.13);
+}
+.qr-scan-status.warn{
+  border-color:rgba(245,158,11,.32);
+  color:#fde68a;
+  background:rgba(245,158,11,.12);
+}
 
 </style>
 </head>
@@ -2126,23 +2186,23 @@ button.blue.full,button.green.full{
 <section id="qrScannerScreen" class="hidden">
   <div class="card notice">
     <div class="title">QR 출근 스캔</div>
-    <div class="sub">현장관리자가 보여주는 출근 QR을 카메라로 스캔하세요.</div>
+    <div class="sub">현장 QR을 카메라 중앙에 맞추면 자동 출근 처리됩니다.</div>
     <div class="qr-scan-status" id="qrScannerStatus">카메라를 시작하려면 아래 버튼을 누르세요.</div>
     <div class="qr-scan-box">
       <video id="qrScannerVideo" muted playsinline></video>
       <div class="qr-scan-frame"></div>
     </div>
-    <button class="full blue" onclick="startQRScanner()">카메라로 QR 스캔</button>
+    <button class="full blue" onclick="startQRScanner()">QR 출근 시작</button>
     <button class="full gray" onclick="stopQRScanner();goHome()">닫기</button>
   </div>
 </section>
 
 <section id="qrScreen" class="hidden">
-  <div class="card" style="text-align:center">
-    <div class="title" id="qrTitle">출근 QR</div>
+  <div class="card field-qr-card">
+    <div class="field-qr-title" id="qrTitle">출근 QR</div>
     <img id="qrImage" class="qr-box" alt="출근 QR"/>
-    <div class="sub" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
-    <button id="qrActionBtn" class="full green" onclick="completeQR()" style="margin-top:18px">✅ QR 생성 확인</button>
+    <div class="field-qr-meta" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
+    <button class="full gray" onclick="goHome()" style="margin-top:18px">닫기</button>
   </div>
 </section>
 </main>
@@ -2169,6 +2229,7 @@ button.blue.full,button.green.full{
 <script>
 // FlowIQ Crew v3.4.9 - QR 중복 출근 차단 + 출근완료 후 팝업 반복 방지.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
+// FlowIQ Crew v3.6.0 - 업체/공고별 고정 출근 QR + 근로자 카메라 스캔 출근.
 // FlowIQ Crew v3.2.4 - 입금완료는 종료 상태로 처리하여 새 공고 지원 가능.
 // FlowIQ Crew v3.1.4 - worker can only have one active application at a time.
 
@@ -3378,7 +3439,7 @@ function renderManager(){
         <div class="manager-count-tile"><b>${workDoneCount}</b><span>근무완료</span></div>
       </div>
 
-      <button class="full green" onclick="showQR('manager',${Number(j.id)})">▦ 이 공고 출근 QR</button>
+      <button class="full green" onclick="showQR('manager',${Number(j.id)})">▦ 출근 QR 보기</button>
 
       <details class="manager-worker-panel">
         <summary>지원자 보기</summary>
@@ -3450,8 +3511,6 @@ function showWorkerCheckinBlocked(){
 function showQR(selectedRole, jobId=null){
   lastRole=selectedRole;
   const qrImage=document.getElementById("qrImage");
-  const qrActionBtn=document.getElementById("qrActionBtn");
-
   if(selectedRole==="manager"){
     qrTitle.innerText="출근 QR";
     const managerJobs=jobs.filter(j=>role==="manager"?String(j.company_id)===String(companyId):true);
@@ -3467,13 +3526,8 @@ function showQR(selectedRole, jobId=null){
       return;
     }
     const qrData=`${location.origin}${location.pathname}?checkin=${job.id}`;
-    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(qrData)}`;
-    qrDesc.innerHTML=`<b>${job.title || "공고"}</b><br>${job.location || ""}<br><br>근로자가 이 QR을 스캔해야 출근 처리됩니다.<br><span style="color:#94a3b8;font-size:13px">승인된 근로자만 출근 처리됩니다.</span>`;
-    if(qrActionBtn){
-      qrActionBtn.style.display="block";
-      qrActionBtn.innerText="QR 준비 완료";
-      qrActionBtn.className="full green";
-    }
+    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=18&data=${encodeURIComponent(qrData)}`;
+    qrDesc.innerHTML=`<b>${job.title || "공고"}</b><br>${job.location || ""}<br>근로자는 앱의 QR 출근으로 스캔하면 자동 출근 처리됩니다.<br><span class="field-qr-id">공고 ID ${job.id}</span>`;
     goScreen("qrScreen");
     return;
   }
@@ -3616,7 +3670,7 @@ function openQRScanner(){
   }
   goScreen("qrScannerScreen");
   const st=document.getElementById("qrScannerStatus");
-  if(st)st.innerText="현장관리자가 보여주는 출근 QR을 카메라로 스캔하세요.";
+  if(st){st.className="qr-scan-status";st.innerText="QR 출근 시작 버튼을 누른 뒤 현장 QR을 화면 중앙에 맞춰주세요.";}
 }
 
 function stopQRScanner(){
@@ -3637,10 +3691,11 @@ async function startQRScanner(){
   try{
     stopQRScanner();
     status.innerText="카메라 권한을 허용해주세요.";
-    qrScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    qrScannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080},focusMode:{ideal:"continuous"}},audio:false});
     video.srcObject=qrScannerStream;
     await video.play();
-    status.innerText="QR을 화면 중앙에 맞춰주세요.";
+    status.className="qr-scan-status ok";
+    status.innerText="QR을 화면 중앙에 맞춰주세요. 멀리서는 QR 전체가 보이게, 가까이서는 초점이 맞을 때까지 기다려주세요.";
     const canvas=document.createElement("canvas");
     const ctx=canvas.getContext("2d");
     qrScannerTimer=setInterval(async ()=>{
@@ -3648,9 +3703,9 @@ async function startQRScanner(){
       canvas.width=video.videoWidth;canvas.height=video.videoHeight;
       ctx.drawImage(video,0,0,canvas.width,canvas.height);
       const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-      const code=window.jsQR ? jsQR(imageData.data,canvas.width,canvas.height) : null;
+      const code=window.jsQR ? jsQR(imageData.data,canvas.width,canvas.height,{inversionAttempts:"attemptBoth"}) : null;
       if(code && code.data){qrScannerBusy=true;await handleScannedQR(code.data);}
-    },420);
+    },260);
   }catch(e){
     status.innerText="카메라를 열 수 없습니다. 브라우저 권한을 확인해주세요.";
     alert("카메라 권한이 필요합니다.");
@@ -3663,11 +3718,11 @@ async function handleScannedQR(data){
     let url;
     try{url=new URL(data);}catch(e){url=new URL(data,location.origin);}
     const checkin=url.searchParams.get("checkin");
-    if(!checkin){qrScannerBusy=false;if(status)status.innerText="출근 QR이 아닙니다.";return;}
+    if(!checkin){qrScannerBusy=false;if(status){status.className="qr-scan-status warn";status.innerText="출근 QR이 아닙니다.";}return;}
     await loadData();
     const job=jobs.find(j=>Number(j.id)===Number(checkin));
-    if(!job){qrScannerBusy=false;if(status)status.innerText="공고를 찾을 수 없습니다.";return;}
-    if(status)status.innerText="출근 처리 중입니다...";
+    if(!job){qrScannerBusy=false;if(status){status.className="qr-scan-status warn";status.innerText="공고를 찾을 수 없습니다.";}return;}
+    if(status){status.className="qr-scan-status ok";status.innerText="출근 처리 중입니다...";}
     await saveAttendance(job);
     stopQRScanner();
     await loadData();
