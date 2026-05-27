@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.0.5 BRAND HEADER RESTORE</title>
+<title>FlowIQ Crew OPERATIONS v4.0.6 BRAND HEADER RESTORE</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2078,7 +2078,7 @@ input:focus,select:focus{
 }
 
 
-/* ===== FlowIQ Crew v4.0.5 Date + Pay Notice ===== */
+/* ===== FlowIQ Crew v4.0.6 Date + Pay Notice ===== */
 .pay-direct-note{
   background:rgba(37,99,235,.10);
   border:1px solid rgba(96,165,250,.18);
@@ -2098,6 +2098,46 @@ input:focus,select:focus{
   margin:12px 0;
 }
 .company-info-box .info{margin:5px 0}
+
+
+/* ===== FlowIQ Crew v4.0.6 Pay Layout Clean ===== */
+.job-pay-grid{
+  display:grid;
+  gap:6px;
+  margin:10px 0 8px;
+}
+.pay-line-clean{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin:0 !important;
+  line-height:1.45;
+}
+.pay-line-clean .pay-emoji{
+  width:26px;
+  flex:0 0 26px;
+  text-align:center;
+}
+.pay-line-clean .pay-text{
+  flex:1;
+  min-width:0;
+}
+.pay-direct-note{
+  display:flex !important;
+  align-items:flex-start;
+  gap:8px;
+  line-height:1.5 !important;
+}
+.pay-direct-note .note-mark{
+  width:18px;
+  flex:0 0 18px;
+  text-align:center;
+}
+.pay-direct-note .note-text{
+  flex:1;
+  min-width:0;
+}
+
 </style>
 </head>
 
@@ -2471,7 +2511,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.5 BRAND HEADER RESTORE';
+let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.6 BRAND HEADER RESTORE';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -5221,7 +5261,7 @@ function copyCrewAccount(){
 <script>
 // ===== FlowIQ Crew v4.0 SIMPLE MATCHING MVP PATCH =====
 (function(){
-  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.5 BRAND HEADER RESTORE";
+  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.6 BRAND HEADER RESTORE";
   const MATCH_STATUSES = ["승인"];
   const REJECT_STATUSES = ["거절","매칭취소"];
   const RELEASED_STATUSES = ["지원취소","미선정","자동미선정","마감미선정"];
@@ -5557,7 +5597,7 @@ function copyCrewAccount(){
 
 
 <script>
-/* ===== FlowIQ Crew v4.0.5 Date + Pay Notice Patch ===== */
+/* ===== FlowIQ Crew v4.0.6 Date + Pay Notice Patch ===== */
 (function(){
   const DATE_RE = /^\[\[FIQ_DATE:([^|\]]*)\|([^\]]*)\]\]\s*/;
   function _escape(v){ return (typeof escapeHtml === 'function') ? escapeHtml(v) : String(v??'').replace(/[&<>'"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[m])); }
@@ -5664,8 +5704,11 @@ function copyCrewAccount(){
         <div class="info">📅 ${_escape(schedule.dateText)}</div>
         <div class="info">⏰ ${_escape(schedule.timeText)}</div>
         <div class="info">📍 ${_escape(job?.location || '현장 위치 확인')}</div>
-        <div class="info">💰 일당 ${_money(job?.salary)}</div>
-        <div class="pay-direct-note">※ 임금은 현장 업체에서 직접 지급합니다.</div>
+        <div class="job-pay-grid">
+          <div class="info pay-line-clean"><span class="pay-emoji">👥</span><span class="pay-text">모집 ${Number(job?.needed)||0}명</span></div>
+          <div class="info pay-line-clean"><span class="pay-emoji">💰</span><span class="pay-text">일당 ${_money(job?.salary)}</span></div>
+        </div>
+        <div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">임금은 현장 업체에서 직접 지급합니다.</span></div>
         ${job ? `<button class="full blue" style="margin-top:14px" onclick="openMap('${encodeURIComponent(job.location||'')}')">길찾기</button>` : ''}
       </div>`;
     }else if(pending.length){
@@ -5706,9 +5749,12 @@ function copyCrewAccount(){
         <div class="info">📅 ${_escape(schedule.dateText)}</div>
         <div class="info">⏰ ${_escape(schedule.timeText)}</div>
         <div class="info">📍 ${_escape(j.location||'-')}</div>
-        <div class="info">💰 일당 ${_money(j.salary)} ${role==='manager'?`· 플랫폼 수수료 ${_money(fee)}`:''}</div>
-        ${role==='worker'?'<div class="pay-direct-note">※ 임금은 현장 업체에서 직접 지급합니다.</div>':'<div class="pay-direct-note">※ 승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</div>'}
-        <div class="info">👥 매칭 ${matched}/${Number(j.needed)||0}명 · 남은 ${remain}명</div>
+        <div class="job-pay-grid">
+          <div class="info pay-line-clean"><span class="pay-emoji">👥</span><span class="pay-text">모집 ${Number(j.needed)||0}명 · 매칭 ${matched}명 · 남은 ${remain}명</span></div>
+          <div class="info pay-line-clean"><span class="pay-emoji">💰</span><span class="pay-text">일당 ${_money(j.salary)}</span></div>
+          ${role==='manager'?`<div class="info pay-line-clean"><span class="pay-emoji">💸</span><span class="pay-text">플랫폼 수수료 ${_money(fee)}</span></div>`:''}
+        </div>
+        ${role==='worker'?'<div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">임금은 현장 업체에서 직접 지급합니다.</span></div>':'<div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div>'}
         ${action}
       </div>`;
     }).join('') : `<div class="region-empty"><b>공고가 없습니다</b><br>게시중인 공고가 없습니다.</div>`;
@@ -5723,7 +5769,7 @@ function copyCrewAccount(){
     const pendingCount=allApps.filter(a=>_cleanStatus(a.status)==='지원').length;
     const matchedCount=allApps.filter(a=>_cleanStatus(a.status)==='승인').length;
     if(mChecked) mChecked.innerText=matchedCount; if(mApplied) mApplied.innerText=pendingCount; if(mJobs) mJobs.innerText=managerJobs.length;
-    if(managerTitle) managerTitle.innerText=((typeof getCurrentCompanyName==='function'?getCurrentCompanyName():'관리자')+' · v4.0.5');
+    if(managerTitle) managerTitle.innerText=((typeof getCurrentCompanyName==='function'?getCurrentCompanyName():'관리자')+' · v4.0.6');
     managerJobsList.innerHTML=managerJobs.length ? managerJobs.map(j=>{
       const schedule=window.parseWorkSchedule(j);
       const jobApps=allApps.filter(a=>Number(a.job_id)===Number(j.id) && ['지원','승인'].includes(_cleanStatus(a.status)));
@@ -5735,10 +5781,10 @@ function copyCrewAccount(){
         const status=_cleanStatus(a.status)||'지원';
         return `<div class="manager-worker-card"><div class="worker-row"><div><div class="worker-name">${_escape(typeof getWorkerDisplayName==='function'?getWorkerDisplayName(a):(a.worker_name||a.name||'이름없음'))} <span class="worker-meta">· 매칭 ${stats.match}회 · 거절 ${stats.reject}회</span></div><div class="worker-meta">${_escape(a.phone||'번호없음')}</div></div><div class="manager-status-pill ${window.managerStatusClass(status)}">${window.managerAppStatusLabel(status)}</div></div>${window.managerWorkerActionButtons(a,status)}</div>`;
       }).join('') : `<div class="card" style="margin-top:10px"><div class="sub">아직 지원자가 없습니다.</div></div>`;
-      return `<div class="card manager-card-clean"><div class="job-head"><div><div class="job-title">${_escape(j.title||'공고명 없음')}</div><div class="type">${_escape(_jobType(j))}</div></div><div class="badge">${_escape(_visibleStatus(j))}</div></div><div class="info">📅 ${_escape(schedule.dateText)}</div><div class="info">⏰ ${_escape(schedule.timeText)}</div><div class="info">📍 ${_escape(j.location||'-')}</div><div class="info">💰 일당 ${_money(j.salary)} · 수수료 ${_money(window.feeAmount(j.salary,j.needed))}</div><div class="pay-direct-note">※ 승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</div><div class="manager-count-grid"><div class="manager-count-tile"><b>${pending}</b><span>지원</span></div><div class="manager-count-tile"><b>${matched}</b><span>매칭</span></div><div class="manager-count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="manager-count-tile"><b>${Number(j.needed)||0}</b><span>모집</span></div></div><details class="manager-worker-panel" data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${workerRows}</details></div>`;
+      return `<div class="card manager-card-clean"><div class="job-head"><div><div class="job-title">${_escape(j.title||'공고명 없음')}</div><div class="type">${_escape(_jobType(j))}</div></div><div class="badge">${_escape(_visibleStatus(j))}</div></div><div class="info">📅 ${_escape(schedule.dateText)}</div><div class="info">⏰ ${_escape(schedule.timeText)}</div><div class="info">📍 ${_escape(j.location||'-')}</div><div class="job-pay-grid"><div class="info pay-line-clean"><span class="pay-emoji">👥</span><span class="pay-text">모집 ${Number(j.needed)||0}명 · 매칭 ${matched}명 · 남은 ${remain}명</span></div><div class="info pay-line-clean"><span class="pay-emoji">💰</span><span class="pay-text">일당 ${_money(j.salary)}</span></div><div class="info pay-line-clean"><span class="pay-emoji">💸</span><span class="pay-text">플랫폼 수수료 ${_money(window.feeAmount(j.salary,j.needed))}</span></div></div><div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="manager-count-grid"><div class="manager-count-tile"><b>${pending}</b><span>지원</span></div><div class="manager-count-tile"><b>${matched}</b><span>매칭</span></div><div class="manager-count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="manager-count-tile"><b>${Number(j.needed)||0}</b><span>모집</span></div></div><details class="manager-worker-panel" data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${workerRows}</details></div>`;
     }).join('') : `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
     openIds.forEach(id=>{const d=managerJobsList.querySelector(`details.manager-worker-panel[data-job-id="${id}"]`); if(d) d.open=true;});
-    workersList.innerHTML=`<div class="card notice"><div class="title">v4.0.5 단순 매칭 운영</div><div class="sub">관리자는 지원자를 승인/거절만 합니다. 승인 후 문제가 있으면 매칭취소를 누르세요.</div><div class="sub">※ 승인 근로자 임금은 현장/업체에서 직접 지급해주세요.</div><div class="sub" id="managerLiveSyncStamp">자동 갱신 ON</div></div>`;
+    workersList.innerHTML=`<div class="card notice"><div class="title">v4.0.6 단순 매칭 운영</div><div class="sub">관리자는 지원자를 승인/거절만 합니다. 승인 후 문제가 있으면 매칭취소를 누르세요.</div><div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">승인 근로자 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="sub" id="managerLiveSyncStamp">자동 갱신 ON</div></div>`;
   };
 })();
 </script>
@@ -5747,7 +5793,7 @@ function copyCrewAccount(){
 </html>
 
 <style>
-/* ===== FlowIQ Crew v4.0.5 Date Pay Notice ===== */
+/* ===== FlowIQ Crew v4.0.6 Date Pay Notice ===== */
 .brand{
   font-size:30px !important;
   font-weight:950 !important;
