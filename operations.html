@@ -4035,73 +4035,104 @@ function showQR(selectedRole, jobId=null){
 }
 
 async function saveAttendance(job){
-  return new Promise((resolve,reject)=>{
-    if(!navigator.geolocation){
-      reject("GPS를 지원하지 않는 기기입니다.");
-      return;
-    }
+  if(!workerName || !workerPhone){
+    throw "근로자 로그인 후 출근할 수 있습니다.";
+  }
 
-    if(!workerName || !workerPhone){
-      reject("근로자 정보 등록 후 출근할 수 있습니다.");
-      return;
-    }
+  const normalizedWorkerPhone=normalizePhone(workerPhone);
 
-    const myApplication=applications.find(
-      a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
-    );
+  // QR 출근 시점에는 반드시 Supabase 기준 최신 지원 상태를 다시 확인한다.
+  const liveAppResult=await db
+    .from("applications")
+    .select("*")
+    .eq("job_id",job.id)
+    .eq("phone",normalizedWorkerPhone)
+    .order("created_at",{ascending:false})
+    .limit(1);
 
-    if(!myApplication){
-      reject("지원한 공고만 출근할 수 있습니다.");
-      return;
-    }
+  if(liveAppResult.error){
+    throw "지원 상태 확인 오류: "+liveAppResult.error.message;
+  }
 
-    if((myApplication.status || "지원")!=="승인"){
-      reject("관리자 승인 후 출근할 수 있습니다.");
-      return;
-    }
+  const myApplication=(liveAppResult.data||[])[0];
 
-    const alreadyCheckedIn=attendance.some(
-      a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
-    );
+  if(!myApplication){
+    throw "지원한 공고만 출근할 수 있습니다.";
+  }
 
-    if(alreadyCheckedIn){
-      reject("이미 출근 처리된 공고입니다.");
-      return;
-    }
+  const allowedCheckinStatuses=["승인","승인완료","approved","APPROVED","출근대기"];
+  const appStatus=String(myApplication.status || "지원").trim();
 
-    navigator.geolocation.getCurrentPosition(async position=>{
-      const lat=position.coords.latitude;
-      const lng=position.coords.longitude;
-      const gps=`${lat},${lng}`;
+  if(appStatus==="출근완료"){
+    throw "이미 출근 처리된 공고입니다.";
+  }
 
-      const {error}=await db.from("attendance").insert({
-        job_id:job.id,
-        worker_name:workerName || "이름없음",
-        phone:workerPhone || "번호없음",
-        job_title:job.title,
-        amount:job.salary,
-        company_id:job.company_id,
-        gps:gps
+  if(!allowedCheckinStatuses.includes(appStatus)){
+    throw "관리자 승인 후 출근할 수 있습니다. 현재 상태: "+appStatus;
+  }
+
+  const liveAttendanceResult=await db
+    .from("attendance")
+    .select("id")
+    .eq("job_id",job.id)
+    .eq("phone",normalizedWorkerPhone)
+    .limit(1);
+
+  if(liveAttendanceResult.error){
+    throw "출근 기록 확인 오류: "+liveAttendanceResult.error.message;
+  }
+
+  if((liveAttendanceResult.data||[]).length>0){
+    await db
+      .from("applications")
+      .update({status:"출근완료"})
+      .eq("job_id",job.id)
+      .eq("phone",normalizedWorkerPhone);
+    throw "이미 출근 처리된 공고입니다.";
+  }
+
+  // GPS는 가능하면 기록하되, GPS 권한 문제 때문에 QR 출근 자체가 막히지 않게 한다.
+  let gps="QR_CHECKIN_NO_GPS";
+  if(navigator.geolocation){
+    try{
+      gps=await new Promise(resolve=>{
+        navigator.geolocation.getCurrentPosition(
+          position=>resolve(`${position.coords.latitude},${position.coords.longitude}`),
+          ()=>resolve("QR_CHECKIN_GPS_DENIED"),
+          {enableHighAccuracy:false,timeout:5000,maximumAge:60000}
+        );
       });
+    }catch(e){
+      gps="QR_CHECKIN_GPS_ERROR";
+    }
+  }
 
-      if(error){
-        reject(error.message);
-        return;
-      }
-
-      if(workerPhone){
-        await db
-          .from("applications")
-          .update({status:"출근완료"})
-          .eq("job_id",job.id)
-          .eq("phone",workerPhone);
-      }
-
-      resolve(gps);
-    },()=>{
-      reject("GPS 권한이 필요합니다.");
-    });
+  const {error}=await db.from("attendance").insert({
+    job_id:job.id,
+    worker_name:workerName || "이름없음",
+    phone:normalizedWorkerPhone,
+    job_title:job.title,
+    amount:job.salary,
+    company_id:job.company_id,
+    gps:gps
   });
+
+  if(error){
+    throw "출근 저장 오류: "+error.message;
+  }
+
+  const updateResult=await db
+    .from("applications")
+    .update({status:"출근완료"})
+    .eq("job_id",job.id)
+    .eq("phone",normalizedWorkerPhone);
+
+  if(updateResult.error){
+    throw "출근 상태 변경 오류: "+updateResult.error.message;
+  }
+
+  await loadData();
+  return gps;
 }
 
 async function completeQR(){
@@ -4124,8 +4155,8 @@ async function autoCheckIn(){
 
     if(!workerName || !workerPhone){
       localStorage.setItem("pending_checkin",checkin);
-      alert("근로자 정보 등록 후 출근할 수 있습니다.");
-      goScreen("workerInfoScreen");
+      alert("근로자 로그인 또는 정보 등록 후 출근할 수 있습니다.");
+      goScreen("workerLoginScreen");
       return;
     }
 
@@ -4133,18 +4164,21 @@ async function autoCheckIn(){
     const job=jobs.find(j=>Number(j.id)===Number(checkin));
 
     if(!job){
-      alert("공고를 찾을 수 없습니다.");
-      location.href=location.origin+location.pathname;
+      alert("공고를 찾을 수 없습니다. 관리자에게 최신 QR인지 확인해주세요.");
+      history.replaceState(null,"",location.origin+location.pathname);
+      goScreen("workerScreen");
       return;
     }
 
     try{
       await saveAttendance(job);
-      alert("QR + GPS 출근 완료!");
-      location.href=location.origin+location.pathname;
+      alert("QR 출근 완료!");
+      history.replaceState(null,"",location.origin+location.pathname);
+      goScreen("workerScreen");
     }catch(e){
       alert(e);
-      location.href=location.origin+location.pathname;
+      history.replaceState(null,"",location.origin+location.pathname);
+      goScreen("workerScreen");
     }
   }
 }
