@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.1.21 MY INFO TOP BAR</title>
-<meta name="flowiq-version" content="v4.1.21 MY INFO TOP BAR" />
-<meta name="flowiq-build" content="operations-trust-mvp-cleanup" />
+<title>FlowIQ Crew OPERATIONS v4.1.22 BUTTON STYLE CLEANUP</title>
+<meta name="flowiq-version" content="v4.1.22 BUTTON STYLE CLEANUP" />
+<meta name="flowiq-build" content="operations-button-style-cleanup" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -21,17 +21,19 @@ body{display:flex;justify-content:center}
 .card{background:linear-gradient(180deg,#0f172a,#111827);border:1px solid rgba(148,163,184,.14);border-radius:26px;padding:18px;margin-bottom:14px;box-shadow:0 12px 32px rgba(0,0,0,.28)}
 .notice{border-color:rgba(96,165,250,.22);background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(30,41,59,.82))}
 .title{font-size:21px;font-weight:900;margin-bottom:6px}.sub{color:#94a3b8;font-size:14px;line-height:1.48}.section{font-size:21px;font-weight:950;margin:22px 0 12px}
-button{width:auto;border:1px solid rgba(255,255,255,.10);color:#fff;background:linear-gradient(180deg,#334155,#1e293b);border-radius:20px;min-height:52px;padding:0 14px;font-size:15px;font-weight:850;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.08);transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
-button:active{transform:scale(.985)}button:disabled{opacity:.54;cursor:not-allowed;filter:saturate(.65)}button:not(:disabled):hover{filter:brightness(1.07);box-shadow:0 12px 30px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.10)}.full{width:100%;margin-top:10px}.big{width:100%;min-height:70px;margin-bottom:10px;font-size:17px}
-.blue{background:linear-gradient(135deg,#2563eb,#1d4ed8);border-color:rgba(96,165,250,.35);box-shadow:0 12px 28px rgba(37,99,235,.24), inset 0 1px 0 rgba(255,255,255,.10)}
-.green{background:linear-gradient(135deg,#10b981,#047857);border-color:rgba(52,211,153,.34);box-shadow:0 12px 28px rgba(16,185,129,.20), inset 0 1px 0 rgba(255,255,255,.10)}
-.red{background:linear-gradient(135deg,#ef4444,#b91c1c);border-color:rgba(248,113,113,.34);box-shadow:0 12px 28px rgba(239,68,68,.20), inset 0 1px 0 rgba(255,255,255,.10)}
-.gray{background:linear-gradient(180deg,#475569,#1e293b);border-color:rgba(148,163,184,.22);box-shadow:0 10px 22px rgba(15,23,42,.32), inset 0 1px 0 rgba(255,255,255,.08)}
-.top-actions .gray{background:linear-gradient(135deg,#334155,#1e293b)}
-.top-actions .blue{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
-.top-actions .red{background:linear-gradient(135deg,#dc2626,#991b1b)}
-.top-actions .red.subtle{background:rgba(127,29,29,.26);border:1px solid rgba(248,113,113,.32);color:#fecaca}
-.route-grid .gray{background:linear-gradient(135deg,#0f766e,#115e59);border-color:rgba(45,212,191,.26)}
+button{width:auto;border:1px solid rgba(148,163,184,.22);color:#f8fafc;background:linear-gradient(180deg,#1e293b,#0f172a);border-radius:18px;min-height:50px;padding:0 15px;font-size:15px;font-weight:850;cursor:pointer;box-shadow:0 8px 20px rgba(2,6,23,.28), inset 0 1px 0 rgba(255,255,255,.06);transition:transform .12s ease,filter .12s ease,box-shadow .12s ease,border-color .12s ease}
+button:active{transform:scale(.985)}button:disabled{opacity:.54;cursor:not-allowed;filter:saturate(.65)}button:not(:disabled):hover{filter:brightness(1.06);border-color:rgba(191,219,254,.30);box-shadow:0 10px 26px rgba(2,6,23,.34), inset 0 1px 0 rgba(255,255,255,.08)}.full{width:100%;margin-top:10px}.big{width:100%;min-height:68px;margin-bottom:10px;font-size:17px}
+.blue{background:linear-gradient(180deg,#2563eb,#1e40af);border-color:rgba(147,197,253,.34);box-shadow:0 10px 24px rgba(37,99,235,.22), inset 0 1px 0 rgba(255,255,255,.10)}
+.green{background:linear-gradient(180deg,#15803d,#166534);border-color:rgba(134,239,172,.30);box-shadow:0 10px 24px rgba(21,128,61,.18), inset 0 1px 0 rgba(255,255,255,.09)}
+.red{background:rgba(127,29,29,.18);border-color:rgba(248,113,113,.34);color:#fecaca;box-shadow:0 8px 18px rgba(127,29,29,.12), inset 0 1px 0 rgba(255,255,255,.06)}
+.gray{background:linear-gradient(180deg,#334155,#1e293b);border-color:rgba(148,163,184,.24);color:#e2e8f0;box-shadow:0 8px 18px rgba(15,23,42,.30), inset 0 1px 0 rgba(255,255,255,.06)}
+.top-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 0 14px;padding:8px;border:1px solid rgba(148,163,184,.14);border-radius:20px;background:rgba(15,23,42,.72);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.top-actions button{min-height:40px;border-radius:14px;font-size:12px;padding:0 8px;box-shadow:none;letter-spacing:-.2px}
+.top-actions .gray{background:rgba(15,23,42,.88);border-color:rgba(148,163,184,.24);color:#cbd5e1}
+.top-actions .blue{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:rgba(147,197,253,.36);color:#fff}
+.top-actions .red{background:rgba(15,23,42,.88);border-color:rgba(248,113,113,.28);color:#fecaca}
+.top-actions .red.subtle{background:rgba(15,23,42,.88);border:1px solid rgba(248,113,113,.28);color:#fecaca}
+.route-grid .gray{background:linear-gradient(180deg,#0f766e,#115e59);border-color:rgba(94,234,212,.28);color:#ecfeff}
 input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14px;border-radius:16px;border:1px solid rgba(148,163,184,.18);background:#020617;color:#fff;font-size:15px;outline:none}textarea{min-height:90px;padding:14px;resize:vertical}label{display:block;color:#cbd5e1;font-size:13px;font-weight:750}.top-actions{display:flex;gap:8px;margin-bottom:12px}.top-actions button{flex:1;min-height:42px;border-radius:16px;font-size:12px}
 .job-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.job-title{font-size:20px;font-weight:950;line-height:1.28}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:72px;height:38px;padding:0 12px;border-radius:16px;background:rgba(37,99,235,.18);color:#bfdbfe;border:1px solid rgba(96,165,250,.22);font-size:13px;font-weight:950}.type{display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(59,130,246,.14);color:#bfdbfe;font-size:12px;font-weight:850}.info{color:#cbd5e1;font-size:14px;margin:9px 0;line-height:1.45}.pay-line{display:flex;gap:8px;align-items:flex-start;color:#e2e8f0}.pay-line .emoji{width:22px;text-align:center;flex:0 0 22px}.pay-note{display:flex;gap:8px;margin-top:10px;padding:12px;border-radius:16px;background:rgba(59,130,246,.10);border:1px solid rgba(96,165,250,.16);color:#bfdbfe;font-size:12px;line-height:1.45}.pay-note .mark{width:18px;flex:0 0 18px}
 .count-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.count-tile{background:rgba(2,6,23,.54);border:1px solid rgba(148,163,184,.10);border-radius:16px;padding:12px 6px;text-align:center}.count-tile b{display:block;font-size:20px;margin-bottom:2px}.count-tile span{color:#94a3b8;font-size:11px}.worker-card{background:rgba(2,6,23,.58);border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:13px;margin-top:10px}.worker-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.worker-name{font-size:16px;font-weight:900}.worker-meta{color:#94a3b8;font-size:12px;margin-top:4px}.status-pill{display:inline-flex;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:950}.status-wait{background:rgba(245,158,11,.16);color:#fde68a}.status-ok{background:rgba(16,185,129,.16);color:#86efac}.status-red{background:rgba(239,68,68,.16);color:#fecaca}.worker-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.worker-actions.one{grid-template-columns:1fr}.worker-actions button{min-height:44px;border-radius:15px;font-size:13px}details summary{list-style:none;cursor:pointer;background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:14px;border-radius:18px;text-align:center;font-weight:950}details summary::-webkit-details-marker{display:none}.empty{border:1px dashed rgba(148,163,184,.25);border-radius:20px;padding:18px;color:#94a3b8;line-height:1.5}.company-box{background:rgba(15,23,42,.74);border:1px solid rgba(148,163,184,.12);border-radius:18px;padding:12px;margin:12px 0}.company-box .info{margin:5px 0}.fee-preview{background:rgba(16,185,129,.10);border:1px solid rgba(52,211,153,.18);border-radius:16px;padding:12px;margin:8px 0 12px;color:#d1fae5;font-size:13px;line-height:1.45}.fee-preview b{display:block;font-size:18px;margin-top:4px;color:#fff}.fee-account{background:rgba(2,6,23,.58);border:1px solid rgba(148,163,184,.16);border-radius:18px;padding:12px;margin:10px 0 14px}.fee-account .info{margin:5px 0}.help-note{display:flex;gap:8px;margin:6px 0 12px;padding:10px 12px;border-radius:14px;background:rgba(245,158,11,.10);border:1px solid rgba(251,191,36,.16);color:#fde68a;font-size:12px;line-height:1.45}.help-note .mark{width:18px;flex:0 0 18px}
@@ -47,7 +49,7 @@ input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14p
 <div id="topActions" class="top-actions hidden"><button class="gray" onclick="goHome()">홈</button><button class="blue" onclick="goScreen('myInfoScreen')">내 정보</button><button class="gray" onclick="manualRefresh()">데이터 갱신</button><button class="red subtle" onclick="logout()">로그아웃</button></div>
 
 <section id="roleScreen">
-  <div class="card notice"><div class="title">시작하기</div><div class="sub">현장 근무 신청과 출근 확인을 안전하게 관리하는 운영형 MVP</div><div class="official-sub">공고 확인 → 근무 신청 → 업체 확인 → 승인 후 출근</div><div class="version">v4.1.21 MY INFO TOP BAR</div></div>
+  <div class="card notice"><div class="title">시작하기</div><div class="sub">현장 근무 신청과 출근 확인을 안전하게 관리하는 운영형 MVP</div><div class="official-sub">공고 확인 → 근무 신청 → 업체 확인 → 승인 후 출근</div><div class="version">v4.1.22 BUTTON STYLE CLEANUP</div></div>
   <div class="trust-card trust-strong"><b>운영 기준 안내</b><p>FlowIQ Crew는 현장 근무 신청, 승인, 출근 확인을 관리하는 MVP 테스트 서비스입니다. 모든 공고는 운영 기준에 따라 검토될 수 있으며, 허위 공고·불법 고용 목적·임금 미지급 위험이 확인되면 이용이 제한될 수 있습니다.</p><div class="process-grid"><div class="process-item"><b>1. 공고 확인</b>현장 정보와 조건 확인</div><div class="process-item"><b>2. 근무 신청</b>근로자가 신청 접수</div><div class="process-item"><b>3. 업체 확인</b>관리자가 신청 검토</div><div class="process-item"><b>4. 승인 후 출근</b>승인된 현장만 출근</div></div></div>
   <button class="big blue" onclick="goScreen('workerLoginScreen')">👷 근로자 로그인</button><button class="big green" onclick="goScreen('managerLoginScreen')">🏗️ 현장 관리자 로그인</button><button class="big gray" onclick="goScreen('signupScreen')">📝 회원가입</button>
 </section>
@@ -81,7 +83,7 @@ input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14p
 </main>
 
 <script>
-const APP_VERSION='v4.1.21 MY INFO TOP BAR';
+const APP_VERSION='v4.1.22 BUTTON STYLE CLEANUP';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
