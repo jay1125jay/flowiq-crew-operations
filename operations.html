@@ -11,7 +11,7 @@
 <section id="jobFormScreen" class="hidden"><div class="card notice"><div class="title">공고 생성</div><div class="sub">MASTER가 플랫폼 수수료 5%를 확인해야 근로자에게 게시됩니다.</div></div><label>공고명</label><input id="fTitle" placeholder="예: 딸기 수확 보조"><label>근무 시작일</label><input id="fStartDate" type="date"><label>근무 종료일</label><input id="fEndDate" type="date"><label>근무 시간</label><input id="fTime" placeholder="예: 08:00 ~ 17:00"><label>위치</label><input id="fLocation" placeholder="예: 경기 화성시 장안면 ○○로 123, 상세주소 포함"><label>일당</label><input id="fSalary" inputmode="numeric" placeholder="예: 100000" oninput="updateFeePreview()"><label>모집 인원</label><input id="fNeeded" inputmode="numeric" placeholder="예: 3" oninput="updateFeePreview()"><div class="fee-preview"><span>플랫폼 수수료 = 일당 × 모집인원 × 5%</span><b id="feePreviewText">예상 수수료 0원</b></div><div class="fee-account"><div class="info">🏦 FlowIQ Crew 수수료 입금 계좌</div><div class="info">은행: 등록 예정</div><div class="info">계좌번호: 등록 예정</div><div class="info">예금주: FlowIQ Crew</div></div><label>작업 종류</label><select id="fType" onchange="updateJobTypeOther()"><option>물류</option><option>농가</option><option>건설</option><option>식당</option><option>청소</option><option>기타</option></select><div id="fOtherTypeWrap" class="hidden"><label>기타 작업 종류</label><input id="fOtherType" placeholder="예: 행사보조, 포장작업"></div><div class="pay-note"><span class="mark">※</span><span>수수료 입금 확인 후 MASTER가 공고를 게시합니다.<br>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><button class="full blue" onclick="createJob()">공고 저장</button><button class="full gray" onclick="goScreen('managerScreen')">취소</button></section>
 <section id="workerScreen" class="hidden"><div id="workerHome"></div><div class="section">추천 일자리</div><div id="workerJobs"></div></section>
 </main><script>
-const APP_VERSION='v4.1.6 HIDE DONE CLOSED JOBS';
+const APP_VERSION='v4.1.7 COMPANY OPS RECORD';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -453,6 +453,53 @@ function renderManager(){
   const ids=new Set(myJobs.map(j=>Number(j.id)));
   const myApps=applications.filter(a=>ids.has(Number(a.job_id))||String(a.company_id||'')===String(cid));
   let html=`<button class="big blue full" onclick="goScreen('jobFormScreen')">공고 생성</button><div class="version" id="liveStamp">자동 동기화 작동중 · ${APP_VERSION}</div>`;
+  html+=`<div class="section">등록 공고</div>`;
+  html+=myJobs.length?myJobs.map(j=>jobCardManager(j,myApps.filter(a=>Number(a.job_id)===Number(j.id)&&isManagerActiveWorkStatus(a.status)))).join(''):`<div class="empty">표시할 진행 공고가 없습니다.<br>마감 후 일 끝남 확인된 공고는 자동으로 숨김 처리됩니다.</div>`;
+  wrap.innerHTML=html;
+  openIds.forEach(id=>{const d=document.querySelector(`details[data-job-id="${id}"]`); if(d)d.open=true;});
+}
+
+
+/* ===== FlowIQ Crew v4.1.7 Company Operation Record Patch ===== */
+function companyStats(companyId){
+  const cid=String(companyId||'');
+  const companyJobs=jobs.filter(j=>String(j.company_id||'')===cid);
+  const jobIds=new Set(companyJobs.map(j=>Number(j.id)));
+  const companyApps=applications.filter(a=>jobIds.has(Number(a.job_id)) || String(a.company_id||'')===cid);
+  const matchedJobIds=new Set(companyApps.filter(a=>['승인','근무완료'].includes(normalizeStatus(a.status))).map(a=>Number(a.job_id)));
+  const completedJobIds=new Set(companyApps.filter(a=>normalizeStatus(a.status)==='근무완료').map(a=>Number(a.job_id)));
+  return {jobs:companyJobs.length, match:matchedJobIds.size, done:completedJobIds.size};
+}
+function companyStatsLine(companyId){
+  const s=companyStats(companyId);
+  return `운영기록: 공고 ${s.jobs}회 · 매칭 ${s.match}회 · 완료 ${s.done}회`;
+}
+function jobCardManager(j,apps){
+  const visibleApps=apps.filter(a=>isManagerActiveWorkStatus(a.status));
+  const matched=applications.filter(a=>Number(a.job_id)===Number(j.id)&&normalizeStatus(a.status)==='승인').length;
+  const pending=visibleApps.filter(a=>normalizeStatus(a.status)==='지원').length;
+  const remain=Math.max(0,num(j.needed)-matched);
+  const rows=visibleApps.length?visibleApps.map(a=>{
+    const st=normalizeStatus(a.status), stats=workerStats(a.phone||a.worker_phone); let btn='';
+    if(st==='지원')btn=`<div class="worker-actions"><button class="green" onclick="approveApplication(${Number(a.id)})">승인</button><button class="red" onclick="rejectApplication(${Number(a.id)})">거절</button></div>`;
+    if(st==='승인')btn=`<div class="worker-actions one"><button class="green" onclick="completeWork(${Number(a.id)})">일 끝남 확인</button><button class="red" onclick="cancelMatched(${Number(a.id)})">매칭취소</button></div>`;
+    return `<div class="worker-card"><div class="worker-row"><div><div class="worker-name">${esc(a.worker_name||'이름없음')} <span class="worker-meta">· 매칭 ${stats.match}회 · 거절 ${stats.reject}회</span></div><div class="worker-meta">${esc(a.phone||a.worker_phone||'번호없음')}</div></div><span class="status-pill ${st==='승인'?'status-ok':'status-wait'}">${esc(st)}</span></div>${btn}</div>`;
+  }).join(''):`<div class="empty" style="margin-top:10px">현재 확인할 지원자가 없습니다.</div>`;
+  const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">👤 담당자: ${esc(managerName(j))}</div>${managerPhone(j)?`<div class="info">📞 연락처: ${esc(managerPhone(j))}</div>`:''}<div class="info">📊 ${esc(companyStatsLine(j.company_id))}</div></div>`;
+  const action=`<div class="info pay-line"><span class="emoji">💸</span><span>플랫폼 수수료 ${money(feeAmount(j.salary,j.needed))}</span></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.<br>근무가 끝나면 반드시 <b>일 끝남 확인</b>을 눌러주세요. 확인 완료된 공고는 관리자 화면에서 자동으로 숨김 처리됩니다.</span></div><div class="count-grid"><div class="count-tile"><b>${pending}</b><span>지원</span></div><div class="count-tile"><b>${matched}</b><span>진행중 매칭</span></div><div class="count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="count-tile"><b>${num(j.needed)}</b><span>모집</span></div></div><details data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${rows}</details>`;
+  return jobCardBase(j,extra,action);
+}
+function renderManager(){
+  if(role!=='manager')return;
+  const wrap=$('managerContent'); if(!wrap)return;
+  const openIds=new Set([...document.querySelectorAll('details[data-job-id][open]')].map(x=>x.dataset.jobId));
+  const cid=currentCompanyId();
+  const op=companyStats(cid);
+  const myJobs=jobs.filter(j=>String(j.company_id||'')===String(cid) && !isManagerCompletedClosedJob(j));
+  const ids=new Set(myJobs.map(j=>Number(j.id)));
+  const myApps=applications.filter(a=>ids.has(Number(a.job_id))||String(a.company_id||'')===String(cid));
+  let html=`<div class="card notice"><div class="title">업체 운영기록</div><div class="sub">공고 ${op.jobs}회 · 매칭 ${op.match}회 · 완료 ${op.done}회</div></div>`;
+  html+=`<button class="big blue full" onclick="goScreen('jobFormScreen')">공고 생성</button><div class="version" id="liveStamp">자동 동기화 작동중 · ${APP_VERSION}</div>`;
   html+=`<div class="section">등록 공고</div>`;
   html+=myJobs.length?myJobs.map(j=>jobCardManager(j,myApps.filter(a=>Number(a.job_id)===Number(j.id)&&isManagerActiveWorkStatus(a.status)))).join(''):`<div class="empty">표시할 진행 공고가 없습니다.<br>마감 후 일 끝남 확인된 공고는 자동으로 숨김 처리됩니다.</div>`;
   wrap.innerHTML=html;
