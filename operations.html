@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.0.2 WORKER RECOMMEND NO MAP</title>
+<title>FlowIQ Crew OPERATIONS v4.0.3 WORKER RECOMMEND NO MAP</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1965,6 +1965,118 @@ button.blue.full,button.green.full{
 .job-alert-check b{display:block;font-size:13px;color:#dbeafe;margin-bottom:3px}
 .job-alert-check span{display:block;font-size:12px;color:#94a3b8;line-height:1.45}
 
+
+
+/* ===== FlowIQ Crew v4.0.3 Clean Color UI ===== */
+:root{
+  --fiq-bg:#020617;
+  --fiq-card:#0f172a;
+  --fiq-card-soft:#111827;
+  --fiq-border:rgba(148,163,184,.16);
+  --fiq-text:#f8fafc;
+  --fiq-muted:#94a3b8;
+  --fiq-primary:#2563eb;
+  --fiq-primary-dark:#1e40af;
+  --fiq-success:#059669;
+  --fiq-success-dark:#047857;
+  --fiq-danger:#dc2626;
+  --fiq-danger-dark:#991b1b;
+  --fiq-neutral:#334155;
+  --fiq-neutral-dark:#1e293b;
+}
+html,body{
+  background:linear-gradient(180deg,#020617 0%,#0f172a 100%) !important;
+}
+.brand{
+  background:linear-gradient(90deg,#e2e8f0,#93c5fd) !important;
+  -webkit-background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;
+}
+.card,.manager-card-clean,.today-site-card,.worker-hero,.region-filter-card{
+  background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(17,24,39,.98)) !important;
+  border-color:var(--fiq-border) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+.notice{
+  background:linear-gradient(180deg,rgba(15,23,42,.96),rgba(17,24,39,.96)) !important;
+  border-color:rgba(96,165,250,.18) !important;
+}
+button{
+  background:linear-gradient(180deg,var(--fiq-neutral),var(--fiq-neutral-dark)) !important;
+  border:1px solid rgba(148,163,184,.18) !important;
+  color:var(--fiq-text) !important;
+  box-shadow:0 8px 18px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+button::after{display:none !important;}
+.blue,button.blue,
+button[onclick*="createJob"],
+button[onclick*="saveSignupAccount"],
+button[onclick*="login"],
+button[onclick*="Login"],
+button[onclick*="approve"],
+button[onclick*="Approve"]{
+  background:linear-gradient(180deg,var(--fiq-primary),var(--fiq-primary-dark)) !important;
+  border-color:rgba(96,165,250,.30) !important;
+  box-shadow:0 10px 22px rgba(37,99,235,.22) !important;
+}
+.green,button.green{
+  background:linear-gradient(180deg,var(--fiq-success),var(--fiq-success-dark)) !important;
+  border-color:rgba(52,211,153,.25) !important;
+  box-shadow:0 10px 22px rgba(5,150,105,.18) !important;
+}
+.red,button.red,
+button[onclick*="reject"],
+button[onclick*="Reject"],
+button[onclick*="cancel"],
+button[onclick*="Cancel"],
+button[onclick*="delete"],
+button[onclick*="Delete"]{
+  background:linear-gradient(180deg,var(--fiq-danger),var(--fiq-danger-dark)) !important;
+  border-color:rgba(248,113,113,.26) !important;
+  box-shadow:0 10px 22px rgba(220,38,38,.18) !important;
+}
+.gray,button.gray,
+button[onclick*="refresh"],
+button[onclick*="goRoleSelect"],
+button[onclick*="goLanguageSelect"],
+button[onclick*="history.back"]{
+  background:linear-gradient(180deg,var(--fiq-neutral),var(--fiq-neutral-dark)) !important;
+  border-color:rgba(148,163,184,.18) !important;
+  box-shadow:0 8px 18px rgba(0,0,0,.20) !important;
+}
+.badge,.type,.region-current,.region-badge,.manager-status-pill,.settle-state{
+  box-shadow:none !important;
+}
+.badge{
+  background:rgba(37,99,235,.18) !important;
+  border:1px solid rgba(96,165,250,.24) !important;
+  color:#bfdbfe !important;
+}
+.type{
+  background:rgba(15,23,42,.78) !important;
+  color:#cbd5e1 !important;
+  border:1px solid rgba(148,163,184,.14) !important;
+}
+.manager-count-tile,.worker-mini-card,.metric{
+  background:rgba(2,6,23,.46) !important;
+  border-color:rgba(148,163,184,.12) !important;
+}
+.ok,.checked,.wait,.rejected{
+  box-shadow:none !important;
+}
+.ok{background:rgba(5,150,105,.13) !important;color:#86efac !important;border-color:rgba(52,211,153,.22) !important;}
+.checked{background:rgba(37,99,235,.14) !important;color:#bfdbfe !important;border-color:rgba(96,165,250,.22) !important;}
+.wait{background:rgba(51,65,85,.36) !important;color:#cbd5e1 !important;border-color:rgba(148,163,184,.16) !important;}
+.rejected{background:rgba(220,38,38,.12) !important;color:#fecaca !important;border-color:rgba(248,113,113,.22) !important;}
+input,select{
+  background:rgba(2,6,23,.72) !important;
+  border-color:rgba(148,163,184,.16) !important;
+}
+input:focus,select:focus{
+  border-color:rgba(96,165,250,.55) !important;
+  box-shadow:0 0 0 3px rgba(37,99,235,.16) !important;
+}
+
 </style>
 </head>
 
@@ -2331,7 +2443,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.2 WORKER RECOMMEND NO MAP';
+let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.3 WORKER RECOMMEND NO MAP';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -5081,7 +5193,7 @@ function copyCrewAccount(){
 <script>
 // ===== FlowIQ Crew v4.0 SIMPLE MATCHING MVP PATCH =====
 (function(){
-  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.2 WORKER RECOMMEND NO MAP";
+  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.3 WORKER RECOMMEND NO MAP";
   const MATCH_STATUSES = ["승인"];
   const REJECT_STATUSES = ["거절","매칭취소"];
   const RELEASED_STATUSES = ["지원취소","미선정","자동미선정","마감미선정"];
