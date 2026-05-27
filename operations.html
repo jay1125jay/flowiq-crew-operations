@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.0.1 SIMPLE MATCHING CLEAN</title>
+<title>FlowIQ Crew OPERATIONS v4.0.2 WORKER RECOMMEND NO MAP</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2331,7 +2331,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.1 SIMPLE MATCHING CLEAN';
+let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.2 WORKER RECOMMEND NO MAP';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -5081,7 +5081,7 @@ function copyCrewAccount(){
 <script>
 // ===== FlowIQ Crew v4.0 SIMPLE MATCHING MVP PATCH =====
 (function(){
-  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.1 SIMPLE MATCHING CLEAN";
+  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.2 WORKER RECOMMEND NO MAP";
   const MATCH_STATUSES = ["승인"];
   const REJECT_STATUSES = ["거절","매칭취소"];
   const RELEASED_STATUSES = ["지원취소","미선정","자동미선정","마감미선정"];
@@ -5329,7 +5329,7 @@ function copyCrewAccount(){
         if(status === "지원"){
           action = `<button class="full gray" disabled>승인 대기중</button><button class="full red" onclick="cancelApplication(${Number(myApp.id)})">지원 취소</button>`;
         }else if(status === "승인"){
-          action = `<button class="full green" disabled>매칭 완료</button><button class="full blue" onclick="openMap('${encodeURIComponent(j.location||'')}')">길찾기</button>`;
+          action = `<button class="full green" disabled>매칭 완료</button>`;
         }else if(full){
           action = `<button class="full gray" disabled>공고마감</button>`;
         }else if(hasApproved){
