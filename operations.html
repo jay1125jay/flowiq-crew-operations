@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.0 SIMPLE MATCHING MVP</title>
+<title>FlowIQ Crew OPERATIONS v4.0.1 SIMPLE MATCHING CLEAN</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2156,10 +2156,7 @@ button.blue.full,button.green.full{
     </div>
   </div>
 
-  <div class="grid2">
-    <button class="blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
-    <button class="gray" onclick="alert('v4.0에서는 QR 출근을 사용하지 않습니다.')">매칭형 MVP</button>
-  </div>
+  <button class="big blue full" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
 
   <div class="section">등록 공고</div>
   <div id="managerJobsList"></div>
@@ -2334,7 +2331,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v4.0 SIMPLE MATCHING MVP';
+let APP_VERSION='FlowIQ Crew OPERATIONS v4.0.1 SIMPLE MATCHING CLEAN';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -5084,7 +5081,7 @@ function copyCrewAccount(){
 <script>
 // ===== FlowIQ Crew v4.0 SIMPLE MATCHING MVP PATCH =====
 (function(){
-  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0 SIMPLE MATCHING MVP";
+  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0.1 SIMPLE MATCHING CLEAN";
   const MATCH_STATUSES = ["승인"];
   const REJECT_STATUSES = ["거절","매칭취소"];
   const RELEASED_STATUSES = ["지원취소","미선정","자동미선정","마감미선정"];
@@ -5272,7 +5269,6 @@ function copyCrewAccount(){
 
   window.managerWorkerActionButtons = function(app,status){
     const s = cleanStatus(status);
-    const job = (jobs||[]).find(j => Number(j.id) === Number(app.job_id));
     if(s === "지원"){
       return `<div class="manager-worker-actions">
         <button class="green" onclick="managerApproveApplication(${Number(app.id)})">승인</button>
@@ -5280,9 +5276,8 @@ function copyCrewAccount(){
       </div>`;
     }
     if(s === "승인"){
-      return `<div class="manager-worker-actions">
+      return `<div class="manager-worker-actions work-done-center">
         <button class="red" onclick="managerCancelMatchedApplication(${Number(app.id)})">매칭취소</button>
-        ${job ? `<button class="blue" onclick="openMap('${encodeURIComponent(job.location||'')}')">길찾기</button>` : ""}
       </div>`;
     }
     return "";
@@ -5386,7 +5381,7 @@ function copyCrewAccount(){
       return `<div class="card manager-card-clean"><div class="job-head"><div><div class="job-title">${escapeHtml(j.title||'공고명 없음')}</div><div class="type">${typeof getJobType==='function'?escapeHtml(getJobType(j)):escapeHtml(j.type||'공고')}</div></div><div class="badge">${typeof getVisibleJobStatus==='function'?escapeHtml(getVisibleJobStatus(j)):'상태'}</div></div><div class="info">📍 ${escapeHtml(j.location||'-')}</div><div class="info">🕒 ${escapeHtml(j.work_time||'-')}</div><div class="info">💰 일당 ${money(j.salary)} · 수수료 ${money(window.feeAmount(j.salary,j.needed))}</div><div class="manager-count-grid"><div class="manager-count-tile"><b>${pending}</b><span>지원</span></div><div class="manager-count-tile"><b>${matched}</b><span>매칭</span></div><div class="manager-count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="manager-count-tile"><b>${Number(j.needed)||0}</b><span>모집</span></div></div><details class="manager-worker-panel" data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${workerRows}</details></div>`;
     }).join("") : `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
     openIds.forEach(id => { const d = managerJobsList.querySelector(`details.manager-worker-panel[data-job-id="${id}"]`); if(d) d.open = true; });
-    workersList.innerHTML = `<div class="card notice"><div class="title">v4.0 단순 매칭 운영</div><div class="sub">관리자는 지원자를 승인/거절만 합니다. 승인되면 매칭 완료이며, 승인 후 문제가 있으면 매칭취소를 누르세요.</div><div class="sub" id="managerLiveSyncStamp">자동 갱신 ON</div></div>`;
+    workersList.innerHTML = `<div class="card notice"><div class="title">v4.0 단순 매칭 운영</div><div class="sub">관리자는 지원자를 승인/거절만 합니다. 승인 후 문제가 있으면 매칭취소를 누르세요.</div><div class="sub" id="managerLiveSyncStamp">자동 갱신 ON</div></div>`;
   };
 
   window.renderPayroll = function(){ const el=document.getElementById('payrollList'); if(el) el.innerHTML='<div class="card"><div class="title">v4.0 안내</div><div class="sub">급여/정산 기능은 제거되었습니다. FlowIQ Crew는 매칭 수수료 5% 기반으로 운영됩니다.</div></div>'; };
