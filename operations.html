@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.1.23 BUTTON HIERARCHY CLEANUP</title>
-<meta name="flowiq-version" content="v4.1.23 BUTTON HIERARCHY CLEANUP" />
-<meta name="flowiq-build" content="operations-button-hierarchy-cleanup" />
+<title>FlowIQ Crew OPERATIONS v4.1.24 HOME ROLE ENTRY CLEANUP</title>
+<meta name="flowiq-version" content="v4.1.24 HOME ROLE ENTRY CLEANUP" />
+<meta name="flowiq-build" content="operations-home-role-entry-cleanup" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -41,7 +41,7 @@ input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14p
 .trust-card{background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(30,41,59,.86));border:1px solid rgba(96,165,250,.22);border-radius:24px;padding:16px;margin:12px 0 16px;box-shadow:0 12px 30px rgba(0,0,0,.24)}.trust-card b{display:block;font-size:15px;margin-bottom:7px;color:#e0f2fe}.trust-card p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.55}.trust-card ul{margin:8px 0 0 18px;padding:0;color:#cbd5e1;font-size:13px;line-height:1.55}.trust-strong{background:rgba(37,99,235,.10);border-color:rgba(96,165,250,.24)}.trust-strong b{color:#dbeafe}.official-sub{margin-top:8px;color:#dbeafe;font-size:13px;font-weight:800;line-height:1.45}.process-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.process-item{padding:12px;border-radius:16px;background:rgba(2,6,23,.52);border:1px solid rgba(148,163,184,.12);font-size:12px;color:#cbd5e1;line-height:1.35}.process-item b{display:block;color:#fff;margin-bottom:4px}.ops-footer{margin-top:24px;padding:14px;border-radius:20px;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.12);color:#94a3b8;font-size:12px;line-height:1.55}.ops-footer b{color:#cbd5e1}.policy-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.policy-links span{padding:5px 8px;border-radius:999px;background:rgba(148,163,184,.10);color:#cbd5e1}
 .readonly-box{width:100%;min-height:52px;margin:7px 0 13px;padding:15px 14px;border-radius:16px;border:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.70);color:#cbd5e1;font-size:15px}.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0 14px}.profile-stat{padding:12px 8px;border-radius:16px;background:rgba(2,6,23,.52);border:1px solid rgba(148,163,184,.12);text-align:center}.profile-stat b{display:block;font-size:18px;color:#fff;margin-bottom:3px}.profile-stat span{font-size:11px;color:#94a3b8}.locked-note{font-size:12px;line-height:1.45;color:#fde68a;background:rgba(245,158,11,.10);border:1px solid rgba(251,191,36,.16);padding:10px 12px;border-radius:14px;margin:6px 0 14px}
 
-/* v4.1.23 BUTTON HIERARCHY CLEANUP - CSS ONLY
+/* v4.1.24 HOME ROLE ENTRY CLEANUP - CSS ONLY
    핵심 행동은 강하게, 보조/이동은 조용하게, 위험 행동은 테두리형으로 정리 */
 button{letter-spacing:-.15px}
 .big{min-height:66px;border-radius:22px;font-size:16px}
@@ -72,9 +72,9 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 <div id="topActions" class="top-actions hidden"><button class="gray" onclick="goHome()">홈</button><button class="blue" onclick="goScreen('myInfoScreen')">내 정보</button><button class="gray" onclick="manualRefresh()">데이터 갱신</button><button class="red subtle" onclick="logout()">로그아웃</button></div>
 
 <section id="roleScreen">
-  <div class="card notice"><div class="title">시작하기</div><div class="sub">현장 근무 신청과 출근 확인을 안전하게 관리하는 운영형 MVP</div><div class="official-sub">공고 확인 → 근무 신청 → 업체 확인 → 승인 후 출근</div><div class="version">v4.1.23 BUTTON HIERARCHY CLEANUP</div></div>
-  <div class="trust-card trust-strong"><b>운영 기준 안내</b><p>FlowIQ Crew는 현장 근무 신청, 승인, 출근 확인을 관리하는 MVP 테스트 서비스입니다. 모든 공고는 운영 기준에 따라 검토될 수 있으며, 허위 공고·불법 고용 목적·임금 미지급 위험이 확인되면 이용이 제한될 수 있습니다.</p><div class="process-grid"><div class="process-item"><b>1. 공고 확인</b>현장 정보와 조건 확인</div><div class="process-item"><b>2. 근무 신청</b>근로자가 신청 접수</div><div class="process-item"><b>3. 업체 확인</b>관리자가 신청 검토</div><div class="process-item"><b>4. 승인 후 출근</b>승인된 현장만 출근</div></div></div>
-  <button class="big blue" onclick="goScreen('workerLoginScreen')">👷 근로자 로그인</button><button class="big green" onclick="goScreen('managerLoginScreen')">🏗️ 현장 관리자 로그인</button><button class="big gray" onclick="goScreen('signupScreen')">📝 회원가입</button>
+  <div class="card notice"><div class="title">역할 선택</div><div class="sub">근로자는 근무 신청으로, 업체/관리자는 공고 등록과 신청 승인으로 바로 이동합니다.</div><div class="official-sub">공고 확인 → 근무 신청 → 업체 확인 → 승인 후 출근</div><div class="version">v4.1.24 HOME ROLE ENTRY CLEANUP</div></div>
+  <button class="big blue" onclick="goScreen('workerLoginScreen')">👷 근로자 로그인</button><button class="big green" onclick="goScreen('managerLoginScreen')">🏗️ 업체/관리자 로그인</button><button class="big gray" onclick="goScreen('signupScreen')">📝 회원가입</button>
+  <div class="trust-card trust-strong"><b>운영 기준 안내</b><p>승인된 공고만 출근 대상입니다. 허위 공고, 불법 고용 목적, 임금 미지급 위험이 확인되면 이용이 제한될 수 있습니다.</p><div class="process-grid"><div class="process-item"><b>1. 공고 확인</b>현장 정보와 조건 확인</div><div class="process-item"><b>2. 근무 신청</b>근로자가 신청 접수</div><div class="process-item"><b>3. 업체 확인</b>관리자가 신청 검토</div><div class="process-item"><b>4. 승인 후 출근</b>승인된 현장만 출근</div></div></div>
 </section>
 
 <section id="signupScreen" class="hidden">
@@ -106,7 +106,7 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 </main>
 
 <script>
-const APP_VERSION='v4.1.23 BUTTON HIERARCHY CLEANUP';
+const APP_VERSION='v4.1.24 HOME ROLE ENTRY CLEANUP';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
