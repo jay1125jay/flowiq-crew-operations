@@ -672,4 +672,99 @@ updateSignupFields = function(){
   if(box) box.classList.toggle('hidden', type === 'worker');
 };
 
+
+
+/* ===== FlowIQ Crew v4.1.15 Alert Loop Fix ===== */
+const APP_VERSION_ALERT_FIX = 'v4.1.15 ALERT LOOP FIX';
+try{ document.title = 'FlowIQ Crew OPERATIONS ' + APP_VERSION_ALERT_FIX; }catch(e){}
+function seenStoreKey(scope){
+  const userKey = role === 'manager' ? currentCompanyId() : workerPhone();
+  return 'fiq_seen_' + scope + '_' + String(userKey || 'global');
+}
+function readSeen(scope){
+  try{return new Set(JSON.parse(localStorage.getItem(seenStoreKey(scope)) || '[]').map(String));}catch(e){return new Set();}
+}
+function writeSeen(scope,set){
+  try{localStorage.setItem(seenStoreKey(scope), JSON.stringify([...set].slice(-500)));}catch(e){}
+}
+function managerPendingKeys(){
+  const cid=currentCompanyId();
+  const ids=new Set(jobs.filter(j=>String(j.company_id||'')===String(cid)).map(j=>Number(j.id)));
+  return new Set(applications.filter(a=>ids.has(Number(a.job_id)) && isPending(a.status)).map(a=>'app:'+String(a.id)));
+}
+function workerStatusKeys(){
+  const p=workerPhone();
+  return new Set(applications
+    .filter(a=>phoneKey(a.phone||a.worker_phone)===p)
+    .map(a=>'app:'+String(a.id)+':'+normalizeStatus(a.status)));
+}
+function workerAlertMessageFromKey(key){
+  const st=String(key).split(':').pop();
+  if(st==='승인') return '매칭 승인되었습니다. 현장 정보를 확인하세요.';
+  if(st==='거절') return '지원이 거절되었습니다.';
+  if(st==='미선정') return '공고 정원 마감으로 미선정 처리되었습니다.';
+  if(st==='매칭취소' || st==='매칭 취소') return '매칭이 취소되었습니다. 다른 공고에 지원할 수 있습니다.';
+  if(st==='근무완료') return '일 완료 확인되었습니다. 다른 공고에 지원할 수 있습니다.';
+  return '';
+}
+async function liveSync(){
+  if(!['manager','worker'].includes(role)||!['managerScreen','workerScreen'].includes(currentScreen)||liveBusy)return;
+  liveBusy=true;
+  try{
+    await loadData();
+    await autoCloseFullJobs();
+    await loadData();
+    if(role==='manager'){
+      const current=managerPendingKeys();
+      const seen=readSeen('manager_pending');
+      const fresh=[...current].filter(k=>!seen.has(k));
+      current.forEach(k=>seen.add(k));
+      writeSeen('manager_pending',seen);
+      lastPendingKeys=current;
+      renderManager();
+      const stamp=$('liveStamp'); if(stamp)stamp.innerText='최근 자동 동기화: '+new Date().toLocaleTimeString('ko-KR');
+      if(fresh.length>0) notify('새 지원자 '+fresh.length+'명이 들어왔습니다.');
+    }else{
+      const current=workerStatusKeys();
+      const seen=readSeen('worker_status');
+      const fresh=[...current].filter(k=>!seen.has(k));
+      current.forEach(k=>seen.add(k));
+      writeSeen('worker_status',seen);
+      renderAll();
+      const msg=fresh.map(workerAlertMessageFromKey).find(Boolean);
+      if(msg) notify(msg);
+    }
+  }finally{liveBusy=false;}
+}
+function startAppLive(){
+  stopManagerLive();
+  if(role==='manager'){
+    const current=managerPendingKeys();
+    const seen=readSeen('manager_pending');
+    current.forEach(k=>seen.add(k));
+    writeSeen('manager_pending',seen);
+    lastPendingKeys=current;
+  }
+  if(role==='worker'){
+    const current=workerStatusKeys();
+    const seen=readSeen('worker_status');
+    current.forEach(k=>seen.add(k));
+    writeSeen('worker_status',seen);
+    lastWorkerState=[...current].sort().join('|');
+  }
+  liveTimer=setInterval(liveSync,1800);
+  setTimeout(liveSync,600);
+}
+function startManagerLive(){startAppLive();}
+const __alertFixRenderManager = renderManager;
+renderManager = function(){
+  __alertFixRenderManager();
+  const stamp=$('liveStamp'); if(stamp) stamp.innerText = APP_VERSION_ALERT_FIX + ' · 자동 동기화 작동 중';
+};
+const __alertFixGoScreen = goScreen;
+goScreen = function(id){
+  __alertFixGoScreen(id);
+  if(id==='managerScreen' || id==='workerScreen') startAppLive();
+};
+
 init();</script></body></html>
