@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.8.5 MANAGER LIVE AUTO SYNC</title>
+<title>FlowIQ Crew OPERATIONS v3.9.0 MANAGER ALERT SETTINGS FIX</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2334,7 +2334,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.8.5 MANAGER LIVE AUTO SYNC';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.9.0 MANAGER ALERT SETTINGS FIX';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -5077,6 +5077,232 @@ function copyCrewAccount(){
       flowiqManagerLiveSync(false);
     }
   });
+})();
+</script>
+
+
+<script>
+/* ===== FlowIQ Crew v3.9.0 Manager Alert Settings Final ===== */
+(function(){
+  const ALERT_KEY = 'manager_applicant_alert_enabled';
+  const SYNC_MS = 1500;
+  let finalTimer = null;
+  let finalBusy = false;
+  let finalBaselineReady = false;
+  let finalKnownPending = new Set();
+  let finalAudioCtx = null;
+
+  function finalEnabled(){
+    const saved = localStorage.getItem(ALERT_KEY);
+    return saved === null ? true : saved === '1';
+  }
+  function setFinalEnabled(on){
+    localStorage.setItem(ALERT_KEY, on ? '1' : '0');
+    managerAlertEnabled = !!on;
+  }
+  setFinalEnabled(finalEnabled());
+
+  function finalIsManagerScreen(){
+    return role === 'manager' && currentScreen === 'managerScreen';
+  }
+  function finalStatus(v){
+    return typeof normalizeAppStatus === 'function' ? normalizeAppStatus(v || '') : String(v || '').trim();
+  }
+  function finalPendingApps(){
+    const source = (allApplications && allApplications.length ? allApplications : applications) || [];
+    return source.filter(a => finalStatus(a.status) === '지원');
+  }
+  function finalKey(app){
+    return String(app && (app.id || (app.job_id + '_' + app.phone + '_' + (app.created_at || ''))));
+  }
+  async function finalUnlockAudio(){
+    try{
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if(!AudioContext) return false;
+      if(!finalAudioCtx) finalAudioCtx = managerAlertAudioCtx || new AudioContext();
+      managerAlertAudioCtx = finalAudioCtx;
+      if(finalAudioCtx.state === 'suspended') await finalAudioCtx.resume();
+      return finalAudioCtx.state === 'running';
+    }catch(e){
+      console.warn('manager alert audio unlock failed', e);
+      return false;
+    }
+  }
+  async function finalPlayAlertSound(){
+    if(!finalEnabled()) return;
+    try{
+      await finalUnlockAudio();
+      const ctx = finalAudioCtx;
+      if(!ctx || ctx.state !== 'running') return;
+      const now = ctx.currentTime;
+      [0, 0.18].forEach((offset) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now + offset);
+        gain.gain.setValueAtTime(0.0001, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.16, now + offset + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.13);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.14);
+      });
+      if(navigator.vibrate) navigator.vibrate([180,70,180]);
+    }catch(e){
+      console.warn('manager alert sound blocked', e);
+    }
+  }
+  window.flowiqToggleManagerApplicantAlert = async function(el){
+    const on = !!(el && el.checked);
+    setFinalEnabled(on);
+    await finalUnlockAudio();
+    if(on) await finalPlayAlertSound();
+    finalEnsurePanel();
+  };
+  window.flowiqTestManagerApplicantAlert = async function(){
+    setFinalEnabled(true);
+    await finalUnlockAudio();
+    await finalPlayAlertSound();
+    finalShowNotice('🔔 관리자 지원자 알림 테스트 완료');
+    finalEnsurePanel();
+  };
+  function finalShowNotice(message){
+    const el = document.getElementById('managerNewApplicantNotice');
+    if(!el) return;
+    el.textContent = message || '🔔 신규 지원자가 등록되었습니다.';
+    el.classList.remove('hidden');
+    clearTimeout(window.__flowiqManagerNoticeTimer);
+    window.__flowiqManagerNoticeTimer = setTimeout(() => {
+      const box = document.getElementById('managerNewApplicantNotice');
+      if(box) box.classList.add('hidden');
+    }, 4500);
+  }
+  function finalPanelHtml(){
+    const checked = finalEnabled() ? 'checked' : '';
+    const pending = finalPendingApps().length;
+    return `<div class="manager-alert-panel" id="managerAlertSettingsPanel">
+      <div class="manager-alert-row">
+        <div>
+          <b>🔔 관리자 지원자 알림설정</b><br>
+          <span>새 지원자 자동감지 · 숫자 자동업데이트 · 현재 대기 ${pending}명</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900;color:#dbeafe;white-space:nowrap">
+          <input type="checkbox" ${checked} onchange="flowiqToggleManagerApplicantAlert(this)" style="width:auto;min-height:auto;margin:0"> 알림 ON
+        </label>
+      </div>
+      <div class="manager-alert-row" style="margin-top:10px">
+        <button class="gray" onclick="flowiqTestManagerApplicantAlert()">알림 테스트</button>
+        <button class="gray" onclick="managerAutoRefreshTick(true)">즉시 동기화</button>
+      </div>
+      <div id="managerLiveSyncStamp" class="manager-alert-live">자동 동기화 준비 중 · v3.9.0</div>
+      <div id="managerNewApplicantNotice" class="manager-alert-new hidden">신규 지원자가 등록되었습니다.</div>
+    </div>`;
+  }
+  function finalEnsurePanel(){
+    if(!finalIsManagerScreen()) return;
+    const list = document.getElementById('workersList');
+    if(!list) return;
+    const old = document.getElementById('managerAlertSettingsPanel');
+    if(old) old.remove();
+    list.insertAdjacentHTML('beforeend', finalPanelHtml());
+    finalUpdateStamp();
+  }
+  function finalUpdateStamp(){
+    const stamp = document.getElementById('managerLiveSyncStamp');
+    if(stamp){
+      stamp.innerText = '자동 동기화 ON · 최근 반영: ' + new Date().toLocaleTimeString('ko-KR') + ' · v3.9.0';
+    }
+  }
+
+  const originalRenderManagerV390 = window.renderManager;
+  window.renderManager = function(){
+    if(typeof originalRenderManagerV390 === 'function') originalRenderManagerV390.apply(this, arguments);
+    try{
+      if(document.getElementById('managerTitle')) document.getElementById('managerTitle').innerText = getCurrentCompanyName() + ' · v3.9.0';
+      finalEnsurePanel();
+    }catch(e){ console.warn('manager alert panel render failed', e); }
+  };
+
+  async function finalFetchAndRender(force=false){
+    if(role !== 'manager' || finalBusy) return;
+    finalBusy = true;
+    try{
+      const jr = await db.from('jobs').select('*').eq('company_id', companyId).order('created_at', {ascending:false});
+      if(jr.error) throw jr.error;
+      const nextJobs = jr.data || [];
+      const jobIds = nextJobs.map(j => Number(j.id)).filter(Boolean);
+      let nextApps = [];
+      let nextAttendance = [];
+      if(jobIds.length){
+        const ar = await db.from('applications').select('*').in('job_id', jobIds).order('created_at', {ascending:false});
+        if(ar.error) throw ar.error;
+        nextApps = ar.data || [];
+        const tr = await db.from('attendance').select('*').in('job_id', jobIds).order('created_at', {ascending:false});
+        if(!tr.error) nextAttendance = tr.data || [];
+      }
+      jobs = nextJobs;
+      applications = nextApps;
+      allApplications = nextApps;
+      attendance = nextAttendance;
+      if(typeof autoReleaseUnapprovedApplicationsForFullJobs === 'function'){
+        await autoReleaseUnapprovedApplicationsForFullJobs();
+      }
+      const pendingKeys = new Set(finalPendingApps().map(finalKey));
+      const newKeys = [...pendingKeys].filter(k => !finalKnownPending.has(k));
+      if(finalIsManagerScreen()){
+        renderManager();
+        finalUpdateStamp();
+      }
+      if(finalBaselineReady && newKeys.length > 0){
+        managerKnownPendingKeys = [...pendingKeys];
+        managerLastPendingCount = pendingKeys.size;
+        await finalPlayAlertSound();
+        finalShowNotice(`🔔 신규 지원자 ${newKeys.length}명 등록`);
+      }
+      finalKnownPending = pendingKeys;
+      finalBaselineReady = true;
+    }catch(err){
+      console.warn('manager v3.9 live sync failed', err);
+      if(force) alert('관리자 동기화 오류: ' + (err.message || err));
+    }finally{
+      finalBusy = false;
+    }
+  }
+  window.managerAutoRefreshTick = async function(force=false){
+    await finalFetchAndRender(force);
+  };
+  window.startManagerAutoRefresh = function(){
+    if(role !== 'manager') return;
+    setFinalEnabled(finalEnabled());
+    if(finalTimer) clearInterval(finalTimer);
+    finalBaselineReady = false;
+    finalKnownPending = new Set(finalPendingApps().map(finalKey));
+    finalTimer = setInterval(() => finalFetchAndRender(false), SYNC_MS);
+    setTimeout(() => finalFetchAndRender(false), 100);
+    setTimeout(() => finalFetchAndRender(false), 900);
+  };
+  window.stopManagerAutoRefresh = function(){
+    if(finalTimer){ clearInterval(finalTimer); finalTimer = null; }
+  };
+  document.addEventListener('click', function(e){
+    if(e.target.closest('#managerScreen') || e.target.closest('#managerLoginScreen')) finalUnlockAudio();
+  }, true);
+  document.addEventListener('touchstart', function(e){
+    if(e.target.closest('#managerScreen') || e.target.closest('#managerLoginScreen')) finalUnlockAudio();
+  }, true);
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && role === 'manager') finalFetchAndRender(false);
+  });
+  window.addEventListener('focus', function(){
+    if(role === 'manager') finalFetchAndRender(false);
+  });
+  setTimeout(function(){
+    if(finalIsManagerScreen()){
+      startManagerAutoRefresh();
+      finalEnsurePanel();
+    }
+  }, 700);
 })();
 </script>
 
