@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.1.22 BUTTON STYLE CLEANUP</title>
-<meta name="flowiq-version" content="v4.1.22 BUTTON STYLE CLEANUP" />
-<meta name="flowiq-build" content="operations-button-style-cleanup" />
+<title>FlowIQ Crew OPERATIONS v4.1.23 BUTTON HIERARCHY CLEANUP</title>
+<meta name="flowiq-version" content="v4.1.23 BUTTON HIERARCHY CLEANUP" />
+<meta name="flowiq-build" content="operations-button-hierarchy-cleanup" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -40,6 +40,29 @@ input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14p
 .route-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.route-grid button{min-height:46px;border-radius:15px;font-size:13px}.fiq-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);width:calc(100% - 28px);max-width:420px;background:rgba(15,23,42,.98);border:1px solid rgba(96,165,250,.30);box-shadow:0 14px 40px rgba(0,0,0,.36);border-radius:18px;padding:13px 14px;color:#dbeafe;font-size:14px;font-weight:900;z-index:99999;display:none}.fiq-toast.show{display:block}.version{font-size:11px;color:#64748b;margin-top:6px}
 .trust-card{background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(30,41,59,.86));border:1px solid rgba(96,165,250,.22);border-radius:24px;padding:16px;margin:12px 0 16px;box-shadow:0 12px 30px rgba(0,0,0,.24)}.trust-card b{display:block;font-size:15px;margin-bottom:7px;color:#e0f2fe}.trust-card p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.55}.trust-card ul{margin:8px 0 0 18px;padding:0;color:#cbd5e1;font-size:13px;line-height:1.55}.trust-strong{background:rgba(37,99,235,.10);border-color:rgba(96,165,250,.24)}.trust-strong b{color:#dbeafe}.official-sub{margin-top:8px;color:#dbeafe;font-size:13px;font-weight:800;line-height:1.45}.process-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.process-item{padding:12px;border-radius:16px;background:rgba(2,6,23,.52);border:1px solid rgba(148,163,184,.12);font-size:12px;color:#cbd5e1;line-height:1.35}.process-item b{display:block;color:#fff;margin-bottom:4px}.ops-footer{margin-top:24px;padding:14px;border-radius:20px;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.12);color:#94a3b8;font-size:12px;line-height:1.55}.ops-footer b{color:#cbd5e1}.policy-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.policy-links span{padding:5px 8px;border-radius:999px;background:rgba(148,163,184,.10);color:#cbd5e1}
 .readonly-box{width:100%;min-height:52px;margin:7px 0 13px;padding:15px 14px;border-radius:16px;border:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.70);color:#cbd5e1;font-size:15px}.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0 14px}.profile-stat{padding:12px 8px;border-radius:16px;background:rgba(2,6,23,.52);border:1px solid rgba(148,163,184,.12);text-align:center}.profile-stat b{display:block;font-size:18px;color:#fff;margin-bottom:3px}.profile-stat span{font-size:11px;color:#94a3b8}.locked-note{font-size:12px;line-height:1.45;color:#fde68a;background:rgba(245,158,11,.10);border:1px solid rgba(251,191,36,.16);padding:10px 12px;border-radius:14px;margin:6px 0 14px}
+
+/* v4.1.23 BUTTON HIERARCHY CLEANUP - CSS ONLY
+   핵심 행동은 강하게, 보조/이동은 조용하게, 위험 행동은 테두리형으로 정리 */
+button{letter-spacing:-.15px}
+.big{min-height:66px;border-radius:22px;font-size:16px}
+.full{min-height:54px;border-radius:18px}
+button.blue{background:linear-gradient(180deg,#1d4ed8,#1e3a8a);border-color:rgba(147,197,253,.42);box-shadow:0 12px 28px rgba(37,99,235,.24), inset 0 1px 0 rgba(255,255,255,.10)}
+button.green{background:linear-gradient(180deg,#047857,#065f46);border-color:rgba(110,231,183,.34);box-shadow:0 12px 26px rgba(5,150,105,.20), inset 0 1px 0 rgba(255,255,255,.09)}
+button.gray{background:rgba(15,23,42,.86);border-color:rgba(148,163,184,.24);color:#dbe4ef;box-shadow:0 7px 16px rgba(2,6,23,.22), inset 0 1px 0 rgba(255,255,255,.05)}
+button.red{background:rgba(15,23,42,.78);border-color:rgba(248,113,113,.42);color:#fecaca;box-shadow:0 7px 16px rgba(127,29,29,.10), inset 0 1px 0 rgba(255,255,255,.05)}
+.top-actions{padding:9px;background:rgba(2,6,23,.62);border-color:rgba(148,163,184,.16);box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.top-actions button{min-height:41px;border-radius:14px;font-size:12px;font-weight:900}
+.top-actions .blue{background:rgba(37,99,235,.20);border-color:rgba(96,165,250,.42);color:#dbeafe;box-shadow:none}
+.top-actions .gray{background:rgba(15,23,42,.76);border-color:rgba(148,163,184,.20);color:#cbd5e1;box-shadow:none}
+.top-actions .red,.top-actions .red.subtle{background:rgba(15,23,42,.76);border-color:rgba(248,113,113,.26);color:#fca5a5;box-shadow:none}
+.card .full.blue,.card button.full.blue{font-weight:950}
+.worker-actions .green,.worker-actions .blue{font-weight:950;min-height:48px}
+.worker-actions .red{background:rgba(15,23,42,.78);border-color:rgba(248,113,113,.42);color:#fca5a5}
+.worker-actions .gray{opacity:.86}
+details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,.28);color:#dbeafe;box-shadow:none}
+.route-grid .gray{background:rgba(15,118,110,.18);border-color:rgba(94,234,212,.28);color:#ccfbf1;box-shadow:none}
+.pay-note+button.full.blue,.company-box+button.full.blue{margin-top:12px}
+
 @media(max-width:390px){.count-grid,.process-grid{grid-template-columns:1fr 1fr}.worker-actions{grid-template-columns:1fr}}
 </style>
 </head>
@@ -49,7 +72,7 @@ input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14p
 <div id="topActions" class="top-actions hidden"><button class="gray" onclick="goHome()">홈</button><button class="blue" onclick="goScreen('myInfoScreen')">내 정보</button><button class="gray" onclick="manualRefresh()">데이터 갱신</button><button class="red subtle" onclick="logout()">로그아웃</button></div>
 
 <section id="roleScreen">
-  <div class="card notice"><div class="title">시작하기</div><div class="sub">현장 근무 신청과 출근 확인을 안전하게 관리하는 운영형 MVP</div><div class="official-sub">공고 확인 → 근무 신청 → 업체 확인 → 승인 후 출근</div><div class="version">v4.1.22 BUTTON STYLE CLEANUP</div></div>
+  <div class="card notice"><div class="title">시작하기</div><div class="sub">현장 근무 신청과 출근 확인을 안전하게 관리하는 운영형 MVP</div><div class="official-sub">공고 확인 → 근무 신청 → 업체 확인 → 승인 후 출근</div><div class="version">v4.1.23 BUTTON HIERARCHY CLEANUP</div></div>
   <div class="trust-card trust-strong"><b>운영 기준 안내</b><p>FlowIQ Crew는 현장 근무 신청, 승인, 출근 확인을 관리하는 MVP 테스트 서비스입니다. 모든 공고는 운영 기준에 따라 검토될 수 있으며, 허위 공고·불법 고용 목적·임금 미지급 위험이 확인되면 이용이 제한될 수 있습니다.</p><div class="process-grid"><div class="process-item"><b>1. 공고 확인</b>현장 정보와 조건 확인</div><div class="process-item"><b>2. 근무 신청</b>근로자가 신청 접수</div><div class="process-item"><b>3. 업체 확인</b>관리자가 신청 검토</div><div class="process-item"><b>4. 승인 후 출근</b>승인된 현장만 출근</div></div></div>
   <button class="big blue" onclick="goScreen('workerLoginScreen')">👷 근로자 로그인</button><button class="big green" onclick="goScreen('managerLoginScreen')">🏗️ 현장 관리자 로그인</button><button class="big gray" onclick="goScreen('signupScreen')">📝 회원가입</button>
 </section>
@@ -83,7 +106,7 @@ input,select,textarea{width:100%;min-height:52px;margin:7px 0 13px;padding:0 14p
 </main>
 
 <script>
-const APP_VERSION='v4.1.22 BUTTON STYLE CLEANUP';
+const APP_VERSION='v4.1.23 BUTTON HIERARCHY CLEANUP';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
