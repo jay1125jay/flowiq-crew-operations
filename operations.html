@@ -5792,6 +5792,316 @@ function copyCrewAccount(){
 })();
 </script>
 
+
+
+<script>
+// ===== FlowIQ Crew v4.0.8 Applicant/List Sync Final Fix =====
+(function(){
+  const FINAL_VERSION = "FlowIQ Crew OPERATIONS v4.0.8 APPLICANT LIST SYNC FIX";
+  window.APP_VERSION = FINAL_VERSION;
+
+  function clean(v){ return String(v ?? "").trim(); }
+  function num(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
+  function phoneKey(v){ return String(v||"").replace(/[^0-9]/g,""); }
+  function money(v){ return (num(v)||0).toLocaleString("ko-KR")+"원"; }
+  function esc(v){ return String(v ?? "").replace(/[&<>'"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[m])); }
+  function appsSource(){ return (Array.isArray(window.allApplications)&&window.allApplications.length ? window.allApplications : (window.applications||[])); }
+  function jobSource(){ return Array.isArray(window.jobs) ? window.jobs : []; }
+  function getCompany(){ return String(window.companyId || localStorage.getItem('company_id') || '').trim(); }
+  function getJobIdSet(list){ return new Set((list||[]).map(j=>Number(j.id)).filter(Boolean)); }
+  function statusOf(a){ return clean(a && a.status) || "지원"; }
+  function isPending(s){ return statusOf({status:s}) === "지원"; }
+  function isMatched(s){ return statusOf({status:s}) === "승인"; }
+  function isRejected(s){ return ["거절","매칭취소"].includes(statusOf({status:s})); }
+  function isReleased(s){ return ["지원취소","미선정","자동미선정","마감미선정"].includes(statusOf({status:s})); }
+  function activeApplicant(a){ const s=statusOf(a); return s==="지원" || s==="승인"; }
+  function isPublishedJob(j){ return typeof window.isJobPublished === 'function' ? window.isJobPublished(j) : !String(j.type||'').includes('입금대기'); }
+  function getJobType(j){ return typeof window.getJobType === 'function' ? window.getJobType(j) : String(j.type||'공고').replace(/\[[^\]]+\]/g,'').trim(); }
+  function visibleJobStatus(j){ return typeof window.getVisibleJobStatus === 'function' ? window.getVisibleJobStatus(j) : (isPublishedJob(j)?'게시중':'게시대기'); }
+  function companyName(){ return typeof window.getCurrentCompanyName==='function' ? window.getCurrentCompanyName() : (localStorage.getItem('company_name')||'현장관리자'); }
+  function workerNameFromApp(a){ return a?.worker_name || a?.name || '이름없음'; }
+  function companyNameFromJob(j){ return j?.company_name || j?.company || localStorage.getItem('company_name') || companyName() || '업체명 미등록'; }
+  function managerNameFromJob(j){ return j?.manager_name || j?.manager || localStorage.getItem('manager_name') || '담당자 미등록'; }
+  function managerContactFromJob(j){ return j?.manager_contact || j?.contact || localStorage.getItem('manager_contact') || ''; }
+
+  window.feeAmount = function(base,count){ return Math.round(num(base)*Math.max(1,num(count)||1)*0.05); };
+  window.totalPayment = function(base,count){ return window.feeAmount(base,count); };
+  window.v4IsMatchStatus = isMatched;
+  window.v4IsRejectStatus = isRejected;
+  window.isApprovedSlotStatus = isMatched;
+  window.isReleasedStatusV4 = isReleased;
+  window.getApprovedSlotCount = function(jobId){ return appsSource().filter(a=>Number(a.job_id)===Number(jobId)&&isMatched(a.status)).length; };
+  window.isJobFull = function(job){ const limit=num(job&&job.needed); return limit>0 && window.getApprovedSlotCount(job.id)>=limit; };
+  window.managerAppStatusLabel = function(status){ const s=statusOf({status}); return ({"지원":"지원중","승인":"매칭완료","거절":"거절","매칭취소":"매칭취소","지원취소":"지원취소","미선정":"미선정","자동미선정":"미선정","마감미선정":"미선정"}[s]||s); };
+  window.managerStatusClass = function(status){ const s=statusOf({status}); if(s==='승인')return 'manager-status-ok'; if(s==='지원')return 'manager-status-blue'; if(isRejected(s))return 'manager-status-red'; return 'manager-status-wait'; };
+
+  window.getWorkerMatchStatsByPhone = function(phone){
+    const key=phoneKey(phone); if(!key)return {match:0,reject:0};
+    const list=appsSource().filter(a=>phoneKey(a.phone)===key);
+    return { match:list.filter(a=>isMatched(a.status)).length, reject:list.filter(a=>isRejected(a.status)).length };
+  };
+
+  function formatSchedule(job){
+    if(typeof window.parseWorkSchedule === 'function') return window.parseWorkSchedule(job);
+    const start = clean(job?.work_start || job?.start_date || job?.work_date || job?.date);
+    const end = clean(job?.work_end || job?.end_date || start);
+    const dateText = start && end && start!==end ? `${start} ~ ${end}` : (start || '날짜 미지정');
+    return { dateText, timeText: clean(job?.work_time)||'시간 미지정' };
+  }
+  window.isJobExpiredForWorker = function(job){
+    const end=clean(job?.work_end || job?.end_date || job?.work_start || job?.start_date || job?.work_date || job?.date);
+    if(!end || !/^\d{4}-\d{2}-\d{2}/.test(end)) return false;
+    const today=new Date(); today.setHours(0,0,0,0);
+    const d=new Date(end); d.setHours(23,59,59,999);
+    return d < today;
+  };
+
+  window.loadData = async function(){
+    try{
+      const [jr, ar, tr] = await Promise.all([
+        db.from('jobs').select('*').order('created_at',{ascending:false}),
+        db.from('applications').select('*').order('created_at',{ascending:false}),
+        db.from('attendance').select('*').order('created_at',{ascending:false})
+      ]);
+      if(jr.error) throw jr.error;
+      if(ar.error) throw ar.error;
+      if(tr.error) console.warn('attendance sync warning:', tr.error.message);
+      window.jobs = jr.data || [];
+      window.allApplications = ar.data || [];
+      if(window.role === 'manager'){
+        const cid=getCompany();
+        const myJobs=jobSource().filter(j=>String(j.company_id||'')===cid);
+        const ids=getJobIdSet(myJobs);
+        window.applications = appsSource().filter(a=>String(a.company_id||'')===cid || ids.has(Number(a.job_id)));
+      }else if(window.role === 'worker' && window.workerPhone){
+        window.applications = appsSource().filter(a=>phoneKey(a.phone)===phoneKey(window.workerPhone));
+      }else{
+        window.applications = window.allApplications;
+      }
+      window.attendance = tr.data || [];
+      if(typeof window.autoReleaseUnapprovedApplicationsForFullJobs === 'function'){
+        await window.autoReleaseUnapprovedApplicationsForFullJobs();
+      }
+      if(typeof window.renderWorkerHome==='function')window.renderWorkerHome();
+      if(typeof window.renderJobs==='function')window.renderJobs();
+      if(typeof window.renderManager==='function')window.renderManager();
+      if(typeof window.renderPayroll==='function')window.renderPayroll();
+    }catch(e){
+      console.error('loadData final sync error',e);
+      alert('데이터 동기화 오류: '+(e.message||e));
+    }
+  };
+
+  window.createJob = async function(){
+    const title=clean(document.getElementById('fTitle')?.value);
+    const location=clean(document.getElementById('fLocation')?.value);
+    const work_time=clean(document.getElementById('fTime')?.value);
+    const salary=typeof moneyBase==='function'?moneyBase(document.getElementById('fSalary')?.value||0):num(document.getElementById('fSalary')?.value);
+    const needed=num(document.getElementById('fNeeded')?.value);
+    const selectedType=clean(document.getElementById('fType')?.value)||'공고';
+    const otherType=clean(document.getElementById('fTypeOther')?.value);
+    const type=selectedType==='기타'?(otherType||'기타'):selectedType;
+    const start=clean(document.getElementById('fStartDate')?.value || document.getElementById('fWorkStart')?.value || document.getElementById('fDate')?.value);
+    const end=clean(document.getElementById('fEndDate')?.value || document.getElementById('fWorkEnd')?.value || start);
+    const selectedLangs=[...document.querySelectorAll('.langCheck:checked')].map(x=>x.value);
+    const language=selectedLangs.length?'한국어 / '+selectedLangs.join(' / '):'한국어';
+    if(!title||!location||!work_time||!salary||!needed||!type){ alert('공고명, 위치, 시간, 일급, 모집 인원, 작업 종류를 입력하세요.'); return; }
+    const payload={
+      title, location, work_time, salary, needed, applied:0, language,
+      type: typeof makePendingType==='function'?makePendingType(type):`[입금대기] ${type}`,
+      company_id:getCompany(),
+      company_name:localStorage.getItem('company_name')||companyName(),
+      manager_name:localStorage.getItem('manager_name')||companyName(),
+      manager_contact:localStorage.getItem('manager_contact')||'',
+      work_start:start||null,
+      work_end:end||start||null
+    };
+    const {error}=await db.from('jobs').insert(payload);
+    if(error){ alert('공고 저장 오류: '+error.message); return; }
+    ['fTitle','fLocation','fTime','fSalary','fNeeded','fStartDate','fEndDate','fWorkStart','fWorkEnd','fDate'].forEach(id=>{const el=document.getElementById(id); if(el)el.value='';});
+    const typeEl=document.getElementById('fType'); if(typeEl)typeEl.value='물류';
+    const otherEl=document.getElementById('fTypeOther'); if(otherEl){otherEl.value=''; otherEl.classList.add('hidden');}
+    document.querySelectorAll('.langCheck').forEach(x=>x.checked=false);
+    if(typeof window.updatePaymentPreview==='function')window.updatePaymentPreview();
+    await window.loadData();
+    alert('공고 저장 완료. MASTER가 플랫폼 수수료 '+money(window.feeAmount(salary,needed))+' 입금을 확인하면 게시됩니다.');
+    if(typeof goScreen==='function')goScreen('managerScreen');
+  };
+
+  window.applyJob = async function(jobId){
+    if(!window.workerName || !window.workerPhone){ alert('근로자 로그인이 필요합니다.'); if(typeof goScreen==='function')goScreen('workerInfoScreen'); return; }
+    const live=await db.from('jobs').select('*').eq('id',jobId).single();
+    if(live.error || !live.data){ alert('공고 확인 오류: '+(live.error?.message||'공고 없음')); return; }
+    const job=live.data;
+    if(!isPublishedJob(job)){ alert('아직 MASTER 게시승인되지 않은 공고입니다.'); await window.loadData(); return; }
+    if(window.isJobFull(job)){ alert('필요 인원이 마감된 공고입니다.'); await window.loadData(); return; }
+    const apps=appsSource();
+    const approved=apps.find(a=>phoneKey(a.phone)===phoneKey(workerPhone)&&isMatched(a.status));
+    if(approved && Number(approved.job_id)!==Number(jobId)){ alert('이미 매칭 완료된 공고가 있습니다.'); return; }
+    const duplicate=apps.find(a=>Number(a.job_id)===Number(jobId)&&phoneKey(a.phone)===phoneKey(workerPhone)&&!isReleased(a.status));
+    if(duplicate){ alert('이미 이 공고에 지원했습니다.'); return; }
+    const payload={job_id:Number(jobId), worker_name:workerName||'이름없음', phone:workerPhone||'번호없음', company_id:job.company_id||'', status:'지원'};
+    const {data,error}=await db.from('applications').insert(payload).select('*').single();
+    if(error){ alert('지원 저장 오류: '+error.message); return; }
+    if(data){ window.allApplications=[data,...appsSource().filter(a=>Number(a.id)!==Number(data.id))]; }
+    await db.from('jobs').update({applied:(num(job.applied)||0)+1}).eq('id',jobId);
+    await window.loadData();
+    alert('지원 완료. 관리자 승인을 기다려주세요.');
+  };
+
+  window.managerApproveApplication = async function(applicationId){
+    const app=appsSource().find(a=>Number(a.id)===Number(applicationId));
+    const job=app?jobSource().find(j=>Number(j.id)===Number(app.job_id)):null;
+    if(job && window.isJobFull(job)){ alert('모집 인원이 이미 매칭 완료되었습니다.'); return; }
+    const {error}=await db.from('applications').update({status:'승인'}).eq('id',applicationId);
+    if(error){ alert('승인 오류: '+error.message); return; }
+    await window.loadData();
+    if(typeof window.autoReleaseUnapprovedApplicationsForFullJobs==='function') await window.autoReleaseUnapprovedApplicationsForFullJobs();
+    await window.loadData();
+    alert('매칭 완료');
+  };
+  window.managerRejectApplication = async function(applicationId){
+    const {error}=await db.from('applications').update({status:'거절'}).eq('id',applicationId);
+    if(error){ alert('거절 오류: '+error.message); return; }
+    await window.loadData();
+    alert('거절 완료');
+  };
+  window.managerCancelMatchedApplication = async function(applicationId){
+    if(!confirm('승인된 매칭을 취소/거절 처리할까요?')) return;
+    const {error}=await db.from('applications').update({status:'매칭취소'}).eq('id',applicationId);
+    if(error){ alert('매칭취소 오류: '+error.message); return; }
+    await window.loadData();
+    alert('매칭취소 완료');
+  };
+  window.cancelApplication = async function(applicationId){
+    if(!confirm('지원을 취소할까요?'))return;
+    const {error}=await db.from('applications').update({status:'지원취소'}).eq('id',applicationId);
+    if(error){ alert('지원취소 오류: '+error.message); return; }
+    await window.loadData();
+  };
+
+  window.managerWorkerActionButtons = function(app,status){
+    const s=statusOf({status});
+    if(s==='지원') return `<div class="manager-worker-actions"><button class="green" onclick="managerApproveApplication(${Number(app.id)})">승인</button><button class="red" onclick="managerRejectApplication(${Number(app.id)})">거절</button></div>`;
+    if(s==='승인') return `<div class="manager-worker-actions work-done-center"><button class="red full" onclick="managerCancelMatchedApplication(${Number(app.id)})">매칭취소</button></div>`;
+    return '';
+  };
+
+  function regionOf(location){ return typeof getJobRegion==='function' ? getJobRegion(location) : clean(location).split(/\s+/)[0]||'기타'; }
+  window.renderWorkerHome = function(){
+    const el=document.getElementById('workerHomePanel'); if(!el)return;
+    const stats=window.getWorkerMatchStatsByPhone(workerPhone);
+    const myApps=appsSource().filter(a=>phoneKey(a.phone)===phoneKey(workerPhone));
+    const approved=myApps.find(a=>isMatched(a.status));
+    const pending=myApps.filter(a=>isPending(a.status));
+    let body='';
+    if(approved){
+      const job=jobSource().find(j=>Number(j.id)===Number(approved.job_id));
+      const sch=formatSchedule(job);
+      body=`<div class="today-site-card"><div class="worker-status-pill pill-approved">✅ 매칭 완료</div><div class="worker-hero-title">${esc(job?.title||'매칭 완료 현장')}</div><div class="info">🏢 업체명: ${esc(companyNameFromJob(job))}</div><div class="info">👤 담당자: ${esc(managerNameFromJob(job))}</div>${managerContactFromJob(job)?`<div class="info">📞 연락처: ${esc(managerContactFromJob(job))}</div>`:''}<div class="info">📅 ${esc(sch.dateText)}</div><div class="info">⏰ ${esc(sch.timeText)}</div><div class="info">📍 ${esc(job?.location||'-')}</div><div class="job-pay-grid"><div class="info pay-line-clean"><span class="pay-emoji">💰</span><span class="pay-text">일당 ${money(job?.salary)}</span></div></div><div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">임금은 현장 업체에서 직접 지급합니다.</span></div>${job?`<button class="full blue" style="margin-top:14px" onclick="openMap('${String(job.location||'').replace(/'/g,"\\'")}')">길찾기</button>`:''}</div>`;
+    }else if(pending.length){
+      body=`<div class="today-site-card"><div class="worker-status-pill pill-pending">⏳ 승인 대기</div><div class="worker-hero-title">지원 ${pending.length}건 대기중</div><div class="worker-hero-sub">관리자가 승인하면 매칭 완료로 표시됩니다.</div></div>`;
+    }else{
+      body=`<div class="today-site-card"><div class="worker-status-pill pill-ready">💼 지원 가능</div><div class="worker-hero-title">지원 가능한 공고를 확인하세요</div><div class="worker-hero-sub">승인되면 매칭 완료 후 길찾기 버튼이 표시됩니다.</div></div>`;
+    }
+    el.innerHTML=`<div class="worker-hero"><div class="worker-status-pill pill-ready">v4.0 단순 매칭</div><div class="worker-hero-title">${esc(workerName||'근로자')}</div><div class="worker-hero-sub">내 누적 매칭 ${stats.match}회 · 거절 ${stats.reject}회</div></div>${body}`;
+  };
+
+  window.renderJobs = function(){
+    if(typeof renderWorkerRegionFilter==='function')renderWorkerRegionFilter();
+    const el=document.getElementById('jobsList'); if(!el)return;
+    const cid=getCompany();
+    const list=jobSource()
+      .filter(j=>window.role==='manager'?String(j.company_id||'')===cid:isPublishedJob(j))
+      .filter(j=>window.role!=='worker'||!window.isJobExpiredForWorker(j))
+      .filter(j=>window.role!=='worker'||window.workerRegionFilter==='전체'||regionOf(j.location)===window.workerRegionFilter);
+    const myApps=appsSource().filter(a=>phoneKey(a.phone)===phoneKey(workerPhone));
+    const hasApproved=myApps.some(a=>isMatched(a.status));
+    el.innerHTML=list.length?list.map(j=>{
+      const sch=formatSchedule(j);
+      const myApp=myApps.find(a=>Number(a.job_id)===Number(j.id)&&!isReleased(a.status));
+      const st=statusOf(myApp);
+      const matched=window.getApprovedSlotCount(j.id);
+      const remain=Math.max(0,num(j.needed)-matched);
+      const full=window.isJobFull(j);
+      let action='';
+      if(window.role==='worker'){
+        if(st==='지원'&&myApp)action=`<button class="full gray" disabled>승인 대기중</button><button class="full red" onclick="cancelApplication(${Number(myApp.id)})">지원 취소</button>`;
+        else if(st==='승인'&&myApp)action=`<button class="full green" disabled>매칭 완료</button>`;
+        else if(full)action=`<button class="full gray" disabled>공고마감</button>`;
+        else if(hasApproved)action=`<button class="full gray" disabled>매칭 완료 공고 있음</button>`;
+        else action=`<button class="full blue" onclick="applyJob(${Number(j.id)})">지원하기</button>`;
+      }
+      return `<div class="card"><div class="job-head"><div><div class="job-title">${esc(j.title)}</div><div class="type">${esc(getJobType(j))}</div>${window.role==='worker'?`<div class="region-badge">${esc(regionOf(j.location))}</div>`:''}</div><div class="badge">${matched}/${num(j.needed)}</div></div><div class="info">📅 ${esc(sch.dateText)}</div><div class="info">⏰ ${esc(sch.timeText)}</div><div class="info">📍 ${esc(j.location||'-')}</div><div class="job-pay-grid"><div class="info pay-line-clean"><span class="pay-emoji">👥</span><span class="pay-text">모집 ${num(j.needed)}명 · 매칭 ${matched}명 · 남은 ${remain}명</span></div><div class="info pay-line-clean"><span class="pay-emoji">💰</span><span class="pay-text">일당 ${money(j.salary)}</span></div>${window.role==='manager'?`<div class="info pay-line-clean"><span class="pay-emoji">💸</span><span class="pay-text">플랫폼 수수료 ${money(window.feeAmount(j.salary,j.needed))}</span></div>`:''}</div>${window.role==='worker'?'<div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">임금은 현장 업체에서 직접 지급합니다.</span></div>':'<div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div>'}${action}</div>`;
+    }).join(''):`<div class="region-empty"><b>공고가 없습니다</b><br>게시중인 공고가 없습니다.</div>`;
+  };
+
+  window.renderManager = function(){
+    const mChecked=document.getElementById('mChecked'), mApplied=document.getElementById('mApplied'), mJobs=document.getElementById('mJobs');
+    const workersList=document.getElementById('workersList'), managerJobsList=document.getElementById('managerJobsList'), managerTitle=document.getElementById('managerTitle');
+    if(!workersList||!managerJobsList)return;
+    const openIds=new Set(Array.from(document.querySelectorAll('#managerJobsList details.manager-worker-panel[open]')).map(d=>String(d.dataset.jobId||'')));
+    const cid=getCompany();
+    const managerJobs=jobSource().filter(j=>String(j.company_id||'')===cid);
+    const jobIds=getJobIdSet(managerJobs);
+    const managerApps=appsSource().filter(a=>jobIds.has(Number(a.job_id))||String(a.company_id||'')===cid);
+    const pendingCount=managerApps.filter(a=>isPending(a.status)).length;
+    const matchedCount=managerApps.filter(a=>isMatched(a.status)).length;
+    if(mChecked)mChecked.innerText=matchedCount; if(mApplied)mApplied.innerText=pendingCount; if(mJobs)mJobs.innerText=managerJobs.length;
+    if(managerTitle)managerTitle.innerText=`${companyName()} · v4.0.8`;
+    managerJobsList.innerHTML=managerJobs.length?managerJobs.map(j=>{
+      const sch=formatSchedule(j);
+      const jobApps=managerApps.filter(a=>Number(a.job_id)===Number(j.id)&&activeApplicant(a));
+      const pending=jobApps.filter(a=>isPending(a.status)).length;
+      const matched=jobApps.filter(a=>isMatched(a.status)).length;
+      const remain=Math.max(0,num(j.needed)-matched);
+      const rows=jobApps.length?jobApps.map(a=>{
+        const stats=window.getWorkerMatchStatsByPhone(a.phone);
+        const st=statusOf(a);
+        return `<div class="manager-worker-card"><div class="worker-row"><div><div class="worker-name">${esc(workerNameFromApp(a))} <span class="worker-meta">· 매칭 ${stats.match}회 · 거절 ${stats.reject}회</span></div><div class="worker-meta">${esc(a.phone||'번호없음')}</div></div><div class="manager-status-pill ${window.managerStatusClass(st)}">${window.managerAppStatusLabel(st)}</div></div>${window.managerWorkerActionButtons(a,st)}</div>`;
+      }).join(''):`<div class="card" style="margin-top:10px"><div class="sub">아직 지원자가 없습니다.</div></div>`;
+      return `<div class="card manager-card-clean"><div class="job-head"><div><div class="job-title">${esc(j.title||'공고명 없음')}</div><div class="type">${esc(getJobType(j))}</div></div><div class="badge">${esc(visibleJobStatus(j))}</div></div><div class="info">📅 ${esc(sch.dateText)}</div><div class="info">⏰ ${esc(sch.timeText)}</div><div class="info">📍 ${esc(j.location||'-')}</div><div class="job-pay-grid"><div class="info pay-line-clean"><span class="pay-emoji">👥</span><span class="pay-text">모집 ${num(j.needed)}명 · 매칭 ${matched}명 · 남은 ${remain}명</span></div><div class="info pay-line-clean"><span class="pay-emoji">💰</span><span class="pay-text">일당 ${money(j.salary)}</span></div><div class="info pay-line-clean"><span class="pay-emoji">💸</span><span class="pay-text">플랫폼 수수료 ${money(window.feeAmount(j.salary,j.needed))}</span></div></div><div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="manager-count-grid"><div class="manager-count-tile"><b>${pending}</b><span>지원</span></div><div class="manager-count-tile"><b>${matched}</b><span>매칭</span></div><div class="manager-count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="manager-count-tile"><b>${num(j.needed)}</b><span>모집</span></div></div><details class="manager-worker-panel" data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${rows}</details></div>`;
+    }).join(''):`<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
+    openIds.forEach(id=>{const d=managerJobsList.querySelector(`details.manager-worker-panel[data-job-id="${id}"]`); if(d)d.open=true;});
+    workersList.innerHTML=`<div class="card notice"><div class="title">v4.0.8 단순 매칭 운영</div><div class="sub">지원자 목록은 Supabase 기준으로 자동 동기화됩니다.</div><div class="pay-direct-note"><span class="note-mark">※</span><span class="note-text">승인 근로자 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="sub" id="managerLiveSyncStamp">자동 갱신 ON</div></div>`;
+  };
+
+  let syncTimer=null, busy=false, lastKeys=new Set();
+  function pendingKeys(){
+    const cid=getCompany(); const myJobs=jobSource().filter(j=>String(j.company_id||'')===cid); const ids=getJobIdSet(myJobs);
+    return new Set(appsSource().filter(a=>(ids.has(Number(a.job_id))||String(a.company_id||'')===cid)&&isPending(a.status)).map(a=>String(a.id||`${a.job_id}_${a.phone}_${a.created_at||''}`)));
+  }
+  async function liveSync(force=false){
+    if(window.role!=='manager' || window.currentScreen!=='managerScreen' || busy)return;
+    busy=true;
+    const before=new Set(lastKeys.size?lastKeys:pendingKeys());
+    try{
+      await window.loadData();
+      const after=pendingKeys();
+      const isNew=[...after].some(k=>!before.has(k));
+      lastKeys=after;
+      const stamp=document.getElementById('managerLiveSyncStamp'); if(stamp)stamp.innerText='최근 자동갱신: '+new Date().toLocaleTimeString('ko-KR');
+      if(isNew && before.size>0){
+        if(typeof window.playManagerAlertSound==='function')window.playManagerAlertSound(false);
+        if(typeof window.showManagerNewApplicantNotice==='function')window.showManagerNewApplicantNotice(1,'🔔 신규 지원자가 등록되었습니다.');
+      }
+    }catch(e){ console.warn('v4.0.8 live sync error',e); if(force)alert('자동 갱신 오류: '+(e.message||e)); }
+    finally{ busy=false; }
+  }
+  window.managerAutoRefreshTick=liveSync;
+  window.startManagerAutoRefresh=function(){
+    if(syncTimer)clearInterval(syncTimer);
+    lastKeys=pendingKeys();
+    syncTimer=setInterval(()=>liveSync(false),1200);
+    setTimeout(()=>liveSync(false),300);
+  };
+  window.stopManagerAutoRefresh=function(){ if(syncTimer){clearInterval(syncTimer); syncTimer=null;} };
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&window.role==='manager')liveSync(false); });
+  window.addEventListener('focus',()=>{ if(window.role==='manager')liveSync(false); });
+  setTimeout(()=>{ if(window.role==='manager'&&window.currentScreen==='managerScreen')window.startManagerAutoRefresh(); },600);
+})();
+</script>
+
 </body>
 </html>
 
