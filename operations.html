@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.9.2 WORKER IN-APP QR SCANNER</title>
+<title>FlowIQ Crew OPERATIONS v3.9.3 WORKER CAMERA PERMISSION FIX</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
 
 <style>
 *{
@@ -2290,7 +2290,10 @@ button.blue.full,button.green.full{
       <div id="workerQrReader" class="worker-qr-reader"></div>
       <div class="worker-qr-help">현장에 비치된 공고별 QR을 카메라 화면 중앙에 맞춰주세요.</div>
       <div id="workerQrStatus" class="worker-qr-status">카메라 준비 중...</div>
-      <button class="full gray" type="button" onclick="stopWorkerQrScanner()" style="margin-top:12px">카메라 닫기</button>
+      <input id="workerQrFileInput" class="hidden" type="file" accept="image/*" capture="environment" onchange="scanWorkerQrFromFile(this)">
+      <button class="full gray" type="button" onclick="startWorkerQrScanner()" style="margin-top:12px">📷 카메라 다시 시작</button>
+      <button class="full gray" type="button" onclick="openWorkerQrFileFallback()" style="margin-top:8px">📁 QR 사진으로 출근</button>
+      <button class="full gray" type="button" onclick="stopWorkerQrScanner()" style="margin-top:8px">카메라 닫기</button>
     </div>
     <div id="qrLinkBox" class="card hidden" style="margin-top:14px;background:rgba(15,23,42,.72);border:1px solid rgba(96,165,250,.18)">
       <div class="sub">출근 링크</div>
@@ -2376,7 +2379,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.9.2 WORKER IN-APP QR SCANNER';
+let APP_VERSION='FlowIQ Crew OPERATIONS v3.9.3 WORKER CAMERA PERMISSION FIX';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -4091,7 +4094,7 @@ function showQR(selectedRole, jobId=null){
 
   goScreen("qrScreen");
   if(selectedRole==="worker"){
-    setTimeout(()=>startWorkerQrScanner(),350);
+    startWorkerQrScanner();
   }
 }
 
@@ -4170,32 +4173,84 @@ async function startWorkerQrScanner(){
   if(workerQrScannerRunning)return;
   workerQrScanLocked=false;
 
+  if(location.protocol!=="https:" && location.hostname!=="localhost"){
+    if(qrStatus)qrStatus.innerText="HTTPS 주소에서만 카메라를 사용할 수 있습니다.";
+    return alert("카메라는 HTTPS 주소에서만 열립니다. GitHub Pages HTTPS 주소로 다시 접속해주세요.");
+  }
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    if(qrStatus)qrStatus.innerText="이 브라우저는 카메라 접근을 지원하지 않습니다.";
+    return alert("현재 브라우저가 카메라 접근을 막고 있습니다. 크롬 또는 사파리에서 다시 열어주세요.");
+  }
+
   if(typeof Html5Qrcode==="undefined"){
     if(qrStatus)qrStatus.innerText="카메라 스캐너 로딩 실패";
-    alert("카메라 스캐너를 불러오지 못했습니다. 인터넷 연결 후 새로고침하거나 기본 카메라로 QR을 찍어주세요.");
+    alert("카메라 스캐너를 불러오지 못했습니다. 인터넷 연결 후 새로고침해주세요.");
     return;
   }
 
+  const onDecoded = decodedText=>{
+    const checkin=extractCheckinFromQrText(decodedText);
+    processWorkerQrCheckin(checkin);
+  };
+  const onError = ()=>{};
+  const config = {fps:10, qrbox:{width:260,height:260}, aspectRatio:1.0};
+
   try{
+    await stopWorkerQrScanner();
     if(qrStatus)qrStatus.innerText="카메라 권한을 허용해주세요.";
     reader.innerHTML="";
     workerQrScanner=new Html5Qrcode("workerQrReader");
-    await workerQrScanner.start(
-      {facingMode:{ideal:"environment"}},
-      {fps:10, qrbox:{width:250,height:250}, aspectRatio:1.0},
-      decodedText=>{
-        const checkin=extractCheckinFromQrText(decodedText);
-        processWorkerQrCheckin(checkin);
-      },
-      ()=>{}
-    );
+
+    try{
+      await workerQrScanner.start({facingMode:"environment"}, config, onDecoded, onError);
+    }catch(firstError){
+      console.warn("environment camera failed, retry with devices", firstError);
+      const cameras = await Html5Qrcode.getCameras();
+      if(!cameras || cameras.length===0)throw firstError;
+      const rear = cameras.find(c=>/back|rear|environment|후면|뒷/i.test(c.label||"")) || cameras[cameras.length-1];
+      await workerQrScanner.start(rear.id, config, onDecoded, onError);
+    }
+
     workerQrScannerRunning=true;
     if(qrStatus)qrStatus.innerText="QR을 카메라 중앙에 맞춰주세요.";
   }catch(e){
     console.error("QR scanner start error",e);
     workerQrScannerRunning=false;
-    if(qrStatus)qrStatus.innerText="카메라 실행 실패";
-    alert("카메라를 열 수 없습니다. 브라우저 카메라 권한을 허용하고 HTTPS 주소에서 다시 시도해주세요.");
+    try{if(workerQrScanner)await workerQrScanner.clear();}catch(clearError){}
+    workerQrScanner=null;
+    if(qrStatus)qrStatus.innerHTML="카메라 실행 실패<br>브라우저 주소창의 카메라 권한을 허용하거나 아래 ‘QR 사진으로 출근’을 사용하세요.";
+    alert("카메라를 열 수 없습니다. 브라우저 카메라 권한을 허용한 뒤 ‘카메라 다시 시작’을 눌러주세요. 계속 안 되면 ‘QR 사진으로 출근’을 사용하세요.");
+  }
+}
+
+function openWorkerQrFileFallback(){
+  const input=document.getElementById("workerQrFileInput");
+  if(input)input.click();
+}
+
+async function scanWorkerQrFromFile(input){
+  const qrStatus=document.getElementById("workerQrStatus");
+  const file=input && input.files ? input.files[0] : null;
+  if(!file)return;
+  if(typeof Html5Qrcode==="undefined"){
+    alert("QR 스캐너를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.");
+    return;
+  }
+  try{
+    if(qrStatus)qrStatus.innerText="QR 사진 확인 중...";
+    await stopWorkerQrScanner();
+    const scanner=new Html5Qrcode("workerQrReader");
+    const decodedText=await scanner.scanFile(file,true);
+    try{await scanner.clear();}catch(e){}
+    const checkin=extractCheckinFromQrText(decodedText);
+    await processWorkerQrCheckin(checkin);
+  }catch(e){
+    console.error("QR file scan error",e);
+    if(qrStatus)qrStatus.innerText="QR 사진을 읽지 못했습니다. 더 선명하게 촬영해주세요.";
+    alert("QR 사진을 읽지 못했습니다. QR을 크게 찍어서 다시 선택해주세요.");
+  }finally{
+    try{input.value="";}catch(e){}
   }
 }
 
