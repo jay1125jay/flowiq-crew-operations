@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v3.9.3 WORKER CAMERA PERMISSION FIX</title>
+<title>FlowIQ Crew OPERATIONS v4.0 SIMPLE MATCHING MVP</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
 
 <style>
 *{
@@ -1966,40 +1965,6 @@ button.blue.full,button.green.full{
 .job-alert-check b{display:block;font-size:13px;color:#dbeafe;margin-bottom:3px}
 .job-alert-check span{display:block;font-size:12px;color:#94a3b8;line-height:1.45}
 
-
-/* ===== FlowIQ Crew v3.9.2 Worker In-App QR Scanner ===== */
-.worker-qr-scanner-box{
-  background:rgba(2,6,23,.78);
-  border:1px solid rgba(96,165,250,.22);
-  border-radius:24px;
-  padding:14px;
-  margin:18px 0 8px;
-}
-.worker-qr-reader{
-  width:100%;
-  max-width:360px;
-  min-height:260px;
-  margin:0 auto;
-  overflow:hidden;
-  border-radius:20px;
-  background:#020617;
-}
-.worker-qr-reader video{
-  border-radius:20px;
-}
-.worker-qr-help{
-  margin-top:12px;
-  color:#bfdbfe;
-  font-size:13px;
-  line-height:1.5;
-}
-.worker-qr-status{
-  margin-top:10px;
-  color:#86efac;
-  font-size:13px;
-  font-weight:900;
-}
-
 </style>
 </head>
 
@@ -2182,18 +2147,18 @@ button.blue.full,button.green.full{
 
 <section id="managerScreen" class="hidden">
   <div class="card notice">
-    <div class="sub">오늘 현장</div>
+    <div class="sub">매칭 운영</div>
     <div class="title" id="managerTitle">관리자 운영</div>
     <div class="metric-wrap">
-      <div class="metric"><b id="mChecked">0</b><span>출근</span></div>
-      <div class="metric"><b id="mApplied">0</b><span>지원</span></div>
+      <div class="metric"><b id="mChecked">0</b><span>매칭</span></div>
+      <div class="metric"><b id="mApplied">0</b><span>지원대기</span></div>
       <div class="metric"><b id="mJobs">0</b><span>공고</span></div>
     </div>
   </div>
 
   <div class="grid2">
     <button class="blue" onclick="goScreen('jobFormScreen')">＋ 공고 생성</button>
-    <button class="green" onclick="showQR('manager')">▦ 출근 QR</button>
+    <button class="gray" onclick="alert('v4.0에서는 QR 출근을 사용하지 않습니다.')">매칭형 MVP</button>
   </div>
 
   <div class="section">등록 공고</div>
@@ -2206,7 +2171,7 @@ button.blue.full,button.green.full{
 <section id="jobFormScreen" class="hidden">
   <div class="card notice">
     <div class="title">새 공고 생성</div>
-    <div class="sub">공고 생성 후 MASTER 입금확인/게시승인을 거쳐 근로자에게 노출됩니다.</div>
+    <div class="sub">공고 생성 후 MASTER가 플랫폼 수수료 5% 입금을 확인하면 근로자에게 노출됩니다.</div>
   </div>
 
   <div class="card">
@@ -2233,8 +2198,8 @@ button.blue.full,button.green.full{
 
     <div class="payment-preview">
       <div class="pay-line"><span>일당</span><b id="previewBasePay">0원</b></div>
-      <div class="pay-line"><span>Crew 수수료 5%</span><b id="previewFee">0원</b></div>
-      <div class="pay-total">수수료(5%) 포함 <span id="previewTotalPay">0원</span></div>
+      <div class="pay-line"><span>플랫폼 수수료 5% × 모집인원</span><b id="previewFee">0원</b></div>
+      <div class="pay-total">입금할 플랫폼 수수료 <span id="previewTotalPay">0원</span></div>
       <div class="card" style="margin-top:12px;background:rgba(15,23,42,.72);border:1px solid rgba(96,165,250,.18)">
         <div class="sub">입금 계좌</div>
         <div class="info" style="margin:8px 0 4px">은행 : 신한은행</div>
@@ -2286,15 +2251,6 @@ button.blue.full,button.green.full{
     <div class="title" id="qrTitle">출근 QR</div>
     <img id="qrImage" class="qr-box" alt="출근 QR"/>
     <div class="sub" id="qrDesc">근로자가 이 QR을 스캔하면 출근 처리됩니다.</div>
-    <div id="workerQrScannerBox" class="worker-qr-scanner-box hidden">
-      <div id="workerQrReader" class="worker-qr-reader"></div>
-      <div class="worker-qr-help">현장에 비치된 공고별 QR을 카메라 화면 중앙에 맞춰주세요.</div>
-      <div id="workerQrStatus" class="worker-qr-status">카메라 준비 중...</div>
-      <input id="workerQrFileInput" class="hidden" type="file" accept="image/*" capture="environment" onchange="scanWorkerQrFromFile(this)">
-      <button class="full gray" type="button" onclick="startWorkerQrScanner()" style="margin-top:12px">📷 카메라 다시 시작</button>
-      <button class="full gray" type="button" onclick="openWorkerQrFileFallback()" style="margin-top:8px">📁 QR 사진으로 출근</button>
-      <button class="full gray" type="button" onclick="stopWorkerQrScanner()" style="margin-top:8px">카메라 닫기</button>
-    </div>
     <div id="qrLinkBox" class="card hidden" style="margin-top:14px;background:rgba(15,23,42,.72);border:1px solid rgba(96,165,250,.18)">
       <div class="sub">출근 링크</div>
       <div id="qrLinkText" class="info" style="word-break:break-all;font-size:12px"></div>
@@ -2319,7 +2275,6 @@ button.blue.full,button.green.full{
 
 
 <script>
-// FlowIQ Crew v3.9.2 - 근로자 앱 내 카메라 QR 스캔 출근 추가.
 // FlowIQ Crew v3.5.0 - QR 출근 수동 처리 차단 및 관리자 QR 스캔 흐름 고정.
 // FlowIQ Crew v3.4.5 - 근로자 진행현황 단계별 상태 반영 수정.
 // FlowIQ Crew v3.7.2 - 정산완료/입금완료 공고는 오늘 현장에서 제외.
@@ -2379,7 +2334,7 @@ let applications=[];
 let allApplications=[];
 let attendance=[];
 let managerPendingApplications=[];
-let APP_VERSION='FlowIQ Crew OPERATIONS v3.9.3 WORKER CAMERA PERMISSION FIX';
+let APP_VERSION='FlowIQ Crew OPERATIONS v4.0 SIMPLE MATCHING MVP';
 let managerFilter='all';
 let managerSearch='';
 let managerAutoRefreshTimer=null;
@@ -2388,9 +2343,6 @@ let managerAlertAudioCtx=null;
 let managerKnownPendingKeys=[];
 let managerLastPendingCount=0;
 let managerSyncing=false;
-let workerQrScanner=null;
-let workerQrScannerRunning=false;
-let workerQrScanLocked=false;
   
 const MASTER_PASSWORD="1234";
 const COMPANY_PASSWORDS={
@@ -2907,7 +2859,6 @@ async function loginWorkerAccount(){
 }
 
 function show(id,push=false){
-  if(id!=="qrScreen")stopWorkerQrScanner();
   currentScreen=id;
   screens.forEach(s=>document.getElementById(s).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -3430,7 +3381,7 @@ function renderWorkerHome(){
 
     ${app && job ? `
     <div class="today-site-card">
-      <div class="sub">오늘 현장</div>
+      <div class="sub">매칭 운영</div>
       <div class="title">${job.title}</div>
       <div class="info">📍 ${job.location || "위치 정보 없음"}</div>
       <div class="info">🕒 ${job.work_time || "-"}</div>
@@ -4045,10 +3996,6 @@ function showQR(selectedRole, jobId=null){
   const qrActionBtn=document.getElementById("qrActionBtn");
   const qrLinkBox=document.getElementById("qrLinkBox");
   const qrLinkText=document.getElementById("qrLinkText");
-  const scannerBox=document.getElementById("workerQrScannerBox");
-  const qrStatus=document.getElementById("workerQrStatus");
-
-  stopWorkerQrScanner();
 
   if(selectedRole==="manager"){
     const managerJobs=jobs.filter(j=>role==="manager"?String(j.company_id)===String(companyId):true);
@@ -4064,300 +4011,102 @@ function showQR(selectedRole, jobId=null){
     const qrData=makeCheckinUrl(job.id);
     currentCheckinLink=qrData;
     qrTitle.innerText="공고별 출근 QR";
-    qrImage.style.display="flex";
     qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=18&data=${encodeURIComponent(qrData)}`;
-    qrDesc.innerHTML=`<b>${job.title || "공고"}</b><br>${job.location || "위치 정보 없음"}<br><br>근로자는 앱의 출근하기 화면 또는 휴대폰 기본 카메라로 이 QR을 스캔하면 해당 공고에 출근 처리됩니다.`;
-    if(scannerBox)scannerBox.classList.add("hidden");
+    qrDesc.innerHTML=`<b>${job.title || "공고"}</b><br>${job.location || "위치 정보 없음"}<br><br>근로자는 휴대폰 기본 카메라로 이 QR을 스캔하면 해당 공고에 출근 처리됩니다.`;
     if(qrLinkBox)qrLinkBox.classList.remove("hidden");
     if(qrLinkText)qrLinkText.innerText=qrData;
     if(qrActionBtn){
       qrActionBtn.style.display="block";
       qrActionBtn.innerText="QR 확인 완료";
       qrActionBtn.className="full green";
-      qrActionBtn.setAttribute("onclick","completeQR()");
     }
   }else{
     currentCheckinLink="";
-    qrTitle.innerText="QR 출근 스캔";
-    qrImage.style.display="none";
-    qrDesc.innerText="카메라 권한을 허용한 뒤, 현장에 비치된 공고별 QR을 스캔하세요.";
+    qrTitle.innerText="QR 출근 안내";
+    qrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=18&data=${encodeURIComponent(getPublicAppBaseUrl())}`;
+    qrDesc.innerText="현장에 비치된 공고별 출근 QR을 휴대폰 기본 카메라로 스캔하세요.";
     if(qrLinkBox)qrLinkBox.classList.add("hidden");
-    if(scannerBox)scannerBox.classList.remove("hidden");
-    if(qrStatus)qrStatus.innerText="카메라 준비 중...";
     if(qrActionBtn){
-      qrActionBtn.style.display="block";
-      qrActionBtn.innerText="📷 카메라 다시 시작";
-      qrActionBtn.className="full green";
-      qrActionBtn.setAttribute("onclick","startWorkerQrScanner()");
+      qrActionBtn.style.display="none";
     }
   }
 
   goScreen("qrScreen");
-  if(selectedRole==="worker"){
-    startWorkerQrScanner();
-  }
-}
-
-function extractCheckinFromQrText(text){
-  const raw=String(text||"").trim();
-  if(!raw)return "";
-  try{
-    const url=new URL(raw, location.origin);
-    const checkin=url.searchParams.get("checkin");
-    if(checkin)return checkin;
-  }catch(e){}
-  const match=raw.match(/[?&]checkin=([^&#]+)/) || raw.match(/checkin[:=]([0-9A-Za-z_-]+)/);
-  return match ? decodeURIComponent(match[1]) : "";
-}
-
-async function stopWorkerQrScanner(){
-  const qrStatus=document.getElementById("workerQrStatus");
-  try{
-    if(workerQrScanner && workerQrScannerRunning){
-      await workerQrScanner.stop();
-      workerQrScannerRunning=false;
-    }
-  }catch(e){
-    console.warn("QR scanner stop skipped",e);
-  }
-  try{
-    if(workerQrScanner){
-      await workerQrScanner.clear();
-    }
-  }catch(e){}
-  workerQrScanner=null;
-  if(qrStatus && currentScreen==="qrScreen")qrStatus.innerText="카메라가 닫혔습니다.";
-}
-
-async function processWorkerQrCheckin(checkin){
-  if(workerQrScanLocked)return;
-  workerQrScanLocked=true;
-  const qrStatus=document.getElementById("workerQrStatus");
-  try{
-    if(!checkin){
-      throw "출근 QR이 아닙니다. 현장 관리자에게 공고별 출근 QR을 확인해주세요.";
-    }
-    if(!workerName || !workerPhone){
-      localStorage.setItem("pending_checkin",checkin);
-      alert("근로자 로그인 또는 정보 등록 후 출근할 수 있습니다.");
-      await stopWorkerQrScanner();
-      goScreen("workerLoginScreen");
-      return;
-    }
-    if(qrStatus)qrStatus.innerText="QR 확인 중...";
-    await loadData();
-    const job=jobs.find(j=>Number(j.id)===Number(checkin));
-    if(!job){
-      throw "공고를 찾을 수 없습니다. 관리자에게 최신 QR인지 확인해주세요.";
-    }
-    await saveAttendance(job);
-    if(qrStatus)qrStatus.innerText="출근 완료!";
-    await stopWorkerQrScanner();
-    alert("QR 출근 완료!");
-    history.replaceState(null,"",location.origin+location.pathname);
-    goScreen("workerScreen");
-  }catch(e){
-    alert(e);
-    if(qrStatus)qrStatus.innerText="다시 스캔해주세요.";
-    workerQrScanLocked=false;
-  }
-}
-
-async function startWorkerQrScanner(){
-  if(currentScreen!=="qrScreen")goScreen("qrScreen");
-  const qrStatus=document.getElementById("workerQrStatus");
-  const reader=document.getElementById("workerQrReader");
-  const scannerBox=document.getElementById("workerQrScannerBox");
-  if(scannerBox)scannerBox.classList.remove("hidden");
-  if(!reader)return alert("QR 스캔 영역을 찾을 수 없습니다.");
-  if(workerQrScannerRunning)return;
-  workerQrScanLocked=false;
-
-  if(location.protocol!=="https:" && location.hostname!=="localhost"){
-    if(qrStatus)qrStatus.innerText="HTTPS 주소에서만 카메라를 사용할 수 있습니다.";
-    return alert("카메라는 HTTPS 주소에서만 열립니다. GitHub Pages HTTPS 주소로 다시 접속해주세요.");
-  }
-
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    if(qrStatus)qrStatus.innerText="이 브라우저는 카메라 접근을 지원하지 않습니다.";
-    return alert("현재 브라우저가 카메라 접근을 막고 있습니다. 크롬 또는 사파리에서 다시 열어주세요.");
-  }
-
-  if(typeof Html5Qrcode==="undefined"){
-    if(qrStatus)qrStatus.innerText="카메라 스캐너 로딩 실패";
-    alert("카메라 스캐너를 불러오지 못했습니다. 인터넷 연결 후 새로고침해주세요.");
-    return;
-  }
-
-  const onDecoded = decodedText=>{
-    const checkin=extractCheckinFromQrText(decodedText);
-    processWorkerQrCheckin(checkin);
-  };
-  const onError = ()=>{};
-  const config = {fps:10, qrbox:{width:260,height:260}, aspectRatio:1.0};
-
-  try{
-    await stopWorkerQrScanner();
-    if(qrStatus)qrStatus.innerText="카메라 권한을 허용해주세요.";
-    reader.innerHTML="";
-    workerQrScanner=new Html5Qrcode("workerQrReader");
-
-    try{
-      await workerQrScanner.start({facingMode:"environment"}, config, onDecoded, onError);
-    }catch(firstError){
-      console.warn("environment camera failed, retry with devices", firstError);
-      const cameras = await Html5Qrcode.getCameras();
-      if(!cameras || cameras.length===0)throw firstError;
-      const rear = cameras.find(c=>/back|rear|environment|후면|뒷/i.test(c.label||"")) || cameras[cameras.length-1];
-      await workerQrScanner.start(rear.id, config, onDecoded, onError);
-    }
-
-    workerQrScannerRunning=true;
-    if(qrStatus)qrStatus.innerText="QR을 카메라 중앙에 맞춰주세요.";
-  }catch(e){
-    console.error("QR scanner start error",e);
-    workerQrScannerRunning=false;
-    try{if(workerQrScanner)await workerQrScanner.clear();}catch(clearError){}
-    workerQrScanner=null;
-    if(qrStatus)qrStatus.innerHTML="카메라 실행 실패<br>브라우저 주소창의 카메라 권한을 허용하거나 아래 ‘QR 사진으로 출근’을 사용하세요.";
-    alert("카메라를 열 수 없습니다. 브라우저 카메라 권한을 허용한 뒤 ‘카메라 다시 시작’을 눌러주세요. 계속 안 되면 ‘QR 사진으로 출근’을 사용하세요.");
-  }
-}
-
-function openWorkerQrFileFallback(){
-  const input=document.getElementById("workerQrFileInput");
-  if(input)input.click();
-}
-
-async function scanWorkerQrFromFile(input){
-  const qrStatus=document.getElementById("workerQrStatus");
-  const file=input && input.files ? input.files[0] : null;
-  if(!file)return;
-  if(typeof Html5Qrcode==="undefined"){
-    alert("QR 스캐너를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.");
-    return;
-  }
-  try{
-    if(qrStatus)qrStatus.innerText="QR 사진 확인 중...";
-    await stopWorkerQrScanner();
-    const scanner=new Html5Qrcode("workerQrReader");
-    const decodedText=await scanner.scanFile(file,true);
-    try{await scanner.clear();}catch(e){}
-    const checkin=extractCheckinFromQrText(decodedText);
-    await processWorkerQrCheckin(checkin);
-  }catch(e){
-    console.error("QR file scan error",e);
-    if(qrStatus)qrStatus.innerText="QR 사진을 읽지 못했습니다. 더 선명하게 촬영해주세요.";
-    alert("QR 사진을 읽지 못했습니다. QR을 크게 찍어서 다시 선택해주세요.");
-  }finally{
-    try{input.value="";}catch(e){}
-  }
 }
 
 async function saveAttendance(job){
-  if(!workerName || !workerPhone){
-    throw "근로자 로그인 후 출근할 수 있습니다.";
-  }
-
-  const normalizedWorkerPhone=normalizePhone(workerPhone);
-
-  // QR 출근 시점에는 반드시 Supabase 기준 최신 지원 상태를 다시 확인한다.
-  const liveAppResult=await db
-    .from("applications")
-    .select("*")
-    .eq("job_id",job.id)
-    .eq("phone",normalizedWorkerPhone)
-    .order("created_at",{ascending:false})
-    .limit(1);
-
-  if(liveAppResult.error){
-    throw "지원 상태 확인 오류: "+liveAppResult.error.message;
-  }
-
-  const myApplication=(liveAppResult.data||[])[0];
-
-  if(!myApplication){
-    throw "지원한 공고만 출근할 수 있습니다.";
-  }
-
-  const allowedCheckinStatuses=["승인","승인완료","approved","APPROVED","출근대기"];
-  const appStatus=String(myApplication.status || "지원").trim();
-
-  if(appStatus==="출근완료"){
-    throw "이미 출근 처리된 공고입니다.";
-  }
-
-  if(!allowedCheckinStatuses.includes(appStatus)){
-    throw "관리자 승인 후 출근할 수 있습니다. 현재 상태: "+appStatus;
-  }
-
-  const liveAttendanceResult=await db
-    .from("attendance")
-    .select("id")
-    .eq("job_id",job.id)
-    .eq("phone",normalizedWorkerPhone)
-    .limit(1);
-
-  if(liveAttendanceResult.error){
-    throw "출근 기록 확인 오류: "+liveAttendanceResult.error.message;
-  }
-
-  if((liveAttendanceResult.data||[]).length>0){
-    await db
-      .from("applications")
-      .update({status:"출근완료"})
-      .eq("job_id",job.id)
-      .eq("phone",normalizedWorkerPhone);
-    throw "이미 출근 처리된 공고입니다.";
-  }
-
-  // GPS는 가능하면 기록하되, GPS 권한 문제 때문에 QR 출근 자체가 막히지 않게 한다.
-  let gps="QR_CHECKIN_NO_GPS";
-  if(navigator.geolocation){
-    try{
-      gps=await new Promise(resolve=>{
-        navigator.geolocation.getCurrentPosition(
-          position=>resolve(`${position.coords.latitude},${position.coords.longitude}`),
-          ()=>resolve("QR_CHECKIN_GPS_DENIED"),
-          {enableHighAccuracy:false,timeout:5000,maximumAge:60000}
-        );
-      });
-    }catch(e){
-      gps="QR_CHECKIN_GPS_ERROR";
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){
+      reject("GPS를 지원하지 않는 기기입니다.");
+      return;
     }
-  }
 
-  const {error}=await db.from("attendance").insert({
-    job_id:job.id,
-    worker_name:workerName || "이름없음",
-    phone:normalizedWorkerPhone,
-    job_title:job.title,
-    amount:job.salary,
-    company_id:job.company_id,
-    gps:gps
+    if(!workerName || !workerPhone){
+      reject("근로자 정보 등록 후 출근할 수 있습니다.");
+      return;
+    }
+
+    const myApplication=applications.find(
+      a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
+    );
+
+    if(!myApplication){
+      reject("지원한 공고만 출근할 수 있습니다.");
+      return;
+    }
+
+    if((myApplication.status || "지원")!=="승인"){
+      reject("관리자 승인 후 출근할 수 있습니다.");
+      return;
+    }
+
+    const alreadyCheckedIn=attendance.some(
+      a=>Number(a.job_id)===Number(job.id) && a.phone===workerPhone
+    );
+
+    if(alreadyCheckedIn){
+      reject("이미 출근 처리된 공고입니다.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async position=>{
+      const lat=position.coords.latitude;
+      const lng=position.coords.longitude;
+      const gps=`${lat},${lng}`;
+
+      const {error}=await db.from("attendance").insert({
+        job_id:job.id,
+        worker_name:workerName || "이름없음",
+        phone:workerPhone || "번호없음",
+        job_title:job.title,
+        amount:job.salary,
+        company_id:job.company_id,
+        gps:gps
+      });
+
+      if(error){
+        reject(error.message);
+        return;
+      }
+
+      if(workerPhone){
+        await db
+          .from("applications")
+          .update({status:"출근완료"})
+          .eq("job_id",job.id)
+          .eq("phone",workerPhone);
+      }
+
+      resolve(gps);
+    },()=>{
+      reject("GPS 권한이 필요합니다.");
+    });
   });
-
-  if(error){
-    throw "출근 저장 오류: "+error.message;
-  }
-
-  const updateResult=await db
-    .from("applications")
-    .update({status:"출근완료"})
-    .eq("job_id",job.id)
-    .eq("phone",normalizedWorkerPhone);
-
-  if(updateResult.error){
-    throw "출근 상태 변경 오류: "+updateResult.error.message;
-  }
-
-  await loadData();
-  return gps;
 }
 
 async function completeQR(){
   if(lastRole==="worker"){
-    return startWorkerQrScanner();
+    return alert("현장관리자가 보여주는 출근 QR을 스캔해야 출근 처리됩니다.");
   }
 
   alert("출근 QR이 준비되었습니다. 근로자가 이 QR을 스캔하면 출근 처리됩니다.");
@@ -4375,8 +4124,8 @@ async function autoCheckIn(){
 
     if(!workerName || !workerPhone){
       localStorage.setItem("pending_checkin",checkin);
-      alert("근로자 로그인 또는 정보 등록 후 출근할 수 있습니다.");
-      goScreen("workerLoginScreen");
+      alert("근로자 정보 등록 후 출근할 수 있습니다.");
+      goScreen("workerInfoScreen");
       return;
     }
 
@@ -4384,21 +4133,18 @@ async function autoCheckIn(){
     const job=jobs.find(j=>Number(j.id)===Number(checkin));
 
     if(!job){
-      alert("공고를 찾을 수 없습니다. 관리자에게 최신 QR인지 확인해주세요.");
-      history.replaceState(null,"",location.origin+location.pathname);
-      goScreen("workerScreen");
+      alert("공고를 찾을 수 없습니다.");
+      location.href=location.origin+location.pathname;
       return;
     }
 
     try{
       await saveAttendance(job);
-      alert("QR 출근 완료!");
-      history.replaceState(null,"",location.origin+location.pathname);
-      goScreen("workerScreen");
+      alert("QR + GPS 출근 완료!");
+      location.href=location.origin+location.pathname;
     }catch(e){
       alert(e);
-      history.replaceState(null,"",location.origin+location.pathname);
-      goScreen("workerScreen");
+      location.href=location.origin+location.pathname;
     }
   }
 }
@@ -5336,227 +5082,341 @@ function copyCrewAccount(){
 
 
 <script>
-/* ===== FlowIQ Crew v3.9.0 Manager Alert Settings Final ===== */
+// ===== FlowIQ Crew v4.0 SIMPLE MATCHING MVP PATCH =====
 (function(){
-  const ALERT_KEY = 'manager_applicant_alert_enabled';
-  const SYNC_MS = 1500;
-  let finalTimer = null;
-  let finalBusy = false;
-  let finalBaselineReady = false;
-  let finalKnownPending = new Set();
-  let finalAudioCtx = null;
+  const V4_VERSION = "FlowIQ Crew OPERATIONS v4.0 SIMPLE MATCHING MVP";
+  const MATCH_STATUSES = ["승인"];
+  const REJECT_STATUSES = ["거절","매칭취소"];
+  const RELEASED_STATUSES = ["지원취소","미선정","자동미선정","마감미선정"];
+  const ACTIVE_WORKER_STATUSES = ["지원","승인"];
 
-  function finalEnabled(){
-    const saved = localStorage.getItem(ALERT_KEY);
-    return saved === null ? true : saved === '1';
-  }
-  function setFinalEnabled(on){
-    localStorage.setItem(ALERT_KEY, on ? '1' : '0');
-    managerAlertEnabled = !!on;
-  }
-  setFinalEnabled(finalEnabled());
+  window.APP_VERSION = V4_VERSION;
 
-  function finalIsManagerScreen(){
-    return role === 'manager' && currentScreen === 'managerScreen';
+  function cleanStatus(status){ return String(status || "").trim(); }
+  function phoneKey(phone){ return String(phone || "").replace(/[^0-9]/g,""); }
+  function escapeHtml(v){
+    return String(v ?? "").replace(/[&<>'"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[m]));
   }
-  function finalStatus(v){
-    return typeof normalizeAppStatus === 'function' ? normalizeAppStatus(v || '') : String(v || '').trim();
+  function money(v){ return (Number(v)||0).toLocaleString("ko-KR") + "원"; }
+  function getAppsSource(){ return (allApplications && allApplications.length ? allApplications : applications) || []; }
+  function getWorkerDisplayName(app){ return app?.worker_name || app?.name || "이름없음"; }
+  function isMatchStatus(status){ return MATCH_STATUSES.includes(cleanStatus(status)); }
+  function isRejectStatus(status){ return REJECT_STATUSES.includes(cleanStatus(status)); }
+  function isReleasedStatus(status){ return RELEASED_STATUSES.includes(cleanStatus(status)); }
+  function getWorkerMatchStatsByPhone(phone){
+    const key = phoneKey(phone);
+    if(!key) return {match:0, reject:0};
+    const apps = getAppsSource().filter(a => phoneKey(a.phone) === key);
+    return {
+      match: apps.filter(a => isMatchStatus(a.status)).length,
+      reject: apps.filter(a => isRejectStatus(a.status)).length
+    };
   }
-  function finalPendingApps(){
-    const source = (allApplications && allApplications.length ? allApplications : applications) || [];
-    return source.filter(a => finalStatus(a.status) === '지원');
-  }
-  function finalKey(app){
-    return String(app && (app.id || (app.job_id + '_' + app.phone + '_' + (app.created_at || ''))));
-  }
-  async function finalUnlockAudio(){
-    try{
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if(!AudioContext) return false;
-      if(!finalAudioCtx) finalAudioCtx = managerAlertAudioCtx || new AudioContext();
-      managerAlertAudioCtx = finalAudioCtx;
-      if(finalAudioCtx.state === 'suspended') await finalAudioCtx.resume();
-      return finalAudioCtx.state === 'running';
-    }catch(e){
-      console.warn('manager alert audio unlock failed', e);
-      return false;
-    }
-  }
-  async function finalPlayAlertSound(){
-    if(!finalEnabled()) return;
-    try{
-      await finalUnlockAudio();
-      const ctx = finalAudioCtx;
-      if(!ctx || ctx.state !== 'running') return;
-      const now = ctx.currentTime;
-      [0, 0.18].forEach((offset) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now + offset);
-        gain.gain.setValueAtTime(0.0001, now + offset);
-        gain.gain.exponentialRampToValueAtTime(0.16, now + offset + 0.015);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.13);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now + offset);
-        osc.stop(now + offset + 0.14);
-      });
-      if(navigator.vibrate) navigator.vibrate([180,70,180]);
-    }catch(e){
-      console.warn('manager alert sound blocked', e);
-    }
-  }
-  window.flowiqToggleManagerApplicantAlert = async function(el){
-    const on = !!(el && el.checked);
-    setFinalEnabled(on);
-    await finalUnlockAudio();
-    if(on) await finalPlayAlertSound();
-    finalEnsurePanel();
+  window.getWorkerMatchStatsByPhone = getWorkerMatchStatsByPhone;
+  window.v4IsMatchStatus = isMatchStatus;
+  window.v4IsRejectStatus = isRejectStatus;
+
+  window.feeAmount = function(base, count){
+    return Math.round((Number(base)||0) * (Number(count)||1) * 0.05);
   };
-  window.flowiqTestManagerApplicantAlert = async function(){
-    setFinalEnabled(true);
-    await finalUnlockAudio();
-    await finalPlayAlertSound();
-    finalShowNotice('🔔 관리자 지원자 알림 테스트 완료');
-    finalEnsurePanel();
+  window.totalPayment = function(base, count){
+    // v4.0: 플랫폼은 임금 전체가 아니라 수수료 5%만 받습니다.
+    return window.feeAmount(base, count);
   };
-  function finalShowNotice(message){
-    const el = document.getElementById('managerNewApplicantNotice');
+  window.updatePaymentPreview = function(){
+    const base = typeof moneyBase === "function" ? moneyBase(document.getElementById("fSalary")?.value || 0) : Number(document.getElementById("fSalary")?.value || 0);
+    const needed = Number(document.getElementById("fNeeded")?.value || 0) || 1;
+    const fee = window.feeAmount(base, needed);
+    const baseEl = document.getElementById("previewBasePay");
+    const feeEl = document.getElementById("previewFee");
+    const totalEl = document.getElementById("previewTotalPay");
+    if(baseEl) baseEl.innerText = money(base);
+    if(feeEl) feeEl.innerText = `${money(fee)} (${needed}명 기준)`;
+    if(totalEl) totalEl.innerText = money(fee);
+  };
+
+  window.isApprovedSlotStatus = function(status){ return isMatchStatus(status); };
+  window.getApprovedSlotCount = function(jobId){
+    return getAppsSource().filter(a => Number(a.job_id) === Number(jobId) && isMatchStatus(a.status)).length;
+  };
+  window.isJobFull = function(job){
+    const limit = Number(job && job.needed || 0);
+    return limit > 0 && window.getApprovedSlotCount(job.id) >= limit;
+  };
+
+  window.managerAppStatusLabel = function(status){
+    const s = cleanStatus(status) || "지원";
+    const map = {
+      "지원":"지원중",
+      "승인":"매칭완료",
+      "거절":"거절",
+      "지원취소":"지원취소",
+      "미선정":"미선정",
+      "자동미선정":"미선정",
+      "마감미선정":"미선정",
+      "매칭취소":"매칭취소"
+    };
+    return map[s] || s;
+  };
+  window.managerStatusClass = function(status){
+    const s = cleanStatus(status);
+    if(s === "승인") return "manager-status-ok";
+    if(s === "지원") return "manager-status-blue";
+    if(isRejectStatus(s)) return "manager-status-red";
+    if(isReleasedStatus(s)) return "manager-status-wait";
+    return "manager-status-wait";
+  };
+  window.settlementStatusLabel = function(){ return ""; };
+
+  window.autoReleaseUnapprovedApplicationsForFullJobs = async function(){
+    const updates = [];
+    for(const job of (jobs||[])){
+      if(!window.isJobFull(job)) continue;
+      const jobApps = getAppsSource().filter(a => Number(a.job_id) === Number(job.id));
+      jobApps.filter(a => cleanStatus(a.status) === "지원").forEach(a => updates.push(a));
+    }
+    for(const app of updates){
+      await db.from("applications").update({status:"미선정"}).eq("id", app.id);
+    }
+  };
+
+  window.createJob = async function(){
+    const title = document.getElementById("fTitle")?.value.trim();
+    const location = document.getElementById("fLocation")?.value.trim();
+    const work_time = document.getElementById("fTime")?.value.trim();
+    const salary = typeof moneyBase === "function" ? moneyBase(document.getElementById("fSalary")?.value || 0) : Number(document.getElementById("fSalary")?.value || 0);
+    const needed = Number(document.getElementById("fNeeded")?.value || 0);
+    const selectedType = document.getElementById("fType")?.value || "공고";
+    const otherType = document.getElementById("fTypeOther")?.value.trim() || "";
+    const type = selectedType === "기타" ? otherType : selectedType;
+    const selectedLangs = [...document.querySelectorAll(".langCheck:checked")].map(x => x.value);
+    const language = selectedLangs.length ? "한국어 / " + selectedLangs.join(" / ") : "한국어";
+
+    if(!title || !location || !work_time || !salary || !needed || !type){
+      alert("업체명, 위치, 시간, 일급, 필요 인원, 작업 종류를 입력하세요.");
+      return;
+    }
+
+    const {error} = await db.from("jobs").insert({
+      title, location, work_time, salary, needed,
+      applied:0, language,
+      type: typeof makePendingType === "function" ? makePendingType(type) : `[입금대기] ${type}`,
+      company_id: companyId
+    });
+    if(error){ alert("공고 저장 오류: " + error.message); return; }
+
+    ["fTitle","fLocation","fTime","fSalary","fNeeded"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+    const typeEl=document.getElementById("fType"); if(typeEl) typeEl.value="물류";
+    const otherEl=document.getElementById("fTypeOther"); if(otherEl){ otherEl.value=""; otherEl.classList.add("hidden"); }
+    document.querySelectorAll(".langCheck").forEach(x=>x.checked=false);
+    window.updatePaymentPreview();
+    await loadData();
+    alert("공고 저장 완료. MASTER가 플랫폼 수수료 " + money(window.feeAmount(salary, needed)) + " 입금을 확인하면 게시됩니다.");
+    goScreen("managerScreen");
+  };
+
+  window.applyJob = async function(jobId){
+    if(!workerName || !workerPhone){ alert("근로자 정보를 먼저 입력하세요."); goScreen("workerInfoScreen"); return; }
+    const liveJobResult = await db.from("jobs").select("*").eq("id", jobId).single();
+    if(liveJobResult.error || !liveJobResult.data){ alert("공고 상태 확인 오류: " + (liveJobResult.error?.message || "공고 없음")); return; }
+    const liveJob = liveJobResult.data;
+    if(typeof isJobPublished === "function" && !isJobPublished(liveJob)){ alert("아직 MASTER 게시승인되지 않은 공고입니다."); await loadData(); return; }
+    if(window.isJobFull(liveJob)){ alert("필요 인원이 마감된 공고입니다."); await loadData(); return; }
+
+    const apps = getAppsSource();
+    const myApproved = apps.find(a => phoneKey(a.phone) === phoneKey(workerPhone) && cleanStatus(a.status) === "승인");
+    if(myApproved && Number(myApproved.job_id) !== Number(jobId)){ alert("이미 매칭 완료된 공고가 있습니다."); return; }
+    const duplicate = apps.find(a => Number(a.job_id) === Number(jobId) && phoneKey(a.phone) === phoneKey(workerPhone) && !isReleasedStatus(a.status));
+    if(duplicate){ alert("이미 이 공고에 지원했습니다."); return; }
+
+    const {error} = await db.from("applications").insert({
+      job_id: jobId,
+      worker_name: workerName || "이름없음",
+      phone: workerPhone || "번호없음",
+      company_id: liveJob.company_id,
+      status: "지원"
+    });
+    if(error){ alert("지원 저장 오류: " + error.message); return; }
+    await db.from("jobs").update({applied:(Number(liveJob.applied)||0)+1}).eq("id", jobId);
+    await loadData();
+    alert("지원 완료. 관리자 승인을 기다려주세요.");
+  };
+
+  window.managerApproveApplication = async function(applicationId){
+    const app = getAppsSource().find(a => Number(a.id) === Number(applicationId));
+    const job = app ? (jobs||[]).find(j => Number(j.id) === Number(app.job_id)) : null;
+    if(job && window.isJobFull(job)){ alert("모집 인원이 이미 매칭 완료되었습니다."); return; }
+    const {error} = await db.from("applications").update({status:"승인"}).eq("id", applicationId);
+    if(error){ alert("승인 오류: " + error.message); return; }
+    await loadData();
+    await window.autoReleaseUnapprovedApplicationsForFullJobs();
+    await loadData();
+    if(typeof renderManager === "function") renderManager();
+    alert("매칭 완료");
+  };
+  window.managerRejectApplication = async function(applicationId){
+    const {error} = await db.from("applications").update({status:"거절"}).eq("id", applicationId);
+    if(error){ alert("거절 오류: " + error.message); return; }
+    await loadData();
+    if(typeof renderManager === "function") renderManager();
+    alert("거절 완료");
+  };
+  window.managerCancelMatchedApplication = async function(applicationId){
+    if(!confirm("승인된 매칭을 취소/거절 처리할까요?")) return;
+    const {error} = await db.from("applications").update({status:"매칭취소"}).eq("id", applicationId);
+    if(error){ alert("매칭취소 오류: " + error.message); return; }
+    await loadData();
+    if(typeof renderManager === "function") renderManager();
+    alert("매칭취소 완료");
+  };
+
+  window.managerWorkerActionButtons = function(app,status){
+    const s = cleanStatus(status);
+    const job = (jobs||[]).find(j => Number(j.id) === Number(app.job_id));
+    if(s === "지원"){
+      return `<div class="manager-worker-actions">
+        <button class="green" onclick="managerApproveApplication(${Number(app.id)})">승인</button>
+        <button class="red" onclick="managerRejectApplication(${Number(app.id)})">거절</button>
+      </div>`;
+    }
+    if(s === "승인"){
+      return `<div class="manager-worker-actions">
+        <button class="red" onclick="managerCancelMatchedApplication(${Number(app.id)})">매칭취소</button>
+        ${job ? `<button class="blue" onclick="openMap('${encodeURIComponent(job.location||'')}')">길찾기</button>` : ""}
+      </div>`;
+    }
+    return "";
+  };
+
+  window.renderWorkerHome = function(){
+    const el = document.getElementById("workerHomePanel");
     if(!el) return;
-    el.textContent = message || '🔔 신규 지원자가 등록되었습니다.';
-    el.classList.remove('hidden');
-    clearTimeout(window.__flowiqManagerNoticeTimer);
-    window.__flowiqManagerNoticeTimer = setTimeout(() => {
-      const box = document.getElementById('managerNewApplicantNotice');
-      if(box) box.classList.add('hidden');
-    }, 4500);
-  }
-  function finalPanelHtml(){
-    const checked = finalEnabled() ? 'checked' : '';
-    const pending = finalPendingApps().length;
-    return `<div class="manager-alert-panel" id="managerAlertSettingsPanel">
-      <div class="manager-alert-row">
-        <div>
-          <b>🔔 관리자 지원자 알림설정</b><br>
-          <span>새 지원자 자동감지 · 숫자 자동업데이트 · 현재 대기 ${pending}명</span>
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900;color:#dbeafe;white-space:nowrap">
-          <input type="checkbox" ${checked} onchange="flowiqToggleManagerApplicantAlert(this)" style="width:auto;min-height:auto;margin:0"> 알림 ON
-        </label>
-      </div>
-      <div class="manager-alert-row" style="margin-top:10px">
-        <button class="gray" onclick="flowiqTestManagerApplicantAlert()">알림 테스트</button>
-        <button class="gray" onclick="managerAutoRefreshTick(true)">즉시 동기화</button>
-      </div>
-      <div id="managerLiveSyncStamp" class="manager-alert-live">자동 동기화 준비 중 · v3.9.0</div>
-      <div id="managerNewApplicantNotice" class="manager-alert-new hidden">신규 지원자가 등록되었습니다.</div>
-    </div>`;
-  }
-  function finalEnsurePanel(){
-    if(!finalIsManagerScreen()) return;
-    const list = document.getElementById('workersList');
-    if(!list) return;
-    const old = document.getElementById('managerAlertSettingsPanel');
-    if(old) old.remove();
-    list.insertAdjacentHTML('beforeend', finalPanelHtml());
-    finalUpdateStamp();
-  }
-  function finalUpdateStamp(){
-    const stamp = document.getElementById('managerLiveSyncStamp');
-    if(stamp){
-      stamp.innerText = '자동 동기화 ON · 최근 반영: ' + new Date().toLocaleTimeString('ko-KR') + ' · v3.9.0';
+    const stats = getWorkerMatchStatsByPhone(workerPhone);
+    const myApps = getAppsSource().filter(a => phoneKey(a.phone) === phoneKey(workerPhone));
+    const approved = myApps.find(a => cleanStatus(a.status) === "승인");
+    const pending = myApps.filter(a => cleanStatus(a.status) === "지원");
+    let body = "";
+    if(approved){
+      const job = (jobs||[]).find(j => Number(j.id) === Number(approved.job_id));
+      body = `<div class="today-site-card">
+        <div class="worker-status-pill pill-approved">✅ 매칭 완료</div>
+        <div class="worker-hero-title">${escapeHtml(job?.title || "승인된 현장")}</div>
+        <div class="worker-hero-sub">${escapeHtml(job?.location || "현장 위치 확인")}</div>
+        ${job ? `<button class="full blue" style="margin-top:14px" onclick="openMap('${encodeURIComponent(job.location||'')}')">길찾기</button>` : ""}
+      </div>`;
+    }else if(pending.length){
+      body = `<div class="today-site-card"><div class="worker-status-pill pill-pending">⏳ 승인 대기</div><div class="worker-hero-title">지원 ${pending.length}건 대기중</div><div class="worker-hero-sub">관리자가 승인하면 매칭 완료로 표시됩니다.</div></div>`;
+    }else{
+      body = `<div class="today-site-card"><div class="worker-status-pill pill-ready">💼 지원 가능</div><div class="worker-hero-title">지원 가능한 공고를 확인하세요</div><div class="worker-hero-sub">승인되면 매칭 완료 후 길찾기 버튼이 표시됩니다.</div></div>`;
     }
-  }
+    el.innerHTML = `<div class="worker-hero">
+      <div class="worker-status-pill pill-ready">v4.0 단순 매칭</div>
+      <div class="worker-hero-title">${escapeHtml(workerName || "근로자")}</div>
+      <div class="worker-hero-sub">내 누적 매칭 ${stats.match}회 · 거절 ${stats.reject}회</div>
+    </div>${body}`;
+  };
 
-  const originalRenderManagerV390 = window.renderManager;
+  window.renderJobs = function(){
+    if(typeof renderWorkerRegionFilter === "function") renderWorkerRegionFilter();
+    const el = document.getElementById("jobsList");
+    if(!el) return;
+    const list = (jobs||[])
+      .filter(j => role === "manager" ? String(j.company_id) === String(companyId) : (typeof isJobPublished === "function" ? isJobPublished(j) : true))
+      .filter(j => role !== "worker" || workerRegionFilter === "전체" || (typeof getJobRegion === "function" && getJobRegion(j.location) === workerRegionFilter));
+    const myApps = getAppsSource().filter(a => phoneKey(a.phone) === phoneKey(workerPhone));
+    const hasApproved = myApps.some(a => cleanStatus(a.status) === "승인");
+    el.innerHTML = list.length ? list.map(j => {
+      const myApp = myApps.find(a => Number(a.job_id) === Number(j.id) && !isReleasedStatus(a.status));
+      const status = cleanStatus(myApp?.status);
+      const full = window.isJobFull(j);
+      let action = "";
+      if(role === "worker"){
+        if(status === "지원"){
+          action = `<button class="full gray" disabled>승인 대기중</button><button class="full red" onclick="cancelApplication(${Number(myApp.id)})">지원 취소</button>`;
+        }else if(status === "승인"){
+          action = `<button class="full green" disabled>매칭 완료</button><button class="full blue" onclick="openMap('${encodeURIComponent(j.location||'')}')">길찾기</button>`;
+        }else if(full){
+          action = `<button class="full gray" disabled>공고마감</button>`;
+        }else if(hasApproved){
+          action = `<button class="full gray" disabled>매칭 완료 공고 있음</button>`;
+        }else{
+          action = `<button class="full blue" onclick="applyJob(${Number(j.id)})">지원하기</button>`;
+        }
+      }
+      const fee = window.feeAmount(j.salary, j.needed);
+      return `<div class="card">
+        <div class="job-head"><div><div class="job-title">${escapeHtml(j.title)}</div><div class="type">${typeof getJobType==='function'?escapeHtml(getJobType(j)):escapeHtml(j.type||'공고')}</div>${role==='worker' && typeof getJobRegion==='function'?`<div class="region-badge">${escapeHtml(getJobRegion(j.location))}</div>`:""}</div><div class="badge">${window.getApprovedSlotCount(j.id)}/${Number(j.needed)||0}</div></div>
+        <div class="info">📍 ${escapeHtml(j.location||'-')}</div>
+        <div class="info">🕒 ${escapeHtml(j.work_time||'-')}</div>
+        <div class="info">👥 매칭 ${window.getApprovedSlotCount(j.id)}/${Number(j.needed)||0}명 · 남은 ${Math.max(0,(Number(j.needed)||0)-window.getApprovedSlotCount(j.id))}명</div>
+        <div class="info">💰 일당 ${money(j.salary)} ${role==='manager'?`· 플랫폼 수수료 ${money(fee)}`:""}</div>
+        ${action}
+      </div>`;
+    }).join("") : `<div class="region-empty"><b>공고가 없습니다</b><br>게시중인 공고가 없습니다.</div>`;
+  };
+
   window.renderManager = function(){
-    if(typeof originalRenderManagerV390 === 'function') originalRenderManagerV390.apply(this, arguments);
-    try{
-      if(document.getElementById('managerTitle')) document.getElementById('managerTitle').innerText = getCurrentCompanyName() + ' · v3.9.0';
-      finalEnsurePanel();
-    }catch(e){ console.warn('manager alert panel render failed', e); }
+    const mChecked = document.getElementById("mChecked");
+    const mApplied = document.getElementById("mApplied");
+    const mJobs = document.getElementById("mJobs");
+    const workersList = document.getElementById("workersList");
+    const managerJobsList = document.getElementById("managerJobsList");
+    const managerTitle = document.getElementById("managerTitle");
+    if(!workersList || !managerJobsList) return;
+    const openIds = new Set(Array.from(document.querySelectorAll('#managerJobsList details.manager-worker-panel[open]')).map(d => String(d.dataset.jobId||'')));
+    const managerJobs = (jobs||[]).filter(j => String(j.company_id) === String(companyId));
+    const allApps = getAppsSource().filter(a => managerJobs.some(j => Number(j.id) === Number(a.job_id)) || String(a.company_id||"") === String(companyId));
+    const pendingCount = allApps.filter(a => cleanStatus(a.status)==="지원").length;
+    const matchedCount = allApps.filter(a => cleanStatus(a.status)==="승인").length;
+    if(mChecked) mChecked.innerText = matchedCount;
+    if(mApplied) mApplied.innerText = pendingCount;
+    if(mJobs) mJobs.innerText = managerJobs.length;
+    if(managerTitle) managerTitle.innerText = (typeof getCurrentCompanyName === "function" ? getCurrentCompanyName() : "관리자") + " · v4.0";
+
+    managerJobsList.innerHTML = managerJobs.length ? managerJobs.map(j => {
+      const jobApps = allApps.filter(a => Number(a.job_id) === Number(j.id) && ["지원","승인"].includes(cleanStatus(a.status)));
+      const pending = jobApps.filter(a=>cleanStatus(a.status)==="지원").length;
+      const matched = jobApps.filter(a=>cleanStatus(a.status)==="승인").length;
+      const remain = Math.max(0,(Number(j.needed)||0)-matched);
+      const workerRows = jobApps.length ? jobApps.map(a=>{
+        const stats = getWorkerMatchStatsByPhone(a.phone);
+        const status = cleanStatus(a.status) || "지원";
+        return `<div class="manager-worker-card"><div class="worker-row"><div><div class="worker-name">${escapeHtml(getWorkerDisplayName(a))} <span class="worker-meta">· 매칭 ${stats.match}회 · 거절 ${stats.reject}회</span></div><div class="worker-meta">${escapeHtml(a.phone||'번호없음')}</div></div><div class="manager-status-pill ${window.managerStatusClass(status)}">${window.managerAppStatusLabel(status)}</div></div>${window.managerWorkerActionButtons(a,status)}</div>`;
+      }).join("") : `<div class="card" style="margin-top:10px"><div class="sub">아직 지원자가 없습니다.</div></div>`;
+      return `<div class="card manager-card-clean"><div class="job-head"><div><div class="job-title">${escapeHtml(j.title||'공고명 없음')}</div><div class="type">${typeof getJobType==='function'?escapeHtml(getJobType(j)):escapeHtml(j.type||'공고')}</div></div><div class="badge">${typeof getVisibleJobStatus==='function'?escapeHtml(getVisibleJobStatus(j)):'상태'}</div></div><div class="info">📍 ${escapeHtml(j.location||'-')}</div><div class="info">🕒 ${escapeHtml(j.work_time||'-')}</div><div class="info">💰 일당 ${money(j.salary)} · 수수료 ${money(window.feeAmount(j.salary,j.needed))}</div><div class="manager-count-grid"><div class="manager-count-tile"><b>${pending}</b><span>지원</span></div><div class="manager-count-tile"><b>${matched}</b><span>매칭</span></div><div class="manager-count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="manager-count-tile"><b>${Number(j.needed)||0}</b><span>모집</span></div></div><details class="manager-worker-panel" data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${workerRows}</details></div>`;
+    }).join("") : `<div class="card"><div class="sub">아직 생성한 공고가 없습니다.</div></div>`;
+    openIds.forEach(id => { const d = managerJobsList.querySelector(`details.manager-worker-panel[data-job-id="${id}"]`); if(d) d.open = true; });
+    workersList.innerHTML = `<div class="card notice"><div class="title">v4.0 단순 매칭 운영</div><div class="sub">관리자는 지원자를 승인/거절만 합니다. 승인되면 매칭 완료이며, 승인 후 문제가 있으면 매칭취소를 누르세요.</div><div class="sub" id="managerLiveSyncStamp">자동 갱신 ON</div></div>`;
   };
 
-  async function finalFetchAndRender(force=false){
-    if(role !== 'manager' || finalBusy) return;
-    finalBusy = true;
-    try{
-      const jr = await db.from('jobs').select('*').eq('company_id', companyId).order('created_at', {ascending:false});
-      if(jr.error) throw jr.error;
-      const nextJobs = jr.data || [];
-      const jobIds = nextJobs.map(j => Number(j.id)).filter(Boolean);
-      let nextApps = [];
-      let nextAttendance = [];
-      if(jobIds.length){
-        const ar = await db.from('applications').select('*').in('job_id', jobIds).order('created_at', {ascending:false});
-        if(ar.error) throw ar.error;
-        nextApps = ar.data || [];
-        const tr = await db.from('attendance').select('*').in('job_id', jobIds).order('created_at', {ascending:false});
-        if(!tr.error) nextAttendance = tr.data || [];
-      }
-      jobs = nextJobs;
-      applications = nextApps;
-      allApplications = nextApps;
-      attendance = nextAttendance;
-      if(typeof autoReleaseUnapprovedApplicationsForFullJobs === 'function'){
-        await autoReleaseUnapprovedApplicationsForFullJobs();
-      }
-      const pendingKeys = new Set(finalPendingApps().map(finalKey));
-      const newKeys = [...pendingKeys].filter(k => !finalKnownPending.has(k));
-      if(finalIsManagerScreen()){
-        renderManager();
-        finalUpdateStamp();
-      }
-      if(finalBaselineReady && newKeys.length > 0){
-        managerKnownPendingKeys = [...pendingKeys];
-        managerLastPendingCount = pendingKeys.size;
-        await finalPlayAlertSound();
-        finalShowNotice(`🔔 신규 지원자 ${newKeys.length}명 등록`);
-      }
-      finalKnownPending = pendingKeys;
-      finalBaselineReady = true;
-    }catch(err){
-      console.warn('manager v3.9 live sync failed', err);
-      if(force) alert('관리자 동기화 오류: ' + (err.message || err));
-    }finally{
-      finalBusy = false;
-    }
+  window.renderPayroll = function(){ const el=document.getElementById('payrollList'); if(el) el.innerHTML='<div class="card"><div class="title">v4.0 안내</div><div class="sub">급여/정산 기능은 제거되었습니다. FlowIQ Crew는 매칭 수수료 5% 기반으로 운영됩니다.</div></div>'; };
+  window.showPayroll = function(){ alert('v4.0에서는 급여/정산 화면을 사용하지 않습니다.'); goScreen('workerScreen'); };
+  window.showQR = function(){ alert('v4.0에서는 QR 출근을 사용하지 않습니다. 승인 후 길찾기만 제공합니다.'); };
+  window.completeQR = function(){ alert('v4.0에서는 QR 출근을 사용하지 않습니다.'); };
+  window.autoCheckIn = function(){ return false; };
+
+  function decorateV4(){
+    document.querySelectorAll('button').forEach(btn=>{
+      const txt=(btn.textContent||'').trim();
+      if(txt.includes('출근 QR') || txt==='출근' || txt==='급여') btn.style.display='none';
+    });
+    document.querySelectorAll('.worker-minimal-hidden').forEach(el=>el.style.display='none');
+    const qr=document.getElementById('qrScreen'); if(qr) qr.classList.add('hidden');
+    const payroll=document.getElementById('payrollScreen'); if(payroll) payroll.classList.add('hidden');
+    const fNeeded=document.getElementById('fNeeded'); if(fNeeded && !fNeeded.dataset.v4){ fNeeded.addEventListener('input', window.updatePaymentPreview); fNeeded.dataset.v4='1'; }
+    window.updatePaymentPreview();
   }
-  window.managerAutoRefreshTick = async function(force=false){
-    await finalFetchAndRender(force);
-  };
-  window.startManagerAutoRefresh = function(){
-    if(role !== 'manager') return;
-    setFinalEnabled(finalEnabled());
-    if(finalTimer) clearInterval(finalTimer);
-    finalBaselineReady = false;
-    finalKnownPending = new Set(finalPendingApps().map(finalKey));
-    finalTimer = setInterval(() => finalFetchAndRender(false), SYNC_MS);
-    setTimeout(() => finalFetchAndRender(false), 100);
-    setTimeout(() => finalFetchAndRender(false), 900);
-  };
-  window.stopManagerAutoRefresh = function(){
-    if(finalTimer){ clearInterval(finalTimer); finalTimer = null; }
-  };
-  document.addEventListener('click', function(e){
-    if(e.target.closest('#managerScreen') || e.target.closest('#managerLoginScreen')) finalUnlockAudio();
-  }, true);
-  document.addEventListener('touchstart', function(e){
-    if(e.target.closest('#managerScreen') || e.target.closest('#managerLoginScreen')) finalUnlockAudio();
-  }, true);
-  document.addEventListener('visibilitychange', function(){
-    if(!document.hidden && role === 'manager') finalFetchAndRender(false);
-  });
-  window.addEventListener('focus', function(){
-    if(role === 'manager') finalFetchAndRender(false);
-  });
-  setTimeout(function(){
-    if(finalIsManagerScreen()){
-      startManagerAutoRefresh();
-      finalEnsurePanel();
-    }
-  }, 700);
+
+  const originalGoScreen = window.goScreen;
+  if(typeof originalGoScreen === 'function'){
+    window.goScreen = function(id){
+      const r = originalGoScreen.apply(this, arguments);
+      setTimeout(()=>{ decorateV4(); if(id==='managerScreen' && typeof renderManager==='function')renderManager(); if(id==='workerScreen'){ if(typeof renderWorkerHome==='function')renderWorkerHome(); if(typeof renderJobs==='function')renderJobs(); }}, 50);
+      return r;
+    };
+  }
+  document.addEventListener('DOMContentLoaded', decorateV4);
+  setTimeout(decorateV4, 500);
 })();
 </script>
 
