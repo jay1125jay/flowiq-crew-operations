@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FlowIQ Crew OPERATIONS v4.1.48 SESSION REFRESH FULL CHECK</title>
+<title>FlowIQ Crew OPERATIONS v4.1.49 NEW WORKER JOB LIST FIX</title>
 <meta name="flowiq-version" content="v4.1.40 JOB ALERT FIX" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
@@ -107,7 +107,7 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 </main>
 
 <script>
-const APP_VERSION='v4.1.48 SESSION REFRESH FULL CHECK';
+const APP_VERSION='v4.1.49 NEW WORKER JOB LIST FIX';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -169,6 +169,26 @@ async function loadData(){const [j,a,acc]=await Promise.all([db.from('jobs').sel
 function applicationPhoneKey(a){return phoneKey(a?.phone||a?.worker_phone||a?.workerPhone||'')}
 function currentWorkerKey(){return currentUser?phoneKey(currentUser.phone):''}
 function isCurrentWorkerApp(a){const p=currentWorkerKey(); const ap=applicationPhoneKey(a); return !!p && !!ap && ap===p}
+function sameCompanyOrSite(aJob, bJob){
+  const ac=clean(aJob?.company_id), bc=clean(bJob?.company_id);
+  if(ac&&bc&&String(ac)===String(bc))return true;
+  const an=companyName(aJob), bn=companyName(bJob);
+  const al=clean(aJob?.location), bl=clean(bJob?.location);
+  return !!an&&!!bn&&an===bn&&!!al&&!!bl&&al===bl;
+}
+function isHiddenByPastRejection(job){
+  const p=currentWorkerKey();
+  if(!p||!job)return false;
+  const rejectedApps=applications.filter(a=>applicationPhoneKey(a)===p&&isBlockedForReapply(a.status));
+  if(!rejectedApps.length)return false;
+  return rejectedApps.some(a=>{
+    const rejectedJob=jobs.find(j=>Number(j.id)===Number(a.job_id));
+    if(!rejectedJob)return false;
+    return sameCompanyOrSite(rejectedJob, job);
+  });
+}
+function isClosed(j){return jobStatus(j)==='공고 마감'}
+function isFull(j){return isJobFull(j)}
 function appStatusPriority(s){s=normalizeStatus(s); if(s==='근무완료')return 70; if(s==='승인')return 60; if(s==='지원')return 50; if(isRejected(s))return 40; if(isWorkerCancelled(s))return 20; if(['미선정','자동미선정','마감미선정'].includes(s))return 10; return 0}
 function dedupeApplications(list){const map=new Map(); (list||[]).forEach(a=>{const key=Number(a?.job_id)+'|'+applicationPhoneKey(a); if(!Number(a?.job_id)||!applicationPhoneKey(a))return; const prev=map.get(key); if(!prev){map.set(key,a);return} const pa=appStatusPriority(a.status), pp=appStatusPriority(prev.status); if(pa>pp||(pa===pp&&Number(a.id||0)>Number(prev.id||0)))map.set(key,a)}); return Array.from(map.values()).sort((a,b)=>Number(b.id||0)-Number(a.id||0))}
 function getMatchedCount(jobId){return applications.filter(a=>Number(a.job_id)===Number(jobId)&&(isMatched(a.status)||isDone(a.status))).length}
@@ -243,7 +263,7 @@ async function unlockAudio(){try{const C=window.AudioContext||window.webkitAudio
 function managerJobIds(){const cid=currentCompanyId(); return new Set(jobs.filter(j=>String(j.company_id||'')===String(cid)).map(j=>Number(j.id)))}
 function managerPendingApps(){const ids=managerJobIds(); return applications.filter(a=>ids.has(Number(a.job_id))&&isPending(a.status)).sort((a,b)=>Number(b.id)-Number(a.id))}
 function managerPendingIdSet(){return new Set(managerPendingApps().map(a=>String(a.id)))}
-function workerPublicJobIdSet(){return new Set(jobs.filter(j=>isPublished(j)&&!isFull(j)&&!isClosed(j)).map(j=>String(j.id)))}
+function workerPublicJobIdSet(){return new Set(jobs.filter(j=>isPublished(j)&&!isExpired(j)&&!isJobFull(j)&&!isHiddenByPastRejection(j)).map(j=>String(j.id)))}
 function checkWorkerJobAlerts(){const now=workerPublicJobIdSet(); const added=[...now].filter(id=>!lastWorkerPublicJobIds.has(id)); if(added.length){const newest=jobs.filter(j=>added.includes(String(j.id))).sort((a,b)=>Number(b.id)-Number(a.id))[0]; notifyOnce('worker_job_new',newest?`job_${newest.id}`:`job_${added[0]}`,'새 공고가 등록되었습니다. 공고 목록을 확인하세요.')} lastWorkerPublicJobIds=now;}
 function workerApps(){const p=workerPhone(); return applications.filter(a=>applicationPhoneKey(a)===p)}
 function workerStatusMap(){const m=new Map(); workerApps().forEach(a=>m.set(String(a.id),normalizeStatus(a.status))); return m}
