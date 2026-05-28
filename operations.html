@@ -108,7 +108,7 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 </main>
 
 <script>
-const APP_VERSION='v4.1.51 WORKER_DONE_HIDE';
+const APP_VERSION='v4.1.52 WORKER_BACKGROUND_JOB_SYNC';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -294,9 +294,47 @@ function stateKey(){if(role==='manager')return [...managerPendingIdSet()].sort()
 function alertsAllowedScreen(){return ['manager','worker'].includes(role)&&!!currentUser&&!['roleScreen','signupScreen','managerLoginScreen','workerLoginScreen'].includes(currentScreen)}
 function checkManagerAlerts(){const now=managerPendingIdSet(); const added=[...now].filter(id=>!lastManagerPendingIds.has(id)); if(added.length){const newest=managerPendingApps().find(a=>String(a.id)===String(added.sort((a,b)=>Number(b)-Number(a))[0])); notifyOnce('manager_pending_new',newest?`app_${newest.id}`:`app_${added[0]}`,'새 근무 신청이 들어왔습니다.')} lastManagerPendingIds=now; lastManagerState=stateKey()}
 function checkWorkerAlerts(){const now=workerStatusMap(); let alerted=false; now.forEach((st,id)=>{const prev=lastWorkerStatusMap.get(id); if(prev&&prev!==st){if(isMatched(st)){notifyOnce('worker_match_new',`app_${id}_${st}`,'매칭 완료: 업체 담당자와 연락처를 확인하세요.'); alerted=true} else if(['거절','미선정','지원취소','신청취소','신청 취소','매칭 취소','매칭취소','근무완료'].includes(st)){notifyOnce('worker_status_new',`app_${id}_${st}`,'신청 상태가 변경되었습니다.'); alerted=true}}}); if(!alerted){const approved=workerApps().find(a=>isMatched(a.status)); if(approved)notifyOnce('worker_match_visible',`app_${approved.id}_${normalizeStatus(approved.status)}`,'매칭 완료: 업체 담당자와 연락처를 확인하세요.')} lastWorkerStatusMap=now; lastWorkerState=stateKey()}
-async function liveSync(){if(!alertsAllowedScreen()||liveBusy)return; liveBusy=true; try{await loadData(); await autoCloseFullJobs(); await loadData(); renderAll(); const stamp=$('liveStamp'); if(stamp)stamp.innerText='최근 자동 동기화: '+new Date().toLocaleTimeString('ko-KR'); if(role==='manager')checkManagerAlerts(); if(role==='worker'){checkWorkerJobAlerts(); checkWorkerAlerts()}}finally{liveBusy=false}}
-function startLive(){stopLive(); if(role==='manager'){lastManagerPendingIds=managerPendingIdSet(); lastManagerState=stateKey()} if(role==='worker'){lastWorkerStatusMap=workerStatusMap(); lastWorkerPublicJobIds=workerPublicJobIdSet(); lastWorkerState=stateKey()} if(alertsAllowedScreen()){liveTimer=setInterval(liveSync,2200); setTimeout(liveSync,350)}}
+function renderAfterSync(){
+  if(role==='manager'){
+    if(currentScreen==='managerScreen')renderManager();
+    else if(currentScreen==='myInfoScreen'){};
+    return;
+  }
+  if(role==='worker'){
+    if(currentScreen==='workerScreen'){
+      renderWorkerHome();
+      renderWorkerJobs();
+    } else if(currentScreen==='myInfoScreen'){
+      // 내 정보 입력 중에는 자동갱신으로 폼을 다시 그리지 않는다.
+    } else {
+      renderAll();
+    }
+    return;
+  }
+  renderAll();
+}
+async function liveSync(){
+  if(!alertsAllowedScreen()||liveBusy)return;
+  liveBusy=true;
+  try{
+    await loadData();
+    await autoCloseFullJobs();
+    await loadData();
+    renderAfterSync();
+    const stamp=$('liveStamp');
+    if(stamp)stamp.innerText='최근 자동 동기화: '+new Date().toLocaleTimeString('ko-KR');
+    if(role==='manager')checkManagerAlerts();
+    if(role==='worker'){
+      checkWorkerJobAlerts();
+      checkWorkerAlerts();
+    }
+  }finally{liveBusy=false}
+}
+function startLive(){stopLive(); if(role==='manager'){lastManagerPendingIds=managerPendingIdSet(); lastManagerState=stateKey()} if(role==='worker'){lastWorkerStatusMap=workerStatusMap(); lastWorkerPublicJobIds=workerPublicJobIdSet(); lastWorkerState=stateKey()} if(alertsAllowedScreen()){liveTimer=setInterval(liveSync,3000); setTimeout(liveSync,350)}}
 function stopLive(){if(liveTimer){clearInterval(liveTimer); liveTimer=null}}
+function ensureLiveRunning(){if(alertsAllowedScreen()&&!liveTimer)startLive()}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){ensureLiveRunning(); liveSync();}});
+window.addEventListener('focus',()=>{ensureLiveRunning(); liveSync();});
 init();
 </script>
 </body>
