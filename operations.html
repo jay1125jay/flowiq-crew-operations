@@ -502,7 +502,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.68 WORKER_NEW_JOB_NORMALIZE_FIX';
+const APP_VERSION='v4.1.69 WORKER_PUBLISHED_JOB_HARD_FIX';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -604,7 +604,7 @@ function appStatusPriority(s){s=normalizeStatus(s); if(s==='근무완료')return
 function dedupeApplications(list){const map=new Map(); (list||[]).forEach(a=>{const key=Number(a?.job_id)+'|'+applicationPhoneKey(a); if(!Number(a?.job_id)||!applicationPhoneKey(a))return; const prev=map.get(key); if(!prev){map.set(key,a);return} const pa=appStatusPriority(a.status), pp=appStatusPriority(prev.status); if(pa>pp||(pa===pp&&Number(a.id||0)>Number(prev.id||0)))map.set(key,a)}); return Array.from(map.values()).sort((a,b)=>Number(b.id||0)-Number(a.id||0))}
 function getMatchedCount(jobId){return applications.filter(a=>Number(a.job_id)===Number(jobId)&&(isMatched(a.status)||isDone(a.status))).length}
 function getPendingCount(jobId){return applications.filter(a=>Number(a.job_id)===Number(jobId)&&isPending(a.status)).length}
-function isJobFull(j){return getMatchedCount(j.id)>=num(j.needed)}
+function isJobFull(j){const needed=num(j?.needed); if(needed<=0)return false; return getMatchedCount(j.id)>=needed}
 function companyStats(cid){const my=jobs.filter(j=>String(j.company_id||'')===String(cid)); const ids=new Set(my.map(j=>Number(j.id))); const apps=applications.filter(a=>ids.has(Number(a.job_id))); return {jobs:my.length,match:apps.filter(a=>isMatched(a.status)||isDone(a.status)).length,done:apps.filter(a=>isDone(a.status)).length}}
 function workerStats(phone){const p=phoneKey(phone); if(!p)return {match:0,reject:0}; const list=applications.filter(a=>applicationPhoneKey(a)===p); const matched=list.filter(a=>isMatched(a.status)||isDone(a.status)).length; const rejected=list.filter(a=>isRejected(a.status)).length; return {match:matched,reject:rejected}}
 async function autoReleaseIfFull(jobId){const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!job||!isJobFull(job))return; const ids=applications.filter(a=>Number(a.job_id)===Number(jobId)&&isPending(a.status)).map(a=>a.id); if(ids.length)await db.from('applications').update({status:'미선정'}).in('id',ids)}
@@ -718,8 +718,10 @@ function visibleWorkerJobList(){
     const id=Number(j.id);
     if(!id)return false;
     if(isArchivedJob(j))return false;
+    if(isClosed(j))return false;
     if(!isPublished(j))return false;
-    if(isExpired(j))return false;
+    // 실사용 기준: 날짜가 지났다는 이유만으로 근로자 목록에서 조용히 숨기지 않는다.
+    // 공고 노출 여부는 [게시중] / [공고 마감] / [보관] 상태값으로 통제한다.
     if(blockedJobIds.has(id))return false;
     if(isHiddenByPastRejection(j))return false;
     return true;
