@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WEXA OPERATIONS v4.1.60 WEXA_CLEAN_IMAGE_HEADER</title>
-<meta name="flowiq-version" content="v4.1.60 WEXA_CLEAN_IMAGE_HEADER" />
+<title>WEXA OPERATIONS v4.1.61 WEXA_NEON_BUTTONS</title>
+<meta name="flowiq-version" content="v4.1.61 WEXA_NEON_BUTTONS" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -68,7 +68,7 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 
 @media(max-width:390px){.count-grid,.process-grid{grid-template-columns:1fr 1fr}.worker-actions{grid-template-columns:1fr}}
 
-/* ===== WEXA clean image header v4.1.60 / v4.1.38 ===== */
+/* ===== WEXA clean image header + neon buttons ===== */
 .wexa-image-header{
   display:block;
   margin:0 0 16px;
@@ -89,6 +89,107 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 @media(max-width:440px){
   .app{padding-top:0!important;}
   .wexa-image-header{margin-left:-16px;margin-right:-16px;border-radius:0 0 24px 24px;}
+}
+
+
+
+/* ===== WEXA neon button system ===== */
+:root{
+  --wexa-blue:#2563ff;
+  --wexa-cyan:#00d4c8;
+  --wexa-violet:#7b61ff;
+  --wexa-dark:#0d1120;
+}
+button{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border:1px solid rgba(37,99,255,.38) !important;
+  color:#f8fbff !important;
+  background:
+    linear-gradient(180deg,rgba(13,17,32,.92),rgba(4,9,22,.96)) !important;
+  border-radius:16px !important;
+  min-height:50px;
+  font-weight:950 !important;
+  letter-spacing:-.2px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.035) inset,
+    0 10px 26px rgba(0,0,0,.34),
+    0 0 22px rgba(37,99,255,.10) !important;
+  transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease, filter .14s ease;
+}
+button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:
+    linear-gradient(100deg,rgba(37,99,255,.34),rgba(0,212,200,.20),rgba(123,97,255,.18));
+  opacity:.18;
+  transition:opacity .14s ease;
+}
+button::after{
+  content:"";
+  position:absolute;
+  left:14%; right:14%; top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,212,200,.85),rgba(37,99,255,.85),transparent);
+  opacity:.88;
+}
+button:not(:disabled):hover{
+  filter:brightness(1.08) !important;
+  border-color:rgba(0,212,200,.72) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,212,200,.13) inset,
+    0 14px 34px rgba(0,0,0,.42),
+    0 0 28px rgba(37,99,255,.24),
+    0 0 18px rgba(0,212,200,.10) !important;
+}
+button:not(:disabled):hover::before{opacity:.34}
+button:active{transform:scale(.975) translateY(1px) !important}
+button:disabled{opacity:.46 !important; filter:saturate(.55) brightness(.75) !important; box-shadow:none !important}
+.blue{
+  border-color:rgba(37,99,255,.85) !important;
+  background:linear-gradient(135deg,#153cff,#2563ff 52%,#00d4c8) !important;
+  color:#fff !important;
+  box-shadow:0 12px 30px rgba(37,99,255,.32),0 0 26px rgba(0,212,200,.14) !important;
+}
+.green{
+  border-color:rgba(0,212,200,.75) !important;
+  background:linear-gradient(135deg,#005bff,#00b8d9,#00d4c8) !important;
+  color:#00111f !important;
+  text-shadow:0 1px 0 rgba(255,255,255,.18);
+  box-shadow:0 12px 28px rgba(0,212,200,.22) !important;
+}
+.red{
+  border-color:rgba(255,85,122,.52) !important;
+  background:linear-gradient(135deg,rgba(66,18,36,.96),rgba(168,38,75,.95)) !important;
+  color:#ffe9ef !important;
+  box-shadow:0 12px 26px rgba(168,38,75,.18) !important;
+}
+.gray,.outline{
+  border-color:rgba(148,163,184,.24) !important;
+  background:linear-gradient(180deg,rgba(15,23,42,.90),rgba(2,6,23,.96)) !important;
+  color:#dbeafe !important;
+}
+.top-actions{
+  background:rgba(2,6,23,.36);
+  border:1px solid rgba(37,99,255,.18);
+  border-radius:22px;
+  padding:7px;
+  box-shadow:0 12px 32px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.top-actions button{
+  min-height:44px !important;
+  border-radius:15px !important;
+  font-size:12px !important;
+}
+.big,.full{
+  border-radius:18px !important;
+}
+.master-action-row button,.worker-actions button,.grid2 button,.grid3 button{
+  min-height:46px !important;
+  font-size:13px !important;
 }
 
 </style>
@@ -132,7 +233,7 @@ details summary{background:rgba(37,99,235,.18);border:1px solid rgba(96,165,250,
 </main>
 
 <script>
-const APP_VERSION='v4.1.60 WEXA_CLEAN_IMAGE_HEADER';
+const APP_VERSION='v4.1.61 WEXA_NEON_BUTTONS';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
