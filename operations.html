@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WEXA OPERATIONS v4.1.62 WEXA_FULL_NEON_LINES</title>
-<meta name="flowiq-version" content="v4.1.62 WEXA_FULL_NEON_LINES" />
+<title>WEXA OPERATIONS v4.1.64 WEXA_FOOTER_BUTTON_LINE_GLOW</title>
+<meta name="flowiq-version" content="v4.1.64 WEXA_FOOTER_BUTTON_LINE_GLOW" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -349,6 +349,114 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
   .wexa-hero,.wexa-header,.wexa-brand-card{border-radius:0 0 26px 26px !important;}
 }
 
+
+
+/* ===== WEXA header round glow fix ===== */
+.wexa-image-header{
+  margin:8px 0 18px !important;
+  border-radius:30px !important;
+  border:1px solid rgba(0,212,200,.42) !important;
+  overflow:hidden !important;
+  background:#020617 !important;
+  box-shadow:
+    0 0 0 1px rgba(37,99,255,.22) inset,
+    0 0 30px rgba(37,99,255,.32),
+    0 0 22px rgba(0,212,200,.18),
+    0 22px 54px rgba(0,0,0,.48) !important;
+}
+.wexa-image-header::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    linear-gradient(90deg,transparent,rgba(0,212,200,.42),rgba(37,99,255,.36),transparent) top left/100% 1px no-repeat,
+    linear-gradient(180deg,rgba(0,212,200,.22),transparent 42%) top left/1px 100% no-repeat,
+    linear-gradient(180deg,rgba(37,99,255,.22),transparent 42%) top right/1px 100% no-repeat;
+  opacity:.95;
+  z-index:2;
+}
+.wexa-image-header{position:relative !important;}
+.wexa-image-header img{
+  border-radius:inherit !important;
+}
+@media(max-width:440px){
+  .app{padding-top:12px!important;}
+  .wexa-image-header{
+    margin-left:0!important;
+    margin-right:0!important;
+    border-radius:28px!important;
+  }
+}
+
+
+
+/* ===== WEXA footer glow + master tool button line cleanup ===== */
+.ops-footer{
+  position:relative !important;
+  overflow:hidden !important;
+  border:1px solid rgba(0,212,200,.46) !important;
+  border-radius:24px !important;
+  background:linear-gradient(180deg,rgba(8,16,34,.84),rgba(2,6,23,.94)) !important;
+  color:#a9c1e8 !important;
+  box-shadow:
+    0 0 0 1px rgba(37,99,255,.16) inset,
+    0 0 30px rgba(37,99,255,.22),
+    0 0 18px rgba(0,212,200,.13),
+    0 18px 44px rgba(0,0,0,.36) !important;
+}
+.ops-footer::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    linear-gradient(90deg,transparent,rgba(0,212,200,.52),rgba(37,99,255,.40),transparent) top left/100% 1px no-repeat,
+    linear-gradient(90deg,transparent,rgba(37,99,255,.32),rgba(0,212,200,.35),transparent) bottom left/100% 1px no-repeat,
+    linear-gradient(180deg,rgba(0,212,200,.23),transparent 46%) top left/1px 100% no-repeat,
+    linear-gradient(180deg,rgba(37,99,255,.22),transparent 46%) top right/1px 100% no-repeat;
+  opacity:.95;
+}
+.ops-footer b{
+  color:#f8fbff !important;
+  text-shadow:0 0 16px rgba(0,212,200,.20),0 0 18px rgba(37,99,255,.16) !important;
+}
+.master-tools{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:10px !important;
+  margin-top:14px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  overflow:visible !important;
+}
+.master-tools::before,.master-tools::after{display:none !important;content:none !important;}
+.master-tools button{
+  min-height:46px !important;
+  border-radius:17px !important;
+  border:1px solid rgba(0,212,200,.58) !important;
+  background:linear-gradient(180deg,rgba(8,16,34,.86),rgba(2,6,23,.96)) !important;
+  color:#f8fbff !important;
+  box-shadow:
+    0 0 0 1px rgba(37,99,255,.15) inset,
+    0 0 22px rgba(37,99,255,.24),
+    0 0 14px rgba(0,212,200,.16),
+    0 10px 26px rgba(0,0,0,.28) !important;
+}
+.master-tools button::before{
+  background:linear-gradient(100deg,rgba(37,99,255,.28),rgba(0,212,200,.18)) !important;
+  opacity:.20 !important;
+}
+.master-tools button::after{
+  left:16px !important; right:16px !important; top:0 !important; bottom:auto !important; height:1px !important;
+  background:linear-gradient(90deg,transparent,rgba(0,212,200,.85),rgba(37,99,255,.75),transparent) !important;
+}
+
 </style>
 </head>
 <body>
@@ -390,7 +498,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.62 WEXA_FULL_NEON_LINES';
+const APP_VERSION='v4.1.64 WEXA_FOOTER_BUTTON_LINE_GLOW';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
