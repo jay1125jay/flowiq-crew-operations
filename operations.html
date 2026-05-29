@@ -502,7 +502,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.66 WORKER_DUP_PENDING_FIX';
+const APP_VERSION='v4.1.67 WORKER_NEW_JOB_VISIBILITY_FIX';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -540,7 +540,13 @@ function activeApplicant(a){const s=normalizeStatus(a?.status); if(isWorkerCance
 function isArchivedJob(j){const t=clean(j?.type); return t.includes('[보관]')||t.includes('보관 처리')||t.startsWith('보관')}
 function jobCategory(j){return clean(j?.type).replace(/\[[^\]]+\]/g,'').trim().replace(/^보관\s*/,'').trim()||'공고'}
 function jobStatus(j){const t=clean(j?.type); if(isArchivedJob(j))return '보관'; if(t.includes('게시중'))return '게시중'; if(t.includes('공고 마감')||t.includes('공고마감'))return '공고 마감'; return '게시대기'}
-function isPublished(j){return !isArchivedJob(j)&&jobStatus(j)==='게시중'}
+function isPublished(j){
+  if(isArchivedJob(j))return false;
+  const t=normalizeText(j?.type).toLowerCase();
+  if(t.includes('공고마감')||t.includes('마감됨')||t.includes('closed'))return false;
+  // 마스터/관리자 버전별 표기 차이를 모두 게시중으로 인정
+  return t.includes('게시중') || t.includes('게시승인') || t.includes('게시완료') || t.includes('published') || jobStatus(j)==='게시중';
+}
 function makePendingType(cat){return `[게시대기] ${cat||'공고'}`}
 function makePublishedType(cat){return `[게시중] ${cat||'공고'}`}
 function makeClosedType(cat){return `[공고 마감] ${cat||'공고'}`}
@@ -694,7 +700,40 @@ function renderWorkerHome(){
   }
   el.innerHTML=body;
 }
-function renderWorkerJobs(){const el=$('workerJobs'); if(!el)return; const my=applications.filter(isCurrentWorkerApp); const hasApproved=my.some(a=>isMatched(a.status)); const hasNonCancelledWorkerHistoryForJob=(jobId)=>my.some(a=>Number(a.job_id)===Number(jobId)&&!isWorkerCancelled(a.status)); const list=jobs.filter(j=>!isArchivedJob(j)&&isPublished(j)&&!isExpired(j)&&!isHiddenByPastRejection(j)&&!hasNonCancelledWorkerHistoryForJob(Number(j.id))); el.innerHTML=list.length?list.map(j=>{const jobId=Number(j.id); let action=''; if(isJobFull(j))action=`<button class="full gray" disabled>공고 마감</button>`; else if(hasApproved)action=`<button class="full gray" disabled>매칭 완료 공고 있음</button>`; else action=`<button class="full blue" onclick="applyJob(${jobId})">근무 신청하기</button>`; const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">📊 업체 운영기록: 공고 ${companyStats(j.company_id).jobs}회 · 매칭 ${companyStats(j.company_id).match}회 · 완료 ${companyStats(j.company_id).done}회</div></div>`; return jobCardBase(j,extra,`<div class="pay-note"><span class="mark">※</span><span>승인 후 출근 대상입니다. 임금은 현장/업체에서 직접 지급합니다.</span></div>${action}`)}).join(''):`<div class="empty">현재 신청 가능한 현장이 없습니다.</div>`}
+function visibleWorkerJobList(){
+  const my=applications.filter(isCurrentWorkerApp);
+  const blockedJobIds=new Set();
+  my.forEach(a=>{
+    const st=normalizeStatus(a.status);
+    // 신청취소만 다시 신청 가능. 그 외 지원/승인/반려/완료/미선정 기록은 신청 가능 목록에서 제외.
+    if(!isWorkerCancelled(st))blockedJobIds.add(Number(a.job_id));
+  });
+  return jobs.filter(j=>{
+    const id=Number(j.id);
+    if(!id)return false;
+    if(isArchivedJob(j))return false;
+    if(!isPublished(j))return false;
+    if(isExpired(j))return false;
+    if(blockedJobIds.has(id))return false;
+    if(isHiddenByPastRejection(j))return false;
+    return true;
+  });
+}
+function renderWorkerJobs(){
+  const el=$('workerJobs'); if(!el)return;
+  const my=applications.filter(isCurrentWorkerApp);
+  const hasApproved=my.some(a=>isMatched(a.status));
+  const list=visibleWorkerJobList();
+  el.innerHTML=list.length?list.map(j=>{
+    const jobId=Number(j.id);
+    let action='';
+    if(isJobFull(j))action=`<button class="full gray" disabled>공고 마감</button>`;
+    else if(hasApproved)action=`<button class="full gray" disabled>매칭 완료 공고 있음</button>`;
+    else action=`<button class="full blue" onclick="applyJob(${jobId})">근무 신청하기</button>`;
+    const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">📊 업체 운영기록: 공고 ${companyStats(j.company_id).jobs}회 · 매칭 ${companyStats(j.company_id).match}회 · 완료 ${companyStats(j.company_id).done}회</div></div>`;
+    return jobCardBase(j,extra,`<div class="pay-note"><span class="mark">※</span><span>승인 후 출근 대상입니다. 임금은 현장/업체에서 직접 지급합니다.</span></div>${action}`)
+  }).join(''):`<div class="empty">현재 신청 가능한 현장이 없습니다.</div>`;
+}
 
 async function closeManagerJob(jobId){
   const j=jobs.find(x=>Number(x.id)===Number(jobId));
@@ -729,7 +768,7 @@ async function unlockAudio(){try{const C=window.AudioContext||window.webkitAudio
 function managerJobIds(){const cid=currentCompanyId(); return new Set(jobs.filter(j=>isCurrentCompanyJob(j)&&!isArchivedJob(j)).map(j=>Number(j.id)))}
 function managerPendingApps(){const ids=managerJobIds(); return applications.filter(a=>ids.has(Number(a.job_id))&&isPending(a.status)).sort((a,b)=>Number(b.id)-Number(a.id))}
 function managerPendingIdSet(){return new Set(managerPendingApps().map(a=>String(a.id)))}
-function workerPublicJobIdSet(){return new Set(jobs.filter(j=>!isArchivedJob(j)&&isPublished(j)&&!isExpired(j)&&!isJobFull(j)&&!isHiddenByPastRejection(j)).map(j=>String(j.id)))}
+function workerPublicJobIdSet(){return new Set(visibleWorkerJobList().filter(j=>!isJobFull(j)).map(j=>String(j.id)))}
 function checkWorkerJobAlerts(){const now=workerPublicJobIdSet(); const added=[...now].filter(id=>!lastWorkerPublicJobIds.has(id)); if(added.length){const newest=jobs.filter(j=>added.includes(String(j.id))).sort((a,b)=>Number(b.id)-Number(a.id))[0]; notifyOnce('worker_job_new',newest?`job_${newest.id}`:`job_${added[0]}`,'새 공고가 등록되었습니다. 공고 목록을 확인하세요.')} lastWorkerPublicJobIds=now;}
 function workerApps(){const p=workerPhone(); return applications.filter(a=>applicationPhoneKey(a)===p)}
 function workerStatusMap(){const m=new Map(); workerApps().forEach(a=>m.set(String(a.id),normalizeStatus(a.status))); return m}
