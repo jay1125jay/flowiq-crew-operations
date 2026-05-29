@@ -502,7 +502,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.67 WORKER_NEW_JOB_VISIBILITY_FIX';
+const APP_VERSION='v4.1.68 WORKER_NEW_JOB_NORMALIZE_FIX';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -514,6 +514,12 @@ let liveTimer=null, liveBusy=false, alertReady=false, audioCtx=null, lastManager
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const clean=v=>String(v??'').trim();
+function normalizeText(v){
+  return String(v??'')
+    .trim()
+    .replace(/\s+/g,'')
+    .replace(/[\[\]]/g,'');
+}
 const num=v=>Number(String(v??0).replace(/[^0-9.-]/g,''))||0;
 const money=v=>num(v).toLocaleString('ko-KR')+'원';
 const phoneKey=v=>String(v??'').replace(/\D/g,'');
