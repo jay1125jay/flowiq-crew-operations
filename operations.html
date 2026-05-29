@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WEXA OPERATIONS v4.1.61 WEXA_NEON_BUTTONS</title>
-<meta name="flowiq-version" content="v4.1.61 WEXA_NEON_BUTTONS" />
+<title>WEXA OPERATIONS v4.1.62 WEXA_FULL_NEON_LINES</title>
+<meta name="flowiq-version" content="v4.1.62 WEXA_FULL_NEON_LINES" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -192,6 +192,163 @@ button:disabled{opacity:.46 !important; filter:saturate(.55) brightness(.75) !im
   font-size:13px !important;
 }
 
+
+
+/* ===== WEXA v4.1.62/40 Full Neon Line System ===== */
+:root{
+  --wexa-bg:#020617;
+  --wexa-panel:rgba(6,12,28,.78);
+  --wexa-panel-2:rgba(10,18,38,.92);
+  --wexa-blue:#2563ff;
+  --wexa-cyan:#00d4c8;
+  --wexa-purple:#7b61ff;
+  --wexa-line:rgba(0,212,200,.38);
+  --wexa-line-blue:rgba(37,99,255,.45);
+  --wexa-text:#f8fbff;
+  --wexa-muted:#9fb4d8;
+}
+html,body{
+  background:
+    radial-gradient(circle at 50% -8%,rgba(37,99,255,.22),transparent 34%),
+    radial-gradient(circle at 100% 12%,rgba(0,212,200,.10),transparent 26%),
+    radial-gradient(circle at 0% 30%,rgba(123,97,255,.10),transparent 30%),
+    linear-gradient(180deg,#020617 0%,#07111f 48%,#020617 100%) !important;
+  color:var(--wexa-text) !important;
+}
+.app{position:relative;}
+.app::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(37,99,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,200,.026) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.38),transparent 72%);
+  z-index:0;
+}
+.app > *{position:relative;z-index:1;}
+.wexa-hero,.wexa-header,.wexa-brand-card{
+  border:1px solid rgba(0,212,200,.20) !important;
+  box-shadow:
+    0 0 0 1px rgba(37,99,255,.14) inset,
+    0 0 34px rgba(37,99,255,.24),
+    0 0 24px rgba(0,212,200,.10),
+    0 18px 50px rgba(0,0,0,.45) !important;
+}
+.card,.notice,.trust-card,.company-box,.worker-card,.count-tile,.pay-note,.fee-account,.empty,details summary,.alert-box,.top-actions,.master-tools{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(10,18,38,.82),rgba(2,6,23,.92)) !important;
+  border:1px solid rgba(0,212,200,.24) !important;
+  box-shadow:
+    0 0 0 1px rgba(37,99,255,.12) inset,
+    0 10px 32px rgba(0,0,0,.36),
+    0 0 24px rgba(37,99,255,.13),
+    0 0 14px rgba(0,212,200,.075) !important;
+  backdrop-filter:blur(12px);
+}
+.card::before,.notice::before,.trust-card::before,.company-box::before,.worker-card::before,.count-tile::before,.pay-note::before,.fee-account::before,.empty::before,details summary::before,.top-actions::before,.master-tools::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    linear-gradient(90deg,transparent,rgba(0,212,200,.26),rgba(37,99,255,.28),transparent) top left/100% 1px no-repeat,
+    linear-gradient(180deg,rgba(0,212,200,.16),transparent 34%) top left/1px 100% no-repeat,
+    linear-gradient(180deg,rgba(37,99,255,.15),transparent 42%) top right/1px 100% no-repeat;
+  opacity:.86;
+}
+.card::after,.notice::after,.company-box::after,.worker-card::after,.count-tile::after{
+  content:"";
+  position:absolute;
+  left:14px;right:14px;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,212,200,.45),rgba(37,99,255,.38),transparent);
+  pointer-events:none;
+}
+.title,.section,.job-title,.worker-name{
+  color:#ffffff !important;
+  text-shadow:0 0 18px rgba(37,99,255,.18),0 0 10px rgba(0,212,200,.08) !important;
+}
+.sub,.info,.worker-meta,label,.version,.ops-footer,.trust-card p,.trust-card ul{
+  color:var(--wexa-muted) !important;
+}
+.badge,.type,.status-pill{
+  background:linear-gradient(135deg,rgba(37,99,255,.24),rgba(0,212,200,.12)) !important;
+  border:1px solid rgba(0,212,200,.36) !important;
+  color:#dffeff !important;
+  box-shadow:0 0 18px rgba(37,99,255,.18), inset 0 0 12px rgba(0,212,200,.05) !important;
+}
+.status-ok{background:linear-gradient(135deg,rgba(0,212,200,.26),rgba(37,99,255,.12)) !important;color:#bffcff !important;border-color:rgba(0,212,200,.44) !important;}
+.status-wait{background:linear-gradient(135deg,rgba(37,99,255,.22),rgba(245,158,11,.12)) !important;color:#fef3c7 !important;border-color:rgba(245,158,11,.30) !important;}
+.status-red{background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(37,99,255,.08)) !important;color:#ffd9e2 !important;border-color:rgba(248,113,113,.30) !important;}
+input,select,textarea{
+  background:linear-gradient(180deg,rgba(2,6,23,.82),rgba(7,17,31,.92)) !important;
+  border:1px solid rgba(0,212,200,.26) !important;
+  color:#f8fbff !important;
+  box-shadow:0 0 0 1px rgba(37,99,255,.10) inset,0 0 18px rgba(37,99,255,.07) !important;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(0,212,200,.72) !important;
+  box-shadow:0 0 0 1px rgba(0,212,200,.22) inset,0 0 24px rgba(0,212,200,.18),0 0 30px rgba(37,99,255,.12) !important;
+}
+button{
+  border:1px solid rgba(0,212,200,.32) !important;
+  background:
+    linear-gradient(180deg,rgba(15,23,42,.86),rgba(2,6,23,.94)) !important;
+  color:#f8fbff !important;
+  box-shadow:
+    0 0 0 1px rgba(37,99,255,.13) inset,
+    0 10px 26px rgba(0,0,0,.34),
+    0 0 20px rgba(37,99,255,.13),
+    0 0 12px rgba(0,212,200,.08) !important;
+}
+button::after{
+  content:"";
+  position:absolute;
+  left:14px;right:14px;bottom:0;height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(0,212,200,.58),transparent);
+  opacity:.85;
+}
+button.blue,.blue{
+  background:linear-gradient(135deg,#1436ff 0%,#2563ff 52%,#00d4c8 100%) !important;
+  border-color:rgba(0,212,200,.66) !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.10) inset,0 0 30px rgba(37,99,255,.35),0 0 20px rgba(0,212,200,.22),0 14px 34px rgba(0,0,0,.34) !important;
+}
+button.green,.green{
+  background:linear-gradient(135deg,#005bff,#00b8d9,#00d4c8) !important;
+  border-color:rgba(0,212,200,.72) !important;
+  color:#03111f !important;
+  box-shadow:0 0 24px rgba(0,212,200,.26),0 0 28px rgba(37,99,255,.18) !important;
+}
+button.red,.red{
+  background:linear-gradient(135deg,rgba(65,13,32,.96),rgba(185,28,70,.94)) !important;
+  border-color:rgba(255,85,122,.46) !important;
+  box-shadow:0 0 22px rgba(244,63,94,.16),0 12px 28px rgba(0,0,0,.30) !important;
+}
+button.gray,.gray,.outline{
+  background:linear-gradient(180deg,rgba(12,21,43,.86),rgba(2,6,23,.96)) !important;
+  border-color:rgba(0,212,200,.24) !important;
+}
+details[open] summary{
+  border-color:rgba(0,212,200,.58) !important;
+  box-shadow:0 0 0 1px rgba(0,212,200,.16) inset,0 0 22px rgba(0,212,200,.14) !important;
+}
+hr,.divider{border-color:rgba(0,212,200,.22) !important;}
+.fiq-toast{
+  background:rgba(3,9,24,.96) !important;
+  border:1px solid rgba(0,212,200,.38) !important;
+  box-shadow:0 0 32px rgba(37,99,255,.22),0 0 18px rgba(0,212,200,.12),0 14px 40px rgba(0,0,0,.45) !important;
+}
+@media(max-width:480px){
+  .card,.notice,.trust-card{border-radius:22px !important;}
+  .wexa-hero,.wexa-header,.wexa-brand-card{border-radius:0 0 26px 26px !important;}
+}
+
 </style>
 </head>
 <body>
@@ -233,7 +390,7 @@ button:disabled{opacity:.46 !important; filter:saturate(.55) brightness(.75) !im
 </main>
 
 <script>
-const APP_VERSION='v4.1.61 WEXA_NEON_BUTTONS';
+const APP_VERSION='v4.1.62 WEXA_FULL_NEON_LINES';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
