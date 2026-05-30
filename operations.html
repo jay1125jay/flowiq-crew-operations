@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.79 MANAGER_SQUARE_ICON_RATIO_FIX</title>
-<meta name="flowiq-version" content="v4.1.79 MANAGER_SQUARE_ICON_RATIO_FIX" />
+<title>WEXA OPERATIONS v4.1.80 STAT_TILE_ONLY_SQUARE_RATIO_FIX</title>
+<meta name="flowiq-version" content="v4.1.80 STAT_TILE_ONLY_SQUARE_RATIO_FIX" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -463,7 +463,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 
 
 
-/* ===== WEXA v4.1.79 manager SVG icon system upgrade =====
+/* ===== WEXA v4.1.78 manager SVG icon system upgrade =====
    관리자/업체 화면 전용 SVG 라인 아이콘 시스템. 기능 로직/Supabase 로직 영향 없음. */
 .wexa-icon-btn,
 .wexa-icon-summary{
@@ -578,7 +578,7 @@ button.red.wexa-icon-btn.wexa-danger{
 details[data-job-id]{margin-top:10px !important;}
 @media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:72px !important}.wexa-icon-btn .wexa-svg,.wexa-icon-summary .wexa-svg{width:34px !important;height:34px !important;flex-basis:34px !important}}
 
-/* ===== WEXA v4.1.79: manager stat SVG tiles ===== */
+/* ===== WEXA v4.1.78: manager stat SVG tiles ===== */
 .count-grid.wexa-stat-grid{
   display:grid !important;
   grid-template-columns:repeat(4,1fr) !important;
@@ -667,115 +667,63 @@ details[data-job-id]{margin-top:10px !important;}
 }
 
 
-/* ===== WEXA v4.1.79: square icon tile ratio fix =====
-   관리자/업체 버튼을 직사각형이 아닌 정사각형 타일로 보정.
-   내부 비율은 아이콘 7 : 글자 3 구조로 고정. 기능 로직 영향 없음. */
-.wexa-icon-btn,
-.wexa-icon-summary{
-  display:grid !important;
-  grid-template-rows:7fr 3fr !important;
-  align-items:stretch !important;
-  justify-items:center !important;
-  gap:0 !important;
-  aspect-ratio:1 / 1 !important;
-  min-height:0 !important;
-  height:auto !important;
-  padding:10px 8px 8px !important;
-  line-height:1.08 !important;
-}
-.wexa-icon-btn .wexa-svg,
-.wexa-icon-summary .wexa-svg{
-  grid-row:1 !important;
-  align-self:center !important;
-  justify-self:center !important;
-  width:48px !important;
-  height:48px !important;
-  max-width:68% !important;
-  max-height:68% !important;
-  flex:auto !important;
-}
-.wexa-icon-btn span,
-.wexa-icon-summary span{
-  grid-row:2 !important;
-  align-self:center !important;
-  justify-self:center !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  min-height:100% !important;
-  padding:0 2px !important;
-  font-size:12.5px !important;
-  line-height:1.15 !important;
-}
-.wexa-manager-main-btn{
-  width:100% !important;
-  max-width:142px !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-.wexa-form-actions .wexa-icon-btn{
-  width:100% !important;
-  max-width:none !important;
-}
-.worker-actions .wexa-icon-btn{
-  width:100% !important;
-  max-width:none !important;
-}
-.manager-job-actions{
-  display:flex !important;
-  justify-content:center !important;
-}
-.manager-job-actions .wexa-icon-btn,
-details[data-job-id] .wexa-icon-summary{
-  width:132px !important;
-  max-width:132px !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
+
+/* ===== WEXA v4.1.80: STAT TILE ONLY square ratio fix =====
+   복구 기준: v4.1.78 관리자 버튼 상태 유지.
+   수정 범위: 지원/매칭/남은 자리/모집 통계 카드만 정사각형 + 아이콘 7 : 숫자/글자 3 배치. */
 .count-grid.wexa-stat-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
   align-items:stretch !important;
 }
 .count-tile.wexa-stat-tile{
   aspect-ratio:1 / 1 !important;
   min-height:0 !important;
   height:auto !important;
+  padding:9px 4px 8px !important;
   display:grid !important;
-  grid-template-rows:46fr 31fr 23fr !important;
+  grid-template-rows:7fr 3fr !important;
+  align-items:stretch !important;
+  justify-items:center !important;
   gap:0 !important;
-  padding:8px 4px 7px !important;
+  border-radius:20px !important;
 }
-.wexa-stat-icon{
+.count-tile.wexa-stat-tile .wexa-stat-icon{
   grid-row:1 !important;
   align-self:center !important;
   justify-self:center !important;
-  width:38px !important;
-  height:38px !important;
+  width:36px !important;
+  height:36px !important;
+  margin:0 !important;
 }
-.wexa-stat-icon .wexa-svg{
-  width:38px !important;
-  height:38px !important;
-  max-width:72% !important;
-  max-height:72% !important;
+.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{
+  width:36px !important;
+  height:36px !important;
 }
 .count-tile.wexa-stat-tile b{
   grid-row:2 !important;
-  align-self:center !important;
+  align-self:start !important;
   justify-self:center !important;
-  font-size:22px !important;
+  margin:0 !important;
+  font-size:24px !important;
+  line-height:.95 !important;
 }
 .count-tile.wexa-stat-tile span:not(.wexa-stat-icon){
-  grid-row:3 !important;
-  align-self:center !important;
+  grid-row:2 !important;
+  align-self:end !important;
   justify-self:center !important;
-  font-size:10.5px !important;
+  margin:0 !important;
+  font-size:11px !important;
+  line-height:1.05 !important;
+  white-space:nowrap !important;
 }
 @media(max-width:390px){
-  .wexa-icon-btn .wexa-svg,.wexa-icon-summary .wexa-svg{width:42px !important;height:42px !important;}
-  .wexa-icon-btn span,.wexa-icon-summary span{font-size:12px !important;}
-  .manager-job-actions .wexa-icon-btn,details[data-job-id] .wexa-icon-summary{width:124px !important;max-width:124px !important;}
-  .wexa-stat-icon,.wexa-stat-icon .wexa-svg{width:32px !important;height:32px !important;}
-  .count-tile.wexa-stat-tile b{font-size:19px !important;}
-  .count-tile.wexa-stat-tile span:not(.wexa-stat-icon){font-size:9.5px !important;}
+  .count-grid.wexa-stat-grid{gap:6px !important;}
+  .count-tile.wexa-stat-tile{padding:8px 2px 7px !important;border-radius:18px !important;}
+  .count-tile.wexa-stat-tile .wexa-stat-icon,
+  .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{width:31px !important;height:31px !important;}
+  .count-tile.wexa-stat-tile b{font-size:21px !important;}
+  .count-tile.wexa-stat-tile span:not(.wexa-stat-icon){font-size:10px !important;}
 }
 
 </style>
@@ -819,7 +767,7 @@ details[data-job-id] .wexa-icon-summary{
 </main>
 
 <script>
-const APP_VERSION='v4.1.79 MANAGER_SQUARE_ICON_RATIO_FIX';
+const APP_VERSION='v4.1.80 STAT_TILE_ONLY_SQUARE_RATIO_FIX';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
