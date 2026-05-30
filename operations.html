@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.89 CSS_CLEANUP_KEEP_UI</title>
-<meta name="flowiq-version" content="v4.1.89 CSS_CLEANUP_KEEP_UI" />
+<title>WEXA OPERATIONS v4.1.90 STAT_ICON_STROKE_RESTORE</title>
+<meta name="flowiq-version" content="v4.1.90 STAT_ICON_STROKE_RESTORE" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -637,7 +637,23 @@ details[data-job-id]{margin-top:10px !important;}
 .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{
   width:44px !important;
   height:44px !important;
+  color:#38bdf8 !important;
+  stroke:#38bdf8 !important;
+  fill:none !important;
+  stroke-width:2.25 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
   filter:drop-shadow(0 0 11px rgba(56,189,248,.54)) drop-shadow(0 0 18px rgba(37,99,255,.26)) !important;
+}
+.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg *,
+.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg path,
+.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg circle,
+.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg rect{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:2.25 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
 }
 .count-tile.wexa-stat-tile span.wexa-stat-bottom{
   grid-row:2 !important;
@@ -723,7 +739,7 @@ details[data-job-id]{margin-top:10px !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.89 CSS_CLEANUP_KEEP_UI';
+const APP_VERSION='v4.1.90 STAT_ICON_STROKE_RESTORE';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
