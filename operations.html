@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.86 STAT_TILE_NUMBER_NATURAL_SIZE</title>
-<meta name="flowiq-version" content="v4.1.86 STAT_TILE_NUMBER_NATURAL_SIZE" />
+<title>WEXA OPERATIONS v4.1.87 STAT_TILE_SAME_LINE_ALIGN_FIX</title>
+<meta name="flowiq-version" content="v4.1.87 STAT_TILE_SAME_LINE_ALIGN_FIX" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1000,6 +1000,55 @@ details[data-job-id]{margin-top:10px !important;}
   .count-tile.wexa-stat-tile .wexa-stat-bottom b{font-size:10.4px !important;font-weight:760 !important;}
 }
 
+
+/* ===== WEXA v4.1.87: STAT TILE same-line label+number align fix =====
+   수정 범위: 지원/매칭/남은 자리/모집 4개 카드 하단 문구만.
+   목표: "지원 0"처럼 글자와 숫자가 한 줄, 같은 높이에 보이게 정렬. */
+.count-tile.wexa-stat-tile .wexa-stat-bottom{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:3px !important;
+  height:100% !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  transform:none !important;
+}
+.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label,
+.count-tile.wexa-stat-tile .wexa-stat-bottom b{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:12px !important;
+  margin:0 !important;
+  padding:0 !important;
+  font-size:11px !important;
+  line-height:12px !important;
+  font-weight:720 !important;
+  letter-spacing:-.35px !important;
+  vertical-align:middle !important;
+  transform:none !important;
+}
+.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
+  color:#eaf3ff !important;
+  text-shadow:0 0 4px rgba(37,99,255,.22) !important;
+}
+.count-tile.wexa-stat-tile .wexa-stat-bottom b{
+  color:#f8fbff !important;
+  text-shadow:0 0 4px rgba(37,99,255,.24) !important;
+}
+@media(max-width:390px){
+  .count-tile.wexa-stat-tile .wexa-stat-bottom{gap:2px !important;}
+  .count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label,
+  .count-tile.wexa-stat-tile .wexa-stat-bottom b{
+    height:11px !important;
+    font-size:10.2px !important;
+    line-height:11px !important;
+    font-weight:710 !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1041,7 +1090,7 @@ details[data-job-id]{margin-top:10px !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.86 STAT_TILE_NUMBER_NATURAL_SIZE';
+const APP_VERSION='v4.1.87 STAT_TILE_SAME_LINE_ALIGN_FIX';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
