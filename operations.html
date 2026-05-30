@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.76 MANAGER_ACTION_ORDER_FIX</title>
-<meta name="flowiq-version" content="v4.1.76 MANAGER_ACTION_ORDER_FIX" />
+<title>WEXA OPERATIONS v4.1.77 MANAGER_STAT_ICON_UI_STEP1</title>
+<meta name="flowiq-version" content="v4.1.77 MANAGER_STAT_ICON_UI_STEP1" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -624,6 +624,131 @@ details[data-job-id]{margin-top:10px !important;}
 
 @media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:68px !important;}}
 
+
+/* ===== WEXA v4.1.77: 관리자 공고 숫자 타일 아이콘 UI ===== */
+.count-grid.wexa-stat-grid{
+  display:grid !important;
+  grid-template-columns:repeat(4,1fr) !important;
+  gap:8px !important;
+  margin:12px 0 14px !important;
+}
+.count-tile.wexa-stat-tile{
+  position:relative !important;
+  min-height:92px !important;
+  padding:12px 4px 10px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:4px !important;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,rgba(5,15,36,.92),rgba(2,6,23,.96)) !important;
+  border:1px solid rgba(37,99,255,.34) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.035) inset,
+    0 10px 24px rgba(0,0,0,.34),
+    0 0 22px rgba(37,99,255,.13) !important;
+  overflow:hidden !important;
+}
+.count-tile.wexa-stat-tile::before{
+  content:"" !important;
+  position:absolute !important;
+  inset:0 !important;
+  pointer-events:none !important;
+  border-radius:inherit !important;
+  background:
+    linear-gradient(90deg,transparent,rgba(96,165,250,.40),rgba(0,212,200,.22),transparent) top left/100% 1px no-repeat,
+    radial-gradient(circle at 50% 0%,rgba(37,99,255,.22),transparent 52%) !important;
+  opacity:.95 !important;
+}
+.count-tile.wexa-stat-tile::after{
+  display:none !important;
+  content:none !important;
+}
+.wexa-stat-icon{
+  position:relative;
+  width:30px;
+  height:30px;
+  display:block;
+  margin-bottom:2px;
+  color:#67a7ff;
+  filter:drop-shadow(0 0 7px rgba(59,130,246,.75)) drop-shadow(0 0 13px rgba(37,99,255,.34));
+}
+.wexa-stat-icon::before,.wexa-stat-icon::after{
+  content:"";
+  position:absolute;
+  box-sizing:border-box;
+}
+.wexa-stat-icon.stat-apply::before{
+  left:7px;
+  top:6px;
+  width:16px;
+  height:3px;
+  border-radius:999px;
+  background:#67a7ff;
+  box-shadow:0 8px 0 #67a7ff,0 16px 0 #67a7ff;
+}
+.wexa-stat-icon.stat-match::before{
+  left:7px;
+  top:7px;
+  width:18px;
+  height:11px;
+  border-left:3px solid #67a7ff;
+  border-bottom:3px solid #67a7ff;
+  transform:rotate(-45deg);
+  border-radius:2px;
+}
+.wexa-stat-icon.stat-remain::before{
+  left:5px;
+  top:5px;
+  width:20px;
+  height:20px;
+  border:3px solid #67a7ff;
+  border-radius:7px;
+}
+.wexa-stat-icon.stat-needed::before{
+  left:11px;
+  top:5px;
+  width:8px;
+  height:8px;
+  border:2px solid #67a7ff;
+  border-radius:999px;
+  box-shadow:-9px 5px 0 -1px #67a7ff,9px 5px 0 -1px #67a7ff;
+}
+.wexa-stat-icon.stat-needed::after{
+  left:6px;
+  top:17px;
+  width:18px;
+  height:8px;
+  border:2px solid #67a7ff;
+  border-top:0;
+  border-radius:0 0 14px 14px;
+}
+.count-tile.wexa-stat-tile b{
+  display:block !important;
+  margin:0 !important;
+  color:#ffffff !important;
+  font-size:22px !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+  text-shadow:0 0 12px rgba(37,99,255,.35),0 0 8px rgba(0,212,200,.12) !important;
+}
+.count-tile.wexa-stat-tile span{
+  display:block !important;
+  color:#dbeafe !important;
+  font-size:11px !important;
+  line-height:1.1 !important;
+  font-weight:950 !important;
+  letter-spacing:-.35px !important;
+}
+@media(max-width:390px){
+  .count-grid.wexa-stat-grid{grid-template-columns:repeat(4,1fr) !important;gap:6px !important;}
+  .count-tile.wexa-stat-tile{min-height:86px !important;padding-left:2px !important;padding-right:2px !important;}
+  .wexa-stat-icon{width:26px;height:26px;transform:scale(.92);}
+  .count-tile.wexa-stat-tile b{font-size:20px !important;}
+  .count-tile.wexa-stat-tile span{font-size:10px !important;}
+}
+
 </style>
 </head>
 <body>
@@ -665,7 +790,7 @@ details[data-job-id]{margin-top:10px !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.76 MANAGER_ACTION_ORDER_FIX';
+const APP_VERSION='v4.1.77 MANAGER_STAT_ICON_UI_STEP1';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -823,7 +948,7 @@ async function createJob(){const title=clean($('fTitle').value), location=clean(
 function routeButtons(location){const q=encodeURIComponent(location||''); if(!q)return ''; return `<div class="route-grid"><button class="gray" onclick="window.open('https://map.kakao.com/link/search/${q}','_blank')">카카오맵</button><button class="gray" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${q}','_blank')">구글맵</button></div>`}
 function jobCardBase(j,extra='',action=''){const s=jobStatus(j); return `<div class="card"><div class="job-head"><div><div class="job-title">${esc(j.title)}</div><div class="type">${esc(jobCategory(j))}</div></div><div class="badge">${esc(s)}</div></div>${extra}<div class="info pay-line"><span class="emoji">📅</span><span>${esc(dateText(j))}</span></div><div class="info pay-line"><span class="emoji">⏰</span><span>${esc(j.work_time||'-')}</span></div><div class="info pay-line"><span class="emoji">📍</span><span>${esc(j.location||'-')}</span></div><div class="info pay-line"><span class="emoji">👥</span><span>모집 ${num(j.needed)}명 · 매칭 ${getMatchedCount(j.id)}명 · 남은 ${Math.max(num(j.needed)-getMatchedCount(j.id),0)}명 · 지원 ${getPendingCount(j.id)}명</span></div><div class="info pay-line"><span class="emoji">💰</span><span>일당 ${money(j.salary)}</span></div>${action}</div>`}
 function isManagerCompletedClosedJob(j){if(jobStatus(j)!=='공고 마감')return false; const apps=applications.filter(a=>Number(a.job_id)===Number(j.id)); return apps.length&&apps.every(a=>!isPending(a.status)&&!isMatched(a.status))}
-function jobCardManager(j,apps){const s=jobStatus(j); const matched=getMatchedCount(j.id), pending=getPendingCount(j.id), remain=Math.max(num(j.needed)-matched,0); const rows=(apps||[]).length?apps.map(a=>{const st=normalizeStatus(a.status); const stats=workerStats(a.phone||a.worker_phone); let btn=''; if(st==='지원')btn=`<div class="worker-actions"><button class="green wexa-icon-btn" data-icon="✓" onclick="approveApplication(${Number(a.id)},${Number(j.id)})"><span>신청 승인</span></button><button class="red wexa-icon-btn wexa-danger" data-icon="×" onclick="rejectApplication(${Number(a.id)})"><span>신청 반려</span></button></div>`; else if(st==='승인')btn=`<div class="worker-actions"><button class="blue wexa-icon-btn" data-icon="✓" onclick="completeApplication(${Number(a.id)},${Number(j.id)})"><span>일 완료 확인</span></button><button class="red wexa-icon-btn wexa-danger" data-icon="−" onclick="cancelMatched(${Number(a.id)})"><span>매칭 취소</span></button></div>`; else btn=`<div class="worker-actions one"><button class="gray wexa-icon-btn" data-icon="✓" disabled><span>처리 완료</span></button></div>`; return `<div class="worker-card"><div class="worker-row"><div><div class="worker-name">${esc(a.worker_name||a.name||'이름없음')}</div><div class="worker-meta">매칭 ${stats.match}회 · 거절 ${stats.reject}회</div><div class="worker-meta">${esc(a.phone||a.worker_phone||'번호없음')}</div></div><span class="status-pill ${st==='승인'?'status-ok':st==='지원'?'status-wait':'status-red'}">${esc(st)}</span></div>${btn}</div>`}).join(''):`<div class="empty" style="margin-top:10px">현재 확인할 지원자가 없습니다.</div>`; const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">👤 담당자: ${esc(managerName(j))}</div>${managerPhone(j)?`<div class="info">📞 연락처: ${esc(managerPhone(j))}</div>`:''}</div>`; const action=`<div class="info pay-line"><span class="emoji">💸</span><span>플랫폼 수수료 ${money(jobFeeAmount(j))} · 근무일수 ${jobWorkDays(j)}일</span></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="count-grid"><div class="count-tile"><b>${pending}</b><span>지원</span></div><div class="count-tile"><b>${matched}</b><span>매칭</span></div><div class="count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="count-tile"><b>${num(j.needed)}</b><span>모집</span></div></div><details data-job-id="${Number(j.id)}"><summary class="wexa-icon-summary" data-icon="list-plain"><span>지원자 보기</span></summary>${rows}</details>${s==='게시중'?`<div class="manager-job-actions"><button class="red wexa-icon-btn wexa-danger" data-icon="□" onclick="closeManagerJob(${Number(j.id)})"><span>공고 마감</span></button></div>`:s==='공고 마감'?`<div class="manager-job-actions"><button class="gray wexa-icon-btn" data-icon="□" disabled><span>공고 마감됨</span></button></div>`:''}`; return jobCardBase(j,extra,action)}
+function jobCardManager(j,apps){const s=jobStatus(j); const matched=getMatchedCount(j.id), pending=getPendingCount(j.id), remain=Math.max(num(j.needed)-matched,0); const rows=(apps||[]).length?apps.map(a=>{const st=normalizeStatus(a.status); const stats=workerStats(a.phone||a.worker_phone); let btn=''; if(st==='지원')btn=`<div class="worker-actions"><button class="green wexa-icon-btn" data-icon="✓" onclick="approveApplication(${Number(a.id)},${Number(j.id)})"><span>신청 승인</span></button><button class="red wexa-icon-btn wexa-danger" data-icon="×" onclick="rejectApplication(${Number(a.id)})"><span>신청 반려</span></button></div>`; else if(st==='승인')btn=`<div class="worker-actions"><button class="blue wexa-icon-btn" data-icon="✓" onclick="completeApplication(${Number(a.id)},${Number(j.id)})"><span>일 완료 확인</span></button><button class="red wexa-icon-btn wexa-danger" data-icon="−" onclick="cancelMatched(${Number(a.id)})"><span>매칭 취소</span></button></div>`; else btn=`<div class="worker-actions one"><button class="gray wexa-icon-btn" data-icon="✓" disabled><span>처리 완료</span></button></div>`; return `<div class="worker-card"><div class="worker-row"><div><div class="worker-name">${esc(a.worker_name||a.name||'이름없음')}</div><div class="worker-meta">매칭 ${stats.match}회 · 거절 ${stats.reject}회</div><div class="worker-meta">${esc(a.phone||a.worker_phone||'번호없음')}</div></div><span class="status-pill ${st==='승인'?'status-ok':st==='지원'?'status-wait':'status-red'}">${esc(st)}</span></div>${btn}</div>`}).join(''):`<div class="empty" style="margin-top:10px">현재 확인할 지원자가 없습니다.</div>`; const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">👤 담당자: ${esc(managerName(j))}</div>${managerPhone(j)?`<div class="info">📞 연락처: ${esc(managerPhone(j))}</div>`:''}</div>`; const action=`<div class="info pay-line"><span class="emoji">💸</span><span>플랫폼 수수료 ${money(jobFeeAmount(j))} · 근무일수 ${jobWorkDays(j)}일</span></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="count-grid wexa-stat-grid"><div class="count-tile wexa-stat-tile"><i class="wexa-stat-icon stat-apply" aria-hidden="true"></i><b>${pending}</b><span>지원</span></div><div class="count-tile wexa-stat-tile"><i class="wexa-stat-icon stat-match" aria-hidden="true"></i><b>${matched}</b><span>매칭</span></div><div class="count-tile wexa-stat-tile"><i class="wexa-stat-icon stat-remain" aria-hidden="true"></i><b>${remain}</b><span>남은 자리</span></div><div class="count-tile wexa-stat-tile"><i class="wexa-stat-icon stat-needed" aria-hidden="true"></i><b>${num(j.needed)}</b><span>모집</span></div></div><details data-job-id="${Number(j.id)}"><summary class="wexa-icon-summary" data-icon="list-plain"><span>지원자 보기</span></summary>${rows}</details>${s==='게시중'?`<div class="manager-job-actions"><button class="red wexa-icon-btn wexa-danger" data-icon="□" onclick="closeManagerJob(${Number(j.id)})"><span>공고 마감</span></button></div>`:s==='공고 마감'?`<div class="manager-job-actions"><button class="gray wexa-icon-btn" data-icon="□" disabled><span>공고 마감됨</span></button></div>`:''}`; return jobCardBase(j,extra,action)}
 function renderManager(){if(role!=='manager')return; const wrap=$('managerContent'); if(!wrap)return; const openIds=new Set([...document.querySelectorAll('details[data-job-id][open]')].map(x=>x.dataset.jobId)); const cid=currentCompanyId(); const op=companyStats(cid); const myJobs=jobs.filter(j=>isCurrentCompanyJob(j)&&!isArchivedJob(j)&&!isManagerCompletedClosedJob(j)); const ids=new Set(myJobs.map(j=>Number(j.id))); const myApps=applications.filter(a=>ids.has(Number(a.job_id))||sameCompanyIdValue(a.company_id,cid)); let html=`<div class="card notice"><div class="title">업체 운영기록</div><div class="sub">공고 ${op.jobs}회 · 매칭 ${op.match}회 · 완료 ${op.done}회</div><div class="version" id="liveStamp">${APP_VERSION} · 자동 동기화 작동 중</div></div><div class="trust-card"><b>관리자 운영 기준</b><p>신청자는 현장 조건 확인 후 승인해 주세요. 승인된 근로자만 출근 대상입니다.</p></div><button class="big blue full wexa-icon-btn wexa-manager-main-btn" data-icon="＋" onclick="goScreen('jobFormScreen')"><span>새 공고 등록</span></button><div class="section">등록 공고</div>`; html+=myJobs.length?myJobs.map(j=>jobCardManager(j,myApps.filter(a=>Number(a.job_id)===Number(j.id)&&activeApplicant(a)))).join(''):`<div class="empty">등록한 공고가 없습니다.</div>`; wrap.innerHTML=html; openIds.forEach(id=>{const d=document.querySelector(`details[data-job-id="${id}"]`); if(d)d.open=true})}
 function uniqueWorkerAppsByJobStatus(list){
   const map=new Map();
