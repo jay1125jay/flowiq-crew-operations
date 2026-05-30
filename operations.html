@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.92 COMPLETE_BUTTON_BALANCED_GLOW</title>
-<meta name="flowiq-version" content="v4.1.92 COMPLETE_BUTTON_BALANCED_GLOW" />
+<title>WEXA OPERATIONS v4.1.93 COMPLETE_BUTTON_MATCH_ADD_JOB</title>
+<meta name="flowiq-version" content="v4.1.93 COMPLETE_BUTTON_MATCH_ADD_JOB" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -729,6 +729,36 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   .count-tile.wexa-stat-tile .wexa-stat-line{font-size:10px !important;font-weight:700 !important;letter-spacing:-.55px !important;}
 }
 
+
+/* ===== WEXA v4.1.93 complete button match add-job color =====
+   관리자 지원자 카드의 '일 완료 확인' 버튼 색감을 새 공고 등록 버튼과 동일 계열로 맞춤. 기능 로직 영향 없음. */
+.worker-actions .wexa-icon-btn.wexa-complete-soft,
+button.blue.wexa-icon-btn.wexa-complete-soft{
+  border-color:rgba(37,99,255,.50) !important;
+  background:linear-gradient(180deg,rgba(7,17,38,.92),rgba(2,6,23,.98)) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,212,200,.10) inset,
+    0 12px 30px rgba(0,0,0,.38),
+    0 0 26px rgba(37,99,255,.22),
+    0 0 14px rgba(0,212,200,.10) !important;
+}
+.worker-actions .wexa-icon-btn.wexa-complete-soft .wexa-svg{
+  stroke:#38bdf8 !important;
+  color:#38bdf8 !important;
+  filter:
+    drop-shadow(0 0 6px rgba(56,189,248,.95))
+    drop-shadow(0 0 14px rgba(37,99,255,.62))
+    drop-shadow(0 0 22px rgba(0,212,200,.18)) !important;
+}
+.worker-actions .wexa-icon-btn.wexa-complete-soft span{
+  color:#f8fbff !important;
+  text-shadow:0 0 10px rgba(37,99,255,.42),0 0 5px rgba(0,212,200,.18) !important;
+}
+.worker-actions .wexa-icon-btn.wexa-complete-soft::after{
+  background:linear-gradient(90deg,transparent,rgba(96,165,250,.96),rgba(0,212,200,.54),transparent) !important;
+  opacity:.95 !important;
+}
+
 </style>
 </head>
 <body>
@@ -770,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.92 COMPLETE_BUTTON_BALANCED_GLOW';
+const APP_VERSION='v4.1.93 COMPLETE_BUTTON_MATCH_ADD_JOB';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
