@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.66 WORKER_DUP_PENDING_FIX</title>
-<meta name="flowiq-version" content="v4.1.66 WORKER_DUP_PENDING_FIX" />
+<title>WEXA OPERATIONS v4.1.72 MANAGER_ICON_BUTTON_UI_STEP1</title>
+<meta name="flowiq-version" content="v4.1.72 MANAGER_ICON_BUTTON_UI_STEP1" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -461,6 +461,108 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
   background:linear-gradient(90deg,transparent,rgba(0,212,200,.85),rgba(37,99,255,.75),transparent) !important;
 }
 
+
+/* ===== WEXA v4.1.72 manager/company icon button UI step 1 =====
+   관리자/업체 화면 버튼 전용. 신청/공고/Supabase 로직 영향 없음. */
+.wexa-icon-btn{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:7px !important;
+  width:100% !important;
+  min-height:74px !important;
+  padding:11px 10px 10px !important;
+  border-radius:20px !important;
+  text-align:center !important;
+  line-height:1.05 !important;
+}
+.wexa-icon-btn::before{
+  content:attr(data-icon) !important;
+  position:static !important;
+  z-index:1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:34px !important;
+  height:34px !important;
+  margin:0 auto !important;
+  border-radius:14px !important;
+  font-size:25px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  color:#93c5fd !important;
+  background:radial-gradient(circle at 50% 35%,rgba(37,99,255,.26),rgba(2,6,23,.08) 70%) !important;
+  border:1px solid rgba(96,165,250,.28) !important;
+  box-shadow:0 0 18px rgba(37,99,255,.25), inset 0 1px 0 rgba(255,255,255,.07) !important;
+  opacity:1 !important;
+}
+.wexa-icon-btn::after{
+  top:0 !important;
+  bottom:auto !important;
+  left:18px !important;
+  right:18px !important;
+  height:1px !important;
+  background:linear-gradient(90deg,transparent,rgba(96,165,250,.88),rgba(37,99,255,.78),transparent) !important;
+}
+.wexa-icon-btn span{
+  display:block !important;
+  width:100% !important;
+  font-size:13px !important;
+  font-weight:950 !important;
+  letter-spacing:-.25px !important;
+  color:#e0f2fe !important;
+  text-shadow:0 0 13px rgba(37,99,255,.20) !important;
+}
+.wexa-icon-btn.wexa-danger::before{
+  color:#fecaca !important;
+  border-color:rgba(248,113,113,.34) !important;
+  background:radial-gradient(circle at 50% 35%,rgba(185,28,70,.26),rgba(2,6,23,.08) 70%) !important;
+  box-shadow:0 0 18px rgba(244,63,94,.18), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+.wexa-icon-btn:disabled::before{opacity:.52 !important;box-shadow:none !important;}
+.worker-actions .wexa-icon-btn,
+.manager-job-actions .wexa-icon-btn{
+  min-height:70px !important;
+  font-size:13px !important;
+}
+.wexa-manager-main-btn{min-height:82px !important;margin-top:10px !important;margin-bottom:12px !important;}
+.wexa-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.wexa-form-actions .wexa-icon-btn{min-height:72px !important;margin-top:0 !important;}
+.wexa-icon-summary{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:7px !important;
+  min-height:74px !important;
+  padding:11px 10px 10px !important;
+  border-radius:20px !important;
+  text-align:center !important;
+  background:linear-gradient(180deg,rgba(8,16,34,.88),rgba(2,6,23,.96)) !important;
+  border:1px solid rgba(96,165,250,.44) !important;
+  color:#e0f2fe !important;
+  box-shadow:0 0 0 1px rgba(37,99,255,.12) inset,0 0 22px rgba(37,99,255,.18),0 10px 26px rgba(0,0,0,.28) !important;
+}
+.wexa-icon-summary::before{
+  content:attr(data-icon) !important;
+  position:static !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:34px !important;
+  height:34px !important;
+  border-radius:14px !important;
+  font-size:25px !important;
+  font-weight:900 !important;
+  color:#93c5fd !important;
+  background:radial-gradient(circle at 50% 35%,rgba(37,99,255,.24),rgba(2,6,23,.08) 70%) !important;
+  border:1px solid rgba(96,165,250,.28) !important;
+  box-shadow:0 0 18px rgba(37,99,255,.23), inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+.wexa-icon-summary span{font-size:13px;font-weight:950;color:#e0f2fe;letter-spacing:-.25px;}
+@media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:68px !important;}}
+
 </style>
 </head>
 <body>
@@ -490,7 +592,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 <section id="jobFormScreen" class="hidden">
   <div class="card notice"><div class="title">새 공고 등록</div><div class="sub">등록된 공고는 운영 기준에 따라 확인 후 게시됩니다.</div></div>
   <div class="trust-card"><b>공고 등록 기준</b><p>허위 공고, 불법 고용 목적 공고, 임금 미지급 위험 공고, 위험·부적절 현장 공고는 게시가 보류될 수 있습니다.</p></div>
-  <label>공고명</label><input id="fTitle" placeholder="예: 딸기 수확 보조"><label>근무 시작일</label><input id="fStartDate" type="date" onchange="updateFeePreview()"><label>근무 종료일</label><input id="fEndDate" type="date" onchange="updateFeePreview()"><label>근무 시간</label><input id="fTime" placeholder="예: 08:00 ~ 17:00"><label>위치</label><input id="fLocation" placeholder="예: 경기 화성시 장안면 ○○로 123"><label>일당</label><input id="fSalary" inputmode="numeric" placeholder="예: 100000" oninput="updateFeePreview()"><label>모집 인원</label><input id="fNeeded" inputmode="numeric" placeholder="예: 3" oninput="updateFeePreview()"><div class="fee-preview"><span>플랫폼 수수료 = 일당 × 모집인원 × 근무일수 × 5%</span><b id="feePreviewText">예상 수수료 0원</b></div><div class="fee-account"><div class="info">🏦 WEXA 수수료 입금 계좌</div><div class="info">은행: 등록 예정</div><div class="info">계좌번호: 등록 예정</div><div class="info">예금주: WEXA</div></div><label>작업 종류</label><select id="fType" onchange="updateJobTypeOther()"><option>물류</option><option>농가</option><option>건설</option><option>식당</option><option>청소</option><option>기타</option></select><div id="fOtherTypeWrap" class="hidden"><label>기타 작업 종류</label><input id="fOtherType" placeholder="예: 행사보조, 포장작업"></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><button class="full blue" onclick="createJob()">공고 저장</button><button class="full gray" onclick="goScreen('managerScreen')">취소</button>
+  <label>공고명</label><input id="fTitle" placeholder="예: 딸기 수확 보조"><label>근무 시작일</label><input id="fStartDate" type="date" onchange="updateFeePreview()"><label>근무 종료일</label><input id="fEndDate" type="date" onchange="updateFeePreview()"><label>근무 시간</label><input id="fTime" placeholder="예: 08:00 ~ 17:00"><label>위치</label><input id="fLocation" placeholder="예: 경기 화성시 장안면 ○○로 123"><label>일당</label><input id="fSalary" inputmode="numeric" placeholder="예: 100000" oninput="updateFeePreview()"><label>모집 인원</label><input id="fNeeded" inputmode="numeric" placeholder="예: 3" oninput="updateFeePreview()"><div class="fee-preview"><span>플랫폼 수수료 = 일당 × 모집인원 × 근무일수 × 5%</span><b id="feePreviewText">예상 수수료 0원</b></div><div class="fee-account"><div class="info">🏦 WEXA 수수료 입금 계좌</div><div class="info">은행: 등록 예정</div><div class="info">계좌번호: 등록 예정</div><div class="info">예금주: WEXA</div></div><label>작업 종류</label><select id="fType" onchange="updateJobTypeOther()"><option>물류</option><option>농가</option><option>건설</option><option>식당</option><option>청소</option><option>기타</option></select><div id="fOtherTypeWrap" class="hidden"><label>기타 작업 종류</label><input id="fOtherType" placeholder="예: 행사보조, 포장작업"></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="wexa-form-actions"><button class="blue wexa-icon-btn" data-icon="＋" onclick="createJob()"><span>공고 저장</span></button><button class="gray wexa-icon-btn" data-icon="←" onclick="goScreen('managerScreen')"><span>취소</span></button></div>
 </section>
 
 <section id="workerScreen" class="hidden"><div id="workerHome"></div><div class="section">신청 가능한 현장</div><div id="workerJobs"></div></section>
@@ -502,7 +604,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.71 WORKER_APPLY_NEW_COMPANY_FIX';
+const APP_VERSION='v4.1.72 MANAGER_ICON_BUTTON_UI_STEP1';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
@@ -660,8 +762,8 @@ async function createJob(){const title=clean($('fTitle').value), location=clean(
 function routeButtons(location){const q=encodeURIComponent(location||''); if(!q)return ''; return `<div class="route-grid"><button class="gray" onclick="window.open('https://map.kakao.com/link/search/${q}','_blank')">카카오맵</button><button class="gray" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${q}','_blank')">구글맵</button></div>`}
 function jobCardBase(j,extra='',action=''){const s=jobStatus(j); return `<div class="card"><div class="job-head"><div><div class="job-title">${esc(j.title)}</div><div class="type">${esc(jobCategory(j))}</div></div><div class="badge">${esc(s)}</div></div>${extra}<div class="info pay-line"><span class="emoji">📅</span><span>${esc(dateText(j))}</span></div><div class="info pay-line"><span class="emoji">⏰</span><span>${esc(j.work_time||'-')}</span></div><div class="info pay-line"><span class="emoji">📍</span><span>${esc(j.location||'-')}</span></div><div class="info pay-line"><span class="emoji">👥</span><span>모집 ${num(j.needed)}명 · 매칭 ${getMatchedCount(j.id)}명 · 남은 ${Math.max(num(j.needed)-getMatchedCount(j.id),0)}명 · 지원 ${getPendingCount(j.id)}명</span></div><div class="info pay-line"><span class="emoji">💰</span><span>일당 ${money(j.salary)}</span></div>${action}</div>`}
 function isManagerCompletedClosedJob(j){if(jobStatus(j)!=='공고 마감')return false; const apps=applications.filter(a=>Number(a.job_id)===Number(j.id)); return apps.length&&apps.every(a=>!isPending(a.status)&&!isMatched(a.status))}
-function jobCardManager(j,apps){const s=jobStatus(j); const matched=getMatchedCount(j.id), pending=getPendingCount(j.id), remain=Math.max(num(j.needed)-matched,0); const rows=(apps||[]).length?apps.map(a=>{const st=normalizeStatus(a.status); const stats=workerStats(a.phone||a.worker_phone); let btn=''; if(st==='지원')btn=`<div class="worker-actions"><button class="green" onclick="approveApplication(${Number(a.id)},${Number(j.id)})">신청 승인</button><button class="red" onclick="rejectApplication(${Number(a.id)})">신청 반려</button></div>`; else if(st==='승인')btn=`<div class="worker-actions"><button class="blue" onclick="completeApplication(${Number(a.id)},${Number(j.id)})">일 완료 확인</button><button class="red" onclick="cancelMatched(${Number(a.id)})">매칭 취소</button></div>`; else btn=`<div class="worker-actions one"><button class="gray" disabled>처리 완료</button></div>`; return `<div class="worker-card"><div class="worker-row"><div><div class="worker-name">${esc(a.worker_name||a.name||'이름없음')}</div><div class="worker-meta">매칭 ${stats.match}회 · 거절 ${stats.reject}회</div><div class="worker-meta">${esc(a.phone||a.worker_phone||'번호없음')}</div></div><span class="status-pill ${st==='승인'?'status-ok':st==='지원'?'status-wait':'status-red'}">${esc(st)}</span></div>${btn}</div>`}).join(''):`<div class="empty" style="margin-top:10px">현재 확인할 지원자가 없습니다.</div>`; const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">👤 담당자: ${esc(managerName(j))}</div>${managerPhone(j)?`<div class="info">📞 연락처: ${esc(managerPhone(j))}</div>`:''}</div>`; const action=`<div class="info pay-line"><span class="emoji">💸</span><span>플랫폼 수수료 ${money(jobFeeAmount(j))} · 근무일수 ${jobWorkDays(j)}일</span></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="count-grid"><div class="count-tile"><b>${pending}</b><span>지원</span></div><div class="count-tile"><b>${matched}</b><span>매칭</span></div><div class="count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="count-tile"><b>${num(j.needed)}</b><span>모집</span></div></div>${s==='게시중'?`<div class="manager-job-actions"><button class="red" onclick="closeManagerJob(${Number(j.id)})">공고 마감</button></div>`:s==='공고 마감'?`<div class="manager-job-actions"><button class="gray" disabled>공고 마감됨</button></div>`:''}<details data-job-id="${Number(j.id)}"><summary>지원자 보기</summary>${rows}</details>`; return jobCardBase(j,extra,action)}
-function renderManager(){if(role!=='manager')return; const wrap=$('managerContent'); if(!wrap)return; const openIds=new Set([...document.querySelectorAll('details[data-job-id][open]')].map(x=>x.dataset.jobId)); const cid=currentCompanyId(); const op=companyStats(cid); const myJobs=jobs.filter(j=>isCurrentCompanyJob(j)&&!isArchivedJob(j)&&!isManagerCompletedClosedJob(j)); const ids=new Set(myJobs.map(j=>Number(j.id))); const myApps=applications.filter(a=>ids.has(Number(a.job_id))||sameCompanyIdValue(a.company_id,cid)); let html=`<div class="card notice"><div class="title">업체 운영기록</div><div class="sub">공고 ${op.jobs}회 · 매칭 ${op.match}회 · 완료 ${op.done}회</div><div class="version" id="liveStamp">${APP_VERSION} · 자동 동기화 작동 중</div></div><div class="trust-card"><b>관리자 운영 기준</b><p>신청자는 현장 조건 확인 후 승인해 주세요. 승인된 근로자만 출근 대상입니다.</p></div><button class="big blue full" onclick="goScreen('jobFormScreen')">새 공고 등록</button><div class="section">등록 공고</div>`; html+=myJobs.length?myJobs.map(j=>jobCardManager(j,myApps.filter(a=>Number(a.job_id)===Number(j.id)&&activeApplicant(a)))).join(''):`<div class="empty">등록한 공고가 없습니다.</div>`; wrap.innerHTML=html; openIds.forEach(id=>{const d=document.querySelector(`details[data-job-id="${id}"]`); if(d)d.open=true})}
+function jobCardManager(j,apps){const s=jobStatus(j); const matched=getMatchedCount(j.id), pending=getPendingCount(j.id), remain=Math.max(num(j.needed)-matched,0); const rows=(apps||[]).length?apps.map(a=>{const st=normalizeStatus(a.status); const stats=workerStats(a.phone||a.worker_phone); let btn=''; if(st==='지원')btn=`<div class="worker-actions"><button class="green wexa-icon-btn" data-icon="✓" onclick="approveApplication(${Number(a.id)},${Number(j.id)})"><span>신청 승인</span></button><button class="red wexa-icon-btn wexa-danger" data-icon="×" onclick="rejectApplication(${Number(a.id)})"><span>신청 반려</span></button></div>`; else if(st==='승인')btn=`<div class="worker-actions"><button class="blue wexa-icon-btn" data-icon="✓" onclick="completeApplication(${Number(a.id)},${Number(j.id)})"><span>일 완료 확인</span></button><button class="red wexa-icon-btn wexa-danger" data-icon="−" onclick="cancelMatched(${Number(a.id)})"><span>매칭 취소</span></button></div>`; else btn=`<div class="worker-actions one"><button class="gray wexa-icon-btn" data-icon="✓" disabled><span>처리 완료</span></button></div>`; return `<div class="worker-card"><div class="worker-row"><div><div class="worker-name">${esc(a.worker_name||a.name||'이름없음')}</div><div class="worker-meta">매칭 ${stats.match}회 · 거절 ${stats.reject}회</div><div class="worker-meta">${esc(a.phone||a.worker_phone||'번호없음')}</div></div><span class="status-pill ${st==='승인'?'status-ok':st==='지원'?'status-wait':'status-red'}">${esc(st)}</span></div>${btn}</div>`}).join(''):`<div class="empty" style="margin-top:10px">현재 확인할 지원자가 없습니다.</div>`; const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">👤 담당자: ${esc(managerName(j))}</div>${managerPhone(j)?`<div class="info">📞 연락처: ${esc(managerPhone(j))}</div>`:''}</div>`; const action=`<div class="info pay-line"><span class="emoji">💸</span><span>플랫폼 수수료 ${money(jobFeeAmount(j))} · 근무일수 ${jobWorkDays(j)}일</span></div><div class="pay-note"><span class="mark">※</span><span>승인된 근로자의 임금은 현장/업체에서 직접 지급해주세요.</span></div><div class="count-grid"><div class="count-tile"><b>${pending}</b><span>지원</span></div><div class="count-tile"><b>${matched}</b><span>매칭</span></div><div class="count-tile"><b>${remain}</b><span>남은 자리</span></div><div class="count-tile"><b>${num(j.needed)}</b><span>모집</span></div></div>${s==='게시중'?`<div class="manager-job-actions"><button class="red wexa-icon-btn wexa-danger" data-icon="□" onclick="closeManagerJob(${Number(j.id)})"><span>공고 마감</span></button></div>`:s==='공고 마감'?`<div class="manager-job-actions"><button class="gray wexa-icon-btn" data-icon="□" disabled><span>공고 마감됨</span></button></div>`:''}<details data-job-id="${Number(j.id)}"><summary class="wexa-icon-summary" data-icon="☷"><span>지원자 보기</span></summary>${rows}</details>`; return jobCardBase(j,extra,action)}
+function renderManager(){if(role!=='manager')return; const wrap=$('managerContent'); if(!wrap)return; const openIds=new Set([...document.querySelectorAll('details[data-job-id][open]')].map(x=>x.dataset.jobId)); const cid=currentCompanyId(); const op=companyStats(cid); const myJobs=jobs.filter(j=>isCurrentCompanyJob(j)&&!isArchivedJob(j)&&!isManagerCompletedClosedJob(j)); const ids=new Set(myJobs.map(j=>Number(j.id))); const myApps=applications.filter(a=>ids.has(Number(a.job_id))||sameCompanyIdValue(a.company_id,cid)); let html=`<div class="card notice"><div class="title">업체 운영기록</div><div class="sub">공고 ${op.jobs}회 · 매칭 ${op.match}회 · 완료 ${op.done}회</div><div class="version" id="liveStamp">${APP_VERSION} · 자동 동기화 작동 중</div></div><div class="trust-card"><b>관리자 운영 기준</b><p>신청자는 현장 조건 확인 후 승인해 주세요. 승인된 근로자만 출근 대상입니다.</p></div><button class="big blue full wexa-icon-btn wexa-manager-main-btn" data-icon="＋" onclick="goScreen('jobFormScreen')"><span>새 공고 등록</span></button><div class="section">등록 공고</div>`; html+=myJobs.length?myJobs.map(j=>jobCardManager(j,myApps.filter(a=>Number(a.job_id)===Number(j.id)&&activeApplicant(a)))).join(''):`<div class="empty">등록한 공고가 없습니다.</div>`; wrap.innerHTML=html; openIds.forEach(id=>{const d=document.querySelector(`details[data-job-id="${id}"]`); if(d)d.open=true})}
 function uniqueWorkerAppsByJobStatus(list){
   const map=new Map();
   (list||[]).forEach(a=>{
