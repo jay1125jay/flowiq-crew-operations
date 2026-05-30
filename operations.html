@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.73 MANAGER_ICON_BRIGHT_ALIGN_FIX</title>
-<meta name="flowiq-version" content="v4.1.73 MANAGER_ICON_BRIGHT_ALIGN_FIX" />
+<title>WEXA OPERATIONS v4.1.74 MANAGER_SQUARE_ICON_TRUE_CENTER</title>
+<meta name="flowiq-version" content="v4.1.74 MANAGER_SQUARE_ICON_TRUE_CENTER" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -564,14 +564,33 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 }
 .wexa-icon-summary span{font-size:13px;font-weight:950;color:#e0f2fe;letter-spacing:-.25px;}
 
-/* v4.1.73: 관리자 공고마감 네모 아이콘 중앙 보정 */
+/* v4.1.74: 관리자 공고마감 네모 아이콘 실제 중앙 정렬
+   글자 glyph(□)의 기준선 때문에 아래로 처져 보이는 문제를 제거하고, CSS 선 아이콘으로 직접 그림 */
 .wexa-icon-btn[data-icon="□"]::before,
 .wexa-icon-summary[data-icon="□"]::before{
-  align-items:center !important;
-  justify-content:center !important;
-  line-height:.82 !important;
-  transform:translateY(-2px) !important;
-  padding-bottom:1px !important;
+  content:"" !important;
+  position:static !important;
+  display:block !important;
+  width:28px !important;
+  height:28px !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  border-radius:8px !important;
+  border:3px solid #60a5fa !important;
+  background:rgba(37,99,255,.07) !important;
+  transform:none !important;
+  box-shadow:
+    0 0 18px rgba(96,165,250,.72),
+    0 0 28px rgba(37,99,255,.38),
+    inset 0 0 10px rgba(96,165,250,.12) !important;
+}
+.wexa-icon-btn.wexa-danger[data-icon="□"]::before{
+  border-color:#fca5a5 !important;
+  background:rgba(185,28,70,.08) !important;
+  box-shadow:
+    0 0 16px rgba(248,113,113,.52),
+    0 0 24px rgba(185,28,70,.26),
+    inset 0 0 10px rgba(248,113,113,.10) !important;
 }
 
 @media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:68px !important;}}
@@ -617,7 +636,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.73 MANAGER_ICON_BRIGHT_ALIGN_FIX';
+const APP_VERSION='v4.1.74 MANAGER_SQUARE_ICON_TRUE_CENTER';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
