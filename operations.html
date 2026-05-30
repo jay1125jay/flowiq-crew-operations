@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.98 FCM_TOKEN_REGISTER_STEP1</title>
-<meta name="flowiq-version" content="v4.1.98 FCM_TOKEN_REGISTER_STEP1" />
+<title>WEXA OPERATIONS v4.1.99 FCM_AUDIO_TOKEN_DEBUG_STEP</title>
+<meta name="flowiq-version" content="v4.1.99 FCM_AUDIO_TOKEN_DEBUG_STEP" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -800,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.98 FCM_TOKEN_REGISTER_STEP1';
+const APP_VERSION='v4.1.99 FCM_AUDIO_TOKEN_DEBUG_STEP';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -928,31 +928,31 @@ async function playNotifySound(kind='info'){
 }
 async function alertFeedback(msg){const kind=notifyKindFromMessage_(msg); await playNotifySound(kind); vibrateNotify(kind)}
 async function prepareAlerts(){
-  const soundOk=await playNotifySound('ok');
+  const soundOk=await playNotifySound('ok', true);
   const vibrateOk=vibrateNotify('ok');
   alertReady=!!soundOk;
   try{localStorage.setItem('wexa_alert_ready',soundOk?'1':'0')}catch(e){}
-  const vibText=navigator.vibrate?(vibrateOk?'진동 테스트 완료':'진동 시도 완료'):'이 기기/브라우저는 진동 미지원';
+  const vibText=navigator.vibrate?(vibrateOk?'진동 테스트 완료':'진동 시도 완료'):'진동 미지원';
 
   let pushText='';
   if(role==='worker'&&currentUser){
     try{
       if(typeof window.wexaRegisterFcmForCurrentUser==='function'){
         const pushResult=await window.wexaRegisterFcmForCurrentUser();
-        pushText=pushResult?.ok?' · 푸시 토큰 저장 완료':` · 푸시 준비 확인 필요: ${pushResult?.message||'미완료'}`;
+        pushText=pushResult?.ok?` · ${pushResult.message||'푸시 토큰 저장 완료'}`:` · 푸시 실패: ${pushResult?.message||'미완료'}`;
       }else{
         pushText=' · 푸시 모듈 로딩 중';
       }
     }catch(e){
-      pushText=' · 푸시 준비 실패';
+      pushText=' · 푸시 실패: '+(e.message||'알 수 없음');
       console.warn('WEXA FCM prepare failed',e);
     }
   }else{
     pushText=' · 화면 알림 준비';
   }
 
-  if(soundOk){toast(`알림 준비 완료 · 테스트 소리 재생됨 · ${vibText}${pushText}`);}
-  else{toast(`알림 준비 미완료 · 브라우저가 소리 재생을 차단했습니다 · ${vibText}${pushText}`);}
+  if(soundOk){toast(`알림 준비 완료 · 소리 OK · ${vibText}${pushText}`);}
+  else{toast(`알림 준비 확인 · 소리 차단/미지원 · ${vibText}${pushText}`);}
 }
 
 function wexaDeviceType_(){
@@ -1316,35 +1316,53 @@ async function registerServiceWorker_(){
 }
 
 window.wexaRegisterFcmForCurrentUser = async function(){
+  const steps=[];
   try{
+    const ua=navigator.userAgent||'';
+    const isIOS=/iPhone|iPad|iPod/i.test(ua);
+    const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+
     if(!("Notification" in window)){
       return {ok:false,message:"브라우저 알림 미지원"};
     }
+    steps.push("알림API OK");
 
     const supported = await isSupported().catch(()=>false);
     if(!supported){
+      if(isIOS&&!isStandalone){
+        return {ok:false,message:"아이폰은 홈화면 추가 후 실행해야 FCM 토큰 가능"};
+      }
       return {ok:false,message:"이 브라우저는 FCM 웹푸시 미지원"};
     }
+    steps.push("FCM지원 OK");
 
-    const permission = await Notification.requestPermission();
+    const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
     if(permission !== "granted"){
       return {ok:false,message:"알림 권한 거부됨"};
     }
+    steps.push("권한 OK");
 
     const sw = await registerServiceWorker_();
     if(!sw.ok){
-      return {ok:false,message:sw.message};
+      return {ok:false,message:"SW 실패: "+sw.message};
     }
+    steps.push("SW OK");
 
     const messaging = getMessaging(app);
-    const token = await getToken(messaging,{
-      vapidKey: WEXA_VAPID_KEY,
-      serviceWorkerRegistration: sw.registration
-    });
+    let token="";
+    try{
+      token = await getToken(messaging,{
+        vapidKey: WEXA_VAPID_KEY,
+        serviceWorkerRegistration: sw.registration
+      });
+    }catch(e){
+      return {ok:false,message:"토큰 실패: "+(e.message||"getToken 오류")};
+    }
 
     if(!token){
       return {ok:false,message:"FCM 토큰 발급 실패"};
     }
+    steps.push("토큰 OK");
 
     if(typeof window.wexaSaveFcmToken !== "function"){
       return {ok:false,message:"토큰 저장 함수 없음"};
@@ -1352,12 +1370,13 @@ window.wexaRegisterFcmForCurrentUser = async function(){
 
     const saved = await window.wexaSaveFcmToken(token);
     if(!saved?.ok){
-      return {ok:false,message:saved?.message||"토큰 저장 실패"};
+      return {ok:false,message:"저장 실패: "+(saved?.message||"Supabase 저장 실패")};
     }
+    steps.push("저장 OK");
 
-    return {ok:true,token,message:"FCM 토큰 등록 완료"};
+    return {ok:true,token,message:steps.join(" · ")};
   }catch(e){
-    console.warn("WEXA FCM register failed", e);
+    console.warn("WEXA FCM register failed",e);
     return {ok:false,message:e.message||"FCM 등록 실패"};
   }
 };
