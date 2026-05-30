@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.101 PUSH_DUPLICATE_GUARD_STEP1</title>
-<meta name="flowiq-version" content="v4.1.101 PUSH_DUPLICATE_GUARD_STEP1" />
+<title>WEXA OPERATIONS v4.1.102 MANAGER_NEW_APPLICATION_PUSH_STEP1</title>
+<meta name="flowiq-version" content="v4.1.102 MANAGER_NEW_APPLICATION_PUSH_STEP1" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -800,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.101 PUSH_DUPLICATE_GUARD_STEP1';
+const APP_VERSION='v4.1.102 MANAGER_NEW_APPLICATION_PUSH_STEP1';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -935,7 +935,7 @@ async function prepareAlerts(){
   const vibText=navigator.vibrate?(vibrateOk?'진동 테스트 완료':'진동 시도 완료'):'진동 미지원';
 
   let pushText='';
-  if(role==='worker'&&currentUser){
+  if(['worker','manager'].includes(role)&&currentUser){
     try{
       if(typeof window.wexaRegisterFcmForCurrentUser==='function'){
         const pushResult=await window.wexaRegisterFcmForCurrentUser();
@@ -966,9 +966,9 @@ function wexaDeviceType_(){
 window.wexaSaveFcmToken=async function(fcmToken){
   try{
     if(!fcmToken)return {ok:false,message:'FCM 토큰 없음'};
-    if(role!=='worker'||!currentUser)return {ok:false,message:'근로자 로그인 필요'};
-    const workerId=workerPhone()||clean(currentUser.id)||clean(currentUser.phone);
-    if(!workerId)return {ok:false,message:'근로자 식별값 없음'};
+    if(!['worker','manager'].includes(role)||!currentUser)return {ok:false,message:'로그인 필요'};
+    const workerId=role==='manager'?(currentCompanyId()||clean(currentUser.id)||clean(currentUser.phone)):(workerPhone()||clean(currentUser.id)||clean(currentUser.phone));
+    if(!workerId)return {ok:false,message:'푸시 대상 식별값 없음'};
     const payload={
       worker_id:workerId,
       worker_name:workerName(),
@@ -1247,6 +1247,30 @@ async function sendWorkerStatusPush_(app,job,eventType){
   });
 }
 
+function managerIdForJobPush_(job){
+  return phoneKey(job?.company_id||job?.company_phone||job?.manager_contact||'');
+}
+async function sendManagerNewApplicationPush_(app,job){
+  const managerId=managerIdForJobPush_(job);
+  if(!managerId){
+    console.warn('WEXA manager push skipped: missing manager id',job);
+    return {ok:false,message:'manager_id 없음'};
+  }
+  const title=jobTitleForPush_(job);
+  const worker=clean(app?.worker_name)||'근로자';
+  const date=jobDateForPush_(job);
+  const tail=date?` · ${date}`:'';
+  return sendWexaPush_({
+    worker_id:managerId,
+    worker_name:managerName(job)||companyName(job)||'관리자',
+    application_id:String(app?.id||''),
+    job_id:String(job?.id||app?.job_id||''),
+    event_type:'manager_new_application',
+    title:'WEXA 새 근무 신청',
+    body:`${worker}님이 ${title}${tail} 공고에 신청했습니다.`
+  });
+}
+
 const wexaManagerActionLocks=new Set();
 function wexaActionKey_(eventType,id){return `${eventType}:${Number(id)||id}`;}
 function wexaLockAction_(eventType,id){const key=wexaActionKey_(eventType,id); if(wexaManagerActionLocks.has(key)){toast('이미 처리 중입니다. 잠시만 기다려주세요.'); return null;} wexaManagerActionLocks.add(key); return key;}
@@ -1257,7 +1281,7 @@ async function rejectApplication(id){const lockKey=wexaLockAction_('application_
 async function completeApplication(id,jobId){const lockKey=wexaLockAction_('work_completed',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!target)return alert('지원자 정보를 찾을 수 없습니다. 데이터를 갱신해 주세요.'); if(normalizeStatus(target.status)!=='승인')return alert('이미 처리된 근무입니다. 데이터 갱신 후 확인해 주세요.'); const {data,error}=await db.from('applications').update({status:'근무완료'}).eq('id',id).eq('status','승인').select('id'); if(error)return alert('완료 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 근무입니다. 중복 완료를 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id,job_id:jobId},job,'work_completed'); await loadData(); await autoReleaseIfFull(jobId); await loadData(); renderAll(); alert(pushResult.ok?'일 완료 확인 완료 · 푸시 발송 요청 완료':'일 완료 확인 완료 · 푸시 발송 확인 필요: '+(pushResult.message||'실패'));}finally{wexaUnlockAction_(lockKey)}}
 async function cancelMatched(id){const {error}=await db.from('applications').update({status:'매칭 취소'}).eq('id',id); if(error)return alert('취소 저장 오류: '+error.message); await loadData(); renderAll(); alert('매칭 취소 완료')}
 let applyLock=false;
-async function applyJob(jobId){if(applyLock)return; applyLock=true; try{if(!currentUser||role!=='worker')return alert('근로자 로그인이 필요합니다.'); await loadData(); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!job)return alert('공고를 찾을 수 없습니다.'); if(isArchivedJob(job))return alert('보관 처리된 공고는 신청할 수 없습니다.'); if(!isPublished(job))return alert('아직 게시승인되지 않은 공고입니다.'); if(isClosedJob(job)||isArchivedJob(job))return alert('마감된 공고입니다.'); const p=currentWorkerKey(); if(!p)return alert('근로자 연락처 확인이 필요합니다. 내 정보에서 연락처를 확인해주세요.'); const my=applications.filter(isCurrentWorkerApp); if(my.some(a=>isMatched(a.status)))return alert('이미 매칭 완료된 공고가 있습니다.'); if(isHiddenByPastRejection(job))return alert('이전에 신청 반려된 업체/현장 공고는 다시 신청할 수 없습니다.'); if(my.find(a=>Number(a.job_id)===Number(jobId)&&isBlockedForReapply(a.status)))return alert('이 공고는 신청 반려 처리되어 다시 신청할 수 없습니다.'); if(my.find(a=>Number(a.job_id)===Number(jobId)&&!isReleased(a.status)))return alert('이미 이 공고에 신청한 이력이 있습니다.'); const {data:serverApps,error:serverError}=await db.from('applications').select('*').eq('job_id',Number(jobId)); if(serverError)return alert('신청 확인 오류: '+serverError.message); const serverMatched=(serverApps||[]).filter(a=>isMatched(a.status)||isDone(a.status)).length; const neededCount=num(job?.needed); if(neededCount>0&&serverMatched>=neededCount)return alert('모집 인원이 마감되었습니다.'); const sameWorkerApps=(serverApps||[]).filter(a=>{const ap=applicationPhoneKey(a); const samePhone=!!p&&!!ap&&ap===p; const sameName=clean(a.worker_name)&&clean(a.worker_name)===clean(workerName()); return samePhone||(!ap&&sameName);}); if(sameWorkerApps.some(a=>isBlockedForReapply(a.status))){await loadData(); renderAll(); return alert('이 공고는 신청 반려 처리되어 다시 신청할 수 없습니다.')} if(sameWorkerApps.some(a=>!isReleased(a.status))){await loadData(); renderAll(); return alert('이미 이 공고에 신청한 이력이 있습니다.')} const payload={job_id:Number(jobId),worker_name:workerName(),phone:currentUser.phone,company_id:job.company_id||'',status:'지원'}; const {error}=await db.from('applications').insert(payload); if(error)return alert('신청 저장 오류: '+error.message); await loadData(); renderAll(); alert('근무 신청 완료. 업체 확인을 기다려주세요.')}finally{applyLock=false}}
+async function applyJob(jobId){if(applyLock)return; applyLock=true; try{if(!currentUser||role!=='worker')return alert('근로자 로그인이 필요합니다.'); await loadData(); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!job)return alert('공고를 찾을 수 없습니다.'); if(isArchivedJob(job))return alert('보관 처리된 공고는 신청할 수 없습니다.'); if(!isPublished(job))return alert('아직 게시승인되지 않은 공고입니다.'); if(isClosedJob(job)||isArchivedJob(job))return alert('마감된 공고입니다.'); const p=currentWorkerKey(); if(!p)return alert('근로자 연락처 확인이 필요합니다. 내 정보에서 연락처를 확인해주세요.'); const my=applications.filter(isCurrentWorkerApp); if(my.some(a=>isMatched(a.status)))return alert('이미 매칭 완료된 공고가 있습니다.'); if(isHiddenByPastRejection(job))return alert('이전에 신청 반려된 업체/현장 공고는 다시 신청할 수 없습니다.'); if(my.find(a=>Number(a.job_id)===Number(jobId)&&isBlockedForReapply(a.status)))return alert('이 공고는 신청 반려 처리되어 다시 신청할 수 없습니다.'); if(my.find(a=>Number(a.job_id)===Number(jobId)&&!isReleased(a.status)))return alert('이미 이 공고에 신청한 이력이 있습니다.'); const {data:serverApps,error:serverError}=await db.from('applications').select('*').eq('job_id',Number(jobId)); if(serverError)return alert('신청 확인 오류: '+serverError.message); const serverMatched=(serverApps||[]).filter(a=>isMatched(a.status)||isDone(a.status)).length; const neededCount=num(job?.needed); if(neededCount>0&&serverMatched>=neededCount)return alert('모집 인원이 마감되었습니다.'); const sameWorkerApps=(serverApps||[]).filter(a=>{const ap=applicationPhoneKey(a); const samePhone=!!p&&!!ap&&ap===p; const sameName=clean(a.worker_name)&&clean(a.worker_name)===clean(workerName()); return samePhone||(!ap&&sameName);}); if(sameWorkerApps.some(a=>isBlockedForReapply(a.status))){await loadData(); renderAll(); return alert('이 공고는 신청 반려 처리되어 다시 신청할 수 없습니다.')} if(sameWorkerApps.some(a=>!isReleased(a.status))){await loadData(); renderAll(); return alert('이미 이 공고에 신청한 이력이 있습니다.')} const payload={job_id:Number(jobId),worker_name:workerName(),phone:currentUser.phone,company_id:job.company_id||'',status:'지원'}; const {data,error}=await db.from('applications').insert(payload).select('id,job_id,worker_name,phone,company_id,status').single(); if(error)return alert('신청 저장 오류: '+error.message); const createdApp=data||payload; await sendManagerNewApplicationPush_(createdApp,job); await loadData(); renderAll(); alert('근무 신청 완료. 업체 확인을 기다려주세요.')}finally{applyLock=false}}
 async function cancelApplication(id){const {error}=await db.from('applications').update({status:'신청취소'}).eq('id',id); if(error)return alert('신청 취소 오류: '+error.message); await loadData(); renderAll(); alert('신청 취소 완료')}
 async function manualRefresh(){if(!currentUser||!role){toast('로그인 후 데이터 갱신을 사용할 수 있습니다.'); return;} try{await loadData(); renderAll(); if(role==='manager'){lastManagerPendingIds=managerPendingIdSet(); lastManagerState=stateKey()} if(role==='worker'){lastWorkerStatusMap=workerStatusMap(); lastWorkerPublicJobIds=workerPublicJobIdSet(); lastWorkerState=stateKey()} toast('데이터 갱신 완료')}catch(e){alert('데이터 갱신 오류: '+(e?.message||e))}}
 async function unlockAudio(){try{const ok=await ensureAudioReady_(); alertReady=!!ok; try{localStorage.setItem('wexa_alert_ready',ok?'1':'0')}catch(e){} return ok;}catch(e){alertReady=false; return false;}}
