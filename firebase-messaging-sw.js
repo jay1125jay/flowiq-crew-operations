@@ -11,26 +11,7 @@ firebase.initializeApp({
   measurementId: "G-WNMDWD2XC4"
 });
 
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(function(payload) {
-  const title =
-    payload.notification && payload.notification.title
-      ? payload.notification.title
-      : "WEXA 알림";
-
-  const options = {
-    body:
-      payload.notification && payload.notification.body
-        ? payload.notification.body
-        : "근무 상태가 업데이트되었습니다.",
-    icon: "/icon.png",
-    badge: "/icon.png",
-    data: payload.data || {}
-  };
-
-  self.registration.showNotification(title, options);
-});
+firebase.messaging();
 
 self.addEventListener("notificationclick", function(event) {
   event.notification.close();
