@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.94 PREVENT_PAST_JOB_DATE</title>
-<meta name="flowiq-version" content="v4.1.94 PREVENT_PAST_JOB_DATE" />
+<title>WEXA OPERATIONS v4.1.95 WORKER_STATUS_NOTIFY_POLLING</title>
+<meta name="flowiq-version" content="v4.1.95 WORKER_STATUS_NOTIFY_POLLING" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -800,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.94 PREVENT_PAST_JOB_DATE';
+const APP_VERSION='v4.1.95 WORKER_STATUS_NOTIFY_POLLING';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -1103,7 +1103,41 @@ function workerStatusMap(){const m=new Map(); workerApps().forEach(a=>m.set(Stri
 function stateKey(){if(role==='manager')return [...managerPendingIdSet()].sort().map(id=>'app:'+id).join('|'); if(role==='worker')return [...workerStatusMap()].map(([id,st])=>`${id}:${st}`).sort().join('|'); return ''}
 function alertsAllowedScreen(){return ['manager','worker'].includes(role)&&!!currentUser&&!['roleScreen','signupScreen','managerLoginScreen','workerLoginScreen'].includes(currentScreen)}
 function checkManagerAlerts(){const now=managerPendingIdSet(); const added=[...now].filter(id=>!lastManagerPendingIds.has(id)); if(added.length){const newest=managerPendingApps().find(a=>String(a.id)===String(added.sort((a,b)=>Number(b)-Number(a))[0])); notifyOnce('manager_pending_new',newest?`app_${newest.id}`:`app_${added[0]}`,'새 근무 신청이 들어왔습니다.')} lastManagerPendingIds=now; lastManagerState=stateKey()}
-function checkWorkerAlerts(){const now=workerStatusMap(); let alerted=false; now.forEach((st,id)=>{const prev=lastWorkerStatusMap.get(id); if(prev&&prev!==st){if(isMatched(st)){notifyOnce('worker_match_new',`app_${id}_${st}`,'매칭 완료: 업체 담당자와 연락처를 확인하세요.'); alerted=true} else if(['거절','미선정','지원취소','신청취소','신청 취소','매칭 취소','매칭취소','근무완료'].includes(st)){notifyOnce('worker_status_new',`app_${id}_${st}`,'신청 상태가 변경되었습니다.'); alerted=true}}}); if(!alerted){const approved=workerApps().find(a=>isMatched(a.status)); if(approved)notifyOnce('worker_match_visible',`app_${approved.id}_${normalizeStatus(approved.status)}`,'매칭 완료: 업체 담당자와 연락처를 확인하세요.')} lastWorkerStatusMap=now; lastWorkerState=stateKey()}
+function workerStatusNoticeMessage(app,st){
+  const job=jobs.find(j=>Number(j.id)===Number(app?.job_id));
+  const title=job?.title?` · ${job.title}`:'';
+  if(isMatched(st))return `근무 신청이 승인되었습니다${title}`;
+  if(isRejected(st))return `근무 신청이 반려되었습니다${title}`;
+  if(isDone(st))return `근무완료 처리되었습니다${title}`;
+  if(isReleased(st))return `신청 상태가 변경되었습니다${title}`;
+  return `신청 상태가 변경되었습니다${title}`;
+}
+function shouldNotifyWorkerStatus_(prev,st){
+  if(!st)return false;
+  if(prev&&prev===st)return false;
+  if(isMatched(st)||isRejected(st)||isDone(st))return true;
+  return ['미선정','매칭 취소','매칭취소'].includes(st);
+}
+function checkWorkerAlerts(){
+  const list=workerApps();
+  const now=workerStatusMap();
+  let changed=false;
+  list.forEach(app=>{
+    const id=String(app.id);
+    const st=normalizeStatus(app.status);
+    const prev=lastWorkerStatusMap.get(id);
+    if(shouldNotifyWorkerStatus_(prev,st)){
+      notifyOnce('worker_status_notify',`app_${id}_${st}`,workerStatusNoticeMessage(app,st));
+      changed=true;
+    }
+  });
+  lastWorkerStatusMap=now;
+  lastWorkerState=stateKey();
+  if(changed&&currentScreen==='workerScreen'){
+    renderWorkerHome();
+    renderWorkerJobs();
+  }
+}
 function renderAfterSync(){
   if(role==='manager'){
     if(currentScreen==='managerScreen')renderManager();
