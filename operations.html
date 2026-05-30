@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.97 NOTIFY_PREPARE_BUTTON_FIX</title>
-<meta name="flowiq-version" content="v4.1.97 NOTIFY_PREPARE_BUTTON_FIX" />
+<title>WEXA OPERATIONS v4.1.98 FCM_TOKEN_REGISTER_STEP1</title>
+<meta name="flowiq-version" content="v4.1.98 FCM_TOKEN_REGISTER_STEP1" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -800,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.97 NOTIFY_PREPARE_BUTTON_FIX';
+const APP_VERSION='v4.1.98 FCM_TOKEN_REGISTER_STEP1';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -933,9 +933,63 @@ async function prepareAlerts(){
   alertReady=!!soundOk;
   try{localStorage.setItem('wexa_alert_ready',soundOk?'1':'0')}catch(e){}
   const vibText=navigator.vibrate?(vibrateOk?'진동 테스트 완료':'진동 시도 완료'):'이 기기/브라우저는 진동 미지원';
-  if(soundOk){toast(`알림 준비 완료 · 테스트 소리 재생됨 · ${vibText}`);}
-  else{toast(`알림 준비 미완료 · 브라우저가 소리 재생을 차단했습니다 · ${vibText}`);}
+
+  let pushText='';
+  if(role==='worker'&&currentUser){
+    try{
+      if(typeof window.wexaRegisterFcmForCurrentUser==='function'){
+        const pushResult=await window.wexaRegisterFcmForCurrentUser();
+        pushText=pushResult?.ok?' · 푸시 토큰 저장 완료':` · 푸시 준비 확인 필요: ${pushResult?.message||'미완료'}`;
+      }else{
+        pushText=' · 푸시 모듈 로딩 중';
+      }
+    }catch(e){
+      pushText=' · 푸시 준비 실패';
+      console.warn('WEXA FCM prepare failed',e);
+    }
+  }else{
+    pushText=' · 화면 알림 준비';
+  }
+
+  if(soundOk){toast(`알림 준비 완료 · 테스트 소리 재생됨 · ${vibText}${pushText}`);}
+  else{toast(`알림 준비 미완료 · 브라우저가 소리 재생을 차단했습니다 · ${vibText}${pushText}`);}
 }
+
+function wexaDeviceType_(){
+  const ua=navigator.userAgent||'';
+  if(/iPhone|iPad|iPod/i.test(ua))return 'iphone';
+  if(/Android/i.test(ua))return 'android';
+  if(/Mobile/i.test(ua))return 'mobile_web';
+  return 'web';
+}
+
+window.wexaSaveFcmToken=async function(fcmToken){
+  try{
+    if(!fcmToken)return {ok:false,message:'FCM 토큰 없음'};
+    if(role!=='worker'||!currentUser)return {ok:false,message:'근로자 로그인 필요'};
+    const workerId=workerPhone()||clean(currentUser.id)||clean(currentUser.phone);
+    if(!workerId)return {ok:false,message:'근로자 식별값 없음'};
+    const payload={
+      worker_id:workerId,
+      worker_name:workerName(),
+      phone:clean(currentUser.phone)||workerId,
+      device_type:wexaDeviceType_(),
+      fcm_token:fcmToken,
+      is_active:true,
+      updated_at:new Date().toISOString()
+    };
+    const res=await db.from('worker_push_tokens').upsert(payload,{onConflict:'fcm_token'});
+    if(res.error){
+      console.warn('WEXA push token save error',res.error);
+      return {ok:false,message:res.error.message||'Supabase 저장 실패'};
+    }
+    try{localStorage.setItem('wexa_fcm_token_saved',fcmToken)}catch(e){}
+    return {ok:true,message:'푸시 토큰 저장 완료'};
+  }catch(e){
+    console.warn('WEXA push token save failed',e);
+    return {ok:false,message:e.message||'푸시 토큰 저장 실패'};
+  }
+};
 function notifyOnce(scope,key,msg){const storeKey='fiq_seen_'+scope+'_'+(role==='manager'?currentCompanyId():workerPhone()); let seen=[]; try{seen=JSON.parse(localStorage.getItem(storeKey)||'[]')}catch(e){} key=String(key); if(seen.includes(key))return; seen.push(key); localStorage.setItem(storeKey,JSON.stringify(seen.slice(-500))); toast(msg); alertFeedback(msg)}
 function goHome(){goScreen(role==='worker'?'workerScreen':role==='manager'?'managerScreen':'roleScreen')}
 function goScreen(id){document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden')); $(id)?.classList.remove('hidden'); currentScreen=id; $('topActions')?.classList.toggle('hidden',['roleScreen','signupScreen','managerLoginScreen','workerLoginScreen'].includes(id)); if(id==='jobFormScreen')setTimeout(syncJobDateLimits,0); if(alertsAllowedScreen())startLive(); else stopLive(); renderAll(); if(id==='myInfoScreen')renderMyInfo()}
@@ -1229,5 +1283,85 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){ensureLiv
 window.addEventListener('focus',()=>{ensureLiveRunning(); liveSync();});
 init();
 </script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getMessaging, getToken, isSupported } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4gNqGPWf5e7YSPUMpXfI5sRq70pLPH-M",
+  authDomain: "wexa-push.firebaseapp.com",
+  projectId: "wexa-push",
+  storageBucket: "wexa-push.firebasestorage.app",
+  messagingSenderId: "119368741125",
+  appId: "1:119368741125:web:1b6d9fe5c8ac0783cf876c",
+  measurementId: "G-WNMDWD2XC4"
+};
+
+const WEXA_VAPID_KEY = "BCC7SzvPgzLpmla7k9vAQ48948M9LPafCVdtifWaHMFY3ZjQr6GsuBONRQkbwxBWADx3R9pRxZmAsQ74smE-D5g";
+const app = initializeApp(firebaseConfig);
+
+async function registerServiceWorker_(){
+  if(!("serviceWorker" in navigator)){
+    return {ok:false,message:"서비스워커 미지원"};
+  }
+  try{
+    const registration = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
+    await navigator.serviceWorker.ready;
+    return {ok:true,registration};
+  }catch(e){
+    console.warn("WEXA service worker register failed", e);
+    return {ok:false,message:e.message||"서비스워커 등록 실패"};
+  }
+}
+
+window.wexaRegisterFcmForCurrentUser = async function(){
+  try{
+    if(!("Notification" in window)){
+      return {ok:false,message:"브라우저 알림 미지원"};
+    }
+
+    const supported = await isSupported().catch(()=>false);
+    if(!supported){
+      return {ok:false,message:"이 브라우저는 FCM 웹푸시 미지원"};
+    }
+
+    const permission = await Notification.requestPermission();
+    if(permission !== "granted"){
+      return {ok:false,message:"알림 권한 거부됨"};
+    }
+
+    const sw = await registerServiceWorker_();
+    if(!sw.ok){
+      return {ok:false,message:sw.message};
+    }
+
+    const messaging = getMessaging(app);
+    const token = await getToken(messaging,{
+      vapidKey: WEXA_VAPID_KEY,
+      serviceWorkerRegistration: sw.registration
+    });
+
+    if(!token){
+      return {ok:false,message:"FCM 토큰 발급 실패"};
+    }
+
+    if(typeof window.wexaSaveFcmToken !== "function"){
+      return {ok:false,message:"토큰 저장 함수 없음"};
+    }
+
+    const saved = await window.wexaSaveFcmToken(token);
+    if(!saved?.ok){
+      return {ok:false,message:saved?.message||"토큰 저장 실패"};
+    }
+
+    return {ok:true,token,message:"FCM 토큰 등록 완료"};
+  }catch(e){
+    console.warn("WEXA FCM register failed", e);
+    return {ok:false,message:e.message||"FCM 등록 실패"};
+  }
+};
+</script>
+
 </body>
 </html>
