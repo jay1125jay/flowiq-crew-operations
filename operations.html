@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.88 STAT_TILE_SINGLE_TEXT_LINE_FIX</title>
-<meta name="flowiq-version" content="v4.1.88 STAT_TILE_SINGLE_TEXT_LINE_FIX" />
+<title>WEXA OPERATIONS v4.1.89 CSS_CLEANUP_KEEP_UI</title>
+<meta name="flowiq-version" content="v4.1.89 CSS_CLEANUP_KEEP_UI" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -578,197 +578,8 @@ button.red.wexa-icon-btn.wexa-danger{
 details[data-job-id]{margin-top:10px !important;}
 @media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:72px !important}.wexa-icon-btn .wexa-svg,.wexa-icon-summary .wexa-svg{width:34px !important;height:34px !important;flex-basis:34px !important}}
 
-/* ===== WEXA v4.1.78: manager stat SVG tiles ===== */
-.count-grid.wexa-stat-grid{
-  display:grid !important;
-  grid-template-columns:repeat(4,1fr) !important;
-  gap:8px !important;
-  margin:12px 0 14px !important;
-}
-.count-tile.wexa-stat-tile{
-  position:relative !important;
-  min-height:98px !important;
-  padding:12px 4px 10px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:5px !important;
-  border-radius:20px !important;
-  background:linear-gradient(180deg,rgba(5,15,36,.94),rgba(2,6,23,.98)) !important;
-  border:1px solid rgba(37,99,255,.40) !important;
-  box-shadow:
-    0 0 0 1px rgba(0,212,200,.08) inset,
-    0 10px 26px rgba(0,0,0,.36),
-    0 0 24px rgba(37,99,255,.16) !important;
-  overflow:hidden !important;
-}
-.count-tile.wexa-stat-tile::before{
-  content:"" !important;
-  position:absolute !important;
-  inset:0 !important;
-  pointer-events:none !important;
-  border-radius:inherit !important;
-  background:
-    linear-gradient(90deg,transparent,rgba(96,165,250,.42),rgba(0,212,200,.30),transparent) top left/100% 1px no-repeat,
-    radial-gradient(circle at 50% 0%,rgba(37,99,255,.22),transparent 55%) !important;
-  opacity:.95 !important;
-}
-.count-tile.wexa-stat-tile::after{display:none !important;content:none !important;}
-.wexa-stat-icon{
-  position:relative !important;
-  z-index:2 !important;
-  width:34px !important;
-  height:34px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  color:#38bdf8 !important;
-}
-.wexa-stat-icon .wexa-svg{
-  width:34px !important;
-  height:34px !important;
-  stroke:#38bdf8 !important;
-  fill:none !important;
-  stroke-width:2.25 !important;
-  stroke-linecap:round !important;
-  stroke-linejoin:round !important;
-  filter:
-    drop-shadow(0 0 6px rgba(56,189,248,.92))
-    drop-shadow(0 0 15px rgba(37,99,255,.48)) !important;
-}
-.count-tile.wexa-stat-tile b{
-  position:relative !important;
-  z-index:2 !important;
-  display:block !important;
-  margin:0 !important;
-  color:#ffffff !important;
-  font-size:23px !important;
-  line-height:1 !important;
-  font-weight:950 !important;
-  text-shadow:0 0 12px rgba(37,99,255,.42),0 0 8px rgba(0,212,200,.14) !important;
-}
-.count-tile.wexa-stat-tile span:not(.wexa-stat-icon){
-  position:relative !important;
-  z-index:2 !important;
-  display:block !important;
-  color:#dbeafe !important;
-  font-size:11px !important;
-  line-height:1.1 !important;
-  font-weight:950 !important;
-  letter-spacing:-.35px !important;
-}
-@media(max-width:390px){
-  .count-grid.wexa-stat-grid{grid-template-columns:repeat(4,1fr) !important;gap:6px !important;}
-  .count-tile.wexa-stat-tile{min-height:90px !important;padding-left:2px !important;padding-right:2px !important;}
-  .wexa-stat-icon,.wexa-stat-icon .wexa-svg{width:30px !important;height:30px !important;}
-  .count-tile.wexa-stat-tile b{font-size:20px !important;}
-  .count-tile.wexa-stat-tile span:not(.wexa-stat-icon){font-size:10px !important;}
-}
-
-
-
-/* ===== WEXA v4.1.81: STAT TILE ONLY icon-size rebalance =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 통계 카드만.
-   기준: 정사각형 유지, 아이콘 7 : 숫자/라벨 3, 시안처럼 아이콘과 라벨 존재감 강화. */
-.count-grid.wexa-stat-grid{
-  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-  gap:8px !important;
-  align-items:stretch !important;
-  margin:12px 0 14px !important;
-}
-.count-tile.wexa-stat-tile{
-  aspect-ratio:1 / 1 !important;
-  min-height:0 !important;
-  height:auto !important;
-  padding:8px 3px 8px !important;
-  display:grid !important;
-  grid-template-rows:7fr 1.35fr 1.65fr !important;
-  align-items:center !important;
-  justify-items:center !important;
-  gap:0 !important;
-  border-radius:21px !important;
-  background:
-    radial-gradient(circle at 50% 20%,rgba(37,99,255,.20),transparent 46%),
-    linear-gradient(180deg,rgba(5,15,36,.96),rgba(2,6,23,.99)) !important;
-  border:1px solid rgba(37,99,255,.46) !important;
-  box-shadow:
-    0 0 0 1px rgba(0,212,200,.08) inset,
-    0 12px 28px rgba(0,0,0,.38),
-    0 0 26px rgba(37,99,255,.18) !important;
-}
-.count-tile.wexa-stat-tile::before{
-  background:
-    linear-gradient(90deg,transparent,rgba(96,165,250,.50),rgba(0,212,200,.34),transparent) top left/100% 1px no-repeat,
-    linear-gradient(180deg,rgba(37,99,255,.16),transparent 48%) top left/1px 100% no-repeat,
-    linear-gradient(180deg,rgba(0,212,200,.12),transparent 48%) top right/1px 100% no-repeat,
-    radial-gradient(circle at 50% 6%,rgba(56,189,248,.20),transparent 54%) !important;
-  opacity:1 !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-icon{
-  grid-row:1 !important;
-  align-self:center !important;
-  justify-self:center !important;
-  width:52px !important;
-  height:52px !important;
-  margin:2px 0 0 !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{
-  width:52px !important;
-  height:52px !important;
-  stroke:#38bdf8 !important;
-  stroke-width:2.35 !important;
-  filter:
-    drop-shadow(0 0 7px rgba(56,189,248,.98))
-    drop-shadow(0 0 17px rgba(37,99,255,.62))
-    drop-shadow(0 0 26px rgba(0,212,200,.20)) !important;
-}
-.count-tile.wexa-stat-tile b{
-  grid-row:2 !important;
-  align-self:end !important;
-  justify-self:center !important;
-  margin:0 !important;
-  color:#ffffff !important;
-  font-size:22px !important;
-  line-height:.92 !important;
-  font-weight:950 !important;
-  letter-spacing:-.55px !important;
-  text-shadow:
-    0 0 12px rgba(37,99,255,.54),
-    0 0 8px rgba(0,212,200,.18) !important;
-}
-.count-tile.wexa-stat-tile span:not(.wexa-stat-icon){
-  grid-row:3 !important;
-  align-self:center !important;
-  justify-self:center !important;
-  margin:0 !important;
-  color:#f8fbff !important;
-  font-size:13px !important;
-  line-height:1.05 !important;
-  font-weight:950 !important;
-  letter-spacing:-.45px !important;
-  white-space:nowrap !important;
-  text-shadow:
-    0 0 9px rgba(37,99,255,.48),
-    0 0 5px rgba(0,212,200,.16) !important;
-}
-@media(max-width:390px){
-  .count-grid.wexa-stat-grid{gap:6px !important;}
-  .count-tile.wexa-stat-tile{padding:7px 2px 7px !important;border-radius:19px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-icon,
-  .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{width:44px !important;height:44px !important;}
-  .count-tile.wexa-stat-tile b{font-size:20px !important;}
-  .count-tile.wexa-stat-tile span:not(.wexa-stat-icon){font-size:12px !important;}
-}
-
-
-
-/* ===== WEXA v4.1.82: STAT TILE TRUE 7:3 LAYOUT FIX =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 통계 카드만.
-   목표: 시안처럼 아이콘을 크게, 하단 숫자+라벨은 30% 영역 안에 고정해 잘림 방지. */
+/* ===== WEXA v4.1.89: STAT TILE consolidated final style =====
+   유지: v4.1.88 화면 구조. 정리: v4.1.81~v4.1.88 중복 덮어쓰기 CSS 제거. */
 .count-grid.wexa-stat-grid{
   display:grid !important;
   grid-template-columns:repeat(4,minmax(0,1fr)) !important;
@@ -777,100 +588,7 @@ details[data-job-id]{margin-top:10px !important;}
   margin:12px 0 14px !important;
 }
 .count-tile.wexa-stat-tile{
-  aspect-ratio:1 / 1 !important;
-  min-height:0 !important;
-  height:auto !important;
-  padding:8px 4px 7px !important;
-  display:grid !important;
-  grid-template-rows:7fr 3fr !important;
-  align-items:stretch !important;
-  justify-items:center !important;
-  gap:0 !important;
-  border-radius:21px !important;
-  overflow:hidden !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-icon{
-  grid-row:1 !important;
-  align-self:center !important;
-  justify-self:center !important;
-  width:48px !important;
-  height:48px !important;
-  margin:0 !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{
-  width:48px !important;
-  height:48px !important;
-  stroke:#38bdf8 !important;
-  stroke-width:2.25 !important;
-  filter:
-    drop-shadow(0 0 7px rgba(56,189,248,.98))
-    drop-shadow(0 0 17px rgba(37,99,255,.62)) !important;
-}
-.count-tile.wexa-stat-tile span.wexa-stat-bottom{
-  grid-row:2 !important;
-  width:100% !important;
-  height:100% !important;
-  margin:0 !important;
-  padding:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:2px !important;
-  color:inherit !important;
-  font-size:initial !important;
-  line-height:normal !important;
-  letter-spacing:normal !important;
-  text-shadow:none !important;
-  white-space:normal !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
-  display:block !important;
-  margin:0 !important;
-  padding:0 !important;
-  color:#ffffff !important;
-  font-size:20px !important;
-  line-height:1 !important;
-  font-weight:760 !important;
-  letter-spacing:-.25px !important;
-  text-shadow:0 0 8px rgba(37,99,255,.34),0 0 4px rgba(0,212,200,.12) !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
-  display:block !important;
-  margin:0 !important;
-  padding:0 !important;
-  color:#f8fbff !important;
-  font-size:11px !important;
-  line-height:1.05 !important;
-  font-weight:760 !important;
-  letter-spacing:-.25px !important;
-  white-space:nowrap !important;
-  text-shadow:0 0 5px rgba(37,99,255,.28) !important;
-}
-@media(max-width:390px){
-  .count-grid.wexa-stat-grid{gap:6px !important;}
-  .count-tile.wexa-stat-tile{padding:7px 2px 6px !important;border-radius:19px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-icon,
-  .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{width:42px !important;height:42px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom b{font-size:19px !important;font-weight:760 !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{font-size:10.5px !important;font-weight:760 !important;}
-}
-
-
-/* ===== WEXA v4.1.84: STAT TILE bottom-line fix =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 통계 카드만.
-   목표: 숫자+글자가 잘리지 않게 한 줄 하단 고정, 아이콘은 시안처럼 중심 유지. */
-.count-grid.wexa-stat-grid{
-  display:grid !important;
-  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-  gap:8px !important;
-  align-items:stretch !important;
-  margin:12px 0 14px !important;
-}
-.count-tile.wexa-stat-tile{
+  position:relative !important;
   aspect-ratio:1 / 1 !important;
   min-height:0 !important;
   height:auto !important;
@@ -882,7 +600,29 @@ details[data-job-id]{margin-top:10px !important;}
   gap:0 !important;
   border-radius:20px !important;
   overflow:hidden !important;
+  text-align:center !important;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(56,189,248,.18),transparent 48%),
+    linear-gradient(180deg,rgba(5,15,36,.96),rgba(2,6,23,.99)) !important;
+  border:1px solid rgba(37,99,255,.46) !important;
+  box-shadow:
+    0 0 0 1px rgba(0,212,200,.08) inset,
+    0 12px 28px rgba(0,0,0,.38),
+    0 0 26px rgba(37,99,255,.18) !important;
 }
+.count-tile.wexa-stat-tile::before{
+  content:"" !important;
+  position:absolute !important;
+  inset:0 !important;
+  pointer-events:none !important;
+  border-radius:inherit !important;
+  background:
+    linear-gradient(90deg,transparent,rgba(96,165,250,.50),rgba(0,212,200,.34),transparent) top left/100% 1px no-repeat,
+    linear-gradient(180deg,rgba(37,99,255,.16),transparent 48%) top left/1px 100% no-repeat,
+    linear-gradient(180deg,rgba(0,212,200,.12),transparent 48%) top right/1px 100% no-repeat;
+  opacity:1 !important;
+}
+.count-tile.wexa-stat-tile::after{display:none !important;content:none !important;}
 .count-tile.wexa-stat-tile .wexa-stat-icon{
   grid-row:1 !important;
   align-self:center !important;
@@ -897,11 +637,7 @@ details[data-job-id]{margin-top:10px !important;}
 .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{
   width:44px !important;
   height:44px !important;
-  stroke:#38bdf8 !important;
-  stroke-width:2.15 !important;
-  filter:
-    drop-shadow(0 0 6px rgba(56,189,248,.95))
-    drop-shadow(0 0 15px rgba(37,99,255,.55)) !important;
+  filter:drop-shadow(0 0 11px rgba(56,189,248,.54)) drop-shadow(0 0 18px rgba(37,99,255,.26)) !important;
 }
 .count-tile.wexa-stat-tile span.wexa-stat-bottom{
   grid-row:2 !important;
@@ -910,158 +646,6 @@ details[data-job-id]{margin-top:10px !important;}
   margin:0 !important;
   padding:0 2px !important;
   display:flex !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:4px !important;
-  color:inherit !important;
-  text-shadow:none !important;
-  white-space:nowrap !important;
-  overflow:visible !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-  padding:0 !important;
-  color:#ffffff !important;
-  font-size:15px !important;
-  line-height:1 !important;
-  font-weight:650 !important;
-  letter-spacing:-.15px !important;
-  text-shadow:0 0 6px rgba(37,99,255,.28) !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  margin:0 !important;
-  padding:0 !important;
-  color:#eaf3ff !important;
-  font-size:10.5px !important;
-  line-height:1 !important;
-  font-weight:650 !important;
-  letter-spacing:-.3px !important;
-  white-space:nowrap !important;
-  text-shadow:0 0 4px rgba(37,99,255,.22) !important;
-}
-@media(max-width:390px){
-  .count-grid.wexa-stat-grid{gap:6px !important;}
-  .count-tile.wexa-stat-tile{padding:7px 2px 6px !important;border-radius:18px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-icon,
-  .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{width:40px !important;height:40px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom{gap:3px !important;padding:0 1px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom b{font-size:14px !important;font-weight:640 !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{font-size:9.8px !important;font-weight:640 !important;}
-}
-
-
-/* ===== WEXA v4.1.85: STAT TILE label-first bottom text =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 통계 카드 하단 표기만. */
-.count-tile.wexa-stat-tile .wexa-stat-bottom{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:4px !important;
-  white-space:nowrap !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
-  order:1 !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
-  order:2 !important;
-}
-
-
-/* ===== WEXA v4.1.86: STAT TILE natural label+number balance =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 통계 카드 하단 숫자 크기만 자연스럽게 보정. */
-.count-tile.wexa-stat-tile .wexa-stat-bottom{
-  gap:3px !important;
-  align-items:baseline !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
-  font-size:10.8px !important;
-  font-weight:720 !important;
-  line-height:1 !important;
-  letter-spacing:-.35px !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
-  font-size:11.2px !important;
-  font-weight:780 !important;
-  line-height:1 !important;
-  letter-spacing:-.25px !important;
-  transform:translateY(.2px) !important;
-  text-shadow:0 0 5px rgba(37,99,255,.30) !important;
-}
-@media(max-width:390px){
-  .count-tile.wexa-stat-tile .wexa-stat-bottom{gap:2px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{font-size:10px !important;font-weight:700 !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom b{font-size:10.4px !important;font-weight:760 !important;}
-}
-
-
-/* ===== WEXA v4.1.87: STAT TILE same-line label+number align fix =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 카드 하단 문구만.
-   목표: "지원 0"처럼 글자와 숫자가 한 줄, 같은 높이에 보이게 정렬. */
-.count-tile.wexa-stat-tile .wexa-stat-bottom{
-  display:flex !important;
-  flex-direction:row !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:3px !important;
-  height:100% !important;
-  line-height:1 !important;
-  white-space:nowrap !important;
-  transform:none !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label,
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  height:12px !important;
-  margin:0 !important;
-  padding:0 !important;
-  font-size:11px !important;
-  line-height:12px !important;
-  font-weight:720 !important;
-  letter-spacing:-.35px !important;
-  vertical-align:middle !important;
-  transform:none !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
-  color:#eaf3ff !important;
-  text-shadow:0 0 4px rgba(37,99,255,.22) !important;
-}
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
-  color:#f8fbff !important;
-  text-shadow:0 0 4px rgba(37,99,255,.24) !important;
-}
-@media(max-width:390px){
-  .count-tile.wexa-stat-tile .wexa-stat-bottom{gap:2px !important;}
-  .count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label,
-  .count-tile.wexa-stat-tile .wexa-stat-bottom b{
-    height:11px !important;
-    font-size:10.2px !important;
-    line-height:11px !important;
-    font-weight:710 !important;
-  }
-}
-
-
-/* ===== WEXA v4.1.88: STAT TILE single text-line fix =====
-   수정 범위: 지원/매칭/남은 자리/모집 4개 카드 하단 문구만.
-   핵심: 라벨 span + 숫자 b 구조를 버리고 한 개 텍스트 라인으로 렌더링해서
-   글자와 숫자가 절대 따로 놀지 않게 고정. */
-.count-tile.wexa-stat-tile span.wexa-stat-bottom{
-  grid-row:2 !important;
-  width:100% !important;
-  height:100% !important;
-  margin:0 !important;
-  padding:0 2px !important;
-  display:flex !important;
-  flex-direction:row !important;
   align-items:center !important;
   justify-content:center !important;
   overflow:hidden !important;
@@ -1086,16 +670,16 @@ details[data-job-id]{margin-top:10px !important;}
   text-shadow:0 0 5px rgba(37,99,255,.28) !important;
   transform:none !important;
 }
-.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label,
-.count-tile.wexa-stat-tile .wexa-stat-bottom b{
+.count-tile.wexa-stat-tile b,
+.count-tile.wexa-stat-tile .wexa-stat-bottom .wexa-stat-label{
   display:none !important;
 }
 @media(max-width:390px){
-  .count-tile.wexa-stat-tile .wexa-stat-line{
-    font-size:10px !important;
-    font-weight:700 !important;
-    letter-spacing:-.55px !important;
-  }
+  .count-grid.wexa-stat-grid{gap:6px !important;}
+  .count-tile.wexa-stat-tile{padding:7px 2px 6px !important;border-radius:18px !important;}
+  .count-tile.wexa-stat-tile .wexa-stat-icon,
+  .count-tile.wexa-stat-tile .wexa-stat-icon .wexa-svg{width:40px !important;height:40px !important;}
+  .count-tile.wexa-stat-tile .wexa-stat-line{font-size:10px !important;font-weight:700 !important;letter-spacing:-.55px !important;}
 }
 
 </style>
@@ -1139,7 +723,7 @@ details[data-job-id]{margin-top:10px !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.88 STAT_TILE_SINGLE_TEXT_LINE_FIX';
+const APP_VERSION='v4.1.89 CSS_CLEANUP_KEEP_UI';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
