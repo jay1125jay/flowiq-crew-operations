@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.72 MANAGER_ICON_BUTTON_UI_STEP1</title>
-<meta name="flowiq-version" content="v4.1.72 MANAGER_ICON_BUTTON_UI_STEP1" />
+<title>WEXA OPERATIONS v4.1.73 MANAGER_ICON_BRIGHT_ALIGN_FIX</title>
+<meta name="flowiq-version" content="v4.1.73 MANAGER_ICON_BRIGHT_ALIGN_FIX" />
 <meta name="flowiq-build" content="operations-my-info-outline" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -491,10 +491,11 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
   font-size:25px !important;
   font-weight:900 !important;
   line-height:1 !important;
-  color:#93c5fd !important;
-  background:radial-gradient(circle at 50% 35%,rgba(37,99,255,.26),rgba(2,6,23,.08) 70%) !important;
-  border:1px solid rgba(96,165,250,.28) !important;
-  box-shadow:0 0 18px rgba(37,99,255,.25), inset 0 1px 0 rgba(255,255,255,.07) !important;
+  color:#60a5fa !important;
+  background:radial-gradient(circle at 50% 35%,rgba(59,130,246,.34),rgba(2,6,23,.07) 72%) !important;
+  border:1px solid rgba(96,165,250,.38) !important;
+  text-shadow:0 0 10px rgba(96,165,250,.90),0 0 22px rgba(37,99,255,.52) !important;
+  box-shadow:0 0 22px rgba(59,130,246,.36),0 0 12px rgba(0,212,200,.12), inset 0 1px 0 rgba(255,255,255,.10) !important;
   opacity:1 !important;
 }
 .wexa-icon-btn::after{
@@ -555,12 +556,24 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
   border-radius:14px !important;
   font-size:25px !important;
   font-weight:900 !important;
-  color:#93c5fd !important;
-  background:radial-gradient(circle at 50% 35%,rgba(37,99,255,.24),rgba(2,6,23,.08) 70%) !important;
-  border:1px solid rgba(96,165,250,.28) !important;
-  box-shadow:0 0 18px rgba(37,99,255,.23), inset 0 1px 0 rgba(255,255,255,.07) !important;
+  color:#60a5fa !important;
+  background:radial-gradient(circle at 50% 35%,rgba(59,130,246,.32),rgba(2,6,23,.07) 72%) !important;
+  border:1px solid rgba(96,165,250,.38) !important;
+  text-shadow:0 0 10px rgba(96,165,250,.86),0 0 22px rgba(37,99,255,.48) !important;
+  box-shadow:0 0 22px rgba(59,130,246,.34),0 0 12px rgba(0,212,200,.11), inset 0 1px 0 rgba(255,255,255,.10) !important;
 }
 .wexa-icon-summary span{font-size:13px;font-weight:950;color:#e0f2fe;letter-spacing:-.25px;}
+
+/* v4.1.73: 관리자 공고마감 네모 아이콘 중앙 보정 */
+.wexa-icon-btn[data-icon="□"]::before,
+.wexa-icon-summary[data-icon="□"]::before{
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:.82 !important;
+  transform:translateY(-2px) !important;
+  padding-bottom:1px !important;
+}
+
 @media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:68px !important;}}
 
 </style>
@@ -604,7 +617,7 @@ hr,.divider{border-color:rgba(0,212,200,.22) !important;}
 </main>
 
 <script>
-const APP_VERSION='v4.1.72 MANAGER_ICON_BUTTON_UI_STEP1';
+const APP_VERSION='v4.1.73 MANAGER_ICON_BRIGHT_ALIGN_FIX';
 const SUPABASE_URL='https://zhbzphvqiiijfjqnktlo.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpoYnpwaHZxaWlpamZqcW5rdGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNDEwNTcsImV4cCI6MjA5NDYxNzA1N30.ufIPHJh2fzRLm5taos3yTz6pGlEHFKaSoYI2Ref3T5I';
 const GOOGLE_SHEET_WEBAPP_URL='https://script.google.com/macros/s/AKfycbwaFPCnsSBnI3gHAoiZ34tIkWyjKrkuJTVgRN0NNQd_XSX8RNlfKtniloTmHHtjuJBO/exec';
