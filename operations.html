@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.91 COMPLETE_BUTTON_SOFT_GLOW</title>
-<meta name="flowiq-version" content="v4.1.91 COMPLETE_BUTTON_SOFT_GLOW" />
+<title>WEXA OPERATIONS v4.1.92 COMPLETE_BUTTON_BALANCED_GLOW</title>
+<meta name="flowiq-version" content="v4.1.92 COMPLETE_BUTTON_BALANCED_GLOW" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -579,31 +579,34 @@ details[data-job-id]{margin-top:10px !important;}
 @media(max-width:390px){.wexa-form-actions{grid-template-columns:1fr}.wexa-icon-btn,.wexa-icon-summary{min-height:72px !important}.wexa-icon-btn .wexa-svg,.wexa-icon-summary .wexa-svg{width:34px !important;height:34px !important;flex-basis:34px !important}}
 
 
-/* ===== WEXA v4.1.91 complete button soft glow =====
-   관리자 지원자 카드의 '일 완료 확인' 버튼만 밝기 완화. 기능 로직 영향 없음. */
+/* ===== WEXA v4.1.92 complete button balanced glow =====
+   관리자 지원자 카드의 '일 완료 확인' 버튼만 중간 밝기로 재조정. 기능 로직 영향 없음. */
 .worker-actions .wexa-icon-btn.wexa-complete-soft,
 button.blue.wexa-icon-btn.wexa-complete-soft{
-  border-color:rgba(96,165,250,.42) !important;
-  background:linear-gradient(180deg,rgba(8,18,40,.88),rgba(2,6,23,.96)) !important;
+  border-color:rgba(56,189,248,.58) !important;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(56,189,248,.16),transparent 45%),
+    linear-gradient(180deg,rgba(8,23,52,.92),rgba(2,6,23,.96)) !important;
   box-shadow:
-    0 0 0 1px rgba(96,165,250,.08) inset,
+    0 0 0 1px rgba(56,189,248,.13) inset,
     0 10px 24px rgba(0,0,0,.34),
-    0 0 18px rgba(37,99,255,.14) !important;
+    0 0 20px rgba(37,99,255,.20),
+    0 0 12px rgba(56,189,248,.12) !important;
 }
 .worker-actions .wexa-icon-btn.wexa-complete-soft .wexa-svg{
-  stroke:#7dd3fc !important;
-  color:#7dd3fc !important;
+  stroke:#38bdf8 !important;
+  color:#38bdf8 !important;
   filter:
-    drop-shadow(0 0 4px rgba(125,211,252,.62))
-    drop-shadow(0 0 10px rgba(37,99,255,.34)) !important;
+    drop-shadow(0 0 5px rgba(56,189,248,.82))
+    drop-shadow(0 0 13px rgba(37,99,255,.45)) !important;
 }
 .worker-actions .wexa-icon-btn.wexa-complete-soft span{
-  color:#e0f2fe !important;
-  text-shadow:0 0 6px rgba(37,99,255,.24) !important;
+  color:#eef8ff !important;
+  text-shadow:0 0 7px rgba(56,189,248,.28),0 0 10px rgba(37,99,255,.18) !important;
 }
 .worker-actions .wexa-icon-btn.wexa-complete-soft::after{
-  background:linear-gradient(90deg,transparent,rgba(96,165,250,.70),rgba(37,99,255,.38),transparent) !important;
-  opacity:.62 !important;
+  background:linear-gradient(90deg,transparent,rgba(56,189,248,.82),rgba(37,99,255,.48),transparent) !important;
+  opacity:.76 !important;
 }
 
 /* ===== WEXA v4.1.89: STAT TILE consolidated final style =====
@@ -767,7 +770,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.91 COMPLETE_BUTTON_SOFT_GLOW';
+const APP_VERSION='v4.1.92 COMPLETE_BUTTON_BALANCED_GLOW';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
