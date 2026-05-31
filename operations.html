@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.106 MASTER_PUSH_ID_FIX</title>
-<meta name="flowiq-version" content="v4.1.106 MASTER_PUSH_ID_FIX" />
+<title>WEXA OPERATIONS v4.1.107 PUSH_MESSAGE_CLEANUP</title>
+<meta name="flowiq-version" content="v4.1.107 PUSH_MESSAGE_CLEANUP" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -800,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.106 MASTER_PUSH_ID_FIX';
+const APP_VERSION='v4.1.107 PUSH_MESSAGE_CLEANUP';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -1201,16 +1201,16 @@ function pushBodyForEvent_(eventType,job){
   const title=jobTitleForPush_(job);
   const date=jobDateForPush_(job);
   const tail=date?` · ${date}`:'';
-  if(eventType==='application_approved')return `${title}${tail} 신청이 승인되었습니다.`;
-  if(eventType==='application_rejected')return `${title}${tail} 신청이 반려되었습니다.`;
-  if(eventType==='work_completed')return `${title}${tail} 근무완료 처리가 완료되었습니다.`;
-  return `${title}${tail} 근무 상태가 업데이트되었습니다.`;
+  if(eventType==='application_approved')return `근무 신청이 승인되었습니다. ${title}${tail}`;
+  if(eventType==='application_rejected')return `근무 신청이 반려되었습니다. ${title}${tail}`;
+  if(eventType==='work_completed')return `근무완료 처리가 완료되었습니다. ${title}${tail}`;
+  return `근무 상태가 업데이트되었습니다. ${title}${tail}`;
 }
 function pushTitleForEvent_(eventType){
-  if(eventType==='application_approved')return 'WEXA 근무 신청 승인';
-  if(eventType==='application_rejected')return 'WEXA 근무 신청 반려';
-  if(eventType==='work_completed')return 'WEXA 근무완료 처리';
-  return 'WEXA 근무 상태 알림';
+  if(eventType==='application_approved')return 'WEXA 근무 알림';
+  if(eventType==='application_rejected')return 'WEXA 근무 알림';
+  if(eventType==='work_completed')return 'WEXA 근무 알림';
+  return 'WEXA 근무 알림';
 }
 async function sendWexaPush_(payload){
   try{
@@ -1266,8 +1266,8 @@ async function sendManagerNewApplicationPush_(app,job){
     application_id:String(app?.id||''),
     job_id:String(job?.id||app?.job_id||''),
     event_type:'manager_new_application',
-    title:'WEXA 새 근무 신청',
-    body:`${worker}님이 ${title}${tail} 공고에 신청했습니다.`
+    title:'WEXA 관리자 알림',
+    body:`새 근무 신청이 도착했습니다. ${title}${tail} · ${worker}`
   });
 }
 
@@ -1287,8 +1287,8 @@ async function sendManagerApplicationCancelPush_(app,job){
     application_id:String(app?.id||''),
     job_id:String(job?.id||app?.job_id||''),
     event_type:'manager_application_cancelled',
-    title:'WEXA 신청 취소',
-    body:`${worker}님이 ${title}${tail} 공고 신청을 취소했습니다.`
+    title:'WEXA 관리자 알림',
+    body:`근로자가 신청을 취소했습니다. ${title}${tail} · ${worker}`
   });
 }
 
@@ -1311,8 +1311,8 @@ async function sendMasterNewJobPush_(job){
   const tail=date?` · ${date}`:'';
   return sendMasterPush_(
     'master_new_job',
-    'WEXA 새 공고 등록',
-    `${company}에서 ${title}${tail} 공고를 등록했습니다. 게시승인이 필요합니다.`,
+    'WEXA 마스터 알림',
+    `새 공고가 등록되었습니다. ${title}${tail} · ${company}`,
     {},
     job
   );
@@ -1324,8 +1324,8 @@ async function sendMasterNewApplicationPush_(app,job){
   const tail=date?` · ${date}`:'';
   return sendMasterPush_(
     'master_new_application',
-    'WEXA 새 근무 신청',
-    `${worker}님이 ${title}${tail} 공고에 신청했습니다.`,
+    'WEXA 마스터 알림',
+    `새 근무 신청이 도착했습니다. ${title}${tail} · ${worker}`,
     app,
     job
   );
@@ -1337,8 +1337,8 @@ async function sendMasterApplicationCancelPush_(app,job){
   const tail=date?` · ${date}`:'';
   return sendMasterPush_(
     'master_application_cancelled',
-    'WEXA 신청 취소',
-    `${worker}님이 ${title}${tail} 공고 신청을 취소했습니다.`,
+    'WEXA 마스터 알림',
+    `근로자가 신청을 취소했습니다. ${title}${tail} · ${worker}`,
     app,
     job
   );
