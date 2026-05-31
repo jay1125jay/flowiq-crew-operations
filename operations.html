@@ -815,7 +815,108 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   #roleScreen .big,
   #roleScreen .trust-card{animation:none!important;}
 }
+/* ===== WEXA HOME ENTRY PULSE RESTORE - SAFE CSS ONLY ===== */
+/* 첫 화면 진입 시 WEXA 홈 버튼/카드가 은은하게 깜박이는 효과 복구 */
 
+@keyframes wexaHomePulse {
+  0% {
+    transform: translateY(4px) scale(0.985);
+    opacity: 0.72;
+    filter: brightness(0.9);
+    box-shadow:
+      0 0 0 1px rgba(37,99,255,.10) inset,
+      0 8px 18px rgba(0,0,0,.26),
+      0 0 10px rgba(37,99,255,.08);
+  }
+  45% {
+    transform: translateY(0) scale(1.012);
+    opacity: 1;
+    filter: brightness(1.18);
+    box-shadow:
+      0 0 0 1px rgba(0,212,200,.20) inset,
+      0 14px 34px rgba(0,0,0,.36),
+      0 0 30px rgba(37,99,255,.38),
+      0 0 18px rgba(0,212,200,.18);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes wexaHomeGlowSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  35% {
+    opacity: .9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+#roleScreen:not(.hidden) {
+  position: relative;
+}
+
+#roleScreen:not(.hidden) .big {
+  animation: wexaHomePulse 1.35s ease-out both;
+}
+
+#roleScreen:not(.hidden) .big:nth-of-type(1) {
+  animation-delay: .05s;
+}
+
+#roleScreen:not(.hidden) .big:nth-of-type(2) {
+  animation-delay: .16s;
+}
+
+#roleScreen:not(.hidden) .big:nth-of-type(3) {
+  animation-delay: .27s;
+}
+
+#roleScreen:not(.hidden) .trust-card {
+  animation: wexaHomePulse 1.45s ease-out both;
+  animation-delay: .38s;
+}
+
+#roleScreen:not(.hidden) .big::after,
+#roleScreen:not(.hidden) .trust-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 46%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.18),
+    rgba(0,212,200,.20),
+    transparent
+  );
+  animation: wexaHomeGlowSweep 1.25s ease-out both;
+}
+
+#roleScreen:not(.hidden) .big:nth-of-type(1)::after {
+  animation-delay: .15s;
+}
+
+#roleScreen:not(.hidden) .big:nth-of-type(2)::after {
+  animation-delay: .26s;
+}
+
+#roleScreen:not(.hidden) .big:nth-of-type(3)::after {
+  animation-delay: .37s;
+}
+
+#roleScreen:not(.hidden) .trust-card::after {
+  animation-delay: .48s;
+}
 </style>
 </head>
 <body>
