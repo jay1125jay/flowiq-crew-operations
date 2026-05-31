@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v5.0.6 COMPANY_FEE_TRUST_NOTICE</title>
-<meta name="flowiq-version" content="v5.0.6 COMPANY_FEE_TRUST_NOTICE" />
+<title>WEXA OPERATIONS v5.0.7 PHONE_DUPLICATE_GUARD</title>
+<meta name="flowiq-version" content="v5.0.7 PHONE_DUPLICATE_GUARD" />
 <meta name="flowiq-build" content="v5-splash-css-clean-stable" />
 <meta name="theme-color" content="#020617" />
 
@@ -999,7 +999,7 @@ body.wexa-splash-ready .app{
 </main>
 
 <script>
-const APP_VERSION='v5.0.6 COMPANY_FEE_TRUST_NOTICE';
+const APP_VERSION='v5.0.7 PHONE_DUPLICATE_GUARD';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -1272,7 +1272,64 @@ async function saveMyInfo(){
 }
 
 async function init(){updateSignupFields(); clearCrewSession(); currentUser=null; role=''; await loadData(); goScreen('roleScreen')}
-async function signup(){const type=$('signupType').value; let name='', manager='', phone='', password='', businessNo='', holder=''; if(type==='business'){name=clean($('signupName').value); manager=clean($('signupManager').value); phone=clean($('signupPhone').value); password=clean($('signupPassword').value); businessNo=clean($('signupBusinessNo').value); holder=manager; if(!name||!manager||!phone||!password||!businessNo)return alert('업체명, 담당자명, 연락처, 비밀번호, 사업자등록번호를 입력하세요.')} if(type==='personal'){name=clean($('signupPersonalCompany').value); manager=clean($('signupPersonalName').value); phone=clean($('signupPersonalPhone').value); password=clean($('signupPersonalPassword').value); businessNo=clean($('signupPersonalBusinessNo').value); holder=manager; if(!name||!manager||!phone||!password)return alert('현장/상호명, 담당자명, 연락처, 비밀번호를 입력하세요.')} if(type==='worker'){name=clean($('signupWorkerName').value); phone=clean($('signupWorkerPhone').value); password=clean($('signupWorkerPassword').value); if(!name||!phone||!password)return alert('이름, 연락처, 비밀번호를 입력하세요.')} const payload={type,name,phone,password,business_no:businessNo,resident:'',bank:'',account:'',holder}; const {error}=await db.from('accounts').insert(payload); if(error)return alert('회원가입 오류: '+error.message); fetch(GOOGLE_SHEET_WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({typeKey:type,type,name,manager,phone,password,businessNo,holder})}).catch(()=>{}); alert('회원가입 완료. 로그인하세요.'); goScreen(type==='worker'?'workerLoginScreen':'managerLoginScreen')}
+async function signup(){
+  const type=$('signupType').value;
+  let name='', manager='', phone='', password='', businessNo='', holder='';
+
+  if(type==='business'){
+    name=clean($('signupName').value);
+    manager=clean($('signupManager').value);
+    phone=clean($('signupPhone').value);
+    password=clean($('signupPassword').value);
+    businessNo=clean($('signupBusinessNo').value);
+    holder=manager;
+    if(!name||!manager||!phone||!password||!businessNo)return alert('업체명, 담당자명, 연락처, 비밀번호, 사업자등록번호를 입력하세요.');
+  }
+
+  if(type==='personal'){
+    name=clean($('signupPersonalCompany').value);
+    manager=clean($('signupPersonalName').value);
+    phone=clean($('signupPersonalPhone').value);
+    password=clean($('signupPersonalPassword').value);
+    businessNo=clean($('signupPersonalBusinessNo').value);
+    holder=manager;
+    if(!name||!manager||!phone||!password)return alert('현장/상호명, 담당자명, 연락처, 비밀번호를 입력하세요.');
+  }
+
+  if(type==='worker'){
+    name=clean($('signupWorkerName').value);
+    phone=clean($('signupWorkerPhone').value);
+    password=clean($('signupWorkerPassword').value);
+    if(!name||!phone||!password)return alert('이름, 연락처, 비밀번호를 입력하세요.');
+  }
+
+  const normalizedPhone=phoneKey(phone);
+  if(!normalizedPhone || normalizedPhone.length < 9){
+    return alert('연락처를 정확히 입력하세요.');
+  }
+
+  const dupCheck=await db.from('accounts').select('id,type,name,phone').limit(1000);
+  if(dupCheck.error)return alert('회원가입 확인 오류: '+dupCheck.error.message);
+
+  const duplicated=(dupCheck.data||[]).find(acc=>phoneKey(acc.phone)===normalizedPhone);
+  if(duplicated){
+    return alert('이미 가입된 연락처입니다. 기존 계정으로 로그인해주세요.');
+  }
+
+  const payload={type,name,phone:normalizedPhone,password,business_no:businessNo,resident:'',bank:'',account:'',holder};
+  const {error}=await db.from('accounts').insert(payload);
+  if(error){
+    if(String(error.message||'').toLowerCase().includes('duplicate') || String(error.code||'')==='23505'){
+      return alert('이미 가입된 연락처입니다. 기존 계정으로 로그인해주세요.');
+    }
+    return alert('회원가입 오류: '+error.message);
+  }
+
+  fetch(GOOGLE_SHEET_WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({typeKey:type,type,name,manager,phone:normalizedPhone,password,businessNo,holder})}).catch(()=>{});
+  alert('회원가입 완료. 로그인하세요.');
+  goScreen(type==='worker'?'workerLoginScreen':'managerLoginScreen');
+}
+
 async function login(loginRole){const phone=clean($(loginRole==='worker'?'workerLoginPhone':'managerLoginPhone').value); const password=clean($(loginRole==='worker'?'workerLoginPassword':'managerLoginPassword').value); if(!phone||!password)return alert('연락처와 비밀번호를 입력하세요.'); let q=await db.from('accounts').select('*').eq('phone',phone).eq('password',password).limit(1); if(q.error)return alert('로그인 오류: '+q.error.message); let user=(q.data||[])[0]; if(!user){const all=await db.from('accounts').select('*').eq('password',password).limit(1000); if(all.error)return alert('로그인 오류: '+all.error.message); user=(all.data||[]).find(x=>phoneKey(x.phone)===phoneKey(phone))} if(!user)return alert('계정을 찾을 수 없습니다.'); if(loginRole==='worker'&&user.type!=='worker')return alert('근로자 계정이 아닙니다.'); if(loginRole==='manager'&&user.type==='worker')return alert('관리자 계정이 아닙니다.'); clearCrewSession(); currentUser=user; role=loginRole; localStorage.setItem('current_user',JSON.stringify({id:user.id,type:user.type,name:user.name,phone:user.phone,password:user.password,business_no:user.business_no,holder:user.holder})); await unlockAudio(); await loadData(); goScreen(loginRole==='worker'?'workerScreen':'managerScreen'); renderAll(); startLive(); setTimeout(()=>manualRefresh(),250)}
 function updateFeePreview(){const el=$('feePreviewText'); if(el)el.innerText='예상 수수료 '+money(feeAmount($('fSalary')?.value,$('fNeeded')?.value,$('fStartDate')?.value,$('fEndDate')?.value))}
 function updateJobTypeOther(){const isOther=$('fType')?.value==='기타'; $('fOtherTypeWrap')?.classList.toggle('hidden',!isOther)}
