@@ -1123,7 +1123,7 @@ body.wexa-splash-ready .wexa-lang-fab{opacity:1!important;pointer-events:auto!im
 </main>
 
 <script>
-const APP_VERSION='v5.0.14 CORE_7_LANG_I18N';
+const APP_VERSION='v5.0.15 WORKER_SIGNUP_I18N_SCOPE';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -2143,6 +2143,222 @@ window.wexaRegisterFcmForCurrentUser = async function(){
     const observer = new MutationObserver(scheduleApply);
     observer.observe(document.body, { childList:true, subtree:true, characterData:true });
   });
+})();
+</script>
+
+
+<script>
+/* ===== WEXA v5.0.15 WORKER + SIGNUP I18N SCOPE FIX =====
+   목적: 업체/마스터 화면 번역 제외. 회원가입 + 근로자 화면만 현재 언어로 렌더링.
+   핵심: 화면 전체 단어치환 금지, 근로자 렌더링 함수에서만 t() 사용.
+   보호: 로그인/푸시/Supabase/신청/승인/완료/시트 로직 미수정. */
+(function(){
+  const CORE_LANGS = {ko:1,en:1,vi:1,uz:1,zh:1,ru:1,mn:1};
+  const I = {
+    ko:{
+      worker_login:'근로자 로그인', manager_login:'업체/관리자 로그인', signup:'회원가입', signup_sub:'가입 유형에 필요한 최소 정보만 입력합니다.',
+      contact_login_sub:'등록한 연락처와 비밀번호로 접속합니다.', phone:'연락처', password:'비밀번호', login:'로그인', back:'뒤로', signup_type:'가입 유형',
+      business:'사업자', personal:'비사업자/개인 현장', worker:'근로자', name:'이름', register:'가입하기',
+      worker_mvp_note:'현재 MVP에서는 연락처 기준으로 근무 신청과 상태를 확인합니다.',
+      home:'홈', refresh:'현황 갱신', alert_ready:'알림 준비', my_info:'내 정보', logout:'로그아웃',
+      available_sites:'신청 가능한 현장', no_available_sites:'현재 신청 가능한 현장이 없습니다.', apply_work:'근무 신청하기', job_closed:'공고 마감', has_matched_job:'매칭 완료 공고 있음',
+      matched_site:'매칭 완료 현장', pending_approval:'승인 대기중', job_info_loading:'공고 정보를 불러오는 중입니다. 현황 갱신 후 다시 확인해주세요.',
+      company_name:'업체명', manager:'담당자', contact:'연락처', checking_contact:'연락처 확인 중', company_record:'업체 운영기록', posted_jobs:'공고', match:'매칭', done:'완료',
+      wage_site_direct:'임금은 현장 업체에서 직접 지급합니다.', approved_wage_note:'승인 후 출근 대상입니다. 임금은 현장/업체에서 직접 지급합니다.',
+      already_applied_note:'이미 신청한 공고입니다. 업체 확인 전까지 같은 공고에 중복 신청할 수 없습니다.', cancel_application:'신청 취소',
+      date:'날짜', time:'시간', location:'위치', recruit:'모집', left:'남은', applicants:'지원', daily_pay:'일당', people:'명',
+      profile_sub:'기본 정보는 수정할 수 있고, 누적 기록은 근무 처리 기준으로만 반영됩니다.', member_type:'회원 유형', worker_type_notice:'근로자는 근무 신청 계정입니다.',
+      profile_phone_note:'연락처는 로그인과 신청 기록 확인 기준입니다. 변경 후에는 새 연락처로 로그인해야 합니다.', records:'누적 기록', total_matches:'누적 매칭', completed_count:'완료 횟수', total_wage:'누적 임금', locked_note:'누적 근무, 누적 임금, 완료 횟수는 직접 수정할 수 없습니다. 관리자 완료 처리와 신청 기록 기준으로 자동 계산됩니다.', save_my_info:'내 정보 저장', return_home:'돌아가기',
+      status_wait:'승인 대기중', status_apply:'지원', status_approved:'승인', status_rejected:'반려', status_done:'근무완료', status_closed:'공고 마감', status_cancelled:'신청취소', status_unselected:'미선정',
+      my_summary:(m,r)=>`내 누적 매칭 ${m}회 · 반려 ${r}회`, company_stats:(j,m,d)=>`공고 ${j}회 · 매칭 ${m}회 · 완료 ${d}회`, people_line:(n,m,l,p)=>`모집 ${n}명 · 매칭 ${m}명 · 남은 ${l}명 · 지원 ${p}명`
+    },
+    en:{
+      worker_login:'Worker Login', manager_login:'Company/Admin Login', signup:'Register', signup_sub:'Enter only the minimum information needed for your account type.',
+      contact_login_sub:'Log in with your registered contact number and password.', phone:'Contact number', password:'Password', login:'Log in', back:'Back', signup_type:'Account type',
+      business:'Business', personal:'Personal site', worker:'Worker', name:'Name', register:'Register',
+      worker_mvp_note:'In this MVP, your contact number is used to check work applications and status.',
+      home:'Home', refresh:'Refresh', alert_ready:'Enable alerts', my_info:'My info', logout:'Log out',
+      available_sites:'Available sites', no_available_sites:'No available sites right now.', apply_work:'Apply for work', job_closed:'Closed', has_matched_job:'Approved job already exists',
+      matched_site:'Approved work site', pending_approval:'Waiting for approval', job_info_loading:'Loading job information. Please refresh and check again.',
+      company_name:'Company', manager:'Contact person', contact:'Contact', checking_contact:'Checking contact', company_record:'Company record', posted_jobs:'Jobs', match:'Matches', done:'Completed',
+      wage_site_direct:'Wages are paid directly by the site/company.', approved_wage_note:'You may go to work only after approval. Wages are paid directly by the site/company.',
+      already_applied_note:'You already applied for this job. You cannot apply again until the company checks it.', cancel_application:'Cancel application',
+      date:'Date', time:'Time', location:'Location', recruit:'Needed', left:'Left', applicants:'Applicants', daily_pay:'Daily pay', people:'people',
+      profile_sub:'Basic info can be edited. Records are updated only after work is processed.', member_type:'Member type', worker_type_notice:'A worker account is used to apply for work.',
+      profile_phone_note:'Your contact number is used for login and application records. After changing it, log in with the new number.', records:'Records', total_matches:'Total matches', completed_count:'Completed', total_wage:'Total pay', locked_note:'Work records, total pay, and completed counts cannot be edited directly. They are calculated from admin completion and application records.', save_my_info:'Save my info', return_home:'Back',
+      status_wait:'Waiting for approval', status_apply:'Applied', status_approved:'Approved', status_rejected:'Rejected', status_done:'Completed', status_closed:'Closed', status_cancelled:'Cancelled', status_unselected:'Not selected',
+      my_summary:(m,r)=>`My total matches ${m} · Rejected ${r}`, company_stats:(j,m,d)=>`Jobs ${j} · Matches ${m} · Completed ${d}`, people_line:(n,m,l,p)=>`Needed ${n} · Matched ${m} · Left ${l} · Applied ${p}`
+    },
+    vi:{
+      worker_login:'Đăng nhập người lao động', manager_login:'Đăng nhập công ty/quản lý', signup:'Đăng ký', signup_sub:'Chỉ nhập thông tin tối thiểu cần thiết cho loại tài khoản.',
+      contact_login_sub:'Đăng nhập bằng số liên hệ và mật khẩu đã đăng ký.', phone:'Số liên hệ', password:'Mật khẩu', login:'Đăng nhập', back:'Quay lại', signup_type:'Loại tài khoản',
+      business:'Doanh nghiệp', personal:'Công trường cá nhân', worker:'Người lao động', name:'Tên', register:'Đăng ký',
+      worker_mvp_note:'Trong MVP này, số liên hệ được dùng để kiểm tra đăng ký việc và trạng thái.',
+      home:'Trang chủ', refresh:'Cập nhật', alert_ready:'Bật thông báo', my_info:'Thông tin của tôi', logout:'Đăng xuất',
+      available_sites:'Công trường có thể đăng ký', no_available_sites:'Hiện chưa có công trường có thể đăng ký.', apply_work:'Đăng ký làm việc', job_closed:'Đã đóng', has_matched_job:'Đã có công việc được duyệt',
+      matched_site:'Công trường đã được duyệt', pending_approval:'Đang chờ duyệt', job_info_loading:'Đang tải thông tin công việc. Vui lòng cập nhật rồi kiểm tra lại.',
+      company_name:'Công ty', manager:'Người phụ trách', contact:'Liên hệ', checking_contact:'Đang kiểm tra liên hệ', company_record:'Lịch sử công ty', posted_jobs:'Việc', match:'Ghép việc', done:'Hoàn thành',
+      wage_site_direct:'Tiền công do công trường/công ty trả trực tiếp.', approved_wage_note:'Chỉ đi làm sau khi được duyệt. Tiền công do công trường/công ty trả trực tiếp.',
+      already_applied_note:'Bạn đã đăng ký công việc này. Không thể đăng ký lại trước khi công ty kiểm tra.', cancel_application:'Hủy đăng ký',
+      date:'Ngày', time:'Thời gian', location:'Địa điểm', recruit:'Cần tuyển', left:'Còn lại', applicants:'Ứng viên', daily_pay:'Tiền công ngày', people:'người',
+      profile_sub:'Có thể sửa thông tin cơ bản. Lịch sử chỉ cập nhật sau khi xử lý công việc.', member_type:'Loại thành viên', worker_type_notice:'Tài khoản người lao động dùng để đăng ký làm việc.',
+      profile_phone_note:'Số liên hệ dùng để đăng nhập và kiểm tra lịch sử đăng ký. Sau khi đổi, hãy đăng nhập bằng số mới.', records:'Lịch sử', total_matches:'Tổng ghép việc', completed_count:'Đã hoàn thành', total_wage:'Tổng tiền công', locked_note:'Lịch sử làm việc, tổng tiền công và số lần hoàn thành không thể sửa trực tiếp. Hệ thống tự tính theo xác nhận hoàn thành và lịch sử đăng ký.', save_my_info:'Lưu thông tin', return_home:'Quay lại',
+      status_wait:'Đang chờ duyệt', status_apply:'Đã đăng ký', status_approved:'Đã duyệt', status_rejected:'Bị từ chối', status_done:'Đã hoàn thành', status_closed:'Đã đóng', status_cancelled:'Đã hủy', status_unselected:'Không được chọn',
+      my_summary:(m,r)=>`Tổng ghép việc ${m} · Bị từ chối ${r}`, company_stats:(j,m,d)=>`Việc ${j} · Ghép ${m} · Hoàn thành ${d}`, people_line:(n,m,l,p)=>`Cần ${n} · Ghép ${m} · Còn ${l} · Đăng ký ${p}`
+    },
+    uz:{
+      worker_login:'Ishchi kirishi', manager_login:'Kompaniya/admin kirishi', signup:'Ro‘yxatdan o‘tish', signup_sub:'Hisob turi uchun kerakli eng kam ma’lumotni kiriting.',
+      contact_login_sub:'Ro‘yxatdan o‘tgan telefon va parol bilan kiring.', phone:'Telefon', password:'Parol', login:'Kirish', back:'Orqaga', signup_type:'Hisob turi',
+      business:'Biznes', personal:'Shaxsiy ish joyi', worker:'Ishchi', name:'Ism', register:'Ro‘yxatdan o‘tish',
+      worker_mvp_note:'Bu MVPda telefon raqami ariza va holatni tekshirish uchun ishlatiladi.',
+      home:'Bosh sahifa', refresh:'Yangilash', alert_ready:'Bildirishnoma', my_info:'Ma’lumotim', logout:'Chiqish',
+      available_sites:'Ariza berish mumkin joylar', no_available_sites:'Hozircha ariza berish mumkin bo‘lgan joy yo‘q.', apply_work:'Ishga ariza berish', job_closed:'Yopilgan', has_matched_job:'Tasdiqlangan ish mavjud',
+      matched_site:'Tasdiqlangan ish joyi', pending_approval:'Tasdiq kutilmoqda', job_info_loading:'Ish ma’lumoti yuklanmoqda. Yangilab qayta tekshiring.',
+      company_name:'Kompaniya', manager:'Mas’ul', contact:'Aloqa', checking_contact:'Aloqa tekshirilmoqda', company_record:'Kompaniya yozuvi', posted_jobs:'E’lon', match:'Moslashuv', done:'Bajarildi',
+      wage_site_direct:'Ish haqi joy/kompaniya tomonidan bevosita to‘lanadi.', approved_wage_note:'Faqat tasdiqdan keyin ishga boring. Ish haqi joy/kompaniya tomonidan bevosita to‘lanadi.',
+      already_applied_note:'Siz bu ishga ariza bergansiz. Kompaniya tekshirguncha qayta ariza bera olmaysiz.', cancel_application:'Arizani bekor qilish',
+      date:'Sana', time:'Vaqt', location:'Manzil', recruit:'Kerak', left:'Qoldi', applicants:'Arizalar', daily_pay:'Kunlik haq', people:'kishi',
+      profile_sub:'Asosiy ma’lumotni tahrirlash mumkin. Yozuvlar ish tasdiqlangandan keyin yangilanadi.', member_type:'A’zo turi', worker_type_notice:'Ishchi hisobi ishga ariza berish uchun ishlatiladi.',
+      profile_phone_note:'Telefon raqami kirish va ariza yozuvlari uchun ishlatiladi. O‘zgartirgandan keyin yangi raqam bilan kiring.', records:'Yozuvlar', total_matches:'Jami moslashuv', completed_count:'Bajarilgan', total_wage:'Jami haq', locked_note:'Ish yozuvlari, jami haq va bajarilganlar sonini bevosita o‘zgartirib bo‘lmaydi. Ular admin tasdig‘i va ariza yozuvlari asosida hisoblanadi.', save_my_info:'Saqlash', return_home:'Orqaga',
+      status_wait:'Tasdiq kutilmoqda', status_apply:'Ariza berildi', status_approved:'Tasdiqlandi', status_rejected:'Rad etildi', status_done:'Bajarildi', status_closed:'Yopilgan', status_cancelled:'Bekor qilindi', status_unselected:'Tanlanmadi',
+      my_summary:(m,r)=>`Jami moslashuv ${m} · Rad etildi ${r}`, company_stats:(j,m,d)=>`E’lon ${j} · Mos ${m} · Bajarildi ${d}`, people_line:(n,m,l,p)=>`Kerak ${n} · Mos ${m} · Qoldi ${l} · Ariza ${p}`
+    },
+    zh:{
+      worker_login:'劳动者登录', manager_login:'企业/管理员登录', signup:'注册', signup_sub:'仅输入账户类型所需的最少信息。',
+      contact_login_sub:'使用已注册的联系方式和密码登录。', phone:'联系方式', password:'密码', login:'登录', back:'返回', signup_type:'账户类型',
+      business:'企业', personal:'个人现场', worker:'劳动者', name:'姓名', register:'注册',
+      worker_mvp_note:'当前 MVP 使用联系方式确认工作申请和状态。',
+      home:'首页', refresh:'刷新', alert_ready:'通知准备', my_info:'我的信息', logout:'退出',
+      available_sites:'可申请现场', no_available_sites:'目前没有可申请的现场。', apply_work:'申请工作', job_closed:'已关闭', has_matched_job:'已有已批准工作',
+      matched_site:'已批准现场', pending_approval:'等待批准', job_info_loading:'正在加载工作信息。请刷新后重新确认。',
+      company_name:'企业名', manager:'负责人', contact:'联系方式', checking_contact:'正在确认联系方式', company_record:'企业记录', posted_jobs:'公告', match:'匹配', done:'完成',
+      wage_site_direct:'工资由现场/企业直接支付。', approved_wage_note:'批准后才能出勤。工资由现场/企业直接支付。',
+      already_applied_note:'您已申请该工作。企业确认前不能重复申请。', cancel_application:'取消申请',
+      date:'日期', time:'时间', location:'位置', recruit:'招聘', left:'剩余', applicants:'申请', daily_pay:'日薪', people:'人',
+      profile_sub:'基本信息可修改，记录仅按工作处理结果反映。', member_type:'会员类型', worker_type_notice:'劳动者账户用于申请工作。',
+      profile_phone_note:'联系方式用于登录和申请记录确认。修改后需使用新联系方式登录。', records:'累计记录', total_matches:'累计匹配', completed_count:'完成次数', total_wage:'累计工资', locked_note:'累计工作、累计工资和完成次数不能直接修改，会根据管理员完成处理和申请记录自动计算。', save_my_info:'保存我的信息', return_home:'返回',
+      status_wait:'等待批准', status_apply:'已申请', status_approved:'已批准', status_rejected:'已拒绝', status_done:'已完成', status_closed:'已关闭', status_cancelled:'已取消', status_unselected:'未选中',
+      my_summary:(m,r)=>`累计匹配 ${m} · 已拒绝 ${r}`, company_stats:(j,m,d)=>`公告 ${j} · 匹配 ${m} · 完成 ${d}`, people_line:(n,m,l,p)=>`招聘 ${n} · 匹配 ${m} · 剩余 ${l} · 申请 ${p}`
+    },
+    ru:{
+      worker_login:'Вход для работника', manager_login:'Вход компании/админа', signup:'Регистрация', signup_sub:'Введите только минимальные данные для типа аккаунта.',
+      contact_login_sub:'Войдите по зарегистрированному контакту и паролю.', phone:'Контакт', password:'Пароль', login:'Войти', back:'Назад', signup_type:'Тип аккаунта',
+      business:'Бизнес', personal:'Личная площадка', worker:'Работник', name:'Имя', register:'Регистрация',
+      worker_mvp_note:'В этом MVP контакт используется для проверки заявок и статуса.',
+      home:'Главная', refresh:'Обновить', alert_ready:'Уведомления', my_info:'Мои данные', logout:'Выйти',
+      available_sites:'Доступные объекты', no_available_sites:'Сейчас нет доступных объектов.', apply_work:'Подать заявку', job_closed:'Закрыто', has_matched_job:'Уже есть одобренная работа',
+      matched_site:'Одобренный объект', pending_approval:'Ожидает одобрения', job_info_loading:'Загрузка информации. Обновите и проверьте снова.',
+      company_name:'Компания', manager:'Ответственный', contact:'Контакт', checking_contact:'Проверка контакта', company_record:'История компании', posted_jobs:'Вакансии', match:'Совпадения', done:'Завершено',
+      wage_site_direct:'Оплата производится напрямую объектом/компанией.', approved_wage_note:'Выходить на работу можно только после одобрения. Оплата напрямую объектом/компанией.',
+      already_applied_note:'Вы уже подали заявку. Повторная заявка невозможна до проверки компанией.', cancel_application:'Отменить заявку',
+      date:'Дата', time:'Время', location:'Место', recruit:'Нужно', left:'Осталось', applicants:'Заявки', daily_pay:'Дневная оплата', people:'чел.',
+      profile_sub:'Основные данные можно изменить. Записи обновляются только после обработки работы.', member_type:'Тип участника', worker_type_notice:'Аккаунт работника используется для подачи заявок.',
+      profile_phone_note:'Контакт используется для входа и записей заявок. После изменения войдите с новым контактом.', records:'Записи', total_matches:'Всего совпадений', completed_count:'Завершено', total_wage:'Общая оплата', locked_note:'Записи работы, общая оплата и количество завершений нельзя редактировать напрямую. Они рассчитываются по подтверждениям администратора и заявкам.', save_my_info:'Сохранить', return_home:'Назад',
+      status_wait:'Ожидает одобрения', status_apply:'Подана заявка', status_approved:'Одобрено', status_rejected:'Отклонено', status_done:'Завершено', status_closed:'Закрыто', status_cancelled:'Отменено', status_unselected:'Не выбрано',
+      my_summary:(m,r)=>`Всего совпадений ${m} · Отклонено ${r}`, company_stats:(j,m,d)=>`Вакансии ${j} · Совпадения ${m} · Завершено ${d}`, people_line:(n,m,l,p)=>`Нужно ${n} · Совпадения ${m} · Осталось ${l} · Заявки ${p}`
+    },
+    mn:{
+      worker_login:'Ажилчны нэвтрэх', manager_login:'Компани/админ нэвтрэх', signup:'Бүртгүүлэх', signup_sub:'Дансны төрөлд шаардлагатай хамгийн бага мэдээллийг оруулна.',
+      contact_login_sub:'Бүртгүүлсэн холбоо барих дугаар болон нууц үгээр нэвтэрнэ.', phone:'Холбоо барих', password:'Нууц үг', login:'Нэвтрэх', back:'Буцах', signup_type:'Дансны төрөл',
+      business:'Бизнес', personal:'Хувийн талбай', worker:'Ажилчин', name:'Нэр', register:'Бүртгүүлэх',
+      worker_mvp_note:'Энэ MVP-д холбоо барих дугаараар ажлын хүсэлт, төлөвийг шалгана.',
+      home:'Нүүр', refresh:'Шинэчлэх', alert_ready:'Мэдэгдэл', my_info:'Миний мэдээлэл', logout:'Гарах',
+      available_sites:'Хүсэлт гаргах боломжтой газар', no_available_sites:'Одоогоор хүсэлт гаргах боломжтой газар алга.', apply_work:'Ажилд хүсэлт гаргах', job_closed:'Хаагдсан', has_matched_job:'Батлагдсан ажил байна',
+      matched_site:'Батлагдсан ажлын газар', pending_approval:'Зөвшөөрөл хүлээж байна', job_info_loading:'Ажлын мэдээлэл ачаалж байна. Шинэчлээд дахин шалгана уу.',
+      company_name:'Компани', manager:'Хариуцсан хүн', contact:'Холбоо', checking_contact:'Холбоо шалгаж байна', company_record:'Компанийн бүртгэл', posted_jobs:'Зар', match:'Тааруулалт', done:'Дууссан',
+      wage_site_direct:'Цалинг талбай/компани шууд төлнө.', approved_wage_note:'Зөвшөөрсний дараа л ажилд очно. Цалинг талбай/компани шууд төлнө.',
+      already_applied_note:'Та энэ ажилд хүсэлт гаргасан байна. Компани шалгах хүртэл дахин хүсэлт гаргах боломжгүй.', cancel_application:'Хүсэлт цуцлах',
+      date:'Огноо', time:'Цаг', location:'Байршил', recruit:'Шаардлагатай', left:'Үлдсэн', applicants:'Хүсэлт', daily_pay:'Өдрийн цалин', people:'хүн',
+      profile_sub:'Үндсэн мэдээллийг засаж болно. Бүртгэл зөвхөн ажил боловсруулагдсаны дараа шинэчлэгдэнэ.', member_type:'Гишүүний төрөл', worker_type_notice:'Ажилчны данс нь ажилд хүсэлт гаргахад ашиглагдана.',
+      profile_phone_note:'Холбоо барих дугаар нь нэвтрэх болон хүсэлтийн бүртгэлд ашиглагдана. Өөрчилсний дараа шинэ дугаараар нэвтэрнэ.', records:'Бүртгэл', total_matches:'Нийт тааруулалт', completed_count:'Дууссан', total_wage:'Нийт цалин', locked_note:'Ажлын бүртгэл, нийт цалин, дууссан тоог шууд засах боломжгүй. Админы баталгаажуулалт болон хүсэлтийн бүртгэлээр тооцно.', save_my_info:'Хадгалах', return_home:'Буцах',
+      status_wait:'Зөвшөөрөл хүлээж байна', status_apply:'Хүсэлт өгсөн', status_approved:'Зөвшөөрсөн', status_rejected:'Татгалзсан', status_done:'Дууссан', status_closed:'Хаагдсан', status_cancelled:'Цуцалсан', status_unselected:'Сонгогдоогүй',
+      my_summary:(m,r)=>`Нийт тааруулалт ${m} · Татгалзсан ${r}`, company_stats:(j,m,d)=>`Зар ${j} · Таарсан ${m} · Дууссан ${d}`, people_line:(n,m,l,p)=>`Шаардлагатай ${n} · Таарсан ${m} · Үлдсэн ${l} · Хүсэлт ${p}`
+    }
+  };
+  function lang(){ const v=localStorage.getItem('wexa_language')||'ko'; return CORE_LANGS[v]?v:'ko'; }
+  function tr(k){ const pack=I[lang()]||I.ko; return (pack[k]!==undefined?pack[k]:(I.ko[k]||k)); }
+  function esc2(v){ return (typeof esc==='function' ? esc(v) : String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))); }
+  function statusText(st){
+    const s = (typeof normalizeStatus==='function' ? normalizeStatus(st) : String(st||''));
+    if(s==='지원')return tr('status_apply');
+    if(s==='승인')return tr('status_approved');
+    if(s==='반려')return tr('status_rejected');
+    if(s==='근무완료'||s==='완료')return tr('status_done');
+    if(s==='공고 마감')return tr('status_closed');
+    if(s==='신청취소')return tr('status_cancelled');
+    if(s==='미선정')return tr('status_unselected');
+    return s;
+  }
+  function setText(el, text){ if(el) el.textContent=text; }
+  function setTopActionsForWorker(){
+    const box=document.getElementById('topActions'); if(!box) return;
+    const b=box.querySelectorAll('button');
+    if(role==='worker'){
+      if(b[0])b[0].textContent=tr('home'); if(b[1])b[1].textContent=tr('refresh'); if(b[2])b[2].textContent=tr('alert_ready'); if(b[3])b[3].textContent=tr('my_info'); if(b[4])b[4].textContent=tr('logout');
+    }else{
+      if(b[0])b[0].textContent='홈'; if(b[1])b[1].textContent='현황 갱신'; if(b[2])b[2].textContent='알림 준비'; if(b[3])b[3].textContent='내 정보'; if(b[4])b[4].textContent='로그아웃';
+    }
+  }
+  function applyStaticWorkerSignupI18n(){
+    const roleScreen=document.getElementById('roleScreen');
+    if(roleScreen){ const btns=roleScreen.querySelectorAll('button'); if(btns[0])btns[0].textContent='👷 '+tr('worker_login'); if(btns[2])btns[2].textContent='📝 '+tr('signup'); }
+    const wl=document.getElementById('workerLoginScreen');
+    if(wl){ setText(wl.querySelector('.title'), tr('worker_login')); setText(wl.querySelector('.sub'), tr('contact_login_sub')); const labels=wl.querySelectorAll('label'); setText(labels[0],tr('phone')); setText(labels[1],tr('password')); const btns=wl.querySelectorAll('button'); if(btns[0])btns[0].textContent=tr('login'); if(btns[1])btns[1].textContent=tr('back'); }
+    const ss=document.getElementById('signupScreen');
+    if(ss){
+      setText(ss.querySelector('.card.notice .title'), tr('signup')); setText(ss.querySelector('.card.notice .sub'), tr('signup_sub'));
+      const allLabels=[...ss.querySelectorAll(':scope > label')]; if(allLabels[0]) allLabels[0].textContent=tr('signup_type');
+      const opt=document.getElementById('signupType')?.options; if(opt){ if(opt[0])opt[0].textContent=tr('business'); if(opt[1])opt[1].textContent=tr('personal'); if(opt[2])opt[2].textContent=tr('worker'); }
+      const wf=document.getElementById('signupWorkerFields'); if(wf){ const labels=wf.querySelectorAll('label'); setText(labels[0],tr('name')); setText(labels[1],tr('phone')); setText(labels[2],tr('password')); const note=wf.querySelector('.help-note span:last-child'); setText(note,tr('worker_mvp_note')); }
+      const btns=ss.querySelectorAll('button'); if(btns[0])btns[0].textContent=tr('register'); if(btns[1])btns[1].textContent=tr('back');
+    }
+    setTopActionsForWorker();
+  }
+  function workerJobCard(j, extra='', action=''){
+    const s = typeof jobStatus==='function' ? jobStatus(j) : '';
+    const needed = typeof num==='function' ? num(j.needed) : Number(j.needed||0);
+    const matched = typeof getMatchedCount==='function' ? getMatchedCount(j.id) : 0;
+    const pending = typeof getPendingCount==='function' ? getPendingCount(j.id) : 0;
+    const left = Math.max(needed - matched, 0);
+    return `<div class="card"><div class="job-head"><div><div class="job-title">${esc2(j.title)}</div><div class="type">${esc2(typeof jobCategory==='function'?jobCategory(j):(j.type||''))}</div></div><div class="badge">${esc2(statusText(s))}</div></div>${extra}<div class="info pay-line"><span class="emoji">📅</span><span>${esc2(typeof dateText==='function'?dateText(j):(j.work_start_date||j.work_date||''))}</span></div><div class="info pay-line"><span class="emoji">⏰</span><span>${esc2(j.work_time||'-')}</span></div><div class="info pay-line"><span class="emoji">📍</span><span>${esc2(j.location||'-')}</span></div><div class="info pay-line"><span class="emoji">👥</span><span>${esc2((I[lang()]||I.ko).people_line(needed, matched, left, pending))}</span></div><div class="info pay-line"><span class="emoji">💰</span><span>${tr('daily_pay')} ${typeof money==='function'?money(j.salary):j.salary}</span></div>${action}</div>`;
+  }
+  const originalRenderMyInfo = renderMyInfo;
+  pendingApplicationCard = function(a){
+    const j = (typeof findJobForApplication==='function' ? findJobForApplication(a) : null);
+    if(!j){ return `<div class="card"><div class="title">${tr('pending_approval')}</div><div class="sub">${tr('job_info_loading')}</div></div>`; }
+    const extra=`<div class="company-box"><div class="info">🏢 ${tr('company_name')}: ${esc2(companyName(j))}</div><div class="info">👤 ${tr('manager')}: ${tr('checking_contact')}</div><div class="info">📌 ${tr('status_wait')}: ${tr('pending_approval')}</div></div>`;
+    const action=`<div class="pay-note"><span class="mark">※</span><span>${tr('already_applied_note')}</span></div><button class="full gray" onclick="cancelApplication(${Number(a.id)})">${tr('cancel_application')}</button>`;
+    return workerJobCard(j, extra, action);
+  };
+  renderWorkerHome = function(){
+    const el=document.getElementById('workerHome'); if(!el)return;
+    const p=currentWorkerKey(); const stats=workerStats(p);
+    const my=uniqueWorkerAppsByJobStatus(applications.filter(isCurrentWorkerApp));
+    const approved=my.find(a=>isMatched(a.status)); const pending=my.filter(a=>isPending(a.status));
+    let body=`<div class="card notice"><div class="title">${esc2(workerName())}</div><div class="sub">${esc2((I[lang()]||I.ko).my_summary(stats.match, stats.reject))}</div><div class="version">${APP_VERSION}</div></div>`;
+    if(approved){ const j=findJobForApplication(approved); if(j){ const phone=managerPhone(j); const cs=companyStats(j.company_id); const extra=`<div class="company-box"><div class="info">🏢 ${tr('company_name')}: ${esc2(companyName(j))}</div><div class="info">👤 ${tr('manager')}: ${esc2(managerName(j))}</div><div class="info">📞 ${tr('contact')}: ${esc2(phone||tr('checking_contact'))}</div><div class="info">📊 ${tr('company_record')}: ${esc2((I[lang()]||I.ko).company_stats(cs.jobs, cs.match, cs.done))}</div></div>`; const action=`<div class="pay-note"><span class="mark">※</span><span>${tr('wage_site_direct')}</span></div>${routeButtons(j.location||'')}`; body+=`<div class="section">${tr('matched_site')}</div>`+workerJobCard(j,extra,action); }}
+    if(pending.length){ body+=`<div class="section">${tr('pending_approval')}</div>`; body+=pending.map(pendingApplicationCard).join(''); }
+    el.innerHTML=body;
+  };
+  renderWorkerJobs = function(){
+    const el=document.getElementById('workerJobs'); if(!el)return;
+    const my=applications.filter(isCurrentWorkerApp); const hasApproved=my.some(a=>isMatched(a.status)); const list=visibleWorkerJobList();
+    const section=document.querySelector('#workerScreen > .section'); if(section)section.textContent=tr('available_sites');
+    el.innerHTML=list.length?list.map(j=>{ const jobId=Number(j.id); let action=''; if(isJobFull(j))action=`<button class="full gray" disabled>${tr('job_closed')}</button>`; else if(hasApproved)action=`<button class="full gray" disabled>${tr('has_matched_job')}</button>`; else action=`<button class="full blue" onclick="applyJob(${jobId})">${tr('apply_work')}</button>`; const cs=companyStats(j.company_id); const extra=`<div class="company-box"><div class="info">🏢 ${tr('company_name')}: ${esc2(companyName(j))}</div><div class="info">📊 ${tr('company_record')}: ${esc2((I[lang()]||I.ko).company_stats(cs.jobs, cs.match, cs.done))}</div></div>`; return workerJobCard(j,extra,`<div class="pay-note"><span class="mark">※</span><span>${tr('approved_wage_note')}</span></div>${action}`); }).join(''):`<div class="empty">${tr('no_available_sites')}</div>`;
+  };
+  renderMyInfo = function(){
+    const isWorker=(role==='worker'||currentUser?.type==='worker');
+    if(!isWorker){ return originalRenderMyInfo && originalRenderMyInfo(); }
+    const el=document.getElementById('myInfoContent'); if(!el)return; if(!currentUser){el.innerHTML=`<div class="empty">${tr('contact_login_sub')}</div>`; return;}
+    const head=document.querySelector('#myInfoScreen .card.notice'); if(head){ setText(head.querySelector('.title'),tr('my_info')); setText(head.querySelector('.sub'),tr('profile_sub')); }
+    document.getElementById('myInfoVersion') && (document.getElementById('myInfoVersion').innerText=APP_VERSION);
+    const stats=workerStats(workerPhone()); const done=applications.filter(a=>applicationPhoneKey(a)===workerPhone()&&isDone(a.status)).length; const wage=applications.filter(a=>applicationPhoneKey(a)===workerPhone()&&isDone(a.status)).reduce((sum,a)=>{const j=jobs.find(x=>Number(x.id)===Number(a.job_id)); return sum+num(j?.salary)},0);
+    el.innerHTML=`<div class="trust-card"><b>${tr('member_type')}</b><p>${tr('worker_type_notice')}</p></div><label>${tr('member_type')}</label><div class="readonly-box">${tr('worker')}</div><input id="profileType" type="hidden" value="worker"><label>${tr('name')}</label><input id="profileName" value="${esc2(currentUser.name||'')}"><label>${tr('phone')}</label><input id="profilePhone" value="${esc2(currentUser.phone||'')}"><div class="help-note"><span class="mark">※</span><span>${tr('profile_phone_note')}</span></div><div id="profileBusinessFields" class="hidden"></div><label>${tr('password')}</label><input id="profilePassword" type="password" value="${esc2(currentUser.password||'')}"><div class="section">${tr('records')}</div><div class="profile-stats"><div class="profile-stat"><b>${stats.match}</b><span>${tr('total_matches')}</span></div><div class="profile-stat"><b>${done}</b><span>${tr('completed_count')}</span></div><div class="profile-stat"><b>${money(wage)}</b><span>${tr('total_wage')}</span></div></div><div class="locked-note">${tr('locked_note')}</div><button class="full blue" onclick="saveMyInfo()">${tr('save_my_info')}</button><button class="full gray" onclick="goHome()">${tr('return_home')}</button>`;
+  };
+  const originalRenderAll = renderAll;
+  renderAll = function(){ if(role==='manager'){ setTopActionsForWorker(); return originalRenderAll && originalRenderAll(); } if(role==='worker'){ renderWorkerHome(); renderWorkerJobs(); setTopActionsForWorker(); } if(currentScreen==='myInfoScreen') renderMyInfo(); applyStaticWorkerSignupI18n(); };
+  window.switchWexaLanguage = function(next){ const nextLang=CORE_LANGS[next]?next:'ko'; localStorage.setItem('wexa_language',nextLang); document.documentElement.setAttribute('lang',nextLang); document.querySelectorAll('.wexa-lang-option[data-lang]').forEach(btn=>{const on=btn.getAttribute('data-lang')===nextLang; btn.classList.toggle('active',on); if(on)btn.setAttribute('aria-current','true'); else btn.removeAttribute('aria-current');}); applyStaticWorkerSignupI18n(); if(role==='worker'){ renderWorkerHome(); renderWorkerJobs(); if(currentScreen==='myInfoScreen')renderMyInfo(); }else{ setTopActionsForWorker(); } };
+  document.addEventListener('DOMContentLoaded',()=>{ applyStaticWorkerSignupI18n(); window.switchWexaLanguage(lang()); });
 })();
 </script>
 
