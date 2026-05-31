@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v5.0.5 CLEANUP_STABLE_FIX</title>
-<meta name="flowiq-version" content="v5.0.5 CLEANUP_STABLE_FIX" />
+<title>WEXA OPERATIONS v5.0.6 COMPANY_FEE_TRUST_NOTICE</title>
+<meta name="flowiq-version" content="v5.0.6 COMPANY_FEE_TRUST_NOTICE" />
 <meta name="flowiq-build" content="v5-splash-css-clean-stable" />
 <meta name="theme-color" content="#020617" />
 
@@ -963,7 +963,16 @@ body.wexa-splash-ready .app{
 
 <section id="signupScreen" class="hidden">
   <div class="card notice"><div class="title">회원가입</div><div class="sub">가입 유형에 필요한 최소 정보만 입력합니다.</div></div>
-  <div class="trust-card" id="companySignupTrustNotice"><b>업체 등록 운영 기준</b><p>허위 업체, 불법 인력 알선, 임금 미지급, 불법 고용 목적의 가입은 허용되지 않습니다. 등록 정보는 운영 확인을 위해 사용됩니다.</p></div>
+  <div class="trust-card" id="companySignupTrustNotice">
+    <b>업체 등록 운영 기준</b>
+    <p>허위 업체, 불법 인력 알선, 임금 미지급, 불법 고용 목적의 가입은 허용되지 않습니다.</p>
+    <p>등록 정보는 운영 확인을 위해 사용됩니다.</p>
+    <b>첫 가입 업체 3회 무료</b>
+    <p>첫 가입 업체는 최초 3회 공고 등록 및 운영 수수료가 무료로 제공됩니다.</p>
+    <b>근무 완료 기준 수수료 정책</b>
+    <p>WEXA 운영 수수료는 실제 근무 완료가 확인된 경우에만 확정됩니다.</p>
+    <p>근무가 완료되지 않은 경우에는 사유와 관계없이 운영 수수료를 반환합니다.</p>
+  </div>
   <label>가입 유형</label><select id="signupType" onchange="updateSignupFields()"><option value="business">사업자</option><option value="personal">비사업자/개인 현장</option><option value="worker">근로자</option></select>
   <div id="signupBusinessFields"><label>업체명</label><input id="signupName" placeholder="예: 베타팜"><label>담당자명</label><input id="signupManager" placeholder="예: 김관리"><label>연락처</label><input id="signupPhone" placeholder="01012345678"><label>비밀번호</label><input id="signupPassword" type="password"><label>사업자등록번호</label><input id="signupBusinessNo" placeholder="예: 123-45-67890"></div>
   <div id="signupPersonalFields" class="hidden"><label>현장/상호명</label><input id="signupPersonalCompany" placeholder="예: 홍길동 현장 / 개인 상호명"><label>사업자등록번호(선택)</label><input id="signupPersonalBusinessNo" placeholder="사업자번호가 없으면 비워두세요"><div class="help-note"><span class="mark">※</span><span>비사업자는 운영 확인 후 제한적으로 테스트할 수 있습니다.</span></div><label>담당자명</label><input id="signupPersonalName" placeholder="예: 홍길동"><label>연락처</label><input id="signupPersonalPhone" placeholder="01012345678"><label>비밀번호</label><input id="signupPersonalPassword" type="password"></div>
@@ -990,7 +999,7 @@ body.wexa-splash-ready .app{
 </main>
 
 <script>
-const APP_VERSION='v5.0.5 CLEANUP_STABLE_FIX';
+const APP_VERSION='v5.0.6 COMPANY_FEE_TRUST_NOTICE';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
