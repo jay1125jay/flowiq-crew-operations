@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.108 HOME_ICON_CONNECT</title>
-<meta name="flowiq-version" content="v4.1.108 HOME_ICON_CONNECT" />
+<title>WEXA OPERATIONS v4.1.108A HOME_ENTRY_PULSE_RESTORE</title>
+<meta name="flowiq-version" content="v4.1.108A HOME_ENTRY_PULSE_RESTORE" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 
@@ -767,6 +767,55 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   opacity:.95 !important;
 }
 
+
+
+/* ===== WEXA v4.1.108A home entry pulse restore =====
+   첫 화면 진입 시 기존처럼 은은하게 살아있는 느낌만 복구.
+   기능 로직 / 로그인 / Supabase / 푸시 코드는 건드리지 않음. */
+@keyframes wexaHomeEntryFade{
+  0%{opacity:0;transform:translateY(8px) scale(.992);filter:brightness(.82)}
+  45%{opacity:1;filter:brightness(1.12)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}
+}
+@keyframes wexaHomeButtonBreath{
+  0%,100%{
+    filter:brightness(1);
+    box-shadow:
+      0 0 0 1px rgba(0,212,200,.10) inset,
+      0 12px 30px rgba(0,0,0,.38),
+      0 0 22px rgba(37,99,255,.18),
+      0 0 12px rgba(0,212,200,.08) !important;
+  }
+  50%{
+    filter:brightness(1.16);
+    box-shadow:
+      0 0 0 1px rgba(0,212,200,.18) inset,
+      0 14px 34px rgba(0,0,0,.42),
+      0 0 34px rgba(37,99,255,.36),
+      0 0 22px rgba(0,212,200,.18) !important;
+  }
+}
+@keyframes wexaHomeCardGlow{
+  0%,100%{border-color:rgba(0,212,200,.22)!important;filter:brightness(1)}
+  50%{border-color:rgba(96,165,250,.46)!important;filter:brightness(1.08)}
+}
+#roleScreen{
+  animation:wexaHomeEntryFade .55s ease-out both;
+}
+#roleScreen .big{
+  animation:wexaHomeButtonBreath 2.6s ease-in-out infinite;
+}
+#roleScreen .big:nth-of-type(2){animation-delay:.18s;}
+#roleScreen .big:nth-of-type(3){animation-delay:.36s;}
+#roleScreen .trust-card{
+  animation:wexaHomeCardGlow 3.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce){
+  #roleScreen,
+  #roleScreen .big,
+  #roleScreen .trust-card{animation:none!important;}
+}
+
 </style>
 </head>
 <body>
@@ -808,7 +857,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.108 HOME_ICON_CONNECT';
+const APP_VERSION='v4.1.108A HOME_ENTRY_PULSE_RESTORE';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
