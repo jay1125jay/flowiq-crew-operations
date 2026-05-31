@@ -7,18 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.108A HOME_ENTRY_PULSE_RESTORE</title>
-<meta name="flowiq-version" content="v4.1.108A HOME_ENTRY_PULSE_RESTORE" />
+<title>WEXA OPERATIONS v4.1.107 PUSH_MESSAGE_CLEANUP</title>
+<meta name="flowiq-version" content="v4.1.107 PUSH_MESSAGE_CLEANUP" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
-
-<!-- WEXA HOME SCREEN ICON / PWA ICON -->
-<link rel="icon" href="./favicon.ico?v=2">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=2">
-<link rel="manifest" href="./manifest.json?v=2">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -767,156 +759,6 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   opacity:.95 !important;
 }
 
-
-
-/* ===== WEXA v4.1.108A home entry pulse restore =====
-   첫 화면 진입 시 기존처럼 은은하게 살아있는 느낌만 복구.
-   기능 로직 / 로그인 / Supabase / 푸시 코드는 건드리지 않음. */
-@keyframes wexaHomeEntryFade{
-  0%{opacity:0;transform:translateY(8px) scale(.992);filter:brightness(.82)}
-  45%{opacity:1;filter:brightness(1.12)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}
-}
-@keyframes wexaHomeButtonBreath{
-  0%,100%{
-    filter:brightness(1);
-    box-shadow:
-      0 0 0 1px rgba(0,212,200,.10) inset,
-      0 12px 30px rgba(0,0,0,.38),
-      0 0 22px rgba(37,99,255,.18),
-      0 0 12px rgba(0,212,200,.08) !important;
-  }
-  50%{
-    filter:brightness(1.16);
-    box-shadow:
-      0 0 0 1px rgba(0,212,200,.18) inset,
-      0 14px 34px rgba(0,0,0,.42),
-      0 0 34px rgba(37,99,255,.36),
-      0 0 22px rgba(0,212,200,.18) !important;
-  }
-}
-@keyframes wexaHomeCardGlow{
-  0%,100%{border-color:rgba(0,212,200,.22)!important;filter:brightness(1)}
-  50%{border-color:rgba(96,165,250,.46)!important;filter:brightness(1.08)}
-}
-#roleScreen{
-  animation:wexaHomeEntryFade .55s ease-out both;
-}
-#roleScreen .big{
-  animation:wexaHomeButtonBreath 2.6s ease-in-out infinite;
-}
-#roleScreen .big:nth-of-type(2){animation-delay:.18s;}
-#roleScreen .big:nth-of-type(3){animation-delay:.36s;}
-#roleScreen .trust-card{
-  animation:wexaHomeCardGlow 3.2s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce){
-  #roleScreen,
-  #roleScreen .big,
-  #roleScreen .trust-card{animation:none!important;}
-}
-/* ===== WEXA HOME ENTRY PULSE RESTORE - SAFE CSS ONLY ===== */
-/* 첫 화면 진입 시 WEXA 홈 버튼/카드가 은은하게 깜박이는 효과 복구 */
-
-@keyframes wexaHomePulse {
-  0% {
-    transform: translateY(4px) scale(0.985);
-    opacity: 0.72;
-    filter: brightness(0.9);
-    box-shadow:
-      0 0 0 1px rgba(37,99,255,.10) inset,
-      0 8px 18px rgba(0,0,0,.26),
-      0 0 10px rgba(37,99,255,.08);
-  }
-  45% {
-    transform: translateY(0) scale(1.012);
-    opacity: 1;
-    filter: brightness(1.18);
-    box-shadow:
-      0 0 0 1px rgba(0,212,200,.20) inset,
-      0 14px 34px rgba(0,0,0,.36),
-      0 0 30px rgba(37,99,255,.38),
-      0 0 18px rgba(0,212,200,.18);
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-    filter: brightness(1);
-  }
-}
-
-@keyframes wexaHomeGlowSweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-120%);
-  }
-  35% {
-    opacity: .9;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(120%);
-  }
-}
-
-#roleScreen:not(.hidden) {
-  position: relative;
-}
-
-#roleScreen:not(.hidden) .big {
-  animation: wexaHomePulse 1.35s ease-out both;
-}
-
-#roleScreen:not(.hidden) .big:nth-of-type(1) {
-  animation-delay: .05s;
-}
-
-#roleScreen:not(.hidden) .big:nth-of-type(2) {
-  animation-delay: .16s;
-}
-
-#roleScreen:not(.hidden) .big:nth-of-type(3) {
-  animation-delay: .27s;
-}
-
-#roleScreen:not(.hidden) .trust-card {
-  animation: wexaHomePulse 1.45s ease-out both;
-  animation-delay: .38s;
-}
-
-#roleScreen:not(.hidden) .big::after,
-#roleScreen:not(.hidden) .trust-card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 46%;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.18),
-    rgba(0,212,200,.20),
-    transparent
-  );
-  animation: wexaHomeGlowSweep 1.25s ease-out both;
-}
-
-#roleScreen:not(.hidden) .big:nth-of-type(1)::after {
-  animation-delay: .15s;
-}
-
-#roleScreen:not(.hidden) .big:nth-of-type(2)::after {
-  animation-delay: .26s;
-}
-
-#roleScreen:not(.hidden) .big:nth-of-type(3)::after {
-  animation-delay: .37s;
-}
-
-#roleScreen:not(.hidden) .trust-card::after {
-  animation-delay: .48s;
-}
 </style>
 </head>
 <body>
@@ -958,7 +800,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.108A HOME_ENTRY_PULSE_RESTORE';
+const APP_VERSION='v4.1.107 PUSH_MESSAGE_CLEANUP';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
