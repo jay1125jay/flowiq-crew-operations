@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -7,10 +8,18 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.107 PUSH_MESSAGE_CLEANUP</title>
-<meta name="flowiq-version" content="v4.1.107 PUSH_MESSAGE_CLEANUP" />
-<meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
+<title>WEXA OPERATIONS v4.1.110 SPLASH_EXTERNAL_RESTORE</title>
+<meta name="flowiq-version" content="v4.1.110 SPLASH_EXTERNAL_RESTORE" />
+<meta name="flowiq-build" content="operations-splash-external-restore" />
 <meta name="theme-color" content="#020617" />
+
+<!-- WEXA HOME SCREEN ICON / PWA ICON -->
+<link rel="icon" href="./favicon.ico?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=2">
+<link rel="manifest" href="./manifest.json?v=2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#020617">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -759,6 +768,69 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   opacity:.95 !important;
 }
 
+
+
+/* ===== WEXA v4.1.110 SPLASH EXTERNAL RESTORE =====
+   목적: 큰 base64 이미지를 제거하고 GitHub 파일 wexa-splash.png를 직접 불러와
+   첫 진입/새로고침 때 상단 이미지가 부드럽게 떠오르는 기존 느낌 복구.
+   기능/로그인/푸시/Supabase 로직 영향 없음. */
+@keyframes wexaSplashSoftIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(.985);
+    filter: brightness(.72) blur(5px);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(1px) scale(1.008);
+    filter: brightness(1.16) blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1) blur(0);
+  }
+}
+
+@keyframes wexaSplashLightSweep {
+  0% { opacity: 0; transform: translateX(-135%) skewX(-12deg); }
+  35% { opacity: .85; }
+  100% { opacity: 0; transform: translateX(135%) skewX(-12deg); }
+}
+
+.wexa-image-header {
+  position: relative !important;
+  animation: wexaSplashSoftIn 1.05s ease-out both !important;
+  will-change: transform, opacity, filter;
+}
+
+.wexa-image-header img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+}
+
+.wexa-image-header::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 52% !important;
+  pointer-events: none !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.16),
+    rgba(0,212,200,.20),
+    rgba(37,99,255,.15),
+    transparent
+  ) !important;
+  animation: wexaSplashLightSweep 1.15s ease-out .12s both !important;
+  z-index: 3 !important;
+}
+
 </style>
 </head>
 <body>
@@ -800,7 +872,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.107 PUSH_MESSAGE_CLEANUP';
+const APP_VERSION='v4.1.108 HOME_ICON_CONNECT';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
