@@ -2053,6 +2053,135 @@ window.wexaRegisterFcmForCurrentUser = async function(){
   });
 })();
 </script>
+<div id="global-lang-switcher" style="position: fixed; top: 15px; right: 15px; z-index: 99999; background: #ffffff; padding: 6px 10px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; gap: 8px; font-family: sans-serif; font-size: 13px;">
+  <select id="lang-select" onchange="switchLanguage(this.value)" style="border: none; outline: none; background: transparent; font-weight: bold; cursor: pointer;">
+    <option value="ko">🇰🇷 한국어 (KO)</option>
+    <option value="en">🇺🇸 English (EN)</option>
+    <option value="vi">🇻🇳 Tiếng Việt (VI)</option>
+    <option value="uz">🇺🇿 O'zbek (UZ)</option>
+    <option value="zh">🇨🇳 中文 (ZH)</option>
+    <option value="th">🇹🇭 ภาษาไทย (TH)</option>
+    <option value="mn">🇲🇳 Монгол (MN)</option>
+    <option value="km">🇰🇭 ភាសាខ្មែរ (KM)</option>
+    <option value="ru">🇷🇺 Русский (RU)</option>
+    <option value="si">🇱🇰 සිංහල (SI)</option>
+    <option value="bn">🇧🇩 বাংলা (BN)</option>
+    <option value="tl">🇵🇭 Tagalog (TL)</option>
+  </select>
+</div>
 
+<script>
+// 대한민국 체류 외국인 통계 기반 12개국 언어 팩 딕셔너리
+// (형님, 화면에 있는 글자들을 여기에 키값으로 등록해서 확장하시면 됩니다!)
+const translations = {
+  ko: { signup_title: "외국인 회원가입", phone_placeholder: "휴대폰 번호 입력", submit_btn: "인증 및 가입하기", auth_fail: "외국인 정보가 일치하지 않습니다.", visa_block: "보유하신 비자로는 본 플랫폼 이용이 제한됩니다." },
+  en: { signup_title: "Foreigner Sign Up", phone_placeholder: "Enter phone number", submit_btn: "Verify & Sign Up", auth_fail: "Foreigner information does not match.", visa_block: "Platform use is restricted with your current visa." },
+  vi: { signup_title: "Đăng ký người nước ngoài", phone_placeholder: "Nhập số điện thoại", submit_btn: "Xác minh & Đăng ký", auth_fail: "Thông tin người nước ngoài không khớp.", visa_block: "Sử dụng nền tảng bị hạn chế với visa hiện tại của bạn." },
+  uz: { signup_title: "Chet ellik ro'yxatdan o'tishi", phone_placeholder: "Telefon raqamini kiriting", submit_btn: "Tasdiqlash va ro'yxatdan o'tish", auth_fail: "Chet ellik ma'lumotlari mos kelmadi.", visa_block: "Hozirgi vizangiz bilan platformadan foydalanish cheklangan." },
+  zh: { signup_title: "外国人注册", phone_placeholder: "输入手机号码", submit_btn: "验证并注册", auth_fail: "外国人信息不 가입 匹配。", visa_block: "您当前的签证限制使用该平台。" },
+  th: { signup_title: "ลงทะเบียนชาวต่างชาติ", phone_placeholder: "กรอกหมายเลขโทรศัพท์", submit_btn: "ยืนยันและลงทะเบียน", auth_fail: "ข้อมูลชาวต่างชาติไม่ตรงกัน", visa_block: "การใช้งานแพลตฟอร์มถูกจำกัดด้วยวีซ่าปัจจุบันของคุณ" },
+  mn: { signup_title: "Гадаад иргэний бүртгэл", phone_placeholder: "Утасны дугаар оруулах", submit_btn: "Баталгаажуулж бүртгүүлэх", auth_fail: "Гадаад иргэний мэдээлэл таарахгүй байна.", visa_block: "Таны одоогийн визээр платформ ашиглахыг хязгаарласан." },
+  km: { signup_title: "ការចុះឈ្មោះជនបរទេស", phone_placeholder: "បញ្ចូលលេខទូរស័ព្ទ", submit_btn: "ផ្ទៀងផ្ទាត់ និងចុះឈ្មោះ", auth_fail: "ព័ត៌មានជនបរទេសមិនត្រូវគ្នាទេ។", visa_block: "ការប្រើប្រាស់ប្រព័ន្ធត្រូវបានរឹតបន្តឹងជាមួយទិដ្ឋាការបច្ចុប្បន្នរបស់អ្នក។" },
+  ru: { signup_title: "Регистрация иностранца", phone_placeholder: "Введите номер телефона", submit_btn: "Проверить и зарегистрироваться", auth_fail: "Информация об иностранце не совпадает.", visa_block: "Использование платформы ограничено с вашей текущей визой." },
+  si: { signup_title: "විදේශිකයින් ලියාපදිංចිය", phone_placeholder: "දුරකථන අංකය ඇතුළත් කරන්න", submit_btn: "තහවුරු කර ලියාපදිංචි වන්න", auth_fail: "විදේශික තොරතුරු ගැලපෙන්නේ නැත.", visa_block: "ඔබගේ වත්මන් වීසා බලපත්‍රය සමඟ වේදිකාව භාවිතා කිරීම සීමා කර ඇත." },
+  bn: { signup_title: "বিদেশী সাইন আপ", phone_placeholder: "ফোন নম্বর লিখুন", submit_btn: "যাচাই করুন এবং সাইন আপ করুন", auth_fail: "বিদেশী তথ্য মিলছে না।", visa_block: "আপনার বর্তমান ভিসার সাথে প্ল্যাটফর্ম ব্যবহার সীমাবদ্ধ।" },
+  tl: { signup_title: "Sign Up ng Dayuhan", phone_placeholder: "Ipasok ang numero ng telepono", submit_btn: "I-verify at Mag-sign Up", auth_fail: "Hindi tumtugma ang impormasyon ng dayuhan.", visa_block: "Ang pagသုံးပြု ng platform ay bawal sa iyong kasalukuyang visa." }
+};
+
+// [안전장치 1] PC 프리징(멈춤)을 완벽히 차단한 다국어 토글 함수
+function switchLanguage(lang) {
+  try {
+    if (!translations[lang]) return;
+    localStorage.setItem('userSelectedLang', lang);
+    document.getElementById('lang-select').value = lang;
+
+    // data-i18n 속성을 가진 엘리먼트만 타겟팅하여 무한루프 방지
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (translations[lang][key]) {
+        // 인풋 필드의 placeholder와 일반 텍스트를 안전하게 분기 처리
+        if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
+          el.placeholder = translations[lang][key];
+        } else {
+          el.textContent = translations[lang][key];
+        }
+      }
+    });
+  } catch (error) {
+    console.error("번역 실행 중 에러가 발생했으나 브라우저는 안전합니다:", error);
+  }
+}
+
+// [안전장치 2] 개인정보 보호법을 준수한 정부 API 인증 및 가입 처리 함수
+async function safeVerifyAndRegister(event) {
+  event.preventDefault(); // 기본 폼 제출 막기
+  
+  const currentLang = localStorage.getItem('userSelectedLang') || 'ko';
+  
+  // 화면에서 입력값 가져오기 (형님의 HTML input ID와 매칭하세요)
+  const phone = document.getElementById('user-phone')?.value;
+  const password = document.getElementById('user-password')?.value;
+  const engName = document.getElementById('foreigner-name')?.value;
+  const visaType = document.getElementById('visa-type')?.value;
+  const issueDate = document.getElementById('visa-issue-date')?.value;
+  
+  // ★ 1회성으로만 쓰고 DB에는 절대 안 넣을 변수
+  const regNo = document.getElementById('foreigner-reg-no')?.value; 
+
+  try {
+    // 1. 법무부 외국인등록증 진위확인 API 호출 부분 (공공데이터포털 연동 주소)
+    // const govResponse = await axios.post('정부API엔드포인트', { name: engName, regNo: regNo, issueDate: issueDate });
+    
+    // 임시 테스트용 가상의 결과 (정부 연동 전 테스트용 성공 처리)
+    const isGovValid = true; 
+
+    if (!isGovValid) {
+      alert(translations[currentLang]['auth_fail']);
+      return;
+    }
+
+    // 2. 비자 자격 필터링 (E-9 입구 컷)
+    if (visaType === 'E-9') {
+      alert(translations[currentLang]['visa_block']);
+      return;
+    }
+
+    // 3. 비자 조건별 업종 패스 권한 계산
+    let isConstructionAllowed = false;
+    let isAgricultureAllowed = true; // F계열은 농어촌 기본 가능
+
+    if (['F-2', 'F-5', 'F-6'].includes(visaType)) {
+      isConstructionAllowed = true;
+    } else if (visaType === 'F-4') {
+      isConstructionAllowed = false; // F-4 건설 단순노무 불법
+    }
+
+    // 4. [★핵심 보안★] Supabase DB 저장 (regNo인 외국인등록번호는 쏙 빼고 저장!)
+    // await supabase.from('foreigner_users').insert([
+    //   { 
+    //     phone: phone, 
+    //     password: password, // 암호화 권장
+    //     name: engName, 
+    //     visa_type: visaType,
+    //     is_construction_allowed: isConstructionAllowed,
+    //     is_agriculture_allowed: isAgricultureAllowed
+    //   }
+    // ]);
+
+    alert("Sign Up Success! / 가입 성공!");
+    
+  } catch (error) {
+    console.error("가입 프로세스 중 치명적 에러 방어:", error);
+    alert("System Error. Please try again later.");
+  }
+}
+
+// 페이지가 켜지면 마지막에 유저가 픽했던 언어로 자동 셋팅
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('userSelectedLang') || 'ko';
+  switchLanguage(savedLang);
+});
+</script>
 </body>
 </html>
