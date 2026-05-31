@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v4.1.112 APP_SPLASH_HEADER_RESTORE</title>
-<meta name="flowiq-version" content="v4.1.112 APP_SPLASH_HEADER_RESTORE" />
+<title>WEXA OPERATIONS v4.1.113 FULL_SCREEN_SPLASH_SMOOTH</title>
+<meta name="flowiq-version" content="v4.1.113 FULL_SCREEN_SPLASH_SMOOTH" />
 <meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
 <meta name="theme-color" content="#020617" />
 
@@ -769,80 +769,109 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 
 
 
-/* ===== WEXA v4.1.112 APP SPLASH RESTORE =====
-   홈화면 바로가기 실행/새로고침 시 1~2초 로고 스플래시 표시.
-   기존 상단 헤더 이미지는 그대로 유지. 기능/로그인/푸시 로직 영향 없음. */
+/* ===== WEXA v4.1.113 FULL SCREEN APP SPLASH - SMOOTH RESTORE =====
+   홈화면 바로가기 실행/새로고침 시 전체 화면 스플래시 표시 후 자연스럽게 로그인 화면으로 전환.
+   기능/로그인/푸시/Supabase 로직 영향 없음. */
 #wexaAppSplash{
   position:fixed;
   inset:0;
   z-index:2147483000;
   display:flex;
-  align-items:center;
+  align-items:stretch;
   justify-content:center;
-  padding:24px;
-  background:
-    radial-gradient(circle at 50% 18%,rgba(37,99,255,.28),transparent 38%),
-    radial-gradient(circle at 50% 88%,rgba(0,212,200,.10),transparent 40%),
-    linear-gradient(180deg,#020617 0%,#07111f 52%,#020617 100%);
+  padding:0;
+  background:#020617;
   opacity:1;
   visibility:visible;
-  transition:opacity .46s ease, visibility .46s ease;
+  overflow:hidden;
+  transition:
+    opacity .92s cubic-bezier(.22,.61,.36,1),
+    visibility .92s cubic-bezier(.22,.61,.36,1),
+    filter .92s cubic-bezier(.22,.61,.36,1);
+}
+#wexaAppSplash::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(37,99,255,.32),transparent 38%),
+    radial-gradient(circle at 50% 88%,rgba(0,212,200,.16),transparent 42%),
+    linear-gradient(180deg,rgba(2,6,23,.10),rgba(2,6,23,.22));
+  z-index:2;
 }
 #wexaAppSplash.wexa-splash-hide{
   opacity:0;
   visibility:hidden;
+  filter:brightness(1.08) blur(2px);
 }
 .wexa-splash-card{
-  width:min(82vw,340px);
-  border-radius:34px;
+  position:absolute;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  border-radius:0;
   overflow:hidden;
-  border:1px solid rgba(0,212,200,.46);
+  border:0;
   background:#020617;
-  box-shadow:
-    0 0 0 1px rgba(37,99,255,.20) inset,
-    0 0 42px rgba(37,99,255,.34),
-    0 0 28px rgba(0,212,200,.18),
-    0 24px 70px rgba(0,0,0,.58);
-  animation:wexaSplashCardIn 1.05s ease-out both;
+  box-shadow:none;
+  animation:wexaSplashFullIn 1.15s cubic-bezier(.22,.61,.36,1) both;
 }
 .wexa-splash-card img{
   display:block;
   width:100%;
-  height:auto;
+  height:100%;
+  object-fit:cover;
+  object-position:center center;
+  transform:scale(1.025);
+  filter:brightness(.98) contrast(1.04) saturate(1.05);
 }
 .wexa-splash-text{
   position:absolute;
   left:0;
   right:0;
   bottom:34px;
+  z-index:3;
   text-align:center;
   color:#bfdbfe;
   font-size:12px;
   font-weight:850;
   letter-spacing:.08em;
-  opacity:.86;
+  opacity:.82;
+  text-shadow:0 0 18px rgba(37,99,255,.52),0 0 10px rgba(0,212,200,.18);
   animation:wexaSplashTextIn 1.2s ease-out both;
 }
-@keyframes wexaSplashCardIn{
-  0%{opacity:0;transform:translateY(10px) scale(.955);filter:brightness(.62) blur(5px)}
-  42%{opacity:1;transform:translateY(0) scale(1.018);filter:brightness(1.18) blur(0)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1) blur(0)}
+body.wexa-splash-active .app{
+  opacity:.01;
+  transform:scale(1.015);
+  filter:brightness(.84) blur(2px);
+}
+body.wexa-splash-ready .app{
+  animation:wexaAppRevealAfterSplash .86s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes wexaSplashFullIn{
+  0%{opacity:0;transform:scale(1.035);filter:brightness(.55) blur(6px)}
+  45%{opacity:1;transform:scale(1.008);filter:brightness(1.10) blur(0)}
+  100%{opacity:1;transform:scale(1);filter:brightness(1) blur(0)}
 }
 @keyframes wexaSplashTextIn{
   0%{opacity:0;transform:translateY(8px)}
-  100%{opacity:.86;transform:translateY(0)}
+  100%{opacity:.82;transform:translateY(0)}
+}
+@keyframes wexaAppRevealAfterSplash{
+  0%{opacity:0;transform:translateY(8px) scale(.992);filter:brightness(.82) blur(3px)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1) blur(0)}
 }
 @media (prefers-reduced-motion: reduce){
-  .wexa-splash-card,.wexa-splash-text{animation:none!important}
+  .wexa-splash-card,.wexa-splash-text,body.wexa-splash-ready .app{animation:none!important}
   #wexaAppSplash{transition:none!important}
 }
-
 </style>
 </head>
-<body>
+<body class="wexa-splash-active">
 <div id="wexaAppSplash" aria-hidden="true">
   <div class="wexa-splash-card">
-    <img src="./wexa-splash.png?v=112" alt="WEXA" />
+    <img src="./wexa-splash.png?v=113" alt="WEXA" />
   </div>
   <div class="wexa-splash-text">POWERED BY FLOWIQ</div>
 </div>
@@ -885,7 +914,7 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 </main>
 
 <script>
-const APP_VERSION='v4.1.112 APP_SPLASH_HEADER_RESTORE';
+const APP_VERSION='v4.1.113 FULL_SCREEN_SPLASH_SMOOTH';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -1636,21 +1665,25 @@ window.wexaRegisterFcmForCurrentUser = async function(){
   function hideWexaAppSplash(){
     var splash = document.getElementById('wexaAppSplash');
     if(!splash) return;
+
     splash.classList.add('wexa-splash-hide');
+    document.body.classList.remove('wexa-splash-active');
+    document.body.classList.add('wexa-splash-ready');
+
     setTimeout(function(){
       if(splash && splash.parentNode){
         splash.parentNode.removeChild(splash);
       }
-    }, 620);
+    }, 980);
   }
 
   if(document.readyState === 'complete'){
-    setTimeout(hideWexaAppSplash, 1350);
+    setTimeout(hideWexaAppSplash, 1550);
   }else{
     window.addEventListener('load', function(){
-      setTimeout(hideWexaAppSplash, 1350);
+      setTimeout(hideWexaAppSplash, 1550);
     }, {once:true});
-    setTimeout(hideWexaAppSplash, 2300);
+    setTimeout(hideWexaAppSplash, 2600);
   }
 })();
 </script>
