@@ -1497,7 +1497,7 @@ function renderWorkerHome(){
   const my=uniqueWorkerAppsByJobStatus(applications.filter(isCurrentWorkerApp));
   const approved=my.find(a=>isMatched(a.status));
   const pending=my.filter(a=>isPending(a.status));
-  let body=`<div class="card notice"><div class="title">${esc(workerName())}</div><div class="sub">내 누적 매칭 ${stats.match}회 · 반려 ${stats.reject}회</div><div class="version">${APP_VERSION}</div></div>`;
+  let body=`<div class="card notice"><div class="title">${esc(workerName())}</div><div class="sub">${window.wexaFormatWorkerSummary ? window.wexaFormatWorkerSummary(stats.match, stats.reject) : `내 누적 매칭 ${stats.match}회 · 반려 ${stats.reject}회`}</div><div class="version">${APP_VERSION}</div></div>`;
   if(approved){
     const j=findJobForApplication(approved);
     if(j){
@@ -1962,7 +1962,7 @@ window.wexaRegisterFcmForCurrentUser = async function(){
 
 
 <script>
-/* ===== WEXA v5.0.9 Lightweight 12-language i18n layer =====
+/* ===== WEXA v5.0.13 Stable 12-language i18n layer =====
    목적: 기존 로그인/푸시/Supabase/신청/승인/완료/시트 저장 로직을 건드리지 않고,
    화면에 표시되는 짧은 단어/문구만 선택 언어로 즉시 교체한다.
 */
@@ -1983,6 +1983,35 @@ window.wexaRegisterFcmForCurrentUser = async function(){
     return WEXA_I18N_LANGS[saved] ? saved : 'ko';
   }
 
+  function wexaI18nGet(key, lang){
+    const targetLang = WEXA_I18N_LANGS[lang] ? lang : getWexaLang();
+    const row = WEXA_I18N_TEXT[key];
+    return row ? (row[targetLang] || row.en || key) : key;
+  }
+
+  window.wexaI18nGet = wexaI18nGet;
+  window.wexaFormatWorkerSummary = function(matchCount, rejectCount){
+    const lang = getWexaLang();
+    const match = Number(matchCount || 0);
+    const reject = Number(rejectCount || 0);
+    const row = {
+      ko: `내 누적 매칭 ${match}회 · 반려 ${reject}회`,
+      en: `My total matches ${match} · Rejected ${reject}`,
+      vi: `Tổng ghép việc ${match} · Bị từ chối ${reject}`,
+      uz: `Jami moslashuv ${match} · Rad etildi ${reject}`,
+      zh: `累计匹配 ${match} · 已拒绝 ${reject}`,
+      th: `การจับคู่งานสะสม ${match} · ถูกปฏิเสธ ${reject}`,
+      mn: `Нийт тааруулалт ${match} · Татгалзсан ${reject}`,
+      km: `ការផ្គូផ្គងសរុប ${match} · បានបដិសេធ ${reject}`,
+      ru: `Всего совпадений ${match} · Отклонено ${reject}`,
+      si: `මුළු ගැලපීම් ${match} · ප්‍රතික්ෂේප ${reject}`,
+      bn: `মোট ম্যাচ ${match} · প্রত্যাখ্যাত ${reject}`,
+      tl: `Kabuuang match ${match} · Tinanggihan ${reject}`
+    };
+    return row[lang] || row.ko;
+  };
+
+
   function preserveSpaceReplace(raw, translated){
     const lead = (raw.match(/^\s*/) || [''])[0];
     const tail = (raw.match(/\s*$/) || [''])[0];
@@ -2001,22 +2030,6 @@ window.wexaRegisterFcmForCurrentUser = async function(){
 
 
 
-  function translateKnownPhrases(value, lang){
-    if(!value) return value;
-    let output = value;
-    const phraseKeys = Object.keys(WEXA_I18N_TEXT)
-      .filter((key)=>key && output.includes(key))
-      .sort((a,b)=>b.length-a.length);
-    phraseKeys.forEach((key)=>{
-      const row = WEXA_I18N_TEXT[key];
-      const translated = row && (row[lang] || row.en);
-      if(translated && translated !== key){
-        output = output.split(key).join(translated);
-      }
-    });
-    return output;
-  }
-
   function translateTextNode(node, lang){
     if(!node || !node.nodeValue) return;
     const parent = node.parentElement;
@@ -2034,13 +2047,10 @@ window.wexaRegisterFcmForCurrentUser = async function(){
       else key = findOriginalKeyByTranslatedText(trimmed);
       if(key) WEXA_I18N_NODE_KEYS.set(node, key);
     }
-    if(!key || !WEXA_I18N_TEXT[key]) {
-      const phraseTranslated = translateKnownPhrases(trimmed, lang);
-      if(phraseTranslated && phraseTranslated !== trimmed) {
-        node.nodeValue = preserveSpaceReplace(raw, phraseTranslated);
-      }
-      return;
-    }
+    // 안정화 원칙: 일부 단어를 포함한다고 임의 치환하지 않는다.
+    // 이유: 한국어→영어→베트남어처럼 여러 번 전환할 때 언어가 섞일 수 있음.
+    // 정확히 등록된 원문/번역문만 고정 키로 처리한다.
+    if(!key || !WEXA_I18N_TEXT[key]) return;
 
     const translated = WEXA_I18N_TEXT[key][lang] || WEXA_I18N_TEXT[key].en || key;
     if(trimmed !== translated) node.nodeValue = preserveSpaceReplace(raw, translated);
