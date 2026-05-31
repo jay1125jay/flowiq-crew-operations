@@ -7,9 +7,9 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v5.0.3 SPLASH_FAST_FEATHER_NO_FRAME</title>
-<meta name="flowiq-version" content="v5.0.3 SPLASH_FAST_FEATHER_NO_FRAME" />
-<meta name="flowiq-build" content="operations-manager-svg-icon-system-upgrade" />
+<title>WEXA OPERATIONS v5.0.5 CLEANUP_STABLE_FIX</title>
+<meta name="flowiq-version" content="v5.0.5 CLEANUP_STABLE_FIX" />
+<meta name="flowiq-build" content="v5-splash-css-clean-stable" />
 <meta name="theme-color" content="#020617" />
 
 <!-- WEXA HOME SCREEN ICON / PWA ICON -->
@@ -769,8 +769,9 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
 
 
 
-/* ===== WEXA v4.1.113 FULL SCREEN APP SPLASH - SMOOTH RESTORE =====
-   홈화면 바로가기 실행/새로고침 시 전체 화면 스플래시 표시 후 자연스럽게 로그인 화면으로 전환.
+/* ===== WEXA v5.0.5 SPLASH CSS CLEAN FINAL =====
+   목적: 기존 누적 스플래시 CSS를 단일 최종 블록으로 정리.
+   적용: 사각 라인 제거, PC 전환 속도 단축, 모바일 자연 전환 유지.
    기능/로그인/푸시/Supabase 로직 영향 없음. */
 #wexaAppSplash{
   position:fixed;
@@ -779,15 +780,18 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   display:flex;
   align-items:stretch;
   justify-content:center;
-  padding:0;
-  background:#020617;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 10%,rgba(37,99,255,.22),transparent 36%),
+    radial-gradient(circle at 50% 88%,rgba(0,212,200,.12),transparent 42%),
+    linear-gradient(180deg,#020617 0%,#07111f 52%,#020617 100%);
   opacity:1;
   visibility:visible;
-  overflow:hidden;
+  filter:brightness(1);
   transition:
-    opacity .92s cubic-bezier(.22,.61,.36,1),
-    visibility .92s cubic-bezier(.22,.61,.36,1),
-    filter .92s cubic-bezier(.22,.61,.36,1);
+    opacity .32s cubic-bezier(.22,.61,.36,1),
+    visibility .32s cubic-bezier(.22,.61,.36,1),
+    filter .32s cubic-bezier(.22,.61,.36,1);
 }
 #wexaAppSplash::before{
   content:"";
@@ -795,36 +799,47 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   inset:0;
   pointer-events:none;
   background:
-    radial-gradient(circle at 50% 18%,rgba(37,99,255,.32),transparent 38%),
-    radial-gradient(circle at 50% 88%,rgba(0,212,200,.16),transparent 42%),
-    linear-gradient(180deg,rgba(2,6,23,.10),rgba(2,6,23,.22));
+    radial-gradient(circle at 50% 22%,rgba(37,99,255,.16),transparent 40%),
+    linear-gradient(180deg,rgba(2,6,23,.05),rgba(2,6,23,.18));
   z-index:2;
 }
 #wexaAppSplash.wexa-splash-hide{
   opacity:0;
   visibility:hidden;
-  filter:brightness(1.08) blur(2px);
+  filter:brightness(1.03) blur(.8px);
 }
 .wexa-splash-card{
   position:absolute;
   inset:0;
   width:100vw;
   height:100vh;
-  border-radius:0;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
   overflow:hidden;
-  border:0;
-  background:#020617;
-  box-shadow:none;
-  animation:wexaSplashFullIn 1.15s cubic-bezier(.22,.61,.36,1) both;
+  background:transparent!important;
+  box-shadow:none!important;
+  animation:wexaSplashFinalIn .62s cubic-bezier(.22,.61,.36,1) both;
+}
+.wexa-splash-card::before,
+.wexa-splash-card::after{
+  content:none!important;
+  display:none!important;
 }
 .wexa-splash-card img{
   display:block;
   width:100%;
   height:100%;
+  border:0!important;
+  outline:0!important;
   object-fit:cover;
   object-position:center center;
-  transform:scale(1.025);
-  filter:brightness(.98) contrast(1.04) saturate(1.05);
+  transform:scale(1.012);
+  filter:brightness(.99) contrast(1.035) saturate(1.05);
+  transition:
+    transform .30s cubic-bezier(.22,.61,.36,1),
+    opacity .30s cubic-bezier(.22,.61,.36,1),
+    filter .30s cubic-bezier(.22,.61,.36,1);
 }
 .wexa-splash-text{
   position:absolute;
@@ -838,252 +853,93 @@ button.blue.wexa-icon-btn.wexa-complete-soft{
   font-weight:850;
   letter-spacing:.08em;
   opacity:.82;
-  text-shadow:0 0 18px rgba(37,99,255,.52),0 0 10px rgba(0,212,200,.18);
-  animation:wexaSplashTextIn 1.2s ease-out both;
+  text-shadow:0 0 18px rgba(37,99,255,.52),0 0 10px rgba(0,212,200,.20);
+  animation:wexaSplashTextIn .56s cubic-bezier(.22,.61,.36,1) .10s both;
+}
+#wexaAppSplash.wexa-splash-hide .wexa-splash-card{
+  opacity:0;
+  transform:translateY(4px) scale(.996);
+  filter:brightness(1.03) blur(.8px);
+  transition:
+    transform .30s cubic-bezier(.22,.61,.36,1),
+    filter .30s cubic-bezier(.22,.61,.36,1),
+    opacity .30s cubic-bezier(.22,.61,.36,1);
+}
+#wexaAppSplash.wexa-splash-hide .wexa-splash-card img{
+  transform:scale(1.018);
+  filter:brightness(1.04) blur(.6px);
+}
+#wexaAppSplash.wexa-splash-hide .wexa-splash-text{
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .22s ease, transform .22s ease;
 }
 body.wexa-splash-active .app{
-  opacity:.01;
-  transform:scale(1.015);
-  filter:brightness(.84) blur(2px);
+  opacity:0;
+  transform:translateY(8px) scale(.992);
+  filter:blur(1.5px);
 }
 body.wexa-splash-ready .app{
-  animation:wexaAppRevealAfterSplash .86s cubic-bezier(.22,.61,.36,1) both;
+  opacity:1;
+  transform:translateY(0) scale(1);
+  filter:blur(0);
+  animation:wexaAppAfterSplashIn .36s cubic-bezier(.22,.61,.36,1) both;
 }
-@keyframes wexaSplashFullIn{
-  0%{opacity:0;transform:scale(1.035);filter:brightness(.55) blur(6px)}
-  45%{opacity:1;transform:scale(1.008);filter:brightness(1.10) blur(0)}
+@media (min-width:600px){
+  #wexaAppSplash{
+    align-items:center;
+    justify-content:center;
+    padding:0;
+  }
+  .wexa-splash-card{
+    position:relative!important;
+    inset:auto!important;
+    width:min(440px, calc(100vw - 48px))!important;
+    height:min(92vh, 660px)!important;
+    max-height:660px!important;
+    border:0!important;
+    outline:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:transparent!important;
+    -webkit-mask-image:radial-gradient(ellipse at center, #000 0%, #000 66%, rgba(0,0,0,.78) 78%, transparent 100%);
+    mask-image:radial-gradient(ellipse at center, #000 0%, #000 66%, rgba(0,0,0,.78) 78%, transparent 100%);
+  }
+  .wexa-splash-card img{
+    object-fit:cover!important;
+    transform:scale(1.018);
+  }
+  .wexa-splash-text{
+    bottom:calc(50% - 346px);
+  }
+}
+@media (max-width:599px){
+  .wexa-splash-card{
+    -webkit-mask-image:none;
+    mask-image:none;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .wexa-splash-card,
+  .wexa-splash-text,
+  body.wexa-splash-ready .app{
+    animation:none!important;
+  }
+  #wexaAppSplash{
+    transition:none!important;
+  }
+}
+@keyframes wexaSplashFinalIn{
+  0%{opacity:0;transform:scale(1.018);filter:brightness(.78) blur(2px)}
   100%{opacity:1;transform:scale(1);filter:brightness(1) blur(0)}
 }
 @keyframes wexaSplashTextIn{
   0%{opacity:0;transform:translateY(8px)}
   100%{opacity:.82;transform:translateY(0)}
 }
-@keyframes wexaAppRevealAfterSplash{
-  0%{opacity:0;transform:translateY(8px) scale(.992);filter:brightness(.82) blur(3px)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1) blur(0)}
-}
-@media (prefers-reduced-motion: reduce){
-  .wexa-splash-card,.wexa-splash-text,body.wexa-splash-ready .app{animation:none!important}
-  #wexaAppSplash{transition:none!important}
-}
-
-
-/* ===== WEXA v5.0.1 SPLASH DESKTOP SIZE FIX =====
-   모바일은 기존처럼 전체 화면 유지.
-   PC/태블릿 넓은 화면에서는 로그인 페이지 폭(최대 440px)에 맞춰 스플래시를 중앙 정렬.
-   기능/로그인/푸시/Supabase 로직 영향 없음. */
-@media (min-width: 600px){
-  #wexaAppSplash{
-    align-items:center !important;
-    justify-content:center !important;
-    background:
-      radial-gradient(circle at 50% 10%,rgba(37,99,255,.22),transparent 36%),
-      radial-gradient(circle at 50% 88%,rgba(0,212,200,.10),transparent 42%),
-      #020617 !important;
-  }
-
-  .wexa-splash-card{
-    position:relative !important;
-    inset:auto !important;
-    width:min(440px,100vw) !important;
-    max-width:440px !important;
-    height:100vh !important;
-    max-height:920px !important;
-    border-radius:0 !important;
-    overflow:hidden !important;
-    background:#020617 !important;
-    box-shadow:
-      0 0 0 1px rgba(37,99,255,.16) inset,
-      0 0 46px rgba(37,99,255,.22),
-      0 0 24px rgba(0,212,200,.10),
-      0 22px 70px rgba(0,0,0,.58) !important;
-  }
-
-  .wexa-splash-card img{
-    width:100% !important;
-    height:100% !important;
-    object-fit:cover !important;
-    object-position:center center !important;
-  }
-}
-
-
-
-/* ===== WEXA v5.0.2 DESKTOP SPLASH NO-FRAME + SMOOTH TRANSITION =====
-   PC 화면에서 스플래시 카드의 사각 라인/테두리 느낌 제거.
-   로그인 화면 전환을 모바일처럼 부드럽게 보이도록 페이드/블러/스케일 전환 보강.
-   기능/로그인/푸시/Supabase 로직 영향 없음. */
-@media (min-width: 600px){
-  #wexaAppSplash{
-    transition:
-      opacity 1.18s cubic-bezier(.22,.61,.36,1),
-      visibility 1.18s cubic-bezier(.22,.61,.36,1),
-      filter 1.18s cubic-bezier(.22,.61,.36,1) !important;
-  }
-
-  #wexaAppSplash::before{
-    background:
-      radial-gradient(circle at 50% 10%,rgba(37,99,255,.18),transparent 34%),
-      radial-gradient(circle at 50% 92%,rgba(0,212,200,.08),transparent 42%),
-      linear-gradient(180deg,rgba(2,6,23,.08),rgba(2,6,23,.18)) !important;
-  }
-
-  #wexaAppSplash.wexa-splash-hide{
-    opacity:0 !important;
-    visibility:hidden !important;
-    filter:brightness(1.04) blur(4px) !important;
-  }
-
-  .wexa-splash-card{
-    border:0 !important;
-    outline:0 !important;
-    box-shadow:none !important;
-    background:transparent !important;
-    overflow:hidden !important;
-    transition:
-      opacity 1.08s cubic-bezier(.22,.61,.36,1),
-      transform 1.08s cubic-bezier(.22,.61,.36,1),
-      filter 1.08s cubic-bezier(.22,.61,.36,1) !important;
-    will-change:opacity,transform,filter;
-  }
-
-  .wexa-splash-card::before,
-  .wexa-splash-card::after{
-    display:none !important;
-    content:none !important;
-  }
-
-  .wexa-splash-card img{
-    border:0 !important;
-    outline:0 !important;
-    box-shadow:none !important;
-    transition:
-      transform 1.08s cubic-bezier(.22,.61,.36,1),
-      filter 1.08s cubic-bezier(.22,.61,.36,1),
-      opacity 1.08s cubic-bezier(.22,.61,.36,1) !important;
-  }
-
-  #wexaAppSplash.wexa-splash-hide .wexa-splash-card{
-    opacity:0 !important;
-    transform:translateY(10px) scale(.986) !important;
-    filter:brightness(1.08) blur(3px) !important;
-  }
-
-  #wexaAppSplash.wexa-splash-hide .wexa-splash-card img{
-    transform:scale(1.018) !important;
-    filter:brightness(1.08) blur(2px) !important;
-  }
-
-  body.wexa-splash-active .app{
-    opacity:0 !important;
-    transform:translateY(10px) scale(.992) !important;
-    filter:brightness(.78) blur(4px) !important;
-  }
-
-  body.wexa-splash-ready .app{
-    animation:wexaDesktopAppSoftReveal 1.12s cubic-bezier(.22,.61,.36,1) both !important;
-  }
-}
-
-@keyframes wexaDesktopAppSoftReveal{
-  0%{opacity:0;transform:translateY(12px) scale(.992);filter:brightness(.78) blur(4px)}
-  55%{opacity:.92;filter:brightness(1.04) blur(.8px)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1) blur(0)}
-}
-
-
-/* ===== WEXA v5.0.3 SPLASH FAST + FEATHER NO FRAME =====
-   요청 반영: PC 스플래시 사각 라인 제거, 전환 속도 단축.
-   기능/로그인/푸시/Supabase 로직 영향 없음. */
-@media (min-width: 600px){
-  #wexaAppSplash{
-    background:
-      radial-gradient(circle at 50% 12%,rgba(37,99,255,.18),transparent 38%),
-      radial-gradient(circle at 50% 88%,rgba(0,212,200,.09),transparent 42%),
-      #020617 !important;
-    transition:
-      opacity .42s cubic-bezier(.22,.61,.36,1),
-      visibility .42s cubic-bezier(.22,.61,.36,1),
-      filter .42s cubic-bezier(.22,.61,.36,1) !important;
-  }
-
-  #wexaAppSplash::before{
-    background:
-      radial-gradient(circle at 50% 12%,rgba(37,99,255,.16),transparent 35%),
-      radial-gradient(circle at 50% 92%,rgba(0,212,200,.07),transparent 42%),
-      linear-gradient(180deg,rgba(2,6,23,.06),rgba(2,6,23,.16)) !important;
-  }
-
-  .wexa-splash-card{
-    border:0 !important;
-    outline:0 !important;
-    box-shadow:none !important;
-    background:transparent !important;
-    overflow:hidden !important;
-    isolation:isolate !important;
-    transition:
-      opacity .40s cubic-bezier(.22,.61,.36,1),
-      transform .40s cubic-bezier(.22,.61,.36,1),
-      filter .40s cubic-bezier(.22,.61,.36,1) !important;
-    -webkit-mask-image:
-      linear-gradient(to right, transparent 0, #000 4.5%, #000 95.5%, transparent 100%),
-      linear-gradient(to bottom, transparent 0, #000 2.5%, #000 97.5%, transparent 100%) !important;
-    -webkit-mask-composite: source-in !important;
-    mask-image:
-      linear-gradient(to right, transparent 0, #000 4.5%, #000 95.5%, transparent 100%),
-      linear-gradient(to bottom, transparent 0, #000 2.5%, #000 97.5%, transparent 100%) !important;
-    mask-composite: intersect !important;
-  }
-
-  .wexa-splash-card::before,
-  .wexa-splash-card::after{
-    display:none !important;
-    content:none !important;
-  }
-
-  .wexa-splash-card img{
-    border:0 !important;
-    outline:0 !important;
-    box-shadow:none !important;
-    background:transparent !important;
-    transform:scale(1.008) !important;
-    transition:
-      transform .40s cubic-bezier(.22,.61,.36,1),
-      filter .40s cubic-bezier(.22,.61,.36,1),
-      opacity .40s cubic-bezier(.22,.61,.36,1) !important;
-  }
-
-  #wexaAppSplash.wexa-splash-hide{
-    opacity:0 !important;
-    visibility:hidden !important;
-    filter:brightness(1.02) blur(1px) !important;
-  }
-
-  #wexaAppSplash.wexa-splash-hide .wexa-splash-card{
-    opacity:0 !important;
-    transform:translateY(4px) scale(.994) !important;
-    filter:brightness(1.04) blur(1.2px) !important;
-  }
-
-  #wexaAppSplash.wexa-splash-hide .wexa-splash-card img{
-    transform:scale(1.014) !important;
-    filter:brightness(1.04) blur(.8px) !important;
-  }
-
-  body.wexa-splash-active .app{
-    opacity:0 !important;
-    transform:translateY(4px) scale(.997) !important;
-    filter:brightness(.88) blur(1.4px) !important;
-  }
-
-  body.wexa-splash-ready .app{
-    animation:wexaDesktopAppQuickReveal .46s cubic-bezier(.22,.61,.36,1) both !important;
-  }
-}
-
-@keyframes wexaDesktopAppQuickReveal{
-  0%{opacity:0;transform:translateY(5px) scale(.997);filter:brightness(.88) blur(1.4px)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1) blur(0)}
+@keyframes wexaAppAfterSplashIn{
+  0%{opacity:0;transform:translateY(8px) scale(.992);filter:blur(1.5px)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
 }
 
 </style>
@@ -1091,7 +947,7 @@ body.wexa-splash-ready .app{
 <body class="wexa-splash-active">
 <div id="wexaAppSplash" aria-hidden="true">
   <div class="wexa-splash-card">
-    <img src="./wexa-splash.png?v=113" alt="WEXA" />
+    <img src="./wexa-splash.png?v=505" alt="WEXA" />
   </div>
   <div class="wexa-splash-text">POWERED BY FLOWIQ</div>
 </div>
@@ -1134,7 +990,7 @@ body.wexa-splash-ready .app{
 </main>
 
 <script>
-const APP_VERSION='v5.0.2 SPLASH_DESKTOP_SMOOTH_NO_FRAME';
+const APP_VERSION='v5.0.5 CLEANUP_STABLE_FIX';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -1433,7 +1289,7 @@ function findJobForApplication(a){return jobs.find(j=>Number(j.id)===Number(a?.j
 function pendingApplicationCard(a){
   const j=findJobForApplication(a);
   if(!j){
-    return `<div class="card"><div class="title">승인 대기중</div><div class="sub">공고 정보를 불러오는 중입니다. 데이터 갱신 후 다시 확인해주세요.</div></div>`;
+    return `<div class="card"><div class="title">승인 대기중</div><div class="sub">공고 정보를 불러오는 중입니다. 현황 갱신 후 다시 확인해주세요.</div></div>`;
   }
   const extra=`<div class="company-box"><div class="info">🏢 업체명: ${esc(companyName(j))}</div><div class="info">👤 담당자: 승인 후 표시</div><div class="info">📌 신청 상태: 승인 대기중</div></div>`;
   const action=`<div class="pay-note"><span class="mark">※</span><span>이미 신청한 공고입니다. 업체 확인 전까지 같은 공고에 중복 신청할 수 없습니다.</span></div><button class="full gray" onclick="cancelApplication(${Number(a.id)})">신청 취소</button>`;
@@ -1683,14 +1539,14 @@ function wexaActionKey_(eventType,id){return `${eventType}:${Number(id)||id}`;}
 function wexaLockAction_(eventType,id){const key=wexaActionKey_(eventType,id); if(wexaManagerActionLocks.has(key)){toast('이미 처리 중입니다. 잠시만 기다려주세요.'); return null;} wexaManagerActionLocks.add(key); return key;}
 function wexaUnlockAction_(key){if(key)wexaManagerActionLocks.delete(key);}
 
-async function approveApplication(id,jobId){const lockKey=wexaLockAction_('application_approved',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!target)return alert('지원자 정보를 찾을 수 없습니다. 데이터를 갱신해 주세요.'); if(normalizeStatus(target.status)!=='지원')return alert('이미 처리된 신청입니다. 데이터 갱신 후 확인해 주세요.'); if(job&&isJobFull(job))return alert('모집 인원이 이미 마감되었습니다.'); const {data,error}=await db.from('applications').update({status:'승인'}).eq('id',id).eq('status','지원').select('id'); if(error)return alert('승인 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 신청입니다. 중복 승인을 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id,job_id:jobId},job,'application_approved'); await loadData(); await autoReleaseIfFull(jobId); await loadData(); renderAll(); alert(pushResult.ok?'신청 승인 완료 · 푸시 발송 요청 완료':'신청 승인 완료 · 푸시 발송 확인 필요: '+(pushResult.message||'실패'));}finally{wexaUnlockAction_(lockKey)}}
-async function rejectApplication(id){const lockKey=wexaLockAction_('application_rejected',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=target?jobs.find(j=>Number(j.id)===Number(target.job_id)):null; if(!target)return alert('지원자 정보를 찾을 수 없습니다. 데이터를 갱신해 주세요.'); if(normalizeStatus(target.status)!=='지원')return alert('이미 처리된 신청입니다. 데이터 갱신 후 확인해 주세요.'); const workerPhoneValue=target?(target.phone||target.worker_phone):''; const beforeCount=workerStats(workerPhoneValue).reject; const {data,error}=await db.from('applications').update({status:'신청반려'}).eq('id',id).eq('status','지원').select('id'); if(error)return alert('반려 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 신청입니다. 중복 반려를 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id},job,'application_rejected'); await loadData(); renderAll(); const afterCount=workerStats(workerPhoneValue).reject; alert(`신청 반려 완료 · 거절 횟수 ${beforeCount}회 → ${afterCount}회${pushResult.ok?' · 푸시 발송 요청 완료':' · 푸시 확인 필요'}`);}finally{wexaUnlockAction_(lockKey)}}
-async function completeApplication(id,jobId){const lockKey=wexaLockAction_('work_completed',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!target)return alert('지원자 정보를 찾을 수 없습니다. 데이터를 갱신해 주세요.'); if(normalizeStatus(target.status)!=='승인')return alert('이미 처리된 근무입니다. 데이터 갱신 후 확인해 주세요.'); const {data,error}=await db.from('applications').update({status:'근무완료'}).eq('id',id).eq('status','승인').select('id'); if(error)return alert('완료 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 근무입니다. 중복 완료를 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id,job_id:jobId},job,'work_completed'); await loadData(); await autoReleaseIfFull(jobId); await loadData(); renderAll(); alert(pushResult.ok?'일 완료 확인 완료 · 푸시 발송 요청 완료':'일 완료 확인 완료 · 푸시 발송 확인 필요: '+(pushResult.message||'실패'));}finally{wexaUnlockAction_(lockKey)}}
+async function approveApplication(id,jobId){const lockKey=wexaLockAction_('application_approved',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!target)return alert('지원자 정보를 찾을 수 없습니다. 현황을 갱신해 주세요.'); if(normalizeStatus(target.status)!=='지원')return alert('이미 처리된 신청입니다. 현황 갱신 후 확인해 주세요.'); if(job&&isJobFull(job))return alert('모집 인원이 이미 마감되었습니다.'); const {data,error}=await db.from('applications').update({status:'승인'}).eq('id',id).eq('status','지원').select('id'); if(error)return alert('승인 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 신청입니다. 중복 승인을 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id,job_id:jobId},job,'application_approved'); await loadData(); await autoReleaseIfFull(jobId); await loadData(); renderAll(); alert(pushResult.ok?'신청 승인 완료 · 푸시 발송 요청 완료':'신청 승인 완료 · 푸시 발송 확인 필요: '+(pushResult.message||'실패'));}finally{wexaUnlockAction_(lockKey)}}
+async function rejectApplication(id){const lockKey=wexaLockAction_('application_rejected',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=target?jobs.find(j=>Number(j.id)===Number(target.job_id)):null; if(!target)return alert('지원자 정보를 찾을 수 없습니다. 현황을 갱신해 주세요.'); if(normalizeStatus(target.status)!=='지원')return alert('이미 처리된 신청입니다. 현황 갱신 후 확인해 주세요.'); const workerPhoneValue=target?(target.phone||target.worker_phone):''; const beforeCount=workerStats(workerPhoneValue).reject; const {data,error}=await db.from('applications').update({status:'신청반려'}).eq('id',id).eq('status','지원').select('id'); if(error)return alert('반려 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 신청입니다. 중복 반려를 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id},job,'application_rejected'); await loadData(); renderAll(); const afterCount=workerStats(workerPhoneValue).reject; alert(`신청 반려 완료 · 거절 횟수 ${beforeCount}회 → ${afterCount}회${pushResult.ok?' · 푸시 발송 요청 완료':' · 푸시 확인 필요'}`);}finally{wexaUnlockAction_(lockKey)}}
+async function completeApplication(id,jobId){const lockKey=wexaLockAction_('work_completed',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!target)return alert('지원자 정보를 찾을 수 없습니다. 현황을 갱신해 주세요.'); if(normalizeStatus(target.status)!=='승인')return alert('이미 처리된 근무입니다. 현황 갱신 후 확인해 주세요.'); const {data,error}=await db.from('applications').update({status:'근무완료'}).eq('id',id).eq('status','승인').select('id'); if(error)return alert('완료 저장 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 근무입니다. 중복 완료를 막았습니다.');} const pushResult=await sendWorkerStatusPush_(target||{id,job_id:jobId},job,'work_completed'); await loadData(); await autoReleaseIfFull(jobId); await loadData(); renderAll(); alert(pushResult.ok?'일 완료 확인 완료 · 푸시 발송 요청 완료':'일 완료 확인 완료 · 푸시 발송 확인 필요: '+(pushResult.message||'실패'));}finally{wexaUnlockAction_(lockKey)}}
 async function cancelMatched(id){const {error}=await db.from('applications').update({status:'매칭 취소'}).eq('id',id); if(error)return alert('취소 저장 오류: '+error.message); await loadData(); renderAll(); alert('매칭 취소 완료')}
 let applyLock=false;
 async function applyJob(jobId){if(applyLock)return; applyLock=true; try{if(!currentUser||role!=='worker')return alert('근로자 로그인이 필요합니다.'); await loadData(); const job=jobs.find(j=>Number(j.id)===Number(jobId)); if(!job)return alert('공고를 찾을 수 없습니다.'); if(isArchivedJob(job))return alert('보관 처리된 공고는 신청할 수 없습니다.'); if(!isPublished(job))return alert('아직 게시승인되지 않은 공고입니다.'); if(isClosedJob(job)||isArchivedJob(job))return alert('마감된 공고입니다.'); const p=currentWorkerKey(); if(!p)return alert('근로자 연락처 확인이 필요합니다. 내 정보에서 연락처를 확인해주세요.'); const my=applications.filter(isCurrentWorkerApp); if(my.some(a=>isMatched(a.status)))return alert('이미 매칭 완료된 공고가 있습니다.'); if(isHiddenByPastRejection(job))return alert('이전에 신청 반려된 업체/현장 공고는 다시 신청할 수 없습니다.'); if(my.find(a=>Number(a.job_id)===Number(jobId)&&isBlockedForReapply(a.status)))return alert('이 공고는 신청 반려 처리되어 다시 신청할 수 없습니다.'); if(my.find(a=>Number(a.job_id)===Number(jobId)&&!isReleased(a.status)))return alert('이미 이 공고에 신청한 이력이 있습니다.'); const {data:serverApps,error:serverError}=await db.from('applications').select('*').eq('job_id',Number(jobId)); if(serverError)return alert('신청 확인 오류: '+serverError.message); const serverMatched=(serverApps||[]).filter(a=>isMatched(a.status)||isDone(a.status)).length; const neededCount=num(job?.needed); if(neededCount>0&&serverMatched>=neededCount)return alert('모집 인원이 마감되었습니다.'); const sameWorkerApps=(serverApps||[]).filter(a=>{const ap=applicationPhoneKey(a); const samePhone=!!p&&!!ap&&ap===p; const sameName=clean(a.worker_name)&&clean(a.worker_name)===clean(workerName()); return samePhone||(!ap&&sameName);}); if(sameWorkerApps.some(a=>isBlockedForReapply(a.status))){await loadData(); renderAll(); return alert('이 공고는 신청 반려 처리되어 다시 신청할 수 없습니다.')} if(sameWorkerApps.some(a=>!isReleased(a.status))){await loadData(); renderAll(); return alert('이미 이 공고에 신청한 이력이 있습니다.')} const payload={job_id:Number(jobId),worker_name:workerName(),phone:currentUser.phone,company_id:job.company_id||'',status:'지원'}; const {data,error}=await db.from('applications').insert(payload).select('id,job_id,worker_name,phone,company_id,status').single(); if(error)return alert('신청 저장 오류: '+error.message); const createdApp=data||payload; await Promise.allSettled([sendManagerNewApplicationPush_(createdApp,job),sendMasterNewApplicationPush_(createdApp,job)]); await loadData(); renderAll(); alert('근무 신청 완료. 업체 확인을 기다려주세요.')}finally{applyLock=false}}
-async function cancelApplication(id){const lockKey=wexaLockAction_('application_cancelled',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=target?jobs.find(j=>Number(j.id)===Number(target.job_id)):null; if(!target)return alert('신청 정보를 찾을 수 없습니다. 데이터를 갱신해 주세요.'); if(normalizeStatus(target.status)!=='지원')return alert('이미 처리된 신청입니다. 데이터 갱신 후 확인해 주세요.'); const {data,error}=await db.from('applications').update({status:'신청취소'}).eq('id',id).eq('status','지원').select('id'); if(error)return alert('신청 취소 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 신청입니다. 중복 취소를 막았습니다.');} const pushResults=await Promise.allSettled([sendManagerApplicationCancelPush_(target,job),sendMasterApplicationCancelPush_(target,job)]); const managerPush=pushResults[0]; const managerOk=managerPush.status==='fulfilled'&&managerPush.value?.ok; await loadData(); renderAll(); alert(managerOk?'신청 취소 완료 · 업체/마스터에 알림 발송 요청 완료':'신청 취소 완료 · 알림 확인 필요');}finally{wexaUnlockAction_(lockKey)}}
-async function manualRefresh(){if(!currentUser||!role){toast('로그인 후 데이터 갱신을 사용할 수 있습니다.'); return;} try{await loadData(); renderAll(); if(role==='manager'){lastManagerPendingIds=managerPendingIdSet(); lastManagerState=stateKey()} if(role==='worker'){lastWorkerStatusMap=workerStatusMap(); lastWorkerPublicJobIds=workerPublicJobIdSet(); lastWorkerState=stateKey()} toast('데이터 갱신 완료')}catch(e){alert('데이터 갱신 오류: '+(e?.message||e))}}
+async function cancelApplication(id){const lockKey=wexaLockAction_('application_cancelled',id); if(!lockKey)return; try{const target=applications.find(a=>Number(a.id)===Number(id)); const job=target?jobs.find(j=>Number(j.id)===Number(target.job_id)):null; if(!target)return alert('신청 정보를 찾을 수 없습니다. 현황을 갱신해 주세요.'); if(normalizeStatus(target.status)!=='지원')return alert('이미 처리된 신청입니다. 현황 갱신 후 확인해 주세요.'); const {data,error}=await db.from('applications').update({status:'신청취소'}).eq('id',id).eq('status','지원').select('id'); if(error)return alert('신청 취소 오류: '+error.message); if(!data||!data.length){await loadData(); renderAll(); return alert('이미 처리된 신청입니다. 중복 취소를 막았습니다.');} const pushResults=await Promise.allSettled([sendManagerApplicationCancelPush_(target,job),sendMasterApplicationCancelPush_(target,job)]); const managerPush=pushResults[0]; const managerOk=managerPush.status==='fulfilled'&&managerPush.value?.ok; await loadData(); renderAll(); alert(managerOk?'신청 취소 완료 · 업체/마스터에 알림 발송 요청 완료':'신청 취소 완료 · 알림 확인 필요');}finally{wexaUnlockAction_(lockKey)}}
+async function manualRefresh(){if(!currentUser||!role){toast('로그인 후 현황 갱신을 사용할 수 있습니다.'); return;} try{await loadData(); renderAll(); if(role==='manager'){lastManagerPendingIds=managerPendingIdSet(); lastManagerState=stateKey()} if(role==='worker'){lastWorkerStatusMap=workerStatusMap(); lastWorkerPublicJobIds=workerPublicJobIdSet(); lastWorkerState=stateKey()} toast('현황 갱신 완료')}catch(e){alert('현황 갱신 오류: '+(e?.message||e))}}
 async function unlockAudio(){try{const ok=await ensureAudioReady_(); alertReady=!!ok; try{localStorage.setItem('wexa_alert_ready',ok?'1':'0')}catch(e){} return ok;}catch(e){alertReady=false; return false;}}
 function managerJobIds(){const cid=currentCompanyId(); return new Set(jobs.filter(j=>isCurrentCompanyJob(j)&&!isArchivedJob(j)).map(j=>Number(j.id)))}
 function managerPendingApps(){const ids=managerJobIds(); return applications.filter(a=>ids.has(Number(a.job_id))&&isPending(a.status)).sort((a,b)=>Number(b.id)-Number(a.id))}
@@ -1894,16 +1750,16 @@ window.wexaRegisterFcmForCurrentUser = async function(){
       if(splash && splash.parentNode){
         splash.parentNode.removeChild(splash);
       }
-    }, 520);
+    }, 340);
   }
 
   if(document.readyState === 'complete'){
-    setTimeout(hideWexaAppSplash, 950);
+    setTimeout(hideWexaAppSplash, 760);
   }else{
     window.addEventListener('load', function(){
-      setTimeout(hideWexaAppSplash, 950);
+      setTimeout(hideWexaAppSplash, 760);
     }, {once:true});
-    setTimeout(hideWexaAppSplash, 1650);
+    setTimeout(hideWexaAppSplash, 1180);
   }
 })();
 </script>
