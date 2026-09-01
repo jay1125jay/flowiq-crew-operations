@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta name="wexa-cache-policy" content="real-use-no-store" />
-<title>WEXA OPERATIONS v5.1.0 SECURITY_AUTH_RLS</title>
-<meta name="flowiq-version" content="v5.1.0 SECURITY_AUTH_RLS" />
+<title>WEXA OPERATIONS v5.1.1 AUTH_LOGIN_FIX</title>
+<meta name="flowiq-version" content="v5.1.1 AUTH_LOGIN_FIX" />
 <meta name="flowiq-build" content="v5-splash-css-clean-stable" />
 <meta name="theme-color" content="#020617" />
 
@@ -1015,7 +1015,7 @@ body.wexa-splash-ready .app{
 </main>
 
 <script>
-const APP_VERSION='v5.1.0 SECURITY_AUTH_RLS';
+const APP_VERSION='v5.1.1 AUTH_LOGIN_FIX';
 function wexaIcon(name){
   const icons={
     addDoc:'<svg class="wexa-svg" viewBox="0 0 48 48" aria-hidden="true"><path d="M15 7h14l8 8v26H15z"/><path d="M29 7v10h10"/><path d="M18 41h22"/><path d="M24 25h10"/><path d="M29 20v10"/></svg>',
@@ -1291,6 +1291,7 @@ async function saveMyInfo(){
 }
 
 async function authFunction(body){const res=await fetch(WEXA_AUTH_FUNCTION_URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify(body)}); const json=await res.json().catch(()=>({})); if(!res.ok||!json.ok)throw new Error(json.code||`HTTP_${res.status}`); return json}
+async function secureSignIn(phone,password){const result=await authFunction({action:'login',phone:phoneKey(phone),password});const session=result?.session;if(!session?.access_token||!session?.refresh_token)throw new Error('LOGIN_DENIED');const saved=await db.auth.setSession({access_token:session.access_token,refresh_token:session.refresh_token});if(saved.error)throw new Error('LOGIN_DENIED');return saved}
 function authErrorMessage(code){if(code==='ACCOUNT_EXISTS')return '이미 가입된 연락처입니다.'; if(code==='INVALID_PHONE')return '연락처를 정확히 입력하세요.'; if(code==='INVALID_PASSWORD')return '비밀번호는 8자리 이상으로 입력하세요.'; if(code==='RATE_LIMITED')return '시도가 너무 많습니다. 15분 후 다시 시도하세요.'; if(code==='MIGRATION_DENIED')return '기존 계정 확인에 실패했습니다.'; return '보안 인증 처리에 실패했습니다. 잠시 후 다시 시도하세요.'}
 async function finishSecureLogin(loginRole){const userResult=await db.auth.getUser(); const authUser=userResult.data?.user; if(userResult.error||!authUser)throw new Error('AUTH_REQUIRED'); const profileResult=await db.from('accounts').select('id,type,name,phone,business_no,resident,bank,account,holder,auth_user_id').eq('auth_user_id',authUser.id).single(); if(profileResult.error||!profileResult.data)throw new Error('PROFILE_NOT_FOUND'); const user=profileResult.data; if(loginRole==='worker'&&user.type!=='worker')throw new Error('근로자 계정이 아닙니다.'); if(loginRole==='manager'&&user.type==='worker')throw new Error('관리자 계정이 아닙니다.'); clearCrewSession(); currentUser=user; role=loginRole; localStorage.setItem('current_user',JSON.stringify({id:user.id,type:user.type,name:user.name,phone:user.phone,business_no:user.business_no,holder:user.holder})); localStorage.setItem(role==='worker'?'worker_phone':'company_id',phoneKey(user.phone)||user.phone); localStorage.setItem(role==='worker'?'worker_name':'company_name',user.name||''); await unlockAudio(); await loadData(); goScreen(loginRole==='worker'?'workerScreen':'managerScreen'); renderAll(); startLive(); setTimeout(()=>manualRefresh(),250)}
 async function init(){updateSignupFields(); currentUser=null; role=''; const sessionResult=await db.auth.getSession(); const session=sessionResult.data?.session; if(!session){clearCrewSession();goScreen('roleScreen');return} try{const metaRole=String(session.user?.app_metadata?.role||''); await finishSecureLogin(metaRole==='worker'?'worker':'manager')}catch(e){await db.auth.signOut().catch(()=>{});clearCrewSession();goScreen('roleScreen')}}
@@ -1331,15 +1332,14 @@ async function signup(){
   try{
     await authFunction({action:'signup',type,name,phone:normalizedPhone,password,business_no:businessNo,holder});
     fetch(GOOGLE_SHEET_WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({typeKey:type,type,name,manager,phone:normalizedPhone,businessNo,holder})}).catch(()=>{});
-    const signed=await db.auth.signInWithPassword({phone:authPhone(normalizedPhone),password});
-    if(signed.error)throw signed.error;
+    await secureSignIn(normalizedPhone,password);
     await finishSecureLogin(type==='worker'?'worker':'manager');
     alert('회원가입과 보안 로그인이 완료되었습니다.');
   }catch(e){alert(authErrorMessage(e?.message||String(e)))}
 }
 
-async function login(loginRole){const phone=clean($(loginRole==='worker'?'workerLoginPhone':'managerLoginPhone').value); const password=clean($(loginRole==='worker'?'workerLoginPassword':'managerLoginPassword').value); if(!phone||!password)return alert('연락처와 비밀번호를 입력하세요.'); const normalized=authPhone(phone); if(!normalized)return alert('연락처를 정확히 입력하세요.'); const result=await db.auth.signInWithPassword({phone:normalized,password}); if(result.error){legacyUpgradeContext={loginRole,phone:phoneKey(phone),oldPassword:password}; $(`${loginRole}SecurityUpgrade`)?.classList.remove('hidden'); return alert('로그인에 실패했습니다. 기존 WEXA 계정이면 아래 보안 전환에서 새 비밀번호를 설정하세요.');} try{await finishSecureLogin(loginRole)}catch(e){await db.auth.signOut().catch(()=>{});alert(e?.message||'로그인 처리에 실패했습니다.')}}
-async function upgradeLegacy(loginRole){if(!legacyUpgradeContext||legacyUpgradeContext.loginRole!==loginRole)return alert('먼저 기존 연락처와 비밀번호로 로그인을 시도하세요.'); const newPassword=clean($(`${loginRole}NewPassword`)?.value); if(newPassword.length<8)return alert('새 비밀번호는 8자리 이상으로 입력하세요.'); try{await authFunction({action:'migrate',phone:legacyUpgradeContext.phone,old_password:legacyUpgradeContext.oldPassword,new_password:newPassword}); const signed=await db.auth.signInWithPassword({phone:authPhone(legacyUpgradeContext.phone),password:newPassword}); if(signed.error)throw signed.error; legacyUpgradeContext=null; $(`${loginRole}SecurityUpgrade`)?.classList.add('hidden'); await finishSecureLogin(loginRole); alert('보안 전환과 로그인이 완료되었습니다.')}catch(e){alert(authErrorMessage(e?.message||String(e)))}}
+async function login(loginRole){const phone=clean($(loginRole==='worker'?'workerLoginPhone':'managerLoginPhone').value); const password=clean($(loginRole==='worker'?'workerLoginPassword':'managerLoginPassword').value); if(!phone||!password)return alert('연락처와 비밀번호를 입력하세요.'); const normalized=authPhone(phone); if(!normalized)return alert('연락처를 정확히 입력하세요.'); try{await secureSignIn(phone,password)}catch(e){legacyUpgradeContext={loginRole,phone:phoneKey(phone),oldPassword:password}; $(`${loginRole}SecurityUpgrade`)?.classList.remove('hidden'); return alert('로그인에 실패했습니다. 기존 WEXA 계정이면 아래 보안 전환에서 새 비밀번호를 설정하세요.');} try{await finishSecureLogin(loginRole)}catch(e){await db.auth.signOut().catch(()=>{});alert(e?.message||'로그인 처리에 실패했습니다.')}}
+async function upgradeLegacy(loginRole){if(!legacyUpgradeContext||legacyUpgradeContext.loginRole!==loginRole)return alert('먼저 기존 연락처와 비밀번호로 로그인을 시도하세요.'); const newPassword=clean($(`${loginRole}NewPassword`)?.value); if(newPassword.length<8)return alert('새 비밀번호는 8자리 이상으로 입력하세요.'); try{await authFunction({action:'migrate',phone:legacyUpgradeContext.phone,old_password:legacyUpgradeContext.oldPassword,new_password:newPassword}); await secureSignIn(legacyUpgradeContext.phone,newPassword); legacyUpgradeContext=null; $(`${loginRole}SecurityUpgrade`)?.classList.add('hidden'); await finishSecureLogin(loginRole); alert('보안 전환과 로그인이 완료되었습니다.')}catch(e){alert(authErrorMessage(e?.message||String(e)))}}
 function updateFeePreview(){const el=$('feePreviewText'); if(el)el.innerText='예상 수수료 '+money(feeAmount($('fSalary')?.value,$('fNeeded')?.value,$('fStartDate')?.value,$('fEndDate')?.value))}
 function updateJobTypeOther(){const isOther=$('fType')?.value==='기타'; $('fOtherTypeWrap')?.classList.toggle('hidden',!isOther)}
 function deadlineSuffix_(deadline){return clean(deadline)?` / 신청마감 ${clean(deadline)}`:''}
