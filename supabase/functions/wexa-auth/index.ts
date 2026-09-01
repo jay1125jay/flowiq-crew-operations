@@ -7,7 +7,11 @@ const ALLOWED_ORIGINS = new Set([
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const admin = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+const publicAuth = createClient(supabaseUrl, anonKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
@@ -47,6 +51,11 @@ function validatePassword(value: unknown) {
 async function sha256(value: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function internalAuthEmail(phoneDigits: string) {
+  const key = (await sha256(`wexa-login|${phoneDigits}`)).slice(0, 40);
+  return `wexa.${key}@auth.wexa.invalid`;
 }
 
 function timingSafeEqual(left: string, right: string) {
@@ -143,8 +152,11 @@ async function createSecureUser(args: {
   type: AccountType;
   name: string;
 }) {
+  const email = await internalAuthEmail(args.phone.replace(/\D/g, ""));
   const { data, error } = await admin.auth.admin.createUser({
     ...(args.id ? { id: args.id } : {}),
+    email,
+    email_confirm: true,
     phone: args.phone,
     password: args.password,
     phone_confirm: true,
@@ -153,6 +165,36 @@ async function createSecureUser(args: {
   });
   if (error || !data.user) throw new Error("AUTH_CREATE_FAILED");
   return data.user;
+}
+
+async function login(req: Request, input: Record<string, unknown>) {
+  const phone = normalizePhone(input.phone);
+  const password = validatePassword(input.password);
+  await rateLimit(req, "login", phone.digits, 8);
+
+  const account = await findAccount(phone);
+  if (!account?.auth_user_id) throw new Error("LOGIN_DENIED");
+
+  const email = await internalAuthEmail(phone.digits);
+  const { error: aliasError } = await admin.auth.admin.updateUserById(account.auth_user_id, {
+    email,
+    email_confirm: true,
+  });
+  if (aliasError) throw new Error("LOGIN_PREPARE_FAILED");
+
+  const { data, error } = await publicAuth.auth.signInWithPassword({ email, password });
+  if (error || !data.session || !data.user) throw new Error("LOGIN_DENIED");
+  if (data.user.id !== account.auth_user_id) throw new Error("LOGIN_DENIED");
+
+  return json(req, {
+    ok: true,
+    code: "LOGIN_COMPLETE",
+    session: {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      expires_at: data.session.expires_at,
+    },
+  });
 }
 
 async function signup(req: Request, input: Record<string, unknown>) {
@@ -303,11 +345,13 @@ Deno.serve(async (req) => {
     if (action === "signup") return await signup(req, input);
     if (action === "migrate") return await migrate(req, input);
     if (action === "bootstrap_admin") return await bootstrapAdmin(req, input);
+    if (action === "login") return await login(req, input);
     return json(req, { ok: false, code: "INVALID_ACTION" }, 400);
   } catch (error) {
     const code = error instanceof Error ? error.message : "REQUEST_FAILED";
     const status = code === "RATE_LIMITED" ? 429
       : ["ACCOUNT_EXISTS", "INVALID_PHONE", "INVALID_PASSWORD", "INVALID_SIGNUP", "BUSINESS_NO_REQUIRED"].includes(code) ? 400
+      : code === "LOGIN_DENIED" ? 401
       : ["MIGRATION_DENIED", "BOOTSTRAP_DENIED", "BOOTSTRAP_CLOSED"].includes(code) ? 403
       : 500;
     const safeCode = status >= 500 ? "SERVER_ERROR" : code;
