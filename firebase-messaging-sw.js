@@ -16,15 +16,15 @@ firebase.messaging();
 self.addEventListener("notificationclick", function(event) {
   event.notification.close();
 
+  const fallbackUrl = "/flowiq-crew-operations/operations.html";
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(clientList) {
       for (const client of clientList) {
-        if ("focus" in client) return client.focus();
+        if (client.url.includes("/flowiq-crew-operations/") && "focus" in client) {
+          return client.focus();
+        }
       }
-
-      if (clients.openWindow) {
-        return clients.openWindow("/");
-      }
+      if (clients.openWindow) return clients.openWindow(fallbackUrl);
     })
   );
 });
