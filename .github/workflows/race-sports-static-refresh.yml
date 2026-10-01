@@ -21,6 +21,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,16 +32,37 @@ jobs:
       - name: Collect official 4-sport racing data
         run: python race-sports/tools/racing_static_collector.py
       - name: Inject official KBOAT AI probabilities
-        run: python race-sports/tools/inject_kboat_ai.py
-      - name: Commit static snapshot
+        shell: bash
         run: |
+          ok=0
+          for n in 1 2 3; do
+            if python race-sports/tools/inject_kboat_ai.py; then
+              ok=1
+              break
+            fi
+            echo "KBOAT AI attempt $n failed; retrying"
+            sleep 3
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "KBOAT AI unavailable this cycle; publishing official schedule/results without fabricated probabilities"
+          fi
+      - name: Publish static snapshot without rebase conflicts
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name "race-sports-bot"
           git config user.email "actions@users.noreply.github.com"
+
+          cp race-sports/data/today.json /tmp/race-sports-today.json
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/race-sports-today.json race-sports/data/today.json
           git add race-sports/data/today.json
+
           if git diff --cached --quiet; then
             echo "No data change"
-          else
-            git commit -m "chore: refresh race sports static snapshot"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            exit 0
           fi
+
+          git commit -m "chore: refresh race sports static snapshot"
+          git push origin HEAD:main
