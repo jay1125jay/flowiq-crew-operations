@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/race-sports-static-refresh.yml'
+      - 'race-sports/live.html'
       - 'race-sports/tools/racing_static_collector.py'
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
@@ -32,6 +33,46 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Validate UI JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('race-sports/live.html').read_text(encoding='utf-8')
+          m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
+          if not m: raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
+          Path('/tmp/race-sports-live.js').write_text(m.group(1),encoding='utf-8')
+          for token in ['data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"','STALE_LAST_KNOWN_GOOD','setInterval(load,10000)']:
+              if token not in s: raise SystemExit('UI_TOKEN_MISSING:'+token)
+          PY
+          node --check /tmp/race-sports-live.js
+
+      - name: Exercise last-known-good recovery
+        shell: bash
+        run: |
+          cp race-sports/data/today.json /tmp/guard-prev.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/guard-prev.json').read_text(encoding='utf-8'))
+          if p.get('events'):
+              p['events']=[]
+              p['providers']=[]
+          Path('/tmp/guard-current.json').write_text(json.dumps(p,ensure_ascii=False),encoding='utf-8')
+          PY
+          python race-sports/tools/snapshot_guard.py /tmp/guard-current.json /tmp/guard-prev.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          prev=json.loads(Path('/tmp/guard-prev.json').read_text(encoding='utf-8'))
+          cur=json.loads(Path('/tmp/guard-current.json').read_text(encoding='utf-8'))
+          if prev.get('events'):
+              assert len(cur.get('events',[]))==len(prev.get('events',[])), (len(cur.get('events',[])),len(prev.get('events',[])))
+              assert all(e.get('stale') for e in cur.get('events',[]))
+          print('SNAPSHOT_GUARD_TEST=PASS')
+          PY
 
       - name: Preserve previous same-day snapshot
         shell: bash
