@@ -25,18 +25,20 @@ def textify(s):
 def parse(raw):
     t=textify(raw)
     stamp=None
-    m=re.search(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s*기준',t)
-    if m: stamp=m.group(1)
-    markers=list(re.finditer(r'(?:^|\n)(\d{2})R\s*(?=\n)',t))
+    sm=re.search(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s*기준',t)
+    if sm: stamp=sm.group(1)
+    markers=list(re.finditer(r'(?<!\d)(\d{2})R(?!\d)',t))
     out={}
     for i,m in enumerate(markers):
         rn=int(m.group(1))
         seg=t[m.end():(markers[i+1].start() if i+1<len(markers) else len(t))]
-        pairs=[]
-        for p in re.finditer(r'(?:^|\n)\s*([1-6])\s*\n\s*(\d+(?:\.\d+)?)%\s*(?=\n)',seg):
-            n=int(p.group(1)); v=float(p.group(2))/100.0
-            if n not in [x[0] for x in pairs]: pairs.append((n,v))
-            if len(pairs)>=6: break
+        pairs=[]; seen=set()
+        # AI column is the first six player-number + percentage pairs in each race block.
+        for n,pct in re.findall(r'(?<!\d)([1-6])\s+(\d{1,2}(?:\.\d+)?)%',seg):
+            n=int(n); v=float(pct)/100.0
+            if n in seen: continue
+            seen.add(n); pairs.append((n,v))
+            if len(pairs)==6: break
         if len(pairs)==6:
             total=sum(v for _,v in pairs)
             if 0.98<=total<=1.02:
@@ -62,7 +64,7 @@ def main():
     payload['providers']=providers
     DATA.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     print(json.dumps({'ai_races':len(preds),'linked_outcomes':linked,'updated_at':stamp},ensure_ascii=False))
-    if len(preds)<10 or linked<50:
+    if len(preds)<15 or linked<80:
         raise SystemExit('KBOAT_AI_PARSE_INCOMPLETE')
 
 if __name__=='__main__': main()
