@@ -35,7 +35,12 @@ jobs:
       - name: Self-test backfill parser
         run: python race-sports/tools/historical_backfill.py --self-test
 
-      - name: Collect official historical data within daily quotas
+      - name: Smoke backfill on code changes
+        if: github.event_name == 'push'
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 40 --ksports-slice 40 --bull-slice 60 --max-seconds 180
+
+      - name: Full quota backfill on schedule or manual run
+        if: github.event_name != 'push'
         run: python race-sports/tools/historical_backfill_runner.py --horse-slice 625 --ksports-slice 625 --bull-slice 1125 --max-seconds 1500
 
       - name: Walk-forward validate Horse model
