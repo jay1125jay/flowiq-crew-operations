@@ -31,7 +31,6 @@ def fetch_current():
         except Exception as e:
             errors.append(f'{url}:{type(e).__name__}')
             time.sleep(.5)
-    # One last short retry on the canonical host.
     try:
         return fetch_one(BASES[0]), BASES[0]
     except Exception as e:
@@ -124,7 +123,6 @@ def main():
     for event in events:
         restore_capture_provenance(event)
 
-    # Legacy per-race probes may report a normal "not published yet" response as an error.
     payload['errors'] = [x for x in payload.get('errors', []) if not str(x).startswith('BOAT odds ')]
 
     status = 'WAITING'
@@ -137,17 +135,29 @@ def main():
         detail['context'] = ctx
         if ctx and vals:
             y, tms, day, race = ctx
-            target = next((e for e in events if int(e.get('race_no') or 0) == race and f'-{tms}-{day}-' in str(e.get('id', ''))), None)
+            # The daily feed contains only one KBOAT venue/day, so race_no is the
+            # most robust join key. Meeting/day are retained below for audit only.
+            target = next((e for e in events if int(e.get('race_no') or 0) == race), None)
             detail['published_race'] = race
             detail['single_odds'] = vals
-            if target and target.get('status') != 'FINAL' and not target.get('result'):
+            detail['meeting'] = tms
+            detail['day'] = day
+            if target:
+                detail['target_id'] = target.get('id')
+                detail['target_status'] = target.get('status')
+                detail['target_has_result'] = bool(target.get('result'))
+
+            if target and target.get('status') == 'SCHEDULED' and not target.get('result'):
                 apply(target, vals, observed_at, 'PRE_RACE_OFFICIAL')
                 status = 'PASS'
                 detail['captured_race'] = race
                 detail['capture_mode'] = 'PRE_RACE_OFFICIAL'
-            elif target and target.get('status') == 'FINAL':
-                # Keep a truthful historical copy if we missed the live window, but never
-                # allow this late recovery to become an actionable VALUE signal.
+            elif target and target.get('status') in ('LIVE', 'RESULT_PENDING') and not target.get('result'):
+                apply(target, vals, observed_at, 'POST_START_OFFICIAL_CAPTURE')
+                status = 'POST_START_CAPTURE'
+                detail['captured_race'] = race
+                detail['capture_mode'] = 'POST_START_OFFICIAL_CAPTURE'
+            elif target and (target.get('status') == 'FINAL' or target.get('result')):
                 has_history = bool(target.get('odds_history'))
                 if not has_history:
                     apply(target, vals, observed_at, 'LATE_OFFICIAL_RECOVERY')
@@ -156,7 +166,7 @@ def main():
                 detail['reason'] = 'LATEST_PUBLISHED_RACE_ALREADY_FINAL'
             else:
                 status = 'WAITING'
-                detail['reason'] = 'PUBLISHED_RACE_NOT_CURRENT_EVENT'
+                detail['reason'] = 'PUBLISHED_RACE_NOT_FOUND_IN_TODAY_FEED'
         else:
             detail['reason'] = 'NO_CURRENT_OFFICIAL_SINGLE_ODDS'
     except Exception as e:
