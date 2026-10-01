@@ -16,19 +16,19 @@ def main():
     changed = False
     patches = [
         (
-            "function preOdds(o){return Number(o.odds)>0&&o.odds_source==='KBOAT_FINAL_SINGLE_AUTO'&&o.odds_capture_mode==='PRE_RACE_OFFICIAL'}",
             "function preOdds(o){return Number(o.odds)>0&&['KBOAT_FINAL_SINGLE_AUTO','KCYCLE_FINAL_SINGLE_AUTO','KRA_FINAL_SINGLE_AUTO'].includes(o.odds_source)&&o.odds_capture_mode==='PRE_RACE_OFFICIAL'}",
-            'preOdds multisport',
+            "function preOdds(o){return Number(o.odds)>0&&['KBOAT_FINAL_SINGLE_AUTO','KCYCLE_FINAL_SINGLE_AUTO','KRA_FINAL_SINGLE_AUTO','CPC_FINAL_SINGLE_AUTO'].includes(o.odds_source)&&o.odds_capture_mode==='PRE_RACE_OFFICIAL'}",
+            'preOdds bull source',
         ),
         (
-            "const src=t.model_source==='KBOAT_AI_OFFICIAL'?'KBOAT 공식 AI':'검증 모델';",
-            "const src=t.model_source==='KBOAT_AI_OFFICIAL'?'KBOAT 공식 AI':t.model_source==='KCYCLE_AI_OFFICIAL'?'KCYCLE 공식 AI':t.model_source?.startsWith('bull_threeclass')?'소싸움 3분류 모델':'검증 모델';",
-            'AI source label',
+            "function resultBox(e){if(!e.result?.top3)return'';const pods=e.result.top3.map(x=>`<div class=\"pod\"><small>${x.rank}위</small><b>${esc(x.number)}</b><div>${esc(x.name)}</div></div>`).join('');const pays=(e.result.markets||[]).map(x=>`<div class=\"pay\"><small>${esc(x.market)} ${esc(x.winner||'')}</small><b>${esc(x.odds||'-')}배</b></div>`).join('');return `<div class=\"result\"><div class=\"podium\">${pods}</div>${pays?`<div class=\"payouts\">${pays}</div>`:''}</div>`}",
+            "function resultBox(e){if(!e.result)return'';const pays=(e.result.markets||[]).map(x=>`<div class=\"pay\"><small>${esc(x.market)} ${esc(x.winner||'')}</small><b>${esc(x.odds||'-')}배</b></div>`).join('');if(e.sport==='BULL'&&e.result.winner){const w=e.result.winner;const sides=e.result.sides||{};return `<div class=\"result\"><div class=\"podium\"><div class=\"pod\"><small>홍</small><b>${esc(sides.RED?.decision||'-')}</b><div>${esc(sides.RED?.name||e.left||'-')}</div></div><div class=\"pod\"><small>공식 결과</small><b>${esc(w.label||w.key)}</b><div>${esc(w.name||'-')}</div></div><div class=\"pod\"><small>청</small><b>${esc(sides.BLUE?.decision||'-')}</b><div>${esc(sides.BLUE?.name||e.right||'-')}</div></div></div>${pays?`<div class=\"payouts\">${pays}</div>`:''}</div>`}if(!e.result.top3)return pays?`<div class=\"result\"><div class=\"payouts\">${pays}</div></div>`:'';const pods=e.result.top3.map(x=>`<div class=\"pod\"><small>${x.rank}위</small><b>${esc(x.number)}</b><div>${esc(x.name)}</div></div>`).join('');return `<div class=\"result\"><div class=\"podium\">${pods}</div>${pays?`<div class=\"payouts\">${pays}</div>`:''}</div>`}",
+            'bull result rendering',
         ),
         (
-            '<div class="kv"><span>경정 AI</span><span>KBOAT 공식 우승확률</span></div>',
             '<div class="kv"><span>공식 AI</span><span>경정 KBOAT · 경륜 KCYCLE</span></div>',
-            'settings AI label',
+            '<div class="kv"><span>확률 엔진</span><span>경정 KBOAT 공식 · 경륜 KCYCLE 공식 · 소싸움 검증 3분류</span></div><div class="kv"><span>경마</span><span>KRA 출전표·결과 연결 · 자체 확률모델 검증 대기</span></div>',
+            'settings probability sources',
         ),
     ]
     for old, new, label in patches:
