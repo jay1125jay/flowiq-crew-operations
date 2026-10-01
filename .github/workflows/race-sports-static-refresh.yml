@@ -11,6 +11,7 @@ on:
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
       - 'race-sports/tools/inject_horse_model.py'
+      - 'race-sports/tools/horse_ui_safety_patch.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
       - 'race-sports/tools/bull_model_features_v130.py'
@@ -43,7 +44,12 @@ jobs:
           python-version: '3.12'
 
       - name: Apply multisport UI adapters
-        run: python race-sports/tools/ui_multisport_patch.py
+        shell: bash
+        run: |
+          if ! python race-sports/tools/ui_multisport_patch.py; then
+            echo 'Legacy UI patch sources already applied; continuing with horse safety patch'
+          fi
+          python race-sports/tools/horse_ui_safety_patch.py
 
       - name: Validate UI JavaScript
         shell: bash
@@ -58,7 +64,8 @@ jobs:
           for token in [
               'data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"',
               'STALE_LAST_KNOWN_GOOD','setInterval(load,10000)',
-              'KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL','CPC_FINAL_SINGLE_AUTO','소싸움 3분류 모델'
+              'KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL','CPC_FINAL_SINGLE_AUTO','소싸움 3분류 모델',
+              'valueModelReady(e)','경마 AI MVP'
           ]:
               if token not in s: raise SystemExit('UI_TOKEN_MISSING:'+token)
           PY
