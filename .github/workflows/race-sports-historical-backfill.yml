@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/race-sports-historical-backfill.yml'
       - 'race-sports/tools/historical_backfill.py'
+      - 'race-sports/tools/historical_backfill_runner.py'
       - 'race-sports/tools/validate_horse_model.py'
   workflow_dispatch:
   schedule:
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,7 +36,7 @@ jobs:
         run: python race-sports/tools/historical_backfill.py --self-test
 
       - name: Collect official historical data within daily quotas
-        run: python race-sports/tools/historical_backfill.py --horse-slice 625 --ksports-slice 625 --bull-slice 1125 --max-seconds 780
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 625 --ksports-slice 625 --bull-slice 1125 --max-seconds 1500
 
       - name: Walk-forward validate Horse model
         run: python race-sports/tools/validate_horse_model.py
