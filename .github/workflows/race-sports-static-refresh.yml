@@ -12,6 +12,7 @@ on:
       - 'race-sports/tools/inject_kboat_ai.py'
       - 'race-sports/tools/inject_horse_model.py'
       - 'race-sports/tools/horse_ui_safety_patch.py'
+      - 'race-sports/tools/cycle_model_distribution_guard.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
       - 'race-sports/tools/bull_model_features_v130.py'
@@ -198,6 +199,9 @@ jobs:
 
       - name: Inject validated Bull RED DRAW BLUE model
         run: python race-sports/tools/inject_bull_model.py
+
+      - name: Guard incomplete KCYCLE distributions
+        run: python race-sports/tools/cycle_model_distribution_guard.py
 
       - name: Validate publish snapshot
         run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
