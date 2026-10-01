@@ -1,0 +1,86 @@
+name: race-sports-own-ai
+
+on:
+  workflow_run:
+    workflows: ["race-sports-static-refresh"]
+    types: [completed]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/race-sports-own-ai.yml'
+      - 'race-sports/tools/inject_cycle_boat_own_models.py'
+      - 'race-sports/tools/cycle_boat_own_ai_ui_patch.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: race-sports-own-ai
+  cancel-in-progress: false
+
+jobs:
+  own-ai:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Self-test Cycle and Boat own AI
+        run: python race-sports/tools/inject_cycle_boat_own_models.py --self-test
+
+      - name: Inject Cycle and Boat own AI probabilities
+        run: python race-sports/tools/inject_cycle_boat_own_models.py
+
+      - name: Patch UI for own AI labels and VALUE safety
+        run: python race-sports/tools/cycle_boat_own_ai_ui_patch.py
+
+      - name: Validate snapshot
+        run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
+
+      - name: Validate UI JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('race-sports/live.html').read_text(encoding='utf-8')
+          for token in ['CYCLE_OWN_MODEL','BOAT_OWN_MODEL','경륜 자체 AI MVP','경정 자체 AI MVP']:
+              if token not in s:
+                  raise SystemExit('OWN_AI_UI_TOKEN_MISSING:'+token)
+          m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
+          if not m:
+              raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
+          Path('/tmp/race-sports-own-ai-live.js').write_text(m.group(1),encoding='utf-8')
+          PY
+          node --check /tmp/race-sports-own-ai-live.js
+
+      - name: Persist own AI state and snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('race-sports/data/today.json',encoding='utf-8'))['date'])
+          PY
+          )
+          mkdir -p race-sports/data/history race-sports/data/model_state
+          cp race-sports/data/today.json "race-sports/data/history/${DATE}.json"
+          git config user.name "race-sports-own-ai-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add race-sports/data/today.json race-sports/live.html "race-sports/data/history/${DATE}.json" race-sports/data/model_state/cycle_boat_own_predictions.json
+          if git diff --cached --quiet; then
+            echo "No own-AI change"
+            exit 0
+          fi
+          git commit -m "chore: refresh cycle and boat own AI"
+          git pull --rebase origin main
+          git push origin HEAD:main
