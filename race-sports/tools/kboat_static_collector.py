@@ -1,0 +1,134 @@
+import json,re,html,urllib.request
+from datetime import datetime,timezone,timedelta
+from pathlib import Path
+
+KST=timezone(timedelta(hours=9))
+UA='Mozilla/5.0 (RACE SPORTS ANALYTICS GitHub official-readonly)'
+OUT=Path('race-sports/data/today.json')
+
+def now(): return datetime.now(KST)
+def kdate(): return now().strftime('%Y-%m-%d')
+def fetch(url):
+    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept-Language':'ko-KR,ko;q=.9'})
+    with urllib.request.urlopen(req,timeout=15) as r:
+        return r.read().decode('utf-8','ignore')
+
+def textify(s):
+    s=re.sub(r'<script[\s\S]*?</script>',' ',s,flags=re.I)
+    s=re.sub(r'<style[\s\S]*?</style>',' ',s,flags=re.I)
+    s=re.sub(r'<br\s*/?\s*>','\n',s,flags=re.I)
+    s=re.sub(r'</(tr|td|th|div|p|li|h1|h2|h3|h4)>','\n',s,flags=re.I)
+    s=re.sub(r'<[^>]+>',' ',s)
+    s=html.unescape(s).replace('\r','')
+    s=re.sub(r'[ \t]+',' ',s)
+    s=re.sub(r'\n[ \t]+','\n',s)
+    s=re.sub(r'\n{2,}','\n',s)
+    return s
+
+def selected_date(raw,y):
+    for m in re.finditer(r'<option[^>]*selected[^>]*>([\s\S]*?)</option>',raw,re.I):
+        t=textify(m.group(1))
+        q=re.search(r'(\d{2})월\s*(\d{2})일',t)
+        if q:return f'{y}-{q.group(1)}-{q.group(2)}'
+        q=re.search(r'(\d{4})[./-](\d{2})[./-](\d{2})',t)
+        if q:return f'{q.group(1)}-{q.group(2)}-{q.group(3)}'
+    return None
+
+def parse_card(raw,date,y,w,day):
+    t=textify(raw)
+    hs=list(re.finditer(r'제\s*(\d{2})경주\s*\(출발시간\s*(\d{1,2}:\d{2})\)',t))
+    out=[]
+    for i,a in enumerate(hs):
+        seg=t[a.start():(hs[i+1].start() if i+1<len(hs) else min(len(t),a.start()+12000))]
+        rr={}
+        for m in re.finditer(r'(?:^|\s)([1-6])\s+([가-힣]{2,5})\s+\d{1,2}기/',seg):
+            rr.setdefault(int(m.group(1)),m.group(2))
+            if len(rr)>=6:break
+        if len(rr)<2:continue
+        rn=int(a.group(1)); tm=a.group(2)
+        eid=f'BOAT-{date.replace("-","")}-{w}-{day}-{rn:02d}'
+        out.append({'id':eid,'sport':'BOAT','provider':'KBOAT','competition':f'미사리 경정 {w}회차 {day}일차','event_date':date,'start_time':tm,'race_no':rn,'status':'SCHEDULED','title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[{'key':f'N{n}','name':f'{n} {rr[n]}','number':n,'model_p':None} for n in sorted(rr)],'source_url':f'https://www.kboat.or.kr/race/card/decision/{y}/{w}/{day}'})
+    return out
+
+def parse_single_odds(raw,race_no):
+    t=textify(raw)
+    if not re.search(rf'제\s*0?{race_no}경주\s*\(출발시간\s*(\d{{1,2}}:\d{{2}})\)',t): return None
+    i1=t.find('단승식')
+    if i1<0:return None
+    i2=t.find('단승식',i1+3)
+    if i2<0:return None
+    j=t.find('연승식',i2+3)
+    if j<0:return None
+    nums=[float(x) for x in re.findall(r'\d+(?:\.\d+)?',t[i2+3:j])]
+    at=-1
+    for i in range(max(0,len(nums)-11)):
+        if all(nums[i+k]==k+1 for k in range(6)):
+            at=i;break
+    if at<0:return None
+    vals=nums[at+6:at+12]
+    return vals if len(vals)==6 and all(v>0 for v in vals) else None
+
+def parse_results(raw):
+    t=textify(raw); marker=t.find('경주결과'); t=t[marker:] if marker>=0 else t
+    ms=list(re.finditer(r'(?:^|\n)(\d{2})R\s*\n',t)); out={}
+    for i,m in enumerate(ms):
+        rn=int(m.group(1)); seg=t[m.start():(ms[i+1].start() if i+1<len(ms) else len(t))]
+        lines=[x.strip() for x in seg.split('\n') if x.strip()]
+        try: ri=lines.index(f'{rn:02d}R')
+        except ValueError: continue
+        if len(lines)<ri+7:continue
+        try:
+            top3=[{'rank':1,'number':int(lines[ri+1]),'name':lines[ri+2]},{'rank':2,'number':int(lines[ri+3]),'name':lines[ri+4]},{'rank':3,'number':int(lines[ri+5]),'name':lines[ri+6]}]
+        except: continue
+        rest='\n'.join(lines[ri+7:])
+        bets=[{'winner':a.replace(' ',''),'odds':float(b)} for a,b in re.findall(r'\(([^)]+)\)\s*\n?\s*(\d+(?:\.\d+)?)',rest)]
+        names=['단승식','연승식','연승식','쌍승식','복승식','삼복승식','쌍복승식','삼쌍승식']
+        markets=[{'market':names[i],**bets[i]} for i in range(min(len(bets),len(names)))]
+        out[rn]={'official':True,'status':'CONFIRMED','top3':top3,'markets':markets,'source':'KBOAT_RESULT_OFFICIAL'}
+    return out
+
+def status_for(start,result):
+    if result:return 'FINAL'
+    hh,mm=map(int,start.split(':')); cur=now(); delta=cur.hour*60+cur.minute-(hh*60+mm)
+    if delta<0:return 'SCHEDULED'
+    return 'LIVE' if delta<=35 else 'RESULT_PENDING'
+
+def main():
+    z=now(); date=z.strftime('%Y-%m-%d'); y=z.year; w=z.isocalendar().week
+    events=[]; day_used=None; err=[]
+    for day in (1,2,3):
+        url=f'https://www.kboat.or.kr/race/card/decision/{y}/{w}/{day}'
+        try:
+            raw=fetch(url); sd=selected_date(raw,y)
+            if sd==date:
+                events=parse_card(raw,date,y,w,day); day_used=day; break
+        except Exception as e: err.append(f'card day{day}:{e}')
+    results={}
+    if day_used and events:
+        try: results=parse_results(fetch(f'https://www.kboat.or.kr/race/result/general/{y}/{w}/{day_used}/01'))
+        except Exception as e: err.append(f'result:{e}')
+        cur=z.hour*60+z.minute
+        for e in events:
+            r=results.get(e['race_no']); e['status']=status_for(e['start_time'],r)
+            if r:
+                r['source_url']=f'https://www.kboat.or.kr/race/result/general/{y}/{w}/{day_used}/{e["race_no"]:02d}'
+                r['updated_at']=z.isoformat(); e['result']=r
+                for o in e['outcomes']:
+                    hit=next((x for x in r['top3'] if x['number']==o['number']),None)
+                    if hit:o['final_rank']=hit['rank']
+            hh,mm=map(int,e['start_time'].split(':')); delta=hh*60+mm-cur
+            if -35<=delta<=120 and not r:
+                try:
+                    vals=parse_single_odds(fetch(f'https://www.kboat.or.kr/race/dividendrate/final/{y}/{w}/{day_used}/{e["race_no"]}'),e['race_no'])
+                    if vals:
+                        for o in e['outcomes']:
+                            n=o['number']
+                            if 1<=n<=6:
+                                o['odds']=vals[n-1]; o['odds_source']='KBOAT_FINAL_SINGLE_AUTO'; o['odds_observed_at']=z.isoformat()
+                except Exception as x: err.append(f'odds {e["race_no"]}:{x}')
+    payload={'date':date,'date_display':z.strftime('%Y.%m.%d'),'time':z.strftime('%H:%M:%S'),'generated_at':z.isoformat(),'mode':'GITHUB_STATIC_OFFICIAL','sample_data':False,'events':events,'providers':[{'provider':'BOAT_KBOAT','status':'PASS' if events else 'NO_TODAY_CARD','detail':{'week':w,'day':day_used,'published':len(events)}},{'provider':'BOAT_RESULT_KBOAT','status':'PASS','detail':{'confirmed':len(results)}},{'provider':'BOAT_ODDS_KBOAT','status':'PASS','detail':{'mode':'단승식, 경기 120분 전~35분 후'}}],'errors':err[-10:]}
+    OUT.parent.mkdir(parents=True,exist_ok=True)
+    OUT.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+    print(json.dumps({'date':date,'events':len(events),'final':len(results),'errors':len(err)},ensure_ascii=False))
+
+if __name__=='__main__':main()
