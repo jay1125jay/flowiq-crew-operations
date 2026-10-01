@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T08:26:31+09:00",
+  "generated_at": "2026-10-02T08:30:24+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -7,14 +7,14 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 57,
-    "ksports": 49,
-    "bull": 86
+    "horse": 69,
+    "ksports": 56,
+    "bull": 94
   },
   "usage_before_run": {
-    "horse": 51,
-    "ksports": 44,
-    "bull": 86
+    "horse": 63,
+    "ksports": 52,
+    "bull": 94
   },
   "checkpoints": {
     "horse": {
@@ -22,40 +22,41 @@
       "complete": false
     },
     "cycle": {
-      "cursor_date": "2026-09-17",
+      "cursor_date": "2026-09-11",
       "complete": false
     },
     "boat": {
-      "cursor_date": "2026-09-17",
+      "cursor_date": "2026-09-14",
       "complete": false
     },
     "bull": {
       "year": 2026,
-      "round": 34,
-      "day": 1,
+      "round": 33,
+      "day": 2,
       "complete": false
     }
   },
   "new": {
-    "horse_records": 4,
+    "horse_records": 0,
     "horse_dates": 0,
     "cycle_records": 0,
-    "cycle_dates": 2,
-    "boat_records": 0,
-    "boat_dates": 1,
+    "cycle_dates": 1,
+    "boat_records": 17,
+    "boat_dates": 2,
     "bull_records": 0,
     "bull_cards": 0,
     "errors": [
       "HORSE 2026-09-20 M1 R6 URLError:<urlopen error timed out>",
-      "CYCLE 2026-09-19 RESULT_404_SKIPPED",
-      "BOAT 2026-09-18 card d3 RuntimeError:TIME_BUDGET_EXHAUSTED"
+      "CYCLE 2026-09-12 CARD_EMPTY_SKIPPED",
+      "BOAT 2026-09-15 card d2 RuntimeError:TIME_BUDGET_EXHAUSTED",
+      "BOAT 2026-09-15 card d3 RuntimeError:TIME_BUDGET_EXHAUSTED"
     ]
   },
   "records_total": {
     "horse": 5,
     "cycle": 0,
-    "boat": 33,
-    "bull": 33
+    "boat": 49,
+    "bull": 40
   },
   "quota_policy": "daily hard caps; four KST-day slices; KCYCLE/KBOAT share KSPORTS quota 50/50 unless completed",
   "runtime_policy": {
@@ -67,11 +68,11 @@
   "runtime_seconds": 45,
   "hardening": {
     "horse": "STRICT_RENDERED_RACE_AND_ROW_QUALITY_BEFORE_PERSIST",
-    "cycle": "404_NON_MEETING_ADVANCES_CHECKPOINT_TRANSIENT_ERRORS_RETRY"
+    "cycle": "DATE_SAFE_RESULT_URL_FALLBACK_AND_NON_MEETING_ADVANCE"
   },
   "quality_guard": {
     "status": "PASS",
-    "rejected_total": 0,
+    "rejected_total": 1,
     "by_sport": {
       "horse": {
         "kept": 5,
@@ -82,11 +83,11 @@
         "rejected": 0
       },
       "boat": {
-        "kept": 33,
-        "rejected": 0
+        "kept": 49,
+        "rejected": 1
       },
       "bull": {
-        "kept": 33,
+        "kept": 40,
         "rejected": 0
       }
     }
