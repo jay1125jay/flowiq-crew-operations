@@ -14,27 +14,37 @@ KST = timezone(timedelta(hours=9))
 CONFIG = {
     'CYCLE': {
         'provider': 'CYCLE_OWN_MODEL',
-        'source': 'cycle_empirical_bayes_v0.1',
+        'source': 'cycle_hybrid_bayes_v0.2',
         'official_source': 'KCYCLE_AI_OFFICIAL',
         'entity_strength': 14.0,
         'lane_strength': 28.0,
         'entity_weight': 0.78,
         'lane_weight': 0.22,
+        'full_own_races': 250.0,
     },
     'BOAT': {
         'provider': 'BOAT_OWN_MODEL',
-        'source': 'boat_empirical_bayes_v0.1',
+        'source': 'boat_hybrid_bayes_v0.2',
         'official_source': 'KBOAT_AI_OFFICIAL',
         'entity_strength': 12.0,
         'lane_strength': 24.0,
         'entity_weight': 0.72,
         'lane_weight': 0.28,
+        'full_own_races': 200.0,
     },
 }
 
 
 def now_text():
     return datetime.now(KST).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def safe_float(v):
+    try:
+        x = float(v)
+        return x if math.isfinite(x) else None
+    except Exception:
+        return None
 
 
 def participant_name(o):
@@ -121,20 +131,54 @@ def logit(p):
     return math.log(p / (1.0 - p))
 
 
-def score_race(e, entity, lane, base, cfg):
-    outcomes = list(e.get('outcomes') or [])
-    if not outcomes:
+def normalize(vals):
+    vals = [max(0.0, float(x)) for x in vals]
+    s = sum(vals)
+    if s <= 0:
         return []
+    return [x / s for x in vals]
+
+
+def empirical_probs(outcomes, entity, lane, base, cfg):
     scores = []
     for o in outcomes:
         ep = posterior(entity.get(participant_name(o)), base, cfg['entity_strength'])
         lp = posterior(lane.get(number_of(o)), base, cfg['lane_strength'])
-        s = cfg['entity_weight'] * logit(ep) + cfg['lane_weight'] * logit(lp)
-        scores.append(s)
+        scores.append(cfg['entity_weight'] * logit(ep) + cfg['lane_weight'] * logit(lp))
+    if not scores:
+        return []
     m = max(scores)
-    ex = [math.exp(x - m) for x in scores]
-    den = sum(ex) or 1.0
-    return [x / den for x in ex]
+    return normalize([math.exp(x - m) for x in scores])
+
+
+def official_seed(outcomes, cfg):
+    vals = []
+    for o in outcomes:
+        p = None
+        if o.get('model_source') == cfg['official_source']:
+            p = safe_float(o.get('model_p'))
+        elif o.get('official_ai_source') == cfg['official_source']:
+            p = safe_float(o.get('official_ai_p'))
+        if p is None or p <= 0:
+            return None
+        vals.append(p)
+    vals = normalize(vals)
+    return vals if len(vals) == len(outcomes) else None
+
+
+def score_race(e, entity, lane, base, labeled_races, cfg):
+    outcomes = list(e.get('outcomes') or [])
+    if not outcomes:
+        return [], 0.0, False
+    empirical = empirical_probs(outcomes, entity, lane, base, cfg)
+    if not empirical:
+        return [], 0.0, False
+    seed = official_seed(outcomes, cfg)
+    history_weight = min(1.0, max(0.0, labeled_races / cfg['full_own_races']))
+    if not seed:
+        return empirical, 1.0, False
+    blended = [((1.0 - history_weight) * a) + (history_weight * b) for a, b in zip(seed, empirical)]
+    return normalize(blended), history_weight, True
 
 
 def load_state():
@@ -145,7 +189,7 @@ def load_state():
                 return d
         except Exception:
             pass
-    return {'version': 1, 'predictions': {}}
+    return {'version': 2, 'predictions': {}}
 
 
 def state_key(e, o):
@@ -163,6 +207,8 @@ def save_prediction(state, doc, sport, e, o):
         'model_validated': o.get('model_validated'),
         'official_ai_p': o.get('official_ai_p'),
         'official_ai_source': o.get('official_ai_source'),
+        'own_history_weight': o.get('own_history_weight'),
+        'official_seed_used': o.get('official_seed_used'),
     }
 
 
@@ -187,10 +233,12 @@ def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
         'rows': rows,
         'model_source': cfg['source'],
         'model_validated': False,
-        'model_state': 'PROVISIONAL_UNVALIDATED',
+        'model_state': 'PROVISIONAL_HYBRID_UNVALIDATED',
         'value_enabled': False,
         'history_labeled_runners': labeled_runners,
         'history_labeled_races': labeled_races,
+        'own_history_weight': round(min(1.0, labeled_races / cfg['full_own_races']), 4),
+        'official_seed_policy': 'USE_OFFICIAL_AI_AS_PRIOR_UNTIL_OWN_HISTORY_MATURES',
         'official_ai_preserved': True,
         'pre_race_prediction_state': str(STATE),
         'updated_at': datetime.now(KST).isoformat(timespec='seconds'),
@@ -213,7 +261,7 @@ def apply_sport(doc, sport, state):
         status = e.get('status')
 
         if status == 'SCHEDULED':
-            probs = score_race(e, entity, lane, base, cfg)
+            probs, history_weight, seeded = score_race(e, entity, lane, base, labeled_races, cfg)
             if len(probs) != len(outcomes) or not probs:
                 continue
             for o, p in zip(outcomes, probs):
@@ -223,28 +271,32 @@ def apply_sport(doc, sport, state):
                 o['model_p'] = round(float(p), 8)
                 o['model_source'] = cfg['source']
                 o['model_updated_at'] = now_text()
-                o['model_state'] = 'PROVISIONAL_UNVALIDATED'
+                o['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
                 o['model_validated'] = False
+                o['own_history_weight'] = round(history_weight, 4)
+                o['official_seed_used'] = bool(seeded)
                 save_prediction(state, doc, sport, e, o)
                 updated += 1
             e['model_source'] = cfg['source']
-            e['model_state'] = 'PROVISIONAL_UNVALIDATED'
+            e['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
             e['model_validated'] = False
             e['value_enabled'] = False
+            e['own_history_weight'] = round(history_weight, 4)
+            e['official_seed_used'] = bool(seeded)
         else:
             local_carried = 0
             for o in outcomes:
                 old = state.get('predictions', {}).get(state_key(e, o))
                 if not old or old.get('model_source') != cfg['source']:
                     continue
-                for k in ('model_p', 'model_source', 'model_updated_at', 'model_state', 'model_validated', 'official_ai_p', 'official_ai_source'):
+                for k in ('model_p', 'model_source', 'model_updated_at', 'model_state', 'model_validated', 'official_ai_p', 'official_ai_source', 'own_history_weight', 'official_seed_used'):
                     if old.get(k) is not None:
                         o[k] = old[k]
                 local_carried += 1
                 carried += 1
             if local_carried:
                 e['model_source'] = cfg['source']
-                e['model_state'] = 'PROVISIONAL_UNVALIDATED'
+                e['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
                 e['model_validated'] = False
                 e['value_enabled'] = False
 
@@ -255,18 +307,20 @@ def apply_sport(doc, sport, state):
 
 def self_test():
     for sport, n in [('CYCLE', 7), ('BOAT', 6)]:
+        raw = [float(i) for i in range(1, n + 1)]
+        raw = normalize(raw)
         doc = {
             'date': '2099-01-01',
             'events': [{
                 'id': f'{sport}-TEST-1', 'sport': sport, 'status': 'SCHEDULED',
                 'outcomes': [
-                    {'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}', 'model_p': 1.0 / n, 'model_source': CONFIG[sport]['official_source']}
+                    {'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}', 'model_p': raw[i - 1], 'model_source': CONFIG[sport]['official_source']}
                     for i in range(1, n + 1)
                 ]
             }],
             'providers': []
         }
-        state = {'version': 1, 'predictions': {}}
+        state = {'version': 2, 'predictions': {}}
         updated, events, _, _, _ = apply_sport(doc, sport, state)
         vals = [o['model_p'] for o in doc['events'][0]['outcomes']]
         assert events == 1 and updated == n
@@ -290,6 +344,7 @@ def main():
         return
     doc = json.loads(DATA.read_text(encoding='utf-8'))
     state = load_state()
+    state['version'] = 2
     for sport in ('CYCLE', 'BOAT'):
         updated, events, labeled_runners, labeled_races, carried = apply_sport(doc, sport, state)
         print(f'{sport}_OWN_MODEL={"PROVISIONAL" if events else "NO_TODAY_CARD"}')
@@ -297,6 +352,7 @@ def main():
         print(f'{sport}_OWN_MODEL_CARRIED={carried}')
         print(f'{sport}_HISTORY_LABELED_RUNNERS={labeled_runners}')
         print(f'{sport}_HISTORY_LABELED_RACES={labeled_races}')
+        print(f'{sport}_OWN_HISTORY_WEIGHT={min(1.0, labeled_races / CONFIG[sport]["full_own_races"]):.4f}')
         print(f'{sport}_VALUE_ENABLED=FALSE')
     trim_state(state, str(doc.get('date') or ''))
     STATE.parent.mkdir(parents=True, exist_ok=True)
