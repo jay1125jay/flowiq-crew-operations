@@ -1,8 +1,12 @@
 import html
 import json
+import os
 import re
+import sys
 import time
+import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
@@ -12,7 +16,13 @@ DATA = Path('race-sports/data/today.json')
 UA = 'Mozilla/5.0 (RACE SPORTS ANALYTICS GitHub official-readonly)'
 RUNNERS_URL = 'https://race.kra.co.kr/thisweekrace/ChulmaDate.do'
 RESULTS_URL = 'https://race.kra.co.kr/thisweekrace/ThisWeekScoretableDailyScoretable.do?Act=05&Sub=2'
-VENUES = ('서울', '부경', '영천', '제주')
+DETAIL_URL = 'https://race.kra.co.kr/raceScore/ScoretableDetailList.do?Act=04&Sub=1&meet={meet}&realRcDate={date}&realRcNo={race_no}'
+KRA_PRE_ODDS_ENDPOINTS = (
+    ('KRA_API301_OFFICIAL', 'https://apis.data.go.kr/B551015/API301/Dividend_rate_total'),
+    ('KRA_API27_OFFICIAL', 'https://apis.data.go.kr/B551015/API27_1/winPredictionRateInfo_1'),
+)
+VENUES = ('서울', '부경', '부산경남', '영천', '제주')
+MEET_CODE = {'서울': '1', '제주': '2', '부경': '3', '부산경남': '3', '영천': '4'}
 CIRCLED = dict(zip('①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳', range(1, 21)))
 
 
@@ -162,17 +172,138 @@ def parse_results(raw):
     return out
 
 
+def parse_detail_runner_odds(raw):
+    p,_=parsed(raw); header=None; out={}
+    for row in p.rows:
+        norm=[clean(x).replace(' ','') for x in row]
+        if '순위' in norm and '마번' in norm and '단승' in norm and '연승' in norm:
+            try: header={'rank':norm.index('순위'),'number':norm.index('마번'),'single':norm.index('단승'),'place':norm.index('연승')}
+            except ValueError: header=None
+            continue
+        if not header:continue
+        need=max(header.values())
+        if len(row)<=need:continue
+        rs=clean(row[header['rank']]); ns=clean(row[header['number']])
+        if not re.fullmatch(r'\d{1,2}',rs) or not re.fullmatch(r'\d{1,2}',ns):continue
+        n=int(ns)
+        try: single=float(clean(row[header['single']]).replace(',',''))
+        except: single=None
+        try: place=float(clean(row[header['place']]).replace(',',''))
+        except: place=None
+        if single is None and place is None:continue
+        out[n]={'final_rank':int(rs),'final_odds':single,'final_place_odds':place}
+    return out
+
+
+def normalize_date(v):
+    s=re.sub(r'\D','',str(v or ''))
+    return s[:8] if len(s)>=8 else ''
+
+
+def row_value(row,names):
+    low={str(k).lower().replace('_',''):v for k,v in row.items()}
+    for n in names:
+        key=n.lower().replace('_','')
+        if key in low and str(low[key]).strip()!='':return low[key]
+    return None
+
+
+def api_items(raw):
+    s=raw.lstrip()
+    if s.startswith('{') or s.startswith('['):
+        obj=json.loads(raw)
+        if isinstance(obj,list):return [x for x in obj if isinstance(x,dict)]
+        cur=obj
+        for path in (('response','body','items','item'),('response','body','item'),('body','items','item'),('items','item')):
+            cur=obj; ok=True
+            for k in path:
+                if isinstance(cur,dict) and k in cur:cur=cur[k]
+                else:ok=False;break
+            if ok:
+                if isinstance(cur,dict):return [cur]
+                if isinstance(cur,list):return [x for x in cur if isinstance(x,dict)]
+        return []
+    root=ET.fromstring(raw)
+    return [{c.tag:(c.text or '') for c in item} for item in root.findall('.//item')]
+
+
+def make_api_url(base,key,date,meet,race_no):
+    params={
+        'pageNo':'1','numOfRows':'200','resultType':'json','_type':'json',
+        'rcDate':date.replace('-',''),'rc_date':date.replace('-',''),
+        'rcNo':str(race_no),'rc_no':str(race_no),'meet':str(meet),
+    }
+    q=urllib.parse.urlencode(params)
+    safe_key=urllib.parse.quote(str(key).strip(),safe='%')
+    return f'{base}?serviceKey={safe_key}&{q}'
+
+
+def parse_pre_single_odds(rows,date,meet,race_no,allowed_numbers):
+    out={}
+    for row in rows:
+        row_date=row_value(row,['rcDate','rc_date','raceDate','race_date','date'])
+        if row_date and normalize_date(row_date)!=date.replace('-',''):continue
+        row_race=row_value(row,['rcNo','rc_no','raceNo','race_no'])
+        if row_race is not None:
+            try:
+                if int(float(str(row_race)))!=int(race_no):continue
+            except:continue
+        row_meet=row_value(row,['meet','meetCd','meet_cd','sale_race','racecourse'])
+        if row_meet is not None:
+            x=str(row_meet).strip()
+            if x.isdigit() and int(x)!=int(meet):continue
+        n=row_value(row,['chulNo','chul_no','horseNo','horse_no','hrNo','hr_no','gateNo','gate_no'])
+        try:n=int(float(str(n)))
+        except:continue
+        if n not in allowed_numbers:continue
+        odd=row_value(row,['winOdds','win_odds','singleOdds','single_odds','odds','dividendRate','dividend_rate','allocRate','alloc_rate'])
+        try:v=float(str(odd).replace(',',''))
+        except:continue
+        if v<=0:continue
+        out[n]=v
+    return out
+
+
+def apply_pre_odds(event,odds,source,observed):
+    if event.get('status')!='SCHEDULED':return 0
+    by_num={int(o.get('number') or 0):o for o in event.get('outcomes',[])}
+    mapped=0
+    for n,v in odds.items():
+        o=by_num.get(int(n))
+        if not o:continue
+        o['odds']=float(v);o['odds_source']=source;o['odds_capture_mode']='PRE_RACE';o['odds_observed_at']=observed;mapped+=1
+    if mapped:
+        snap={f'N{n}':float(v) for n,v in sorted(odds.items()) if n in by_num}
+        hist=list(event.get('odds_history',[])); prev=hist[-1].get('odds',{}) if hist else {}
+        if snap and snap!=prev:
+            hist.append({'observed_at':observed,'market':'단승식','source':source,'capture_mode':'PRE_RACE','odds':snap})
+            event['odds_history']=hist[-120:]
+    return mapped
+
+
 def set_provider(payload,name,status,detail):
     payload['providers']=[p for p in payload.get('providers',[]) if p.get('provider')!=name]
     payload['providers'].append({'provider':name,'status':status,'detail':detail})
 
 
+def self_test():
+    url=DETAIL_URL.format(meet=1,date='20180708',race_no=4)
+    rows=parse_detail_runner_odds(fetch(url,timeout=15,retries=2))
+    assert len(rows)>=8, len(rows)
+    assert rows.get(7,{}).get('final_odds')==5.0, rows.get(7)
+    assert rows.get(1,{}).get('final_odds')==3.2, rows.get(1)
+    print(json.dumps({'KRA_SELF_TEST':'PASS','official_detail_rows':len(rows),'source_url':url},ensure_ascii=False))
+
+
 def main():
     payload=json.loads(DATA.read_text(encoding='utf-8')); today=payload.get('date'); observed=datetime.now(KST).isoformat()
     horse=[e for e in payload.get('events',[]) if e.get('sport')=='HORSE']
-    runner_linked=0; result_linked=0
+    runner_linked=0; result_linked=0; final_odds_linked=0; pre_odds_events=0; pre_odds_runners=0
+
     try:
         raw=fetch(RUNNERS_URL); page_date,races=parse_runners(raw)
+        if page_date and page_date!=today:
+            races={}
         for e in horse:
             venue=venue_of(e); info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
             if not info:continue
@@ -181,12 +312,41 @@ def main():
                 old={o.get('key'):o for o in e.get('outcomes',[]) if o.get('key')}
                 for o in info['outcomes']:
                     q=old.get(o['key'],{})
-                    for k in ('model_p','model_source','model_updated_at','odds','odds_source','odds_capture_mode','odds_observed_at','final_rank'):
+                    for k in ('model_p','model_source','model_updated_at','odds','odds_source','odds_capture_mode','odds_observed_at','final_rank','final_odds','final_place_odds','final_odds_source'):
                         if q.get(k) is not None:o[k]=q[k]
-                e['outcomes']=info['outcomes']; runner_linked+=1
+                e['outcomes']=info['outcomes'];runner_linked+=1
         set_provider(payload,'HORSE_RUNNERS_KRA','PASS' if runner_linked else ('NO_TODAY_CARD' if not horse else 'UNLINKED'),{'page_date':page_date,'races_parsed':len(races),'linked':runner_linked,'source_url':RUNNERS_URL})
     except Exception as e:
         set_provider(payload,'HORSE_RUNNERS_KRA','FETCH_RETRY',{'error':f'{type(e).__name__}:{e}'[:220],'source_url':RUNNERS_URL})
+
+    api_key=os.environ.get('KRA_API_KEY','').strip()
+    if not horse:
+        set_provider(payload,'HORSE_PRE_ODDS_KRA','NO_TODAY_CARD',{'linked_events':0,'linked_runners':0})
+    elif not api_key:
+        set_provider(payload,'HORSE_PRE_ODDS_KRA','API_KEY_MISSING',{'linked_events':0,'linked_runners':0,'required_secret':'KRA_API_KEY'})
+    else:
+        api_errors=[]; endpoint_hits={}
+        for e in horse:
+            if e.get('status')!='SCHEDULED' or e.get('event_date')!=today:continue
+            venue=venue_of(e); meet=MEET_CODE.get(venue); rn=int(e.get('race_no') or 0)
+            allowed={int(o.get('number') or 0) for o in e.get('outcomes',[]) if int(o.get('number') or 0)>0}
+            if not meet or not rn or len(allowed)<2:continue
+            hit={}; used=None
+            for source,base in KRA_PRE_ODDS_ENDPOINTS:
+                try:
+                    url=make_api_url(base,api_key,today,meet,rn)
+                    rows=api_items(fetch(url,timeout=10,retries=1))
+                    hit=parse_pre_single_odds(rows,today,meet,rn,allowed)
+                    endpoint_hits[source]=endpoint_hits.get(source,0)+(1 if hit else 0)
+                    if len(hit)>=2:used=source;break
+                except Exception as x:
+                    api_errors.append(f'{source}:{venue}:{rn}:{type(x).__name__}:{x}'[:220])
+            if used and hit:
+                mapped=apply_pre_odds(e,hit,used+'_PRE_CAPTURE',observed)
+                if mapped:pre_odds_events+=1;pre_odds_runners+=mapped
+        status='PASS' if pre_odds_events else ('FETCH_RETRY' if api_errors else 'WAITING')
+        set_provider(payload,'HORSE_PRE_ODDS_KRA',status,{'linked_events':pre_odds_events,'linked_runners':pre_odds_runners,'endpoint_hits':endpoint_hits,'errors':api_errors[:3]})
+
     try:
         results=parse_results(fetch(RESULTS_URL))
         for e in horse:
@@ -195,14 +355,37 @@ def main():
             out_by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])}
             top3=[]
             for rank,n in enumerate(r.pop('top_numbers',[])[:3],1):
-                o=out_by_num.get(n); top3.append({'rank':rank,'number':n,'name':o.get('horse_name') if o else str(n)})
+                o=out_by_num.get(n);top3.append({'rank':rank,'number':n,'name':o.get('horse_name') if o else str(n)})
                 if o:o['final_rank']=rank
             r['top3']=top3;r['updated_at']=observed;e['result']=r;e['status']='FINAL';result_linked+=1
         set_provider(payload,'HORSE_RESULT_KRA','PASS' if result_linked else ('NO_TODAY_CARD' if not horse else 'WAITING'),{'results_parsed':len(results),'confirmed':result_linked,'source_url':RESULTS_URL})
     except Exception as e:
         set_provider(payload,'HORSE_RESULT_KRA','FETCH_RETRY',{'error':f'{type(e).__name__}:{e}'[:220],'source_url':RESULTS_URL})
+
+    detail_errors=[]
+    for e in horse:
+        if e.get('status')!='FINAL':continue
+        venue=venue_of(e);meet=MEET_CODE.get(venue);rn=int(e.get('race_no') or 0)
+        if not meet or not rn:continue
+        url=DETAIL_URL.format(meet=meet,date=today.replace('-',''),race_no=rn)
+        try:
+            rows=parse_detail_runner_odds(fetch(url,timeout=10,retries=1))
+            by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])}; mapped=0
+            for n,v in rows.items():
+                o=by_num.get(n)
+                if not o:continue
+                if v.get('final_odds') is not None:o['final_odds']=v['final_odds']
+                if v.get('final_place_odds') is not None:o['final_place_odds']=v['final_place_odds']
+                o['final_odds_source']='KRA_SCORETABLE_DETAIL_OFFICIAL';mapped+=1
+            if mapped:final_odds_linked+=1
+        except Exception as x:
+            detail_errors.append(f'{venue}:{rn}:{type(x).__name__}:{x}'[:220])
+    set_provider(payload,'HORSE_FINAL_ODDS_KRA','PASS' if final_odds_linked else ('NO_TODAY_CARD' if not horse else ('FETCH_RETRY' if detail_errors else 'WAITING')),{'linked_events':final_odds_linked,'errors':detail_errors[:3],'source':'KRA_SCORETABLE_DETAIL_OFFICIAL'})
+
     DATA.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-    print(json.dumps({'KRA_ENRICH':'PASS','runner_linked':runner_linked,'result_linked':result_linked},ensure_ascii=False))
+    print(json.dumps({'KRA_ENRICH':'PASS','runner_linked':runner_linked,'pre_odds_events':pre_odds_events,'pre_odds_runners':pre_odds_runners,'result_linked':result_linked,'final_odds_linked':final_odds_linked},ensure_ascii=False))
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    if '--self-test' in sys.argv:self_test()
+    else:main()
