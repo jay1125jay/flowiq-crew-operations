@@ -36,17 +36,18 @@ def main():
         model_values = [o.get('model_p') for o in outcomes]
         populated = [v for v in model_values if v is not None]
         if populated:
-            if len(populated) != len(outcomes):
-                bad_model.append((e.get('id'), 'PARTIAL_MODEL'))
-            else:
-                try:
-                    vals = [float(v) for v in populated]
-                    if not all(math.isfinite(v) and 0.0 <= v <= 1.0 for v in vals):
-                        bad_model.append((e.get('id'), 'MODEL_RANGE'))
+            try:
+                vals = [float(v) for v in populated]
+                if not all(math.isfinite(v) and 0.0 <= v <= 1.0 for v in vals):
+                    bad_model.append((e.get('id'), 'MODEL_RANGE'))
+                needs_full_distribution = e.get('sport') == 'BULL' or e.get('status') != 'FINAL'
+                if needs_full_distribution:
+                    if len(populated) != len(outcomes):
+                        bad_model.append((e.get('id'), 'PARTIAL_MODEL'))
                     elif abs(sum(vals) - 1.0) > 0.03:
                         bad_model.append((e.get('id'), f'MODEL_SUM:{sum(vals):.6f}'))
-                except Exception:
-                    bad_model.append((e.get('id'), 'MODEL_PARSE'))
+            except Exception:
+                bad_model.append((e.get('id'), 'MODEL_PARSE'))
 
         if e.get('sport') == 'BULL':
             keys = [o.get('key') for o in outcomes]
@@ -107,7 +108,8 @@ def main():
         'by_sport': dict(sports),
         'stale_events': stale,
         'guard': (guard or {}).get('status'),
-        'model_probability_guard': True,
+        'active_model_probability_guard': True,
+        'final_model_history_tolerates_scratches': True,
         'bull_three_way_guard': True,
         'bull_model_source_guard': True,
     }, ensure_ascii=False))
