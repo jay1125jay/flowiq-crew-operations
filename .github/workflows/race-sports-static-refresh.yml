@@ -12,7 +12,8 @@ on:
       - 'race-sports/tools/inject_kboat_ai.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
-      - 'race-sports/tools/bull_card_features.py'
+      - 'race-sports/tools/bull_model_features_v130.py'
+      - 'race-sports/tools/bull_official_enricher.py'
       - 'race-sports/tools/inject_bull_model.py'
       - 'race-sports/tools/ui_multisport_patch.py'
       - 'race-sports/tools/snapshot_guard.py'
@@ -53,7 +54,11 @@ jobs:
           m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
           if not m: raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
           Path('/tmp/race-sports-live.js').write_text(m.group(1),encoding='utf-8')
-          for token in ['data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"','STALE_LAST_KNOWN_GOOD','setInterval(load,10000)','KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL']:
+          for token in [
+              'data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"',
+              'STALE_LAST_KNOWN_GOOD','setInterval(load,10000)',
+              'KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL','CPC_FINAL_SINGLE_AUTO','소싸움 3분류 모델'
+          ]:
               if token not in s: raise SystemExit('UI_TOKEN_MISSING:'+token)
           PY
           node --check /tmp/race-sports-live.js
@@ -83,9 +88,13 @@ jobs:
           print('SNAPSHOT_GUARD_TEST=PASS')
           PY
 
-      - name: Test CPC bull feature parser on known historical card
+      - name: Test CPC v1.3 bull feature adapter
         if: github.event_name == 'push'
-        run: python race-sports/tools/bull_card_features.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
+        run: python race-sports/tools/bull_model_features_v130.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
+
+      - name: Test CPC official bull odds and results
+        if: github.event_name == 'push'
+        run: python race-sports/tools/bull_official_enricher.py --self-test
 
       - name: Preserve previous same-day snapshot
         shell: bash
@@ -125,11 +134,18 @@ jobs:
             echo 'KRA enrichment unavailable this cycle; fail-safe snapshot remains publishable'
           fi
 
-      - name: Enrich bull confirmed-card features
+      - name: Build current Bull v1.3 model features
         shell: bash
         run: |
-          if ! python race-sports/tools/bull_card_features.py; then
+          if ! python race-sports/tools/bull_model_features_v130.py; then
             echo 'CPC bull feature source unavailable this cycle; keeping last-known-good event data'
+          fi
+
+      - name: Enrich official Bull odds and results
+        shell: bash
+        run: |
+          if ! python race-sports/tools/bull_official_enricher.py; then
+            echo 'CPC bull odds/results unavailable this cycle; keeping card and prior snapshot'
           fi
 
       - name: Capture current official KBOAT pre-race odds
@@ -151,7 +167,7 @@ jobs:
             echo "KBOAT AI unavailable this cycle; preserving last-known-good model fields"
           fi
 
-      - name: Inject validated bull three-class model when portable artifact is ready
+      - name: Inject validated Bull RED DRAW BLUE model
         run: python race-sports/tools/inject_bull_model.py
 
       - name: Validate publish snapshot
