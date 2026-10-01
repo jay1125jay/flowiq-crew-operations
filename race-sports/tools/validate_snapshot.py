@@ -25,12 +25,34 @@ def main():
     stale = sum(1 for e in events if e.get('stale'))
     bad_odds = []
     bad_bull = []
+    bad_bull_result = []
+    bad_bull_odds = []
+
     for e in events:
+        outcomes = e.get('outcomes', [])
         if e.get('sport') == 'BULL':
-            keys = [o.get('key') for o in e.get('outcomes', [])]
+            keys = [o.get('key') for o in outcomes]
             if keys and keys != ['RED', 'DRAW', 'BLUE']:
                 bad_bull.append(e.get('id'))
-        for o in e.get('outcomes', []):
+
+            winner = ((e.get('result') or {}).get('winner') or {}).get('key')
+            if winner is not None and winner not in ('RED', 'DRAW', 'BLUE'):
+                bad_bull_result.append((e.get('id'), winner))
+
+            cpc = [o for o in outcomes if o.get('odds_source') == 'CPC_FINAL_SINGLE_AUTO']
+            if cpc:
+                cmap = {o.get('key'): o for o in cpc}
+                if set(cmap) != {'RED', 'DRAW', 'BLUE'}:
+                    bad_bull_odds.append((e.get('id'), 'MISSING_THREE_WAY'))
+                else:
+                    for key in ('RED', 'DRAW', 'BLUE'):
+                        try:
+                            if float(cmap[key].get('odds') or 0) <= 0:
+                                bad_bull_odds.append((e.get('id'), key))
+                        except Exception:
+                            bad_bull_odds.append((e.get('id'), key))
+
+        for o in outcomes:
             if o.get('odds') is not None:
                 try:
                     if float(o['odds']) <= 0:
@@ -42,8 +64,11 @@ def main():
         fail('NON_POSITIVE_ODDS')
     if bad_bull:
         fail('BULL_OUTCOME_ORDER')
+    if bad_bull_result:
+        fail('BULL_RESULT_KEY')
+    if bad_bull_odds:
+        fail('BULL_THREE_WAY_ODDS')
 
-    # A recovered stale feed is allowed; silently losing same-day events is not.
     guard = next((x for x in p.get('providers', []) if x.get('provider') == 'SNAPSHOT_GUARD'), None)
     if stale and not guard:
         fail('STALE_WITHOUT_GUARD')
@@ -55,6 +80,7 @@ def main():
         'by_sport': dict(sports),
         'stale_events': stale,
         'guard': (guard or {}).get('status'),
+        'bull_three_way_guard': True,
     }, ensure_ascii=False))
 
 
