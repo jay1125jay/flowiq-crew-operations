@@ -6,9 +6,12 @@ on:
     paths:
       - '.github/workflows/race-sports-static-refresh.yml'
       - 'race-sports/live.html'
+      - 'race-sports/models/**'
       - 'race-sports/tools/racing_static_collector.py'
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
+      - 'race-sports/tools/bull_card_features.py'
+      - 'race-sports/tools/inject_bull_model.py'
       - 'race-sports/tools/snapshot_guard.py'
       - 'race-sports/tools/validate_snapshot.py'
   workflow_dispatch:
@@ -25,7 +28,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,6 +77,12 @@ jobs:
           print('SNAPSHOT_GUARD_TEST=PASS')
           PY
 
+      - name: Test CPC bull feature parser on known historical card
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          python race-sports/tools/bull_card_features.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
+
       - name: Preserve previous same-day snapshot
         shell: bash
         run: |
@@ -98,9 +107,14 @@ jobs:
           python race-sports/tools/racing_static_collector.py
 
       - name: Recover last-known-good events on provider failure
+        run: python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
+
+      - name: Enrich bull confirmed-card features
         shell: bash
         run: |
-          python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
+          if ! python race-sports/tools/bull_card_features.py; then
+            echo 'CPC bull feature source unavailable this cycle; keeping last-known-good event data'
+          fi
 
       - name: Capture current official KBOAT pre-race odds
         run: python race-sports/tools/kboat_live_odds.py
@@ -121,8 +135,25 @@ jobs:
             echo "KBOAT AI unavailable this cycle; preserving last-known-good model fields"
           fi
 
+      - name: Inject validated bull three-class model when portable artifact is ready
+        run: python race-sports/tools/inject_bull_model.py
+
       - name: Validate publish snapshot
         run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
+
+      - name: Prepare current and historical snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp race-sports/data/today.json /tmp/race-sports-today.json
+          DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('race-sports/data/today.json',encoding='utf-8'))['date'])
+          PY
+          )
+          mkdir -p /tmp/race-sports-history
+          cp race-sports/data/today.json "/tmp/race-sports-history/${DATE}.json"
+          echo "$DATE" > /tmp/race-sports-date.txt
 
       - name: Publish static snapshot without rebase conflicts
         shell: bash
@@ -131,11 +162,13 @@ jobs:
           git config user.name "race-sports-bot"
           git config user.email "actions@users.noreply.github.com"
 
-          cp race-sports/data/today.json /tmp/race-sports-today.json
+          DATE=$(cat /tmp/race-sports-date.txt)
           git fetch origin main
           git reset --hard origin/main
           cp /tmp/race-sports-today.json race-sports/data/today.json
-          git add race-sports/data/today.json
+          mkdir -p race-sports/data/history
+          cp "/tmp/race-sports-history/${DATE}.json" "race-sports/data/history/${DATE}.json"
+          git add race-sports/data/today.json "race-sports/data/history/${DATE}.json"
 
           if git diff --cached --quiet; then
             echo "No data change"
