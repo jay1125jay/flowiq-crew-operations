@@ -10,6 +10,7 @@ on:
       - 'race-sports/tools/racing_static_collector.py'
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
+      - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/bull_card_features.py'
       - 'race-sports/tools/inject_bull_model.py'
       - 'race-sports/tools/snapshot_guard.py'
@@ -93,8 +94,6 @@ jobs:
       - name: Collect official 4-sport racing data
         shell: bash
         run: |
-          # Dedicated KBOAT current-race odds watcher supersedes the older slow
-          # per-race odds probes in the main collector.
           python - <<'PY'
           from pathlib import Path
           p=Path('race-sports/tools/racing_static_collector.py')
@@ -108,6 +107,13 @@ jobs:
 
       - name: Recover last-known-good events on provider failure
         run: python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
+
+      - name: Enrich official KCYCLE AI odds and results
+        shell: bash
+        run: |
+          if ! python race-sports/tools/kcycle_official_enricher.py; then
+            echo 'KCYCLE enrichment unavailable this cycle; fail-safe snapshot remains publishable'
+          fi
 
       - name: Enrich bull confirmed-card features
         shell: bash
@@ -161,7 +167,6 @@ jobs:
           set -euo pipefail
           git config user.name "race-sports-bot"
           git config user.email "actions@users.noreply.github.com"
-
           DATE=$(cat /tmp/race-sports-date.txt)
           git fetch origin main
           git reset --hard origin/main
@@ -169,11 +174,9 @@ jobs:
           mkdir -p race-sports/data/history
           cp "/tmp/race-sports-history/${DATE}.json" "race-sports/data/history/${DATE}.json"
           git add race-sports/data/today.json "race-sports/data/history/${DATE}.json"
-
           if git diff --cached --quiet; then
             echo "No data change"
             exit 0
           fi
-
           git commit -m "chore: refresh race sports static snapshot"
           git push origin HEAD:main
