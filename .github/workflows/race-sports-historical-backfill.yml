@@ -55,6 +55,7 @@ jobs:
 
       - name: Probe official KCYCLE historical result controls
         if: github.event_name == 'push'
+        continue-on-error: true
         run: python race-sports/tools/kcycle_result_route_probe.py
 
       - name: Quality-gate existing historical records
