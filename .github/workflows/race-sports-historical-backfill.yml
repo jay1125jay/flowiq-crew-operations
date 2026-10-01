@@ -7,6 +7,7 @@ on:
       - '.github/workflows/race-sports-historical-backfill.yml'
       - 'race-sports/tools/historical_backfill.py'
       - 'race-sports/tools/historical_backfill_runner.py'
+      - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/validate_horse_model.py'
   workflow_dispatch:
   schedule:
@@ -42,6 +43,27 @@ jobs:
       - name: Full quota backfill on schedule or manual run
         if: github.event_name != 'push'
         run: python race-sports/tools/historical_backfill_runner.py --horse-slice 625 --ksports-slice 625 --bull-slice 1125 --max-seconds 1500
+
+      - name: Retry transient Horse and KSPORTS provider gaps
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          p=Path('race-sports/data/historical_state/backfill_report.json')
+          if not p.exists():
+              raise SystemExit(0)
+          d=json.loads(p.read_text(encoding='utf-8'))
+          errs='\n'.join((d.get('new') or {}).get('errors') or [])
+          if 'HORSE ' in errs or 'CYCLE ' in errs or 'BOAT ' in errs:
+              subprocess.run([
+                  'python','race-sports/tools/historical_backfill_runner.py',
+                  '--horse-slice','40','--ksports-slice','80','--bull-slice','0','--max-seconds','120'
+              ], check=True)
+          PY
+
+      - name: Quality-gate stored historical records
+        run: python race-sports/tools/backfill_quality_guard.py
 
       - name: Walk-forward validate Horse model
         run: python race-sports/tools/validate_horse_model.py
