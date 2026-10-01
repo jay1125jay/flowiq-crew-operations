@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/race-sports-static-refresh.yml'
-      - 'race-sports/tools/kboat_static_collector.py'
+      - 'race-sports/tools/racing_static_collector.py'
   workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
@@ -27,8 +27,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Collect official KBOAT data
-        run: python race-sports/tools/kboat_static_collector.py
+      - name: Collect official 4-sport racing data
+        run: python race-sports/tools/racing_static_collector.py
       - name: Commit static snapshot
         run: |
           git config user.name "race-sports-bot"
