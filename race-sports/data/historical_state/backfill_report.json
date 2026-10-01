@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T07:50:42+09:00",
+  "generated_at": "2026-10-02T08:04:21+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME",
   "caps": {
     "horse": 2500,
@@ -7,14 +7,14 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 6,
-    "ksports": 21,
-    "bull": 60
+    "horse": 19,
+    "ksports": 27,
+    "bull": 62
   },
   "usage_before_run": {
-    "horse": 0,
-    "ksports": 0,
-    "bull": 0
+    "horse": 13,
+    "ksports": 24,
+    "bull": 62
   },
   "checkpoints": {
     "horse": {
@@ -26,35 +26,38 @@
       "complete": false
     },
     "boat": {
-      "cursor_date": "2026-09-24",
+      "cursor_date": "2026-09-22",
       "complete": false
     },
     "bull": {
       "year": 2026,
-      "round": 36,
-      "day": 1,
+      "round": 35,
+      "day": 2,
       "complete": false
     }
   },
   "new": {
-    "horse_records": 5,
+    "horse_records": 0,
     "horse_dates": 0,
     "cycle_records": 0,
     "cycle_dates": 0,
-    "boat_records": 34,
-    "boat_dates": 7,
-    "bull_records": 11,
-    "bull_cards": 1,
+    "boat_records": 0,
+    "boat_dates": 1,
+    "bull_records": 0,
+    "bull_cards": 0,
     "errors": [
       "HORSE 2026-09-27 M1 R6 URLError:<urlopen error timed out>",
-      "CYCLE 2026-09-27 URLError:<urlopen error [Errno -5] No address associated with hostname>"
+      "CYCLE 2026-09-27 HTTPError:HTTP Error 404: Not Found",
+      "BOAT 2026-09-23 card d1 URLError:<urlopen error timed out>",
+      "BOAT 2026-09-23 card d2 RuntimeError:TIME_BUDGET_EXHAUSTED",
+      "BOAT 2026-09-23 card d3 RuntimeError:TIME_BUDGET_EXHAUSTED"
     ]
   },
   "records_total": {
-    "horse": 5,
+    "horse": 0,
     "cycle": 0,
-    "boat": 34,
-    "bull": 11
+    "boat": 33,
+    "bull": 12
   },
   "quota_policy": "daily hard caps; four KST-day slices; KCYCLE/KBOAT share KSPORTS quota 50/50 unless completed",
   "runtime_policy": {
@@ -62,5 +65,29 @@
     "cycle": 0.15,
     "boat": 0.15,
     "bull": 0.3
+  },
+  "runtime_seconds": 45,
+  "quality_guard": {
+    "status": "PASS",
+    "rejected_total": 6,
+    "by_sport": {
+      "horse": {
+        "kept": 0,
+        "rejected": 6,
+        "retry_cursor_date": "2026-09-27"
+      },
+      "cycle": {
+        "kept": 0,
+        "rejected": 0
+      },
+      "boat": {
+        "kept": 33,
+        "rejected": 0
+      },
+      "bull": {
+        "kept": 12,
+        "rejected": 0
+      }
+    }
   }
 }
