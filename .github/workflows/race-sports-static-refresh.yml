@@ -8,6 +8,8 @@ on:
       - 'race-sports/tools/racing_static_collector.py'
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
+      - 'race-sports/tools/snapshot_guard.py'
+      - 'race-sports/tools/validate_snapshot.py'
   workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
@@ -30,11 +32,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Preserve previous same-day snapshot
+        shell: bash
+        run: |
+          if [ -f race-sports/data/today.json ]; then
+            cp race-sports/data/today.json /tmp/race-sports-prev.json
+          fi
+
       - name: Collect official 4-sport racing data
         shell: bash
         run: |
-          # The dedicated current-race odds collector below supersedes the older
-          # slow per-race KBOAT odds probes. Disable only that legacy branch at runtime.
+          # Dedicated KBOAT current-race odds watcher supersedes the older slow
+          # per-race odds probes in the main collector.
           python - <<'PY'
           from pathlib import Path
           p=Path('race-sports/tools/racing_static_collector.py')
@@ -45,8 +55,15 @@ jobs:
               p.write_text(s,encoding='utf-8')
           PY
           python race-sports/tools/racing_static_collector.py
+
+      - name: Recover last-known-good events on provider failure
+        shell: bash
+        run: |
+          python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
+
       - name: Capture current official KBOAT pre-race odds
         run: python race-sports/tools/kboat_live_odds.py
+
       - name: Inject official KBOAT AI probabilities
         shell: bash
         run: |
@@ -60,8 +77,12 @@ jobs:
             sleep 3
           done
           if [ "$ok" -ne 1 ]; then
-            echo "KBOAT AI unavailable this cycle; publishing official schedule/results without fabricated probabilities"
+            echo "KBOAT AI unavailable this cycle; preserving last-known-good model fields"
           fi
+
+      - name: Validate publish snapshot
+        run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
+
       - name: Publish static snapshot without rebase conflicts
         shell: bash
         run: |
