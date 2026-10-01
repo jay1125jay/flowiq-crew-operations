@@ -31,7 +31,20 @@ jobs:
         with:
           python-version: '3.12'
       - name: Collect official 4-sport racing data
-        run: python race-sports/tools/racing_static_collector.py
+        shell: bash
+        run: |
+          # The dedicated current-race odds collector below supersedes the older
+          # slow per-race KBOAT odds probes. Disable only that legacy branch at runtime.
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('race-sports/tools/racing_static_collector.py')
+          s=p.read_text(encoding='utf-8')
+          old='if -35<=delta<=120 and not r:'
+          if old in s:
+              s=s.replace(old,'if False and -35<=delta<=120 and not r:',1)
+              p.write_text(s,encoding='utf-8')
+          PY
+          python race-sports/tools/racing_static_collector.py
       - name: Capture current official KBOAT pre-race odds
         run: python race-sports/tools/kboat_live_odds.py
       - name: Inject official KBOAT AI probabilities
