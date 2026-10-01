@@ -1,9 +1,6 @@
 name: race-sports-own-ai
 
 on:
-  workflow_run:
-    workflows: ["race-sports-static-refresh"]
-    types: [completed]
   workflow_dispatch:
   push:
     branches: [main]
@@ -13,22 +10,18 @@ on:
       - 'race-sports/tools/cycle_boat_own_ai_ui_patch.py'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: race-sports-own-ai
-  cancel-in-progress: false
+  group: race-sports-own-ai-check
+  cancel-in-progress: true
 
 jobs:
-  own-ai:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+  own-ai-check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -37,7 +30,7 @@ jobs:
       - name: Self-test Cycle and Boat own AI
         run: python race-sports/tools/inject_cycle_boat_own_models.py --self-test
 
-      - name: Inject Cycle and Boat own AI probabilities
+      - name: Dry-run Cycle and Boat own AI probabilities
         run: python race-sports/tools/inject_cycle_boat_own_models.py
 
       - name: Patch UI for own AI labels and VALUE safety
@@ -63,24 +56,8 @@ jobs:
           PY
           node --check /tmp/race-sports-own-ai-live.js
 
-      - name: Persist own AI state and snapshot
+      - name: Check no repository mutation contract
         shell: bash
         run: |
-          set -euo pipefail
-          DATE=$(python - <<'PY'
-          import json
-          print(json.load(open('race-sports/data/today.json',encoding='utf-8'))['date'])
-          PY
-          )
-          mkdir -p race-sports/data/history race-sports/data/model_state
-          cp race-sports/data/today.json "race-sports/data/history/${DATE}.json"
-          git config user.name "race-sports-own-ai-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add race-sports/data/today.json race-sports/live.html "race-sports/data/history/${DATE}.json" race-sports/data/model_state/cycle_boat_own_predictions.json
-          if git diff --cached --quiet; then
-            echo "No own-AI change"
-            exit 0
-          fi
-          git commit -m "chore: refresh cycle and boat own AI"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          echo 'Own-AI production injection is handled by race-sports-static-refresh.'
+          echo 'This workflow is validation-only and never pushes commits.'
