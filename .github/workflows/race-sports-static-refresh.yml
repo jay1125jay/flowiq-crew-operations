@@ -100,6 +100,10 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/bull_official_enricher.py --self-test
 
+      - name: Test KRA official final runner odds parser
+        if: github.event_name == 'push'
+        run: python race-sports/tools/kra_official_enricher.py --self-test
+
       - name: Preserve previous same-day snapshot
         shell: bash
         run: |
@@ -131,7 +135,9 @@ jobs:
             echo 'KCYCLE enrichment unavailable this cycle; fail-safe snapshot remains publishable'
           fi
 
-      - name: Enrich official KRA runners and results
+      - name: Enrich official KRA runners pre-race odds and results
+        env:
+          KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
         shell: bash
         run: |
           if ! python race-sports/tools/kra_official_enricher.py; then
