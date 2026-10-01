@@ -11,8 +11,10 @@ on:
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
+      - 'race-sports/tools/kra_official_enricher.py'
       - 'race-sports/tools/bull_card_features.py'
       - 'race-sports/tools/inject_bull_model.py'
+      - 'race-sports/tools/ui_multisport_patch.py'
       - 'race-sports/tools/snapshot_guard.py'
       - 'race-sports/tools/validate_snapshot.py'
   workflow_dispatch:
@@ -29,7 +31,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +39,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Apply multisport UI adapters
+        run: python race-sports/tools/ui_multisport_patch.py
 
       - name: Validate UI JavaScript
         shell: bash
@@ -48,7 +53,7 @@ jobs:
           m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
           if not m: raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
           Path('/tmp/race-sports-live.js').write_text(m.group(1),encoding='utf-8')
-          for token in ['data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"','STALE_LAST_KNOWN_GOOD','setInterval(load,10000)']:
+          for token in ['data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"','STALE_LAST_KNOWN_GOOD','setInterval(load,10000)','KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL']:
               if token not in s: raise SystemExit('UI_TOKEN_MISSING:'+token)
           PY
           node --check /tmp/race-sports-live.js
@@ -80,9 +85,7 @@ jobs:
 
       - name: Test CPC bull feature parser on known historical card
         if: github.event_name == 'push'
-        shell: bash
-        run: |
-          python race-sports/tools/bull_card_features.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
+        run: python race-sports/tools/bull_card_features.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
 
       - name: Preserve previous same-day snapshot
         shell: bash
@@ -113,6 +116,13 @@ jobs:
         run: |
           if ! python race-sports/tools/kcycle_official_enricher.py; then
             echo 'KCYCLE enrichment unavailable this cycle; fail-safe snapshot remains publishable'
+          fi
+
+      - name: Enrich official KRA runners and results
+        shell: bash
+        run: |
+          if ! python race-sports/tools/kra_official_enricher.py; then
+            echo 'KRA enrichment unavailable this cycle; fail-safe snapshot remains publishable'
           fi
 
       - name: Enrich bull confirmed-card features
@@ -147,11 +157,12 @@ jobs:
       - name: Validate publish snapshot
         run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
 
-      - name: Prepare current and historical snapshots
+      - name: Prepare current historical and UI snapshots
         shell: bash
         run: |
           set -euo pipefail
           cp race-sports/data/today.json /tmp/race-sports-today.json
+          cp race-sports/live.html /tmp/race-sports-live.html
           DATE=$(python - <<'PY'
           import json
           print(json.load(open('race-sports/data/today.json',encoding='utf-8'))['date'])
@@ -171,9 +182,10 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           cp /tmp/race-sports-today.json race-sports/data/today.json
+          cp /tmp/race-sports-live.html race-sports/live.html
           mkdir -p race-sports/data/history
           cp "/tmp/race-sports-history/${DATE}.json" "race-sports/data/history/${DATE}.json"
-          git add race-sports/data/today.json "race-sports/data/history/${DATE}.json"
+          git add race-sports/data/today.json race-sports/live.html "race-sports/data/history/${DATE}.json"
           if git diff --cached --quiet; then
             echo "No data change"
             exit 0
