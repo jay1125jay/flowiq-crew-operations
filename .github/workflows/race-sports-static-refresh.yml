@@ -12,6 +12,8 @@ on:
       - 'race-sports/tools/inject_kboat_ai.py'
       - 'race-sports/tools/inject_horse_model.py'
       - 'race-sports/tools/horse_ui_safety_patch.py'
+      - 'race-sports/tools/inject_cycle_boat_own_models.py'
+      - 'race-sports/tools/cycle_boat_own_ai_ui_patch.py'
       - 'race-sports/tools/cycle_model_distribution_guard.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
@@ -48,9 +50,10 @@ jobs:
         shell: bash
         run: |
           if ! python race-sports/tools/ui_multisport_patch.py; then
-            echo 'Legacy UI patch sources already applied; continuing with horse safety patch'
+            echo 'Legacy UI patch sources already applied; continuing with current safety patches'
           fi
           python race-sports/tools/horse_ui_safety_patch.py
+          python race-sports/tools/cycle_boat_own_ai_ui_patch.py
 
       - name: Validate UI JavaScript
         shell: bash
@@ -66,7 +69,7 @@ jobs:
               'data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"',
               'STALE_LAST_KNOWN_GOOD','setInterval(load,10000)',
               'KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL','CPC_FINAL_SINGLE_AUTO','소싸움 3분류 모델',
-              'valueModelReady(e)','경마 AI MVP'
+              'valueModelReady(e)','경마 AI MVP','CYCLE_OWN_MODEL','BOAT_OWN_MODEL'
           ]:
               if token not in s: raise SystemExit('UI_TOKEN_MISSING:'+token)
           PY
@@ -113,9 +116,13 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/kra_official_enricher.py --self-test
 
-      - name: Test provisional Horse probability engine
+      - name: Test Horse probability engine
         if: github.event_name == 'push'
         run: python race-sports/tools/inject_horse_model.py --self-test
+
+      - name: Test Cycle and Boat own probability engines
+        if: github.event_name == 'push'
+        run: python race-sports/tools/inject_cycle_boat_own_models.py --self-test
 
       - name: Preserve previous same-day snapshot
         shell: bash
@@ -148,6 +155,9 @@ jobs:
             echo 'KCYCLE enrichment unavailable this cycle; fail-safe snapshot remains publishable'
           fi
 
+      - name: Guard incomplete KCYCLE distributions
+        run: python race-sports/tools/cycle_model_distribution_guard.py
+
       - name: Enrich official KRA runners pre-race odds and results
         env:
           KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
@@ -157,7 +167,7 @@ jobs:
             echo 'KRA enrichment unavailable this cycle; fail-safe snapshot remains publishable'
           fi
 
-      - name: Inject provisional Horse probabilities
+      - name: Inject Horse probabilities
         shell: bash
         run: |
           if ! python race-sports/tools/inject_horse_model.py; then
@@ -197,11 +207,15 @@ jobs:
             echo "KBOAT AI unavailable this cycle; preserving last-known-good model fields"
           fi
 
+      - name: Inject Cycle and Boat own AI probabilities
+        shell: bash
+        run: |
+          if ! python race-sports/tools/inject_cycle_boat_own_models.py; then
+            echo 'Cycle/Boat own AI unavailable this cycle; official card remains publishable'
+          fi
+
       - name: Inject validated Bull RED DRAW BLUE model
         run: python race-sports/tools/inject_bull_model.py
-
-      - name: Guard incomplete KCYCLE distributions
-        run: python race-sports/tools/cycle_model_distribution_guard.py
 
       - name: Validate publish snapshot
         run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
