@@ -1,0 +1,32 @@
+{
+  "model_source": "horse_empirical_bayes_v0.2",
+  "generated_at": "2026-10-02T07:50:42+09:00",
+  "input_races": 0,
+  "warmup_races": 0,
+  "walk_forward_races": 0,
+  "log_loss": null,
+  "uniform_log_loss": null,
+  "brier": null,
+  "uniform_brier": null,
+  "top1_accuracy": null,
+  "uniform_expected_top1": null,
+  "feature_whitelist": [
+    "horse_name",
+    "jockey",
+    "trainer",
+    "age",
+    "assigned_weight"
+  ],
+  "forbidden_postrace_fields": [
+    "final_rank",
+    "won",
+    "final_odds",
+    "final_place_odds",
+    "result",
+    "markets",
+    "body_weight"
+  ],
+  "leakage_guards": "PASS",
+  "eligible_for_value": false,
+  "promotion_rule": "walk_forward>=500 and logloss/brier beat uniform by >=0.5% and top1 beats uniform expectation by >5%"
+}
