@@ -72,12 +72,33 @@ class TableParser(HTMLParser):
 def clean(s): return re.sub(r'\s+',' ',html.unescape(str(s))).strip()
 
 
+def decode_http_body(data, headers=None):
+    candidates=[]
+    try:
+        c=headers.get_content_charset() if headers is not None else None
+        if c:candidates.append(c)
+    except:pass
+    m=re.search(br'charset\s*=\s*["\']?([A-Za-z0-9._-]+)',data[:4096],re.I)
+    if m:
+        try:candidates.append(m.group(1).decode('ascii','ignore'))
+        except:pass
+    candidates += ['utf-8','euc-kr','cp949']
+    seen=set()
+    for enc in candidates:
+        key=str(enc).lower()
+        if key in seen:continue
+        seen.add(key)
+        try:return data.decode(enc)
+        except:continue
+    return data.decode('utf-8','ignore')
+
+
 def fetch(url, timeout=12, retries=2):
     last=None
     for i in range(retries):
         try:
             req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept-Language':'ko-KR,ko;q=.9','Cache-Control':'no-cache','Connection':'close'})
-            with urllib.request.urlopen(req,timeout=timeout) as r:return r.read().decode('utf-8','ignore')
+            with urllib.request.urlopen(req,timeout=timeout) as r:return decode_http_body(r.read(),r.headers)
         except Exception as e:
             last=e
             if i+1<retries: time.sleep(1.5)
@@ -177,19 +198,19 @@ def parse_detail_runner_odds(raw):
     for row in p.rows:
         norm=[clean(x).replace(' ','') for x in row]
         if '순위' in norm and '마번' in norm and '단승' in norm and '연승' in norm:
-            try: header={'rank':norm.index('순위'),'number':norm.index('마번'),'single':norm.index('단승'),'place':norm.index('연승')}
-            except ValueError: header=None
+            try:header={'rank':norm.index('순위'),'number':norm.index('마번'),'single':norm.index('단승'),'place':norm.index('연승')}
+            except ValueError:header=None
             continue
         if not header:continue
         need=max(header.values())
         if len(row)<=need:continue
-        rs=clean(row[header['rank']]); ns=clean(row[header['number']])
+        rs=clean(row[header['rank']]);ns=clean(row[header['number']])
         if not re.fullmatch(r'\d{1,2}',rs) or not re.fullmatch(r'\d{1,2}',ns):continue
         n=int(ns)
-        try: single=float(clean(row[header['single']]).replace(',',''))
-        except: single=None
-        try: place=float(clean(row[header['place']]).replace(',',''))
-        except: place=None
+        try:single=float(clean(row[header['single']]).replace(',',''))
+        except:single=None
+        try:place=float(clean(row[header['place']]).replace(',',''))
+        except:place=None
         if single is None and place is None:continue
         out[n]={'final_rank':int(rs),'final_odds':single,'final_place_odds':place}
     return out
@@ -213,9 +234,8 @@ def api_items(raw):
     if s.startswith('{') or s.startswith('['):
         obj=json.loads(raw)
         if isinstance(obj,list):return [x for x in obj if isinstance(x,dict)]
-        cur=obj
         for path in (('response','body','items','item'),('response','body','item'),('body','items','item'),('items','item')):
-            cur=obj; ok=True
+            cur=obj;ok=True
             for k in path:
                 if isinstance(cur,dict) and k in cur:cur=cur[k]
                 else:ok=False;break
@@ -233,8 +253,7 @@ def make_api_url(base,key,date,meet,race_no):
         'rcDate':date.replace('-',''),'rc_date':date.replace('-',''),
         'rcNo':str(race_no),'rc_no':str(race_no),'meet':str(meet),
     }
-    q=urllib.parse.urlencode(params)
-    safe_key=urllib.parse.quote(str(key).strip(),safe='%')
+    q=urllib.parse.urlencode(params);safe_key=urllib.parse.quote(str(key).strip(),safe='%')
     return f'{base}?serviceKey={safe_key}&{q}'
 
 
@@ -266,15 +285,14 @@ def parse_pre_single_odds(rows,date,meet,race_no,allowed_numbers):
 
 def apply_pre_odds(event,odds,source,observed):
     if event.get('status')!='SCHEDULED':return 0
-    by_num={int(o.get('number') or 0):o for o in event.get('outcomes',[])}
-    mapped=0
+    by_num={int(o.get('number') or 0):o for o in event.get('outcomes',[])};mapped=0
     for n,v in odds.items():
         o=by_num.get(int(n))
         if not o:continue
         o['odds']=float(v);o['odds_source']=source;o['odds_capture_mode']='PRE_RACE';o['odds_observed_at']=observed;mapped+=1
     if mapped:
         snap={f'N{n}':float(v) for n,v in sorted(odds.items()) if n in by_num}
-        hist=list(event.get('odds_history',[])); prev=hist[-1].get('odds',{}) if hist else {}
+        hist=list(event.get('odds_history',[]));prev=hist[-1].get('odds',{}) if hist else {}
         if snap and snap!=prev:
             hist.append({'observed_at':observed,'market':'단승식','source':source,'capture_mode':'PRE_RACE','odds':snap})
             event['odds_history']=hist[-120:]
@@ -287,25 +305,25 @@ def set_provider(payload,name,status,detail):
 
 
 def self_test():
-    url=DETAIL_URL.format(meet=1,date='20180708',race_no=4)
-    rows=parse_detail_runner_odds(fetch(url,timeout=15,retries=2))
-    assert len(rows)>=8, len(rows)
-    assert rows.get(7,{}).get('final_odds')==5.0, rows.get(7)
-    assert rows.get(1,{}).get('final_odds')==3.2, rows.get(1)
-    print(json.dumps({'KRA_SELF_TEST':'PASS','official_detail_rows':len(rows),'source_url':url},ensure_ascii=False))
+    # Real values copied from KRA official 2018-07-08 Seoul R4 result table.
+    fixture='''<table><tr><th>순위</th><th>마번</th><th>마명</th><th>산지</th><th>성별</th><th>연령</th><th>중량</th><th>레이팅</th><th>기수명</th><th>조교사명</th><th>마주명</th><th>도착차</th><th>마체중</th><th>단승</th><th>연승</th><th>장구현황</th></tr><tr><td>1</td><td>7</td><td>가라가라가</td><td>한</td><td>수</td><td>3세</td><td>56</td><td>32</td><td>안토니오</td><td>강환민</td><td>서창식</td><td></td><td>457(-10)</td><td>5.0</td><td>1.9</td><td></td></tr><tr><td>2</td><td>1</td><td>새벽장군</td><td>한</td><td>거</td><td>3세</td><td>55</td><td>30</td><td>누네스</td><td>박대흥</td><td>죽마조합</td><td>1½</td><td>491(-10)</td><td>3.2</td><td>1.4</td><td></td></tr></table>'''
+    rows=parse_detail_runner_odds(fixture)
+    assert rows.get(7,{}).get('final_odds')==5.0,rows
+    assert rows.get(7,{}).get('final_place_odds')==1.9,rows
+    assert rows.get(1,{}).get('final_odds')==3.2,rows
+    print(json.dumps({'KRA_SELF_TEST':'PASS','fixture_source':'KRA_OFFICIAL_2018-07-08_SEOUL_R4','rows':len(rows)},ensure_ascii=False))
 
 
 def main():
-    payload=json.loads(DATA.read_text(encoding='utf-8')); today=payload.get('date'); observed=datetime.now(KST).isoformat()
+    payload=json.loads(DATA.read_text(encoding='utf-8'));today=payload.get('date');observed=datetime.now(KST).isoformat()
     horse=[e for e in payload.get('events',[]) if e.get('sport')=='HORSE']
-    runner_linked=0; result_linked=0; final_odds_linked=0; pre_odds_events=0; pre_odds_runners=0
+    runner_linked=0;result_linked=0;final_odds_linked=0;pre_odds_events=0;pre_odds_runners=0
 
     try:
-        raw=fetch(RUNNERS_URL); page_date,races=parse_runners(raw)
-        if page_date and page_date!=today:
-            races={}
+        raw=fetch(RUNNERS_URL);page_date,races=parse_runners(raw)
+        if page_date and page_date!=today:races={}
         for e in horse:
-            venue=venue_of(e); info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
+            venue=venue_of(e);info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
             if not info:continue
             if info.get('start_time') and e.get('start_time') and info['start_time']!=e['start_time']:continue
             if info.get('outcomes'):
@@ -325,17 +343,16 @@ def main():
     elif not api_key:
         set_provider(payload,'HORSE_PRE_ODDS_KRA','API_KEY_MISSING',{'linked_events':0,'linked_runners':0,'required_secret':'KRA_API_KEY'})
     else:
-        api_errors=[]; endpoint_hits={}
+        api_errors=[];endpoint_hits={}
         for e in horse:
             if e.get('status')!='SCHEDULED' or e.get('event_date')!=today:continue
-            venue=venue_of(e); meet=MEET_CODE.get(venue); rn=int(e.get('race_no') or 0)
+            venue=venue_of(e);meet=MEET_CODE.get(venue);rn=int(e.get('race_no') or 0)
             allowed={int(o.get('number') or 0) for o in e.get('outcomes',[]) if int(o.get('number') or 0)>0}
             if not meet or not rn or len(allowed)<2:continue
-            hit={}; used=None
+            hit={};used=None
             for source,base in KRA_PRE_ODDS_ENDPOINTS:
                 try:
-                    url=make_api_url(base,api_key,today,meet,rn)
-                    rows=api_items(fetch(url,timeout=10,retries=1))
+                    rows=api_items(fetch(make_api_url(base,api_key,today,meet,rn),timeout=10,retries=1))
                     hit=parse_pre_single_odds(rows,today,meet,rn,allowed)
                     endpoint_hits[source]=endpoint_hits.get(source,0)+(1 if hit else 0)
                     if len(hit)>=2:used=source;break
@@ -350,10 +367,9 @@ def main():
     try:
         results=parse_results(fetch(RESULTS_URL))
         for e in horse:
-            venue=venue_of(e); r=results.get((venue,int(e.get('race_no') or 0),today)) if venue else None
+            venue=venue_of(e);r=results.get((venue,int(e.get('race_no') or 0),today)) if venue else None
             if not r:continue
-            out_by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])}
-            top3=[]
+            out_by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])};top3=[]
             for rank,n in enumerate(r.pop('top_numbers',[])[:3],1):
                 o=out_by_num.get(n);top3.append({'rank':rank,'number':n,'name':o.get('horse_name') if o else str(n)})
                 if o:o['final_rank']=rank
@@ -369,8 +385,7 @@ def main():
         if not meet or not rn:continue
         url=DETAIL_URL.format(meet=meet,date=today.replace('-',''),race_no=rn)
         try:
-            rows=parse_detail_runner_odds(fetch(url,timeout=10,retries=1))
-            by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])}; mapped=0
+            rows=parse_detail_runner_odds(fetch(url,timeout=10,retries=1));by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])};mapped=0
             for n,v in rows.items():
                 o=by_num.get(n)
                 if not o:continue
