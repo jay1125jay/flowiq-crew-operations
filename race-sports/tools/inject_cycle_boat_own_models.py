@@ -8,6 +8,7 @@ from pathlib import Path
 
 DATA = Path('race-sports/data/today.json')
 HISTORY = Path('race-sports/data/history')
+BACKFILL = Path('race-sports/data/backfill')
 STATE = Path('race-sports/data/model_state/cycle_boat_own_predictions.json')
 KST = timezone(timedelta(hours=9))
 
@@ -48,7 +49,7 @@ def safe_float(v):
 
 
 def participant_name(o):
-    s = str(o.get('name') or '').strip()
+    s = str(o.get('rider_name') or o.get('racer_name') or o.get('name') or '').strip()
     s = re.sub(r'^\s*\d+\s*', '', s).strip()
     return s or None
 
@@ -90,33 +91,67 @@ def history_docs(today_date):
     return docs
 
 
+def iter_backfill(sport):
+    d = BACKFILL / sport.lower()
+    if not d.exists():
+        return
+    for p in sorted(d.glob('*.jsonl')):
+        try:
+            with p.open('r', encoding='utf-8') as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    try:
+                        e = json.loads(line)
+                    except Exception:
+                        continue
+                    if e.get('sport') == sport and e.get('status') == 'FINAL':
+                        yield e
+        except Exception:
+            continue
+
+
 def build_stats(docs, sport):
     entity = defaultdict(lambda: [0, 0])
     lane = defaultdict(lambda: [0, 0])
     total_starts = total_wins = labeled_races = 0
+    seen = set()
+
+    def consume(e):
+        nonlocal total_starts, total_wins, labeled_races
+        if e.get('id'):
+            seen.add(e.get('id'))
+        race_labeled = False
+        for o in e.get('outcomes') or []:
+            r = rank_of(e, o)
+            if r is None:
+                continue
+            race_labeled = True
+            win = 1 if r == 1 else 0
+            total_starts += 1
+            total_wins += win
+            name = participant_name(o)
+            num = number_of(o)
+            if name:
+                entity[name][0] += 1
+                entity[name][1] += win
+            if num is not None:
+                lane[num][0] += 1
+                lane[num][1] += win
+        if race_labeled:
+            labeled_races += 1
+
+    for e in iter_backfill(sport) or []:
+        consume(e)
+
     for d in docs:
         for e in d.get('events') or []:
             if e.get('sport') != sport or e.get('status') != 'FINAL':
                 continue
-            race_labeled = False
-            for o in e.get('outcomes') or []:
-                r = rank_of(e, o)
-                if r is None:
-                    continue
-                race_labeled = True
-                win = 1 if r == 1 else 0
-                total_starts += 1
-                total_wins += win
-                name = participant_name(o)
-                num = number_of(o)
-                if name:
-                    entity[name][0] += 1
-                    entity[name][1] += win
-                if num is not None:
-                    lane[num][0] += 1
-                    lane[num][1] += win
-            if race_labeled:
-                labeled_races += 1
+            if e.get('id') and e.get('id') in seen:
+                continue
+            consume(e)
+
     base = (total_wins / total_starts) if total_starts else (1.0 / (7.0 if sport == 'CYCLE' else 6.0))
     return entity, lane, base, total_starts, labeled_races
 
@@ -217,10 +252,7 @@ def trim_state(state, today_text, keep_days=90):
         cutoff = (datetime.strptime(today_text, '%Y-%m-%d') - timedelta(days=keep_days)).strftime('%Y-%m-%d')
     except Exception:
         return
-    state['predictions'] = {
-        k: v for k, v in state.get('predictions', {}).items()
-        if str(v.get('date') or '') >= cutoff
-    }
+    state['predictions'] = {k: v for k, v in state.get('predictions', {}).items() if str(v.get('date') or '') >= cutoff}
 
 
 def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
@@ -240,6 +272,7 @@ def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
         'own_history_weight': round(min(1.0, labeled_races / cfg['full_own_races']), 4),
         'official_seed_policy': 'USE_OFFICIAL_AI_AS_PRIOR_UNTIL_OWN_HISTORY_MATURES',
         'official_ai_preserved': True,
+        'backfill_source': str(BACKFILL / sport.lower()),
         'pre_race_prediction_state': str(STATE),
         'updated_at': datetime.now(KST).isoformat(timespec='seconds'),
     })
@@ -252,14 +285,12 @@ def apply_sport(doc, sport, state):
     updated = 0
     events = 0
     carried = 0
-
     for e in doc.get('events') or []:
         if e.get('sport') != sport:
             continue
         events += 1
         outcomes = e.get('outcomes') or []
         status = e.get('status')
-
         if status == 'SCHEDULED':
             probs, history_weight, seeded = score_race(e, entity, lane, base, labeled_races, cfg)
             if len(probs) != len(outcomes) or not probs:
@@ -299,7 +330,6 @@ def apply_sport(doc, sport, state):
                 e['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
                 e['model_validated'] = False
                 e['value_enabled'] = False
-
     status = 'PROVISIONAL' if events else 'NO_TODAY_CARD'
     set_provider(doc, sport, status, updated, labeled_runners, labeled_races)
     return updated, events, labeled_runners, labeled_races, carried
@@ -307,44 +337,26 @@ def apply_sport(doc, sport, state):
 
 def self_test():
     for sport, n in [('CYCLE', 7), ('BOAT', 6)]:
-        raw = [float(i) for i in range(1, n + 1)]
-        raw = normalize(raw)
-        doc = {
-            'date': '2099-01-01',
-            'events': [{
-                'id': f'{sport}-TEST-1', 'sport': sport, 'status': 'SCHEDULED',
-                'outcomes': [
-                    {'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}', 'model_p': raw[i - 1], 'model_source': CONFIG[sport]['official_source']}
-                    for i in range(1, n + 1)
-                ]
-            }],
-            'providers': []
-        }
+        raw = normalize([float(i) for i in range(1, n + 1)])
+        doc = {'date': '2099-01-01','events': [{'id': f'{sport}-TEST-1','sport': sport,'status': 'SCHEDULED','outcomes': [{'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}', 'model_p': raw[i - 1], 'model_source': CONFIG[sport]['official_source']} for i in range(1, n + 1)]}],'providers': []}
         state = {'version': 2, 'predictions': {}}
         updated, events, _, _, _ = apply_sport(doc, sport, state)
         vals = [o['model_p'] for o in doc['events'][0]['outcomes']]
-        assert events == 1 and updated == n
-        assert abs(sum(vals) - 1.0) < 1e-6, (sport, vals, sum(vals))
-        assert all(0.0 <= x <= 1.0 for x in vals)
-        assert all(o.get('official_ai_p') is not None for o in doc['events'][0]['outcomes'])
-        assert len(state['predictions']) == n
+        assert events == 1 and updated == n and abs(sum(vals) - 1.0) < 1e-6 and all(0.0 <= x <= 1.0 for x in vals)
+        assert all(o.get('official_ai_p') is not None for o in doc['events'][0]['outcomes']) and len(state['predictions']) == n
         doc['events'][0]['status'] = 'FINAL'
         for o in doc['events'][0]['outcomes']:
-            o.pop('model_p', None)
-            o.pop('model_source', None)
+            o.pop('model_p', None);o.pop('model_source', None)
         _, _, _, _, carried = apply_sport(doc, sport, state)
-        assert carried == n
-        assert all(o.get('model_source') == CONFIG[sport]['source'] for o in doc['events'][0]['outcomes'])
+        assert carried == n and all(o.get('model_source') == CONFIG[sport]['source'] for o in doc['events'][0]['outcomes'])
     print('CYCLE_BOAT_OWN_MODEL_SELF_TEST=PASS')
 
 
 def main():
     if '--self-test' in sys.argv:
-        self_test()
-        return
+        self_test();return
     doc = json.loads(DATA.read_text(encoding='utf-8'))
-    state = load_state()
-    state['version'] = 2
+    state = load_state();state['version'] = 2
     for sport in ('CYCLE', 'BOAT'):
         updated, events, labeled_runners, labeled_races, carried = apply_sport(doc, sport, state)
         print(f'{sport}_OWN_MODEL={"PROVISIONAL" if events else "NO_TODAY_CARD"}')
