@@ -5,8 +5,10 @@ from datetime import datetime, timezone, timedelta
 
 import historical_backfill as hb
 import historical_backfill_hardening as hardening
+import historical_cycle_result_fallback as cycle_result_fallback
 
 hardening.install(hb)
+cycle_result_fallback.install(hb)
 
 KST=timezone(timedelta(hours=9))
 
@@ -22,9 +24,6 @@ def main():
     state=hb.load_state()
     today=datetime.now(KST).date().isoformat()
     start=time.monotonic()
-    # Respect the workflow's requested runtime. A small floor only protects
-    # against accidental zero/negative values; smoke/retry jobs must not be
-    # silently expanded to five minutes.
     total=max(30,args.max_seconds)
     budget=hb.Budget(state,today,{
         'horse':max(0,args.horse_slice),
@@ -41,7 +40,6 @@ def main():
     }
     before=dict(budget.ledger)
 
-    # Hard runtime partitions prevent any single provider from starving others.
     horse_end=start+total*0.40
     cycle_end=start+total*0.55
     boat_end=start+total*0.70
@@ -82,7 +80,7 @@ def main():
         'runtime_seconds':total,
         'hardening':{
             'horse':'STRICT_RENDERED_RACE_AND_ROW_QUALITY_BEFORE_PERSIST',
-            'cycle':'404_NON_MEETING_ADVANCES_CHECKPOINT_TRANSIENT_ERRORS_RETRY',
+            'cycle':'DATE_SAFE_RESULT_URL_FALLBACK_AND_NON_MEETING_ADVANCE',
         },
     }
     hb.REPORT_FILE.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
