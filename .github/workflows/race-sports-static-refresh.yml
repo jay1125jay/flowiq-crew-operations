@@ -10,6 +10,7 @@ on:
       - 'race-sports/tools/racing_static_collector.py'
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
+      - 'race-sports/tools/inject_horse_model.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
       - 'race-sports/tools/bull_model_features_v130.py'
@@ -104,6 +105,10 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/kra_official_enricher.py --self-test
 
+      - name: Test provisional Horse probability engine
+        if: github.event_name == 'push'
+        run: python race-sports/tools/inject_horse_model.py --self-test
+
       - name: Preserve previous same-day snapshot
         shell: bash
         run: |
@@ -142,6 +147,13 @@ jobs:
         run: |
           if ! python race-sports/tools/kra_official_enricher.py; then
             echo 'KRA enrichment unavailable this cycle; fail-safe snapshot remains publishable'
+          fi
+
+      - name: Inject provisional Horse probabilities
+        shell: bash
+        run: |
+          if ! python race-sports/tools/inject_horse_model.py; then
+            echo 'Horse probability engine unavailable this cycle; keeping official KRA card publishable'
           fi
 
       - name: Build current Bull v1.3 model features
