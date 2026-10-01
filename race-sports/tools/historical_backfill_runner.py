@@ -19,11 +19,14 @@ def main():
     state=hb.load_state()
     today=datetime.now(KST).date().isoformat()
     start=time.monotonic()
-    total=max(300,args.max_seconds)
+    # Respect the workflow's requested runtime. A small floor only protects
+    # against accidental zero/negative values; smoke/retry jobs must not be
+    # silently expanded to five minutes.
+    total=max(30,args.max_seconds)
     budget=hb.Budget(state,today,{
-        'horse':args.horse_slice,
-        'ksports':args.ksports_slice,
-        'bull':args.bull_slice,
+        'horse':max(0,args.horse_slice),
+        'ksports':max(0,args.ksports_slice),
+        'bull':max(0,args.bull_slice),
     },start+total)
     seen={s:hb.existing_ids(s) for s in ('horse','cycle','boat','bull')}
     stats={
@@ -42,7 +45,8 @@ def main():
     bull_end=start+total
 
     budget.deadline=horse_end
-    hb.backfill_horse(state,budget,seen['horse'],stats)
+    if budget.available('horse')>0:
+        hb.backfill_horse(state,budget,seen['horse'],stats)
 
     shared_remaining=budget.available('ksports')
     cycle_calls=(shared_remaining+1)//2
@@ -72,6 +76,7 @@ def main():
         'records_total':{s:len(seen[s]) for s in seen},
         'quota_policy':'daily hard caps; four KST-day slices; KCYCLE/KBOAT share KSPORTS quota 50/50 unless completed',
         'runtime_policy':{'horse':0.40,'cycle':0.15,'boat':0.15,'bull':0.30},
+        'runtime_seconds':total,
     }
     hb.REPORT_FILE.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'HISTORICAL_BACKFILL':'PASS',**report},ensure_ascii=False))
