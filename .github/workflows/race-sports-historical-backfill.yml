@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: race-sports-historical-backfill
@@ -91,3 +92,8 @@ jobs:
             git pull --rebase origin main
           done
           git push origin HEAD:main
+
+      - name: Dispatch live AI refresh after backfill
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run race-sports-static-refresh.yml --ref main
