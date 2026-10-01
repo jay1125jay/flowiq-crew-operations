@@ -3,12 +3,24 @@ from pathlib import Path
 P = Path('race-sports/live.html')
 
 
+def already_applied(s, label):
+    checks = {
+        'model state': "providerStatus('HORSE_MODEL')",
+        'label': '경마 AI MVP',
+        'runner value gate': "valueModelReady(e)&&e.status==='SCHEDULED'",
+        'value list gate': "fresh(e)&&valueModelReady(e)&&e.status==='SCHEDULED'",
+        'footer': '경마 AI MVP 검증 중 · VALUE 비활성',
+        'settings': 'KRA 공식데이터 · 경마 AI MVP',
+        'kra odds source guard': "const kraOdds=['KRA_API301_OFFICIAL','KRA_API28_OFFICIAL'].includes(src);",
+    }
+    token = checks.get(label)
+    return bool(token and token in s)
+
+
 def swap(s, old, new, label):
-    if new in s:
+    if new in s or already_applied(s, label):
         return s, False
     if old not in s:
-        if label == 'kra odds source guard' and "const kraOdds=['KRA_API301_OFFICIAL','KRA_API28_OFFICIAL'].includes(src);" in s:
-            return s, False
         raise SystemExit('HORSE_UI_SOURCE_NOT_FOUND:' + label)
     return s.replace(old, new, 1), True
 
