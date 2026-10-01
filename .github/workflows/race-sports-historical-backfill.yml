@@ -36,9 +36,12 @@ jobs:
       - name: Self-test backfill parser
         run: python race-sports/tools/historical_backfill.py --self-test
 
+      - name: Quality-gate existing historical records
+        run: python race-sports/tools/backfill_quality_guard.py
+
       - name: Smoke backfill on code changes
         if: github.event_name == 'push'
-        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 40 --ksports-slice 40 --bull-slice 60 --max-seconds 180
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 20 --ksports-slice 30 --bull-slice 30 --max-seconds 45
 
       - name: Full quota backfill on schedule or manual run
         if: github.event_name != 'push'
@@ -58,11 +61,11 @@ jobs:
           if 'HORSE ' in errs or 'CYCLE ' in errs or 'BOAT ' in errs:
               subprocess.run([
                   'python','race-sports/tools/historical_backfill_runner.py',
-                  '--horse-slice','40','--ksports-slice','80','--bull-slice','0','--max-seconds','120'
+                  '--horse-slice','20','--ksports-slice','40','--bull-slice','0','--max-seconds','45'
               ], check=True)
           PY
 
-      - name: Quality-gate stored historical records
+      - name: Quality-gate newly collected historical records
         run: python race-sports/tools/backfill_quality_guard.py
 
       - name: Walk-forward validate Horse model
