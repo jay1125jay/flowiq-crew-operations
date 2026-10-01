@@ -7,6 +7,8 @@ def swap(s, old, new, label):
     if new in s:
         return s, False
     if old not in s:
+        if label == 'kra odds source guard' and "const kraOdds=['KRA_API301_OFFICIAL','KRA_API28_OFFICIAL'].includes(src);" in s:
+            return s, False
         raise SystemExit('HORSE_UI_SOURCE_NOT_FOUND:' + label)
     return s.replace(old, new, 1), True
 
@@ -45,12 +47,19 @@ def main():
             '<div class="kv"><span>경마</span><span>KRA 공식데이터 · 경마 AI MVP 확률표시 · 검증 중 · VALUE 비활성</span></div>',
             'settings',
         ),
+        (
+            "function preOdds(o){const src=String(o.odds_source||'');const mode=String(o.odds_capture_mode||'');const sourceOk=['KBOAT_FINAL_SINGLE_AUTO','KCYCLE_FINAL_SINGLE_AUTO','KRA_FINAL_SINGLE_AUTO','CPC_FINAL_SINGLE_AUTO'].includes(src)||src.startsWith('KRA_API');const modeOk=mode==='PRE_RACE_OFFICIAL'||(src.startsWith('KRA_API')&&mode==='PRE_RACE');return Number(o.odds)>0&&sourceOk&&modeOk}",
+            "function preOdds(o){const src=String(o.odds_source||'');const mode=String(o.odds_capture_mode||'');const kraOdds=['KRA_API301_OFFICIAL','KRA_API28_OFFICIAL'].includes(src);const sourceOk=['KBOAT_FINAL_SINGLE_AUTO','KCYCLE_FINAL_SINGLE_AUTO','KRA_FINAL_SINGLE_AUTO','CPC_FINAL_SINGLE_AUTO'].includes(src)||kraOdds;const modeOk=mode==='PRE_RACE_OFFICIAL'||(kraOdds&&mode==='PRE_RACE');return Number(o.odds)>0&&sourceOk&&modeOk}",
+            'kra odds source guard',
+        ),
     ]
     for old, new, label in patches:
         s, c = swap(s, old, new, label)
         changed = changed or c
     if 'valueModelReady(e)' not in s or '경마 AI MVP' not in s:
         raise SystemExit('HORSE_UI_SAFETY_VERIFY_FAIL')
+    if "src.startsWith('KRA_API')" in s:
+        raise SystemExit('HORSE_UI_KRA_ODDS_GUARD_FAIL')
     if changed:
         P.write_text(s, encoding='utf-8')
     print('HORSE_UI_SAFETY_PATCH=' + ('UPDATED' if changed else 'ALREADY_APPLIED'))
