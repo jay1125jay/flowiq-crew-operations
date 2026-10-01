@@ -60,6 +60,21 @@ def main():
             "foot=!fresh(e)?'직전 정상 스냅샷 유지 · 추천 비활성':!modelFresh(e)?'AI 지연 · 직전 정상확률 유지 · 추천 비활성':e.status==='FINAL'?'종료 · 추천 비활성':hasOdds?'경기전 공식 단승배당':'경기전 배당 공개 대기'",
             'event foot model freshness',
         ),
+        (
+            "function preOdds(o){return Number(o.odds)>0&&['KBOAT_FINAL_SINGLE_AUTO','KCYCLE_FINAL_SINGLE_AUTO','KRA_FINAL_SINGLE_AUTO','CPC_FINAL_SINGLE_AUTO'].includes(o.odds_source)&&o.odds_capture_mode==='PRE_RACE_OFFICIAL'}",
+            "function preOdds(o){const src=String(o.odds_source||'');const mode=String(o.odds_capture_mode||'');const sourceOk=['KBOAT_FINAL_SINGLE_AUTO','KCYCLE_FINAL_SINGLE_AUTO','KRA_FINAL_SINGLE_AUTO','CPC_FINAL_SINGLE_AUTO'].includes(src)||src.startsWith('KRA_API');const modeOk=mode==='PRE_RACE_OFFICIAL'||(src.startsWith('KRA_API')&&mode==='PRE_RACE');return Number(o.odds)>0&&sourceOk&&modeOk}",
+            'KRA official pre-race odds recognition',
+        ),
+        (
+            "<span class=\"num odds\">${fresh(e)&&preOdds(o)?d.toFixed(1):'—'}</span>",
+            "<span class=\"num odds\">${e.status==='FINAL'&&Number(o.final_odds)>0?Number(o.final_odds).toFixed(1):fresh(e)&&preOdds(o)?d.toFixed(1):'—'}</span>",
+            'final runner odds rendering',
+        ),
+        (
+            '<div class="kv"><span>경마</span><span>KRA 출전표·결과 연결 · 자체 확률모델 검증 대기</span></div>',
+            '<div class="kv"><span>경마</span><span>KRA 출전표·경기전 단승배당·결과·확정배당 연결 · 자체 확률모델 검증 대기</span></div>',
+            'settings KRA odds status',
+        ),
     ]
     for old, new, label in patches:
         s, c = replace_once(s, old, new, label)
