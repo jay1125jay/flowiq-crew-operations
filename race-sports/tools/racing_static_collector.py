@@ -1,16 +1,36 @@
-import json,re,html,urllib.request
+import json,re,html,urllib.request,time
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 
 KST=timezone(timedelta(hours=9))
 UA='Mozilla/5.0 (RACE SPORTS ANALYTICS GitHub official-readonly)'
+KBOAT_UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 OUT=Path('race-sports/data/today.json')
 
 def now(): return datetime.now(KST)
-def fetch(url,timeout=15):
-    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept-Language':'ko-KR,ko;q=.9'})
-    with urllib.request.urlopen(req,timeout=timeout) as r:
-        return r.read().decode('utf-8','ignore')
+def fetch(url,timeout=15,headers=None,retries=1):
+    h={'User-Agent':UA,'Accept-Language':'ko-KR,ko;q=.9'}
+    if headers:h.update(headers)
+    last=None
+    for i in range(max(1,retries)):
+        try:
+            req=urllib.request.Request(url,headers=h)
+            with urllib.request.urlopen(req,timeout=timeout) as r:
+                return r.read().decode('utf-8','ignore')
+        except Exception as e:
+            last=e
+            if i+1<max(1,retries):time.sleep(1.2*(i+1))
+    raise last
+
+def kboat_fetch(url,timeout=15,retries=3):
+    return fetch(url,timeout=timeout,retries=retries,headers={
+        'User-Agent':KBOAT_UA,
+        'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language':'ko-KR,ko;q=.9,en;q=.7',
+        'Connection':'close',
+        'Cache-Control':'no-cache'
+    })
+
 def textify(s):
     s=re.sub(r'<script[\s\S]*?</script>',' ',s,flags=re.I)
     s=re.sub(r'<style[\s\S]*?</style>',' ',s,flags=re.I)
@@ -39,10 +59,21 @@ def selected_date(raw,y):
     return None
 
 def parse_single_odds(raw,race_no):
+    # Official KBOAT final-odds HTML has a dedicated <h3>단승식</h3> table.
+    h=re.search(r'<h3[^>]*>\s*단승식\s*</h3>',raw,re.I)
+    if h:
+        sec=raw[h.end():h.end()+8000]
+        tb=re.search(r'<tbody[^>]*>([\s\S]*?)</tbody>',sec,re.I)
+        if tb:
+            vals=[]
+            for cell in re.findall(r'<td[^>]*>([\s\S]*?)</td>',tb.group(1),re.I):
+                s=textify(cell).replace(',','').strip()
+                m=re.search(r'(?<!\d)(\d+(?:\.\d+)?)(?!\d)',s)
+                if m: vals.append(float(m.group(1)))
+                if len(vals)>=6: break
+            if len(vals)==6 and all(v>0 for v in vals): return vals
+    # Text fallback for minor markup changes.
     t=textify(raw)
-    if not re.search(rf'제\s*0?{race_no}경주\s*\(출발시간\s*(\d{{1,2}}:\d{{2}})\)',t):
-        return None
-    # KBOAT 최종배당률 표: 단승식 -> 1 2 3 4 5 6 -> six odds values.
     pat=(r'단승식\s+1\s+2\s+3\s+4\s+5\s+6\s+'
          r'(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+'
          r'(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)')
@@ -50,14 +81,6 @@ def parse_single_odds(raw,race_no):
     if hits:
         vals=[float(x) for x in hits[-1].groups()]
         if len(vals)==6 and all(v>0 for v in vals): return vals
-    # Fallback for minor markup changes: locate a sequence 1..6 after a 단승식 heading.
-    for m in re.finditer(r'단승식',t):
-        seg=t[m.end():m.end()+1200]
-        nums=[float(x) for x in re.findall(r'(?<![\d.])\d+(?:\.\d+)?(?![\d.])',seg)]
-        for i in range(max(0,len(nums)-11)):
-            if all(nums[i+k]==k+1 for k in range(6)):
-                vals=nums[i+6:i+12]
-                if len(vals)==6 and all(v>0 for v in vals): return vals
     return None
 
 def parse_boat_results(raw):
@@ -76,12 +99,41 @@ def parse_boat_results(raw):
         out[rn]={'official':True,'status':'CONFIRMED','top3':top3,'markets':[{'market':names[k],**bets[k]} for k in range(min(len(bets),len(names)))],'source':'KBOAT_RESULT_OFFICIAL'}
     return out
 
+def prior_events(date):
+    if not OUT.exists():return {}
+    try:
+        p=json.loads(OUT.read_text(encoding='utf-8'))
+        if p.get('date')!=date:return {}
+        return {e.get('id'):e for e in p.get('events',[]) if e.get('id')}
+    except:return {}
+
+def carry_prior_odds(event,old):
+    if not old:return
+    old_out={o.get('key'):o for o in old.get('outcomes',[])}
+    for o in event.get('outcomes',[]):
+        q=old_out.get(o.get('key'),{})
+        for k in ('odds','odds_source','odds_observed_at'):
+            if q.get(k) is not None:o[k]=q[k]
+    if old.get('odds_history'):event['odds_history']=old['odds_history'][-120:]
+
+def apply_odds(event,vals,z):
+    snap={f'N{i+1}':float(vals[i]) for i in range(min(6,len(vals)))}
+    hist=list(event.get('odds_history',[]))
+    prev=hist[-1].get('odds',{}) if hist else {}
+    if prev!=snap:
+        hist.append({'observed_at':z.isoformat(),'market':'단승식','source':'KBOAT_FINAL_SINGLE_AUTO','odds':snap})
+        event['odds_history']=hist[-120:]
+    for o in event.get('outcomes',[]):
+        n=int(o.get('number') or 0)
+        if 1<=n<=6:
+            o['odds']=float(vals[n-1]);o['odds_source']='KBOAT_FINAL_SINGLE_AUTO';o['odds_observed_at']=z.isoformat()
+
 def collect_boat(z,errors):
     date=z.strftime('%Y-%m-%d'); y=z.year; w=z.isocalendar().week; events=[]; day_used=None
     for day in (1,2,3):
         url=f'https://www.kboat.or.kr/race/card/decision/{y}/{w}/{day}'
         try:
-            raw=fetch(url); sd=selected_date(raw,y)
+            raw=kboat_fetch(url,retries=2); sd=selected_date(raw,y)
             if sd!=date:continue
             t=textify(raw); hs=list(re.finditer(r'제\s*(\d{2})경주\s*\(출발시간\s*(\d{1,2}:\d{2})\)',t))
             for i,a in enumerate(hs):
@@ -94,9 +146,11 @@ def collect_boat(z,errors):
                 events.append({'id':f'BOAT-{date.replace("-","")}-{w}-{day}-{rn:02d}','sport':'BOAT','provider':'KBOAT','competition':f'미사리 경정 {w}회차 {day}일차','event_date':date,'start_time':tm,'race_no':rn,'status':'SCHEDULED','title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[{'key':f'N{n}','name':f'{n} {rr[n]}','number':n,'model_p':None} for n in sorted(rr)],'source_url':url})
             day_used=day;break
         except Exception as e:errors.append(f'BOAT card day{day}:{e}')
+    oldmap=prior_events(date)
+    for e in events:carry_prior_odds(e,oldmap.get(e['id']))
     results={}
     if day_used and events:
-        try:results=parse_boat_results(fetch(f'https://www.kboat.or.kr/race/result/general/{y}/{w}/{day_used}/01'))
+        try:results=parse_boat_results(kboat_fetch(f'https://www.kboat.or.kr/race/result/general/{y}/{w}/{day_used}/01',retries=2))
         except Exception as e:errors.append(f'BOAT result:{e}')
         cur=z.hour*60+z.minute
         for e in events:
@@ -109,14 +163,13 @@ def collect_boat(z,errors):
             hh,mm=map(int,e['start_time'].split(':')); delta=hh*60+mm-cur
             if -35<=delta<=120 and not r:
                 try:
-                    vals=parse_single_odds(fetch(f'https://www.kboat.or.kr/race/dividendrate/final/{y}/{w}/{day_used}/{e["race_no"]}'),e['race_no'])
-                    if vals:
-                        for o in e['outcomes']:
-                            n=o['number']
-                            if 1<=n<=6:
-                                o['odds']=vals[n-1];o['odds_source']='KBOAT_FINAL_SINGLE_AUTO';o['odds_observed_at']=z.isoformat()
+                    odds_url=f'https://kboat.or.kr/race/dividendrate/final/{y}/{w}/{day_used}/{e["race_no"]:02d}'
+                    vals=parse_single_odds(kboat_fetch(odds_url,timeout=12,retries=3),e['race_no'])
+                    if vals:apply_odds(e,vals,z)
+                    else:errors.append(f'BOAT odds {e["race_no"]}:NO_SINGLE_TABLE')
                 except Exception as x:errors.append(f'BOAT odds {e["race_no"]}:{x}')
-    providers=[{'provider':'BOAT_KBOAT','status':'PASS' if events else 'NO_TODAY_CARD','detail':{'week':w,'day':day_used,'published':len(events)}},{'provider':'BOAT_RESULT_KBOAT','status':'PASS','detail':{'confirmed':len(results)}},{'provider':'BOAT_ODDS_KBOAT','status':'PASS','detail':{'market':'단승식','window':'경기 120분 전~35분 후'}}]
+    odds_events=sum(1 for e in events if any(float(o.get('odds',0) or 0)>0 for o in e.get('outcomes',[])))
+    providers=[{'provider':'BOAT_KBOAT','status':'PASS' if events else 'NO_TODAY_CARD','detail':{'week':w,'day':day_used,'published':len(events)}},{'provider':'BOAT_RESULT_KBOAT','status':'PASS','detail':{'confirmed':len(results)}},{'provider':'BOAT_ODDS_KBOAT','status':'PASS' if odds_events else 'WAITING','detail':{'market':'단승식','window':'경기 120분 전~35분 후','odds_events':odds_events,'source':'KBOAT_FINAL'}}]
     return events,providers
 
 def collect_cycle(z,errors):
