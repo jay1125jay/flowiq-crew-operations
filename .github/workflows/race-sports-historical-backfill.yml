@@ -8,6 +8,7 @@ on:
       - 'race-sports/tools/historical_backfill.py'
       - 'race-sports/tools/historical_backfill_hardening.py'
       - 'race-sports/tools/historical_cycle_result_fallback.py'
+      - 'race-sports/tools/kcycle_result_route_probe.py'
       - 'race-sports/tools/historical_backfill_runner.py'
       - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/validate_horse_model.py'
@@ -51,6 +52,10 @@ jobs:
 
       - name: Self-test KCYCLE result URL fallback
         run: python race-sports/tools/historical_cycle_result_fallback.py --self-test
+
+      - name: Probe official KCYCLE historical result controls
+        if: github.event_name == 'push'
+        run: python race-sports/tools/kcycle_result_route_probe.py
 
       - name: Quality-gate existing historical records
         run: python race-sports/tools/backfill_quality_guard.py
