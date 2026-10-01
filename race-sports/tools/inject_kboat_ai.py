@@ -6,7 +6,7 @@ DATA=Path('race-sports/data/today.json')
 URL='https://www.kboat.or.kr/rankingpredict'
 
 def fetch(url,timeout=20):
-    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept-Language':'ko-KR,ko;q=.9'})
+    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept-Language':'ko-KR,ko;q=.9','Cache-Control':'no-cache'})
     with urllib.request.urlopen(req,timeout=timeout) as r:
         return r.read().decode('utf-8','ignore')
 
@@ -33,7 +33,6 @@ def parse(raw):
         rn=int(m.group(1))
         seg=t[m.end():(markers[i+1].start() if i+1<len(markers) else len(t))]
         pairs=[]; seen=set()
-        # AI column is the first six player-number + percentage pairs in each race block.
         for n,pct in re.findall(r'(?<!\d)([1-6])\s+(\d{1,2}(?:\.\d+)?)%',seg):
             n=int(n); v=float(pct)/100.0
             if n in seen: continue
@@ -47,23 +46,30 @@ def parse(raw):
 
 def main():
     payload=json.loads(DATA.read_text(encoding='utf-8'))
+    today=str(payload.get('date') or '')
     preds,stamp=parse(fetch(URL))
+    source_date=stamp[:10] if stamp else None
+    source_fresh=bool(source_date and source_date==today)
     linked=0
-    for e in payload.get('events',[]):
-        if e.get('sport')!='BOAT': continue
-        p=preds.get(int(e.get('race_no') or 0),{})
-        if not p: continue
-        for o in e.get('outcomes',[]):
-            if o.get('key') in p:
-                o['model_p']=p[o['key']]
-                o['model_source']='KBOAT_AI_OFFICIAL'
-                o['model_updated_at']=stamp
-                linked+=1
+    if source_fresh:
+        for e in payload.get('events',[]):
+            if e.get('sport')!='BOAT': continue
+            p=preds.get(int(e.get('race_no') or 0),{})
+            if not p: continue
+            for o in e.get('outcomes',[]):
+                if o.get('key') in p:
+                    o['model_p']=p[o['key']]
+                    o['model_source']='KBOAT_AI_OFFICIAL'
+                    o['model_updated_at']=stamp
+                    linked+=1
+    status='PASS' if source_fresh and preds and linked else ('STALE_SOURCE' if preds and not source_fresh else 'FAIL')
     providers=[x for x in payload.get('providers',[]) if x.get('provider')!='BOAT_AI_KBOAT']
-    providers.append({'provider':'BOAT_AI_KBOAT','status':'PASS' if preds else 'FAIL','detail':{'races':len(preds),'linked_outcomes':linked,'updated_at':stamp,'source_url':URL,'meaning':'official AI win probability'}})
+    providers.append({'provider':'BOAT_AI_KBOAT','status':status,'detail':{'races':len(preds),'linked_outcomes':linked,'updated_at':stamp,'source_date':source_date,'snapshot_date':today,'source_fresh':source_fresh,'source_url':URL,'meaning':'official AI win probability'}})
     payload['providers']=providers
     DATA.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-    print(json.dumps({'ai_races':len(preds),'linked_outcomes':linked,'updated_at':stamp},ensure_ascii=False))
+    print(json.dumps({'status':status,'ai_races':len(preds),'linked_outcomes':linked,'updated_at':stamp,'source_date':source_date,'snapshot_date':today},ensure_ascii=False))
+    if not source_fresh:
+        raise SystemExit('KBOAT_AI_SOURCE_DATE_MISMATCH')
     if len(preds)<15 or linked<80:
         raise SystemExit('KBOAT_AI_PARSE_INCOMPLETE')
 
