@@ -61,32 +61,39 @@ def main():
     source_fresh=bool(source_date and source_date==today)
     linked=0
     linked_events=0
-    expected=sum(len(e.get('outcomes',[])) for e in boat)
+    active_invalid=[]
 
     for e in boat:
         p=preds.get(int(e.get('race_no') or 0),{}) if source_fresh else {}
         event_linked=0
+        event_sum=0.0
         if p:
             for o in e.get('outcomes',[]):
                 if o.get('key') in p:
-                    o['model_p']=p[o['key']]
+                    v=float(p[o['key']])
+                    o['model_p']=v
                     o['model_source']='KBOAT_AI_OFFICIAL'
                     o['model_updated_at']=stamp
-                    linked+=1; event_linked+=1
-        if event_linked==len(e.get('outcomes',[])) and event_linked>0:
+                    linked+=1; event_linked+=1; event_sum+=v
+        active=e.get('status')!='FINAL'
+        active_ok=(not active) or (event_linked==len(e.get('outcomes',[])) and event_linked>0 and abs(event_sum-1.0)<=0.03)
+        if event_linked>0 and active_ok:
             linked_events+=1
             e.pop('model_stale',None); e.pop('model_stale_reason',None)
-        else:
+        elif active:
+            reason='KBOAT_AI_SOURCE_DATE_MISMATCH' if not source_fresh else f'KBOAT_AI_ACTIVE_DISTRIBUTION_INCOMPLETE:{event_linked}/{len(e.get("outcomes",[]))}:sum={event_sum:.6f}'
             e['model_stale']=True
-            e['model_stale_reason']='KBOAT_AI_SOURCE_DATE_MISMATCH' if not source_fresh else 'KBOAT_AI_EVENT_INCOMPLETE'
+            e['model_stale_reason']=reason
+            active_invalid.append({'id':e.get('id'),'reason':reason})
 
-    complete=source_fresh and bool(preds) and linked==expected and linked_events==len(boat)
+    active_events=[e for e in boat if e.get('status')!='FINAL']
+    complete=source_fresh and bool(preds) and not active_invalid and linked>0
     status='PASS' if complete else ('STALE_SOURCE' if preds and not source_fresh else 'INCOMPLETE')
     providers=[x for x in payload.get('providers',[]) if x.get('provider')!='BOAT_AI_KBOAT']
-    providers.append({'provider':'BOAT_AI_KBOAT','status':status,'detail':{'races':len(preds),'linked_events':linked_events,'linked_outcomes':linked,'expected_outcomes':expected,'updated_at':stamp,'source_date':source_date,'snapshot_date':today,'source_fresh':source_fresh,'source_url':URL,'meaning':'official AI win probability'}})
+    providers.append({'provider':'BOAT_AI_KBOAT','status':status,'detail':{'races':len(preds),'linked_events':linked_events,'linked_outcomes':linked,'active_events':len(active_events),'active_invalid':active_invalid[:5],'updated_at':stamp,'source_date':source_date,'snapshot_date':today,'source_fresh':source_fresh,'source_url':URL,'meaning':'official AI win probability','final_history_note':'final races retain published AI even when scratches make displayed probability mass incomplete'}})
     payload['providers']=providers
     DATA.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-    print(json.dumps({'status':status,'ai_races':len(preds),'linked_events':linked_events,'linked_outcomes':linked,'expected_outcomes':expected,'updated_at':stamp,'source_date':source_date,'snapshot_date':today},ensure_ascii=False))
+    print(json.dumps({'status':status,'ai_races':len(preds),'linked_events':linked_events,'linked_outcomes':linked,'active_events':len(active_events),'active_invalid':len(active_invalid),'updated_at':stamp,'source_date':source_date,'snapshot_date':today},ensure_ascii=False))
     if not complete:
         raise SystemExit('KBOAT_AI_NOT_CURRENT_AND_COMPLETE')
 
