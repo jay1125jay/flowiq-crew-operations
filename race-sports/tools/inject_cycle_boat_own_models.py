@@ -22,6 +22,7 @@ CONFIG = {
         'entity_weight': 0.78,
         'lane_weight': 0.22,
         'full_own_races': 250.0,
+        'min_own_races_without_seed': 50,
     },
     'BOAT': {
         'provider': 'BOAT_OWN_MODEL',
@@ -32,6 +33,7 @@ CONFIG = {
         'entity_weight': 0.72,
         'lane_weight': 0.28,
         'full_own_races': 200.0,
+        'min_own_races_without_seed': 40,
     },
 }
 
@@ -211,7 +213,9 @@ def score_race(e, entity, lane, base, labeled_races, cfg):
     seed = official_seed(outcomes, cfg)
     history_weight = min(1.0, max(0.0, labeled_races / cfg['full_own_races']))
     if not seed:
-        return empirical, 1.0, False
+        if labeled_races < cfg['min_own_races_without_seed']:
+            return [], history_weight, False
+        return empirical, history_weight, False
     blended = [((1.0 - history_weight) * a) + (history_weight * b) for a, b in zip(seed, empirical)]
     return normalize(blended), history_weight, True
 
@@ -272,6 +276,7 @@ def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
         'own_history_weight': round(min(1.0, labeled_races / cfg['full_own_races']), 4),
         'official_seed_policy': 'USE_OFFICIAL_AI_AS_PRIOR_UNTIL_OWN_HISTORY_MATURES',
         'official_ai_preserved': True,
+        'cold_start_policy': f"NO_OWN_PREDICTION_WITHOUT_OFFICIAL_SEED_BEFORE_{cfg['min_own_races_without_seed']}_LABELED_RACES",
         'backfill_source': str(BACKFILL / sport.lower()),
         'pre_race_prediction_state': str(STATE),
         'updated_at': datetime.now(KST).isoformat(timespec='seconds'),
@@ -349,6 +354,12 @@ def self_test():
             o.pop('model_p', None);o.pop('model_source', None)
         _, _, _, _, carried = apply_sport(doc, sport, state)
         assert carried == n and all(o.get('model_source') == CONFIG[sport]['source'] for o in doc['events'][0]['outcomes'])
+
+        # Cold-start with no official seed must NOT fabricate uniform own probabilities.
+        cold = {'outcomes': [{'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}'} for i in range(1, n + 1)]}
+        entity = defaultdict(lambda: [0, 0]);lane = defaultdict(lambda: [0, 0])
+        probs, weight, seeded = score_race(cold, entity, lane, 1.0 / n, 0, CONFIG[sport])
+        assert probs == [] and weight == 0.0 and seeded is False
     print('CYCLE_BOAT_OWN_MODEL_SELF_TEST=PASS')
 
 
