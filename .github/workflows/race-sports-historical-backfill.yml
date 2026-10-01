@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/race-sports-historical-backfill.yml'
       - 'race-sports/tools/historical_backfill.py'
+      - 'race-sports/tools/historical_backfill_hardening.py'
       - 'race-sports/tools/historical_backfill_runner.py'
       - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/validate_horse_model.py'
@@ -34,8 +35,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Self-test backfill parser
+      - name: Self-test base backfill parser
         run: python race-sports/tools/historical_backfill.py --self-test
+
+      - name: Self-test hardened Horse and Cycle adapters
+        run: python race-sports/tools/historical_backfill_hardening.py --self-test
 
       - name: Quality-gate existing historical records
         run: python race-sports/tools/backfill_quality_guard.py
@@ -59,7 +63,8 @@ jobs:
               raise SystemExit(0)
           d=json.loads(p.read_text(encoding='utf-8'))
           errs='\n'.join((d.get('new') or {}).get('errors') or [])
-          if 'HORSE ' in errs or 'CYCLE ' in errs or 'BOAT ' in errs:
+          transient = [line for line in errs.splitlines() if line and '404' not in line and 'SKIPPED' not in line]
+          if any(line.startswith(('HORSE ', 'CYCLE ', 'BOAT ')) for line in transient):
               subprocess.run([
                   'python','race-sports/tools/historical_backfill_runner.py',
                   '--horse-slice','20','--ksports-slice','40','--bull-slice','0','--max-seconds','45'
