@@ -40,14 +40,24 @@ def selected_date(raw,y):
 
 def parse_single_odds(raw,race_no):
     t=textify(raw)
-    if not re.search(rf'제\s*0?{race_no}경주\s*\(출발시간\s*(\d{{1,2}}:\d{{2}})\)',t):return None
-    i1=t.find('단승식'); i2=t.find('단승식',i1+3) if i1>=0 else -1; j=t.find('연승식',i2+3) if i2>=0 else -1
-    if min(i1,i2,j)<0:return None
-    nums=[float(x) for x in re.findall(r'\d+(?:\.\d+)?',t[i2+3:j])]
-    for i in range(max(0,len(nums)-11)):
-        if all(nums[i+k]==k+1 for k in range(6)):
-            vals=nums[i+6:i+12]
-            return vals if len(vals)==6 and all(v>0 for v in vals) else None
+    if not re.search(rf'제\s*0?{race_no}경주\s*\(출발시간\s*(\d{{1,2}}:\d{{2}})\)',t):
+        return None
+    # KBOAT 최종배당률 표: 단승식 -> 1 2 3 4 5 6 -> six odds values.
+    pat=(r'단승식\s+1\s+2\s+3\s+4\s+5\s+6\s+'
+         r'(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+'
+         r'(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)')
+    hits=list(re.finditer(pat,t,re.I))
+    if hits:
+        vals=[float(x) for x in hits[-1].groups()]
+        if len(vals)==6 and all(v>0 for v in vals): return vals
+    # Fallback for minor markup changes: locate a sequence 1..6 after a 단승식 heading.
+    for m in re.finditer(r'단승식',t):
+        seg=t[m.end():m.end()+1200]
+        nums=[float(x) for x in re.findall(r'(?<![\d.])\d+(?:\.\d+)?(?![\d.])',seg)]
+        for i in range(max(0,len(nums)-11)):
+            if all(nums[i+k]==k+1 for k in range(6)):
+                vals=nums[i+6:i+12]
+                if len(vals)==6 and all(v>0 for v in vals): return vals
     return None
 
 def parse_boat_results(raw):
@@ -102,8 +112,9 @@ def collect_boat(z,errors):
                     vals=parse_single_odds(fetch(f'https://www.kboat.or.kr/race/dividendrate/final/{y}/{w}/{day_used}/{e["race_no"]}'),e['race_no'])
                     if vals:
                         for o in e['outcomes']:
-                            n=o['number'];
-                            if 1<=n<=6:o['odds']=vals[n-1];o['odds_source']='KBOAT_FINAL_SINGLE_AUTO';o['odds_observed_at']=z.isoformat()
+                            n=o['number']
+                            if 1<=n<=6:
+                                o['odds']=vals[n-1];o['odds_source']='KBOAT_FINAL_SINGLE_AUTO';o['odds_observed_at']=z.isoformat()
                 except Exception as x:errors.append(f'BOAT odds {e["race_no"]}:{x}')
     providers=[{'provider':'BOAT_KBOAT','status':'PASS' if events else 'NO_TODAY_CARD','detail':{'week':w,'day':day_used,'published':len(events)}},{'provider':'BOAT_RESULT_KBOAT','status':'PASS','detail':{'confirmed':len(results)}},{'provider':'BOAT_ODDS_KBOAT','status':'PASS','detail':{'market':'단승식','window':'경기 120분 전~35분 후'}}]
     return events,providers
@@ -145,7 +156,6 @@ def collect_horse(z,errors):
     url='https://race.kra.co.kr/thisweekrace/ThisWeekDetailInfoList.do?Act=01&Sub=2&meet='; date=z.strftime('%Y-%m-%d'); ds=z.strftime('%Y/%m/%d')
     try:
         t=textify(fetch(url)); out=[]
-        # KRA weekly all-venue schedule. Runner-level detail is intentionally not fabricated here.
         for m in re.finditer(r'(서울|부경|영천|제주)\s+(\d{4}/\d{2}/\d{2})\([^)]*\)\s+(\d{1,2})\s+([^\n]+?)\s+(\d{3,4})\s+(\d{1,2})\s+([^\n]+?)\s+(\d{1,2}:\d{2})',t):
             if m.group(2)!=ds:continue
             venue=m.group(1);rn=int(m.group(3));tm=m.group(8)
@@ -156,10 +166,10 @@ def collect_horse(z,errors):
 def main():
     z=now(); errors=[]; events=[]; providers=[]
     for fn in (collect_horse,collect_cycle,collect_boat,collect_bull):
-        es,ps=fn(z,errors); events.extend(es);providers.extend(ps)
+        es,ps=fn(z,errors);events.extend(es);providers.extend(ps)
     events.sort(key=lambda e:(e.get('start_time','99:99'),e.get('sport','')))
     payload={'date':z.strftime('%Y-%m-%d'),'date_display':z.strftime('%Y.%m.%d'),'time':z.strftime('%H:%M:%S'),'generated_at':z.isoformat(),'mode':'GITHUB_4SPORT_OFFICIAL','sample_data':False,'events':events,'providers':providers,'errors':errors[-20:]}
     OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-    print(json.dumps({'date':payload['date'],'events':len(events),'by_sport':{s:sum(1 for e in events if e['sport']==s) for s in ('HORSE','CYCLE','BOAT','BULL')},'errors':len(errors)},ensure_ascii=False))
+    print(json.dumps({'date':payload['date'],'events':len(events),'by_sport':{s:sum(1 for e in events if e['sport']==s) for s in ('HORSE','CYCLE','BOAT','BULL')},'odds_events':sum(1 for e in events if any(float(o.get('odds',0) or 0)>0 for o in e.get('outcomes',[]))),'errors':len(errors)},ensure_ascii=False))
 
 if __name__=='__main__':main()
