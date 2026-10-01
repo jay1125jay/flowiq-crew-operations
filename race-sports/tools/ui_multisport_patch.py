@@ -30,6 +30,36 @@ def main():
             '<div class="kv"><span>확률 엔진</span><span>경정 KBOAT 공식 · 경륜 KCYCLE 공식 · 소싸움 검증 3분류</span></div><div class="kv"><span>경마</span><span>KRA 출전표·결과 연결 · 자체 확률모델 검증 대기</span></div>',
             'settings probability sources',
         ),
+        (
+            "function fresh(e){return !e.stale&&e.data_state!=='STALE_LAST_KNOWN_GOOD'}",
+            "function fresh(e){return !e.stale&&e.data_state!=='STALE_LAST_KNOWN_GOOD'}\nfunction providerStatus(name){return (data.providers||[]).find(x=>x.provider===name)?.status||null}\nfunction modelFresh(e){if(!(e.outcomes||[]).some(o=>Number(o.model_p)>0))return true;if(e.sport==='BOAT')return providerStatus('BOAT_AI_KBOAT')==='PASS'&&!e.model_stale;if(e.sport==='CYCLE')return providerStatus('CYCLE_AI_KCYCLE')==='PASS';if(e.sport==='BULL')return providerStatus('BULL_MODEL_V130')==='PASS';return true}",
+            'model freshness guard',
+        ),
+        (
+            "const src=t.model_source==='KBOAT_AI_OFFICIAL'?'KBOAT 공식 AI':t.model_source==='KCYCLE_AI_OFFICIAL'?'KCYCLE 공식 AI':t.model_source?.startsWith('bull_threeclass')?'소싸움 3분류 모델':'검증 모델';return `<div class=\"aiPick\"><span><small>${src} · 우승확률 1위${fresh(e)?'':' · 직전 정상값'}</small>",
+            "const src=t.model_source==='KBOAT_AI_OFFICIAL'?'KBOAT 공식 AI':t.model_source==='KCYCLE_AI_OFFICIAL'?'KCYCLE 공식 AI':t.model_source?.startsWith('bull_threeclass')?'소싸움 3분류 모델':'검증 모델';return `<div class=\"aiPick\"><span><small>${src} · 우승확률 1위${fresh(e)&&modelFresh(e)?'':' · AI지연 · 직전 정상값'}</small>",
+            'ai stale label',
+        ),
+        (
+            "actionable=fresh(e)&&e.status==='SCHEDULED'&&preOdds(o)&&p>0",
+            "actionable=fresh(e)&&modelFresh(e)&&e.status==='SCHEDULED'&&preOdds(o)&&p>0",
+            'runner model freshness gate',
+        ),
+        (
+            "${!fresh(e)?`<span class=\"staleTag\">지연</span>`:''}",
+            "${(!fresh(e)||!modelFresh(e))?`<span class=\"staleTag\">지연</span>`:''}",
+            'runner stale tag',
+        ),
+        (
+            "a.filter(e=>fresh(e)&&e.status==='SCHEDULED').forEach",
+            "a.filter(e=>fresh(e)&&modelFresh(e)&&e.status==='SCHEDULED').forEach",
+            'VALUE model freshness gate',
+        ),
+        (
+            "foot=!fresh(e)?'직전 정상 스냅샷 유지 · 추천 비활성':e.status==='FINAL'?'종료 · 추천 비활성':hasOdds?'경기전 공식 단승배당':'경기전 배당 공개 대기'",
+            "foot=!fresh(e)?'직전 정상 스냅샷 유지 · 추천 비활성':!modelFresh(e)?'AI 지연 · 직전 정상확률 유지 · 추천 비활성':e.status==='FINAL'?'종료 · 추천 비활성':hasOdds?'경기전 공식 단승배당':'경기전 배당 공개 대기'",
+            'event foot model freshness',
+        ),
     ]
     for old, new, label in patches:
         s, c = replace_once(s, old, new, label)
