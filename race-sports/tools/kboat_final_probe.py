@@ -1,34 +1,30 @@
-import re, urllib.request
-
+import re, urllib.request, html
 UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-BASE='https://kboat.or.kr'
-URLS=[
- ('COMMON_FN',BASE+'/static/js/common-fn.js'),
- ('COMMON_RACE',BASE+'/static/js/common-race.js'),
- ('FINAL',BASE+'/race/dividendrate/final'),
-]
+BASE='https://kboat.or.kr/race/dividendrate/final/2026/40/2'
 
-def get(url, timeout=15):
-    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'*/*','Accept-Language':'ko-KR,ko;q=.9,en;q=.7','Connection':'close','Cache-Control':'no-cache'})
-    with urllib.request.urlopen(req,timeout=timeout) as r:
-        return r.read().decode('utf-8','ignore')
+def get(url,timeout=12):
+    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Accept-Language':'ko-KR,ko;q=.9,en;q=.7','Connection':'close','Cache-Control':'no-cache'})
+    with urllib.request.urlopen(req,timeout=timeout) as r:return r.read().decode('utf-8','ignore')
 
-for tag,u in URLS:
-    try:
-        raw=get(u)
-        print('FETCH',tag,'LEN',len(raw))
-        for pat in ['fnGetUrl','BASE_URL','fnSearchRace','search.race','raceNo','stndYear','dayOrd','tms']:
-            hits=[]
-            for m in re.finditer(re.escape(pat),raw,re.I):
-                hits.append(raw[max(0,m.start()-500):m.start()+1200].replace('\r','').replace('\n',' ')[:1700])
-                if len(hits)>=5:break
-            if hits:
-                print('PATTERN',tag,pat)
-                for h in hits:print('SNIP',repr(h))
-        if tag=='FINAL':
-            # print selected race controls and the first compact odds-table neighborhood
-            for needle in ['fnSearchRace(', '단승식', '17경주']:
-                p=raw.find(needle)
-                print('FINAL_NEEDLE',needle,'POS',p,'SNIP',repr(raw[max(0,p-800):p+2200].replace('\r','').replace('\n',' ') if p>=0 else ''))
-    except Exception as e:
-        print('FETCH_ERROR',tag,repr(e))
+def textify(s):
+    s=re.sub(r'<[^>]+>',' ',s);return re.sub(r'\s+',' ',html.unescape(s)).strip()
+
+def odds(raw):
+    h=re.search(r'<h3[^>]*>\s*단승식\s*</h3>',raw,re.I)
+    if not h:return None
+    sec=raw[h.end():h.end()+8000];tb=re.search(r'<tbody[^>]*>([\s\S]*?)</tbody>',sec,re.I)
+    if not tb:return None
+    vals=[]
+    for c in re.findall(r'<td[^>]*>([\s\S]*?)</td>',tb.group(1),re.I):
+        q=re.search(r'(?<!\d)(\d+(?:\.\d+)?)(?!\d)',textify(c).replace(',',''))
+        if q:vals.append(float(q.group(1)))
+        if len(vals)>=6:break
+    return vals
+
+for rn in (15,16,17):
+    for form in (str(rn),f'{rn:02d}'):
+        u=f'{BASE}/{form}'
+        try:
+            raw=get(u);print('RACE',rn,'FORM',form,'LEN',len(raw),'ERRORPAGE',('예상치 못한 오류' in textify(raw)),'ODDS',odds(raw))
+            p=raw.find('<h3>단승식</h3>');print('SNIP',repr(raw[p:p+1800].replace('\n',' ') if p>=0 else 'NO_H3'))
+        except Exception as e:print('RACE',rn,'FORM',form,'FETCH_ERROR',repr(e))
