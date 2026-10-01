@@ -35,6 +35,13 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Sync latest main before backfill
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard origin/main
+
       - name: Self-test base backfill parser
         run: python race-sports/tools/historical_backfill.py --self-test
 
@@ -63,7 +70,7 @@ jobs:
               raise SystemExit(0)
           d=json.loads(p.read_text(encoding='utf-8'))
           errs='\n'.join((d.get('new') or {}).get('errors') or [])
-          transient = [line for line in errs.splitlines() if line and '404' not in line and 'SKIPPED' not in line]
+          transient = [line for line in errs.splitlines() if line and '404' not in line and 'SKIPPED' not in line and 'DATE_MISMATCH' not in line]
           if any(line.startswith(('HORSE ', 'CYCLE ', 'BOAT ')) for line in transient):
               subprocess.run([
                   'python','race-sports/tools/historical_backfill_runner.py',
@@ -77,26 +84,35 @@ jobs:
       - name: Walk-forward validate Horse model
         run: python race-sports/tools/validate_horse_model.py
 
-      - name: Commit checkpoints data and model validation
+      - name: Publish checkpoints data and model validation conflict-safe
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "race-sports-backfill-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add race-sports/data/historical_state race-sports/data/backfill race-sports/models/horse_empirical_bayes_v0.2.validation.json
-          if git diff --cached --quiet; then
-            echo "No backfill change"
-            exit 0
-          fi
-          git commit -m "chore: advance official race sports historical backfill"
+
+          tar -czf /tmp/race-sports-backfill-output.tgz \
+            race-sports/data/historical_state \
+            race-sports/data/backfill \
+            race-sports/models/horse_empirical_bayes_v0.2.validation.json
+
           for n in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            tar -xzf /tmp/race-sports-backfill-output.tgz
+            git add race-sports/data/historical_state race-sports/data/backfill race-sports/models/horse_empirical_bayes_v0.2.validation.json
+            if git diff --cached --quiet; then
+              echo "No backfill change"
+              exit 0
+            fi
+            git commit -m "chore: advance official race sports historical backfill"
             if git push origin HEAD:main; then
               exit 0
             fi
-            echo "Push conflict; rebasing attempt $n"
-            git pull --rebase origin main
+            echo "Push raced with another main update; replaying generated backfill output attempt $n"
           done
-          git push origin HEAD:main
+          echo "BACKFILL_PUBLISH=FAIL"
+          exit 1
 
       - name: Dispatch live AI refresh after backfill
         env:
