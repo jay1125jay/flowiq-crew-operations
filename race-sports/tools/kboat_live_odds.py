@@ -4,28 +4,39 @@ from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
 DATA = Path('race-sports/data/today.json')
-BASE = 'https://kboat.or.kr/race/dividendrate/final'
+BASES = [
+    'https://kboat.or.kr/race/dividendrate/final',
+    'https://www.kboat.or.kr/race/dividendrate/final',
+]
 UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 
 
-def fetch(url, timeout=12, retries=3):
-    last = None
-    for i in range(retries):
+def fetch_one(url, timeout=7):
+    req = urllib.request.Request(url, headers={
+        'User-Agent': UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=.9,en;q=.7',
+        'Connection': 'close',
+        'Cache-Control': 'no-cache',
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode('utf-8', 'ignore')
+
+
+def fetch_current():
+    errors = []
+    for url in BASES:
         try:
-            req = urllib.request.Request(url, headers={
-                'User-Agent': UA,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'ko-KR,ko;q=.9,en;q=.7',
-                'Connection': 'close',
-                'Cache-Control': 'no-cache',
-            })
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read().decode('utf-8', 'ignore')
+            return fetch_one(url), url
         except Exception as e:
-            last = e
-            if i + 1 < retries:
-                time.sleep(1.2 * (i + 1))
-    raise last
+            errors.append(f'{url}:{type(e).__name__}')
+            time.sleep(.5)
+    # One last short retry on the canonical host.
+    try:
+        return fetch_one(BASES[0]), BASES[0]
+    except Exception as e:
+        errors.append(f'{BASES[0]}:{type(e).__name__}')
+        raise RuntimeError(';'.join(errors)) from e
 
 
 def textify(s):
@@ -35,7 +46,6 @@ def textify(s):
 
 def parse_context(raw):
     u = html.unescape(raw)
-    # The official page exposes the currently published race in the result-popup handler.
     patterns = [
         r'fnRace\.popup\.result\(\s*["\'](\d{4})["\']\s*,\s*["\'](\d+)["\']\s*,\s*["\'](\d+)["\']\s*,\s*["\'](\d+)["\']\s*\)',
         r'fnSearchRace\(\s*["\']?(\d{4})["\']?\s*,\s*["\']?(\d+)["\']?\s*,\s*["\']?(\d+)["\']?\s*,\s*["\']?(\d+)["\']?\s*\)',
@@ -66,16 +76,34 @@ def parse_single(raw):
     return vals if len(vals) == 6 and all(v > 0 for v in vals) else None
 
 
-def apply(event, vals, observed_at):
+def restore_capture_provenance(event):
+    hist = event.get('odds_history') or []
+    if not hist:
+        return
+    last = hist[-1]
+    if last.get('source') != 'KBOAT_FINAL_SINGLE_AUTO':
+        return
+    mode = last.get('capture_mode')
+    snap = last.get('odds') or {}
+    if not mode:
+        return
+    for o in event.get('outcomes', []):
+        key = o.get('key')
+        if key in snap and float(o.get('odds', 0) or 0) == float(snap[key]):
+            o['odds_capture_mode'] = mode
+
+
+def apply(event, vals, observed_at, mode):
     snap = {f'N{i + 1}': float(vals[i]) for i in range(6)}
     hist = list(event.get('odds_history') or [])
     previous = hist[-1].get('odds', {}) if hist else {}
-    if previous != snap:
+    previous_mode = hist[-1].get('capture_mode') if hist else None
+    if previous != snap or previous_mode != mode:
         hist.append({
             'observed_at': observed_at,
             'market': '단승식',
             'source': 'KBOAT_FINAL_SINGLE_AUTO',
-            'capture_mode': 'PRE_RACE_OFFICIAL',
+            'capture_mode': mode,
             'odds': snap,
         })
         event['odds_history'] = hist[-120:]
@@ -84,7 +112,7 @@ def apply(event, vals, observed_at):
         if 1 <= n <= 6:
             o['odds'] = float(vals[n - 1])
             o['odds_source'] = 'KBOAT_FINAL_SINGLE_AUTO'
-            o['odds_capture_mode'] = 'PRE_RACE_OFFICIAL'
+            o['odds_capture_mode'] = mode
             o['odds_observed_at'] = observed_at
 
 
@@ -93,6 +121,8 @@ def main():
     now = datetime.now(KST)
     observed_at = now.isoformat()
     events = [e for e in payload.get('events', []) if e.get('sport') == 'BOAT']
+    for event in events:
+        restore_capture_provenance(event)
 
     # Legacy per-race probes may report a normal "not published yet" response as an error.
     payload['errors'] = [x for x in payload.get('errors', []) if not str(x).startswith('BOAT odds ')]
@@ -100,9 +130,10 @@ def main():
     status = 'WAITING'
     detail = {'market': '단승식', 'source': 'KBOAT_FINAL', 'capture': 'CURRENT_PUBLISHED_RACE_ONLY'}
     try:
-        raw = fetch(BASE)
+        raw, source_url = fetch_current()
         ctx = parse_context(raw)
         vals = parse_single(raw)
+        detail['source_url'] = source_url
         detail['context'] = ctx
         if ctx and vals:
             y, tms, day, race = ctx
@@ -110,10 +141,17 @@ def main():
             detail['published_race'] = race
             detail['single_odds'] = vals
             if target and target.get('status') != 'FINAL' and not target.get('result'):
-                apply(target, vals, observed_at)
+                apply(target, vals, observed_at, 'PRE_RACE_OFFICIAL')
                 status = 'PASS'
                 detail['captured_race'] = race
+                detail['capture_mode'] = 'PRE_RACE_OFFICIAL'
             elif target and target.get('status') == 'FINAL':
+                # Keep a truthful historical copy if we missed the live window, but never
+                # allow this late recovery to become an actionable VALUE signal.
+                has_history = bool(target.get('odds_history'))
+                if not has_history:
+                    apply(target, vals, observed_at, 'LATE_OFFICIAL_RECOVERY')
+                    detail['recovered_race'] = race
                 status = 'WAITING_NEXT_RACE'
                 detail['reason'] = 'LATEST_PUBLISHED_RACE_ALREADY_FINAL'
             else:
@@ -123,11 +161,14 @@ def main():
             detail['reason'] = 'NO_CURRENT_OFFICIAL_SINGLE_ODDS'
     except Exception as e:
         status = 'FETCH_RETRY'
-        detail['reason'] = type(e).__name__
+        detail['reason'] = str(e)[:240]
 
     active_odds = 0
     for e in events:
-        if e.get('status') != 'FINAL' and any(float(o.get('odds', 0) or 0) > 0 and o.get('odds_capture_mode') == 'PRE_RACE_OFFICIAL' for o in e.get('outcomes', [])):
+        if e.get('status') == 'SCHEDULED' and any(
+            float(o.get('odds', 0) or 0) > 0 and o.get('odds_capture_mode') == 'PRE_RACE_OFFICIAL'
+            for o in e.get('outcomes', [])
+        ):
             active_odds += 1
     detail['active_pre_race_odds_events'] = active_odds
 
