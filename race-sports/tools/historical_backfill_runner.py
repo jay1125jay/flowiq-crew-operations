@@ -4,6 +4,9 @@ import time
 from datetime import datetime, timezone, timedelta
 
 import historical_backfill as hb
+import historical_backfill_hardening as hardening
+
+hardening.install(hb)
 
 KST=timezone(timedelta(hours=9))
 
@@ -53,7 +56,7 @@ def main():
     boat_calls=shared_remaining-cycle_calls
 
     budget.deadline=cycle_end
-    if cycle_calls>=2:
+    if cycle_calls>=1:
         hb.backfill_cycle(state,budget,seen['cycle'],stats,cycle_calls)
 
     budget.deadline=boat_end
@@ -67,7 +70,7 @@ def main():
     hb.save_state(state)
     report={
         'generated_at':datetime.now(KST).isoformat(timespec='seconds'),
-        'mode':'OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME',
+        'mode':'OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED',
         'caps':hb.CAPS,
         'usage_today':budget.ledger,
         'usage_before_run':before,
@@ -77,6 +80,10 @@ def main():
         'quota_policy':'daily hard caps; four KST-day slices; KCYCLE/KBOAT share KSPORTS quota 50/50 unless completed',
         'runtime_policy':{'horse':0.40,'cycle':0.15,'boat':0.15,'bull':0.30},
         'runtime_seconds':total,
+        'hardening':{
+            'horse':'STRICT_RENDERED_RACE_AND_ROW_QUALITY_BEFORE_PERSIST',
+            'cycle':'404_NON_MEETING_ADVANCES_CHECKPOINT_TRANSIENT_ERRORS_RETRY',
+        },
     }
     hb.REPORT_FILE.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({'HISTORICAL_BACKFILL':'PASS',**report},ensure_ascii=False))
