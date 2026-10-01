@@ -92,6 +92,10 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/bull_model_features_v130.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
 
+      - name: Test validated Bull v1.3 portable scoring
+        if: github.event_name == 'push'
+        run: python race-sports/tools/inject_bull_model.py --self-test-url 'https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52&searchDayOrd=2&searchStndYear=2026&searchTms=29'
+
       - name: Test CPC official bull odds and results
         if: github.event_name == 'push'
         run: python race-sports/tools/bull_official_enricher.py --self-test
