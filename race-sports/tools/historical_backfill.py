@@ -359,7 +359,7 @@ def parse_cycle_card(raw,d):
     for i,a in enumerate(hs):
         seg=text[a.start():(hs[i+1].start() if i+1<len(hs) else min(len(text),a.start()+12000))]
         rr={}
-        for m in re.finditer(r"(?:^|\s)([1-7])\s+([가-힣]{2,5})\s+\d{1,2}기",seg):rr.setdefault(int(m.group(1)),m.group(2))
+        for m in re.finditer(r"(?:^|\s)([1-7])\s+([가-힣](?:\s*[가-힣]){1,4})\s+\d{1,2}기",seg):rr.setdefault(int(m.group(1)),re.sub(r"\s+","",m.group(2)))
         if rr:out[(a.group(1),int(a.group(2)))]={"start_time":a.group(4),"runners":rr}
     return out
 
@@ -372,8 +372,8 @@ def parse_cycle_results(raw):
         if not m:continue
         top=[]
         for x in row[1:4]:
-            q=re.search(r"([1-7])\s*([가-힣]{2,5})",clean(x))
-            if q:top.append({"number":int(q.group(1)),"name":q.group(2)})
+            q=re.search(r"([1-7])\s*([가-힣](?:\s*[가-힣]){1,4})",clean(x))
+            if q:top.append({"number":int(q.group(1)),"name":re.sub(r"\s+","",q.group(2))})
         if len(top)!=3:continue
         pays=[]
         for i,cell in enumerate(row[4:11]):
