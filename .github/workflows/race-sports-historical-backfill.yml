@@ -1,6 +1,4 @@
 name: race-sports-historical-backfill
-# startup recheck after settings
-
 on:
   workflow_dispatch:
   push:
@@ -20,6 +18,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: race-sports-historical-backfill
@@ -28,7 +27,7 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 65
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,7 +54,19 @@ jobs:
 
       - name: Daily 23 KST quota sweep
         if: github.event_name != 'push'
-        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds 1500
+        shell: bash
+        run: |
+          MAX_SECONDS=$(python - <<'PY'
+          from datetime import datetime, timedelta, timezone
+          KST=timezone(timedelta(hours=9))
+          now=datetime.now(KST)
+          midnight=(now+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
+          remain=max(60,int((midnight-now).total_seconds())-180)
+          print(min(3300,remain))
+          PY
+          )
+          echo "BACKFILL_MAX_SECONDS=$MAX_SECONDS"
+          python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds "$MAX_SECONDS"
 
       - name: Quality gate after collection
         run: python race-sports/tools/backfill_quality_guard.py
@@ -106,3 +117,8 @@ jobs:
 
           echo "BACKFILL_PUBLISH=FAIL"
           exit 1
+
+      - name: Dispatch live refresh after backfill
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run race-sports-static-refresh.yml --ref main
