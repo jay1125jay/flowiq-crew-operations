@@ -28,6 +28,27 @@ def num_of(o):
     except Exception:return None
 
 
+def norm_name(v):
+    import re
+    s=re.sub(r'^\s*\d+\s*','',str(v or '')).strip()
+    return re.sub(r'\s+','',s)
+
+
+def cycle_identity_ok(e):
+    if e.get('sport')!='CYCLE':
+        return True
+    outs={num_of(o):norm_name(name_of(o)) for o in (e.get('outcomes') or [])}
+    top3=(e.get('result') or {}).get('top3') or []
+    if len(top3)!=3:
+        return False
+    for x in top3:
+        try:n=int(x.get('number'))
+        except Exception:return False
+        if n not in outs or not outs[n] or outs[n]!=norm_name(x.get('name')):
+            return False
+    return True
+
+
 def rank_of(e,o):
     try:return int(o.get('final_rank'))
     except Exception:pass
@@ -61,6 +82,7 @@ def records(sport):
     by_id={}
     def add(e):
         if e.get('sport')!=sport or e.get('status')!='FINAL':return
+        if sport=='CYCLE' and not cycle_identity_ok(e):return
         outs=e.get('outcomes') or []
         labels=[win_label(e,o) for o in outs]
         if len(outs)<2 or any(x is None for x in labels) or sum(labels)!=1:return
