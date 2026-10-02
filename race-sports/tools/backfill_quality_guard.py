@@ -52,6 +52,12 @@ def validate_horse(e):
     return True, None
 
 
+def _norm_name(v):
+    import re
+    s = re.sub(r'^\s*\d+\s*', '', str(v or '')).strip()
+    return re.sub(r'\s+', '', s)
+
+
 def validate_cycle(e):
     outs = list(e.get('outcomes') or [])
     if len(outs) < 5 or not one_winner(outs):
@@ -59,6 +65,19 @@ def validate_cycle(e):
     top3 = list((e.get('result') or {}).get('top3') or [])
     if len(top3) != 3 or len({x.get('number') for x in top3}) != 3:
         return False, 'CYCLE_TOP3_INVALID'
+    by_num = {}
+    for o in outs:
+        try:
+            by_num[int(o.get('number'))] = _norm_name(o.get('rider_name') or o.get('name'))
+        except Exception:
+            continue
+    for x in top3:
+        try:
+            n = int(x.get('number'))
+        except Exception:
+            return False, 'CYCLE_TOP3_NUMBER_INVALID'
+        if n not in by_num or by_num[n] != _norm_name(x.get('name')):
+            return False, 'CYCLE_CARD_RESULT_NAME_MISMATCH'
     return True, None
 
 
