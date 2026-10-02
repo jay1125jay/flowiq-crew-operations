@@ -40,7 +40,11 @@ def main():
                 vals = [float(v) for v in populated]
                 if not all(math.isfinite(v) and 0.0 <= v <= 1.0 for v in vals):
                     bad_model.append((e.get('id'), 'MODEL_RANGE'))
-                needs_full_distribution = e.get('sport') == 'BULL' or e.get('status') != 'FINAL'
+                # Full probability distributions are required only while
+                # probabilities can affect a pre-race decision. Post-start
+                # RESULT_PENDING/FINAL data must never be blocked from publish
+                # by a stale/scratch-affected model distribution.
+                needs_full_distribution = e.get('sport') == 'BULL' or e.get('status') == 'SCHEDULED'
                 if needs_full_distribution:
                     if len(populated) != len(outcomes):
                         bad_model.append((e.get('id'), 'PARTIAL_MODEL'))
@@ -109,7 +113,8 @@ def main():
         'stale_events': stale,
         'guard': (guard or {}).get('status'),
         'active_model_probability_guard': True,
-        'final_model_history_tolerates_scratches': True,
+        'post_start_model_history_tolerates_scratches': True,
+        'result_publish_not_blocked_by_post_start_model': True,
         'bull_three_way_guard': True,
         'bull_model_source_guard': True,
     }, ensure_ascii=False))
