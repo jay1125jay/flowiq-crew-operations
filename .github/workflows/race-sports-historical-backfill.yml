@@ -50,7 +50,7 @@ jobs:
 
       - name: Push smoke collection
         if: github.event_name == 'push'
-        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 20 --ksports-slice 30 --bull-slice 30 --max-seconds 45
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 0 --ksports-slice 80 --bull-slice 0 --max-seconds 45
 
       - name: Daily 23 KST quota sweep
         if: github.event_name != 'push'
