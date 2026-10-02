@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T17:49:52+09:00",
+  "generated_at": "2026-10-02T17:50:50+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -7,19 +7,21 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 110,
-    "ksports": 75,
-    "bull": 129
+    "horse": 111,
+    "ksports": 77,
+    "bull": 131
   },
   "usage_before_run": {
     "horse": 104,
-    "ksports": 72,
-    "bull": 122
+    "ksports": 74,
+    "bull": 124
   },
   "checkpoints": {
     "horse": {
       "cursor_date": "2026-09-20",
-      "complete": false
+      "complete": false,
+      "resume_meet_idx": 0,
+      "resume_race_no": 7
     },
     "cycle": {
       "cursor_date": "2026-08-27",
@@ -31,9 +33,10 @@
     },
     "bull": {
       "year": 2026,
-      "round": 30,
-      "day": 2,
-      "complete": false
+      "round": 31,
+      "day": 1,
+      "complete": false,
+      "resume_race": 7
     }
   },
   "new": {
@@ -44,17 +47,17 @@
     "boat_records": 17,
     "boat_dates": 1,
     "bull_records": 6,
-    "bull_cards": 1,
+    "bull_cards": 0,
     "errors": [
-      "HORSE 2026-09-20 M1 R6 RuntimeError:TIME_BUDGET_EXHAUSTED",
+      "HORSE 2026-09-20 M1 R7 RuntimeError:TIME_BUDGET_EXHAUSTED",
       "CYCLE 2026-08-28 CARD_EMPTY_SKIPPED"
     ]
   },
   "records_total": {
     "horse": 6,
     "cycle": 1,
-    "boat": 66,
-    "bull": 69
+    "boat": 83,
+    "bull": 71
   },
   "quota_policy": "daily hard caps; use remaining quota opportunistically; KCYCLE/KBOAT start 50/50 then reallocate unused shared quota",
   "runtime_policy": {
@@ -82,11 +85,11 @@
         "rejected": 0
       },
       "boat": {
-        "kept": 66,
+        "kept": 83,
         "rejected": 0
       },
       "bull": {
-        "kept": 69,
+        "kept": 71,
         "rejected": 0
       }
     }
