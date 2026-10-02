@@ -165,71 +165,73 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
 
 def _backfill_horse(hb, state, budget, seen, stats):
     cp = state['checkpoints']['horse']
+    meets = ('1', '2', '3', '4')
+
     while not cp.get('complete') and budget.available('horse') > 0 and budget.time_left():
         d = date.fromisoformat(cp['cursor_date'])
         if d < hb.START['horse']:
             cp['complete'] = True
             hb.save_state(state)
             break
+
         if d.weekday() not in (4, 5, 6):
+            cp.pop('resume_meet_idx', None)
+            cp.pop('resume_race_no', None)
             hb.advance_day(state['checkpoints'], 'horse', hb.START['horse'])
             hb.save_state(state)
             continue
 
-        transient = False
-        for meet in ('1', '2', '3', '4'):
-            if budget.available('horse') <= 0 or not budget.time_left():
-                break
+        start_meet = max(0, min(len(meets) - 1, int(cp.get('resume_meet_idx', 0) or 0)))
+        start_race = max(1, min(16, int(cp.get('resume_race_no', 1) or 1)))
 
-            first_url = hb.HORSE_DETAIL.format(meet=meet, ymd=d.strftime('%Y%m%d'), race=1)
-            try:
-                first_raw = hb.fetch(first_url, budget, 'horse', timeout=12, retries=2)
-            except Exception as exc:
-                stats['errors'].append(f'HORSE {d} M{meet} R1 {type(exc).__name__}:{exc}'[:220])
-                transient = True
-                continue
-
-            first = hb.parse_horse_detail(first_raw, meet, d, 1)
-            if first and first['id'] not in seen:
-                hb.append_record('horse', first)
-                seen.add(first['id'])
-                stats['horse_records'] += 1
-
+        for mi in range(start_meet, len(meets)):
+            meet = meets[mi]
             empty = 0
-            for race_no in range(2, 17):
+            race0 = start_race if mi == start_meet else 1
+
+            for race_no in range(race0, 17):
                 if budget.available('horse') <= 0 or not budget.time_left():
-                    break
+                    cp['resume_meet_idx'] = mi
+                    cp['resume_race_no'] = race_no
+                    hb.save_state(state)
+                    return
+
                 url = hb.HORSE_DETAIL.format(meet=meet, ymd=d.strftime('%Y%m%d'), race=race_no)
                 try:
                     raw = hb.fetch(url, budget, 'horse', timeout=12, retries=2)
                 except Exception as exc:
                     stats['errors'].append(f'HORSE {d} M{meet} R{race_no} {type(exc).__name__}:{exc}'[:220])
-                    transient = True
-                    continue
+                    cp['resume_meet_idx'] = mi
+                    cp['resume_race_no'] = race_no
+                    hb.save_state(state)
+                    return
 
                 event = hb.parse_horse_detail(raw, meet, d, race_no)
-                if not event:
+                if event:
+                    empty = 0
+                    if event['id'] not in seen:
+                        hb.append_record('horse', event)
+                        seen.add(event['id'])
+                        stats['horse_records'] += 1
+                else:
                     empty += 1
-                    if empty >= 2:
-                        break
-                    continue
 
-                empty = 0
-                if event['id'] not in seen:
-                    hb.append_record('horse', event)
-                    seen.add(event['id'])
-                    stats['horse_records'] += 1
+                cp['resume_meet_idx'] = mi
+                cp['resume_race_no'] = race_no + 1
+                hb.save_state(state)
 
-        # If any request on this date was transiently unavailable, keep the
-        # checkpoint on the same date so the next hourly run fills the gaps.
-        if transient:
+                if empty >= 2:
+                    break
+
+            cp['resume_meet_idx'] = mi + 1
+            cp['resume_race_no'] = 1
             hb.save_state(state)
-            break
 
+        cp.pop('resume_meet_idx', None)
+        cp.pop('resume_race_no', None)
         stats['horse_dates'] += 1
         hb.advance_day(state['checkpoints'], 'horse', hb.START['horse'])
         hb.save_state(state)
-
 
 
 def _advance_cycle(hb, state, stats):
