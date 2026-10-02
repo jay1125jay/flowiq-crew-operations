@@ -120,6 +120,10 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/kra_odds_endpoint_guard.py
 
+      - name: Test KCYCLE official parser safety
+        if: github.event_name == 'push'
+        run: python race-sports/tools/kcycle_official_enricher.py --self-test
+
       - name: Test KRA official final runner odds parser
         if: github.event_name == 'push'
         run: python race-sports/tools/kra_official_enricher.py --self-test
