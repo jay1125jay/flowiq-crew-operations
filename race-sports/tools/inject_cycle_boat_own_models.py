@@ -380,16 +380,21 @@ def apply_sport(doc, sport, state):
             # the persisted distribution cover only part of the current field.
             # Never publish a partial probability distribution. Results must
             # still be publishable, so fail closed on model fields only.
-            if local_carried and local_carried != len(outcomes):
+            active_rows = [o for o in outcomes if o.get('model_p') is not None]
+            partial_active = bool(active_rows) and len(active_rows) != len(outcomes)
+            if (local_carried and local_carried != len(outcomes)) or partial_active:
+                # Results are more important than a stale/incomplete probability
+                # distribution. Clear *all active model probability fields*
+                # regardless of source so one scratched/new runner cannot block
+                # the whole snapshot from publishing.
                 for o in outcomes:
-                    if o.get('model_source') == cfg['source']:
-                        for k in ('model_p', 'model_source', 'model_updated_at', 'model_state', 'model_validated', 'own_history_weight', 'official_seed_used'):
-                            o.pop(k, None)
+                    for k in ('model_p', 'model_source', 'model_updated_at', 'model_state', 'model_validated', 'own_history_weight', 'official_seed_used'):
+                        o.pop(k, None)
                 e.pop('model_source', None)
                 e.pop('model_state', None)
                 e.pop('model_validated', None)
                 e['model_incomplete'] = True
-                e['model_incomplete_reason'] = f"OWN_STATE_PARTIAL_{local_carried}_OF_{len(outcomes)}"
+                e['model_incomplete_reason'] = f"POST_START_PARTIAL_MODEL_{len(active_rows)}_OF_{len(outcomes)}"
                 e['value_enabled'] = False
             elif local_carried:
                 e['model_source'] = cfg['source']
@@ -440,6 +445,10 @@ def self_test():
                 'model_state': 'PROVISIONAL_HYBRID_UNVALIDATED',
                 'model_validated': False,
             }
+        # Simulate the exact production failure: the unmatched current runner
+        # can still carry an official AI probability.
+        partial['events'][0]['outcomes'][-1]['model_p'] = 0.2
+        partial['events'][0]['outcomes'][-1]['model_source'] = CONFIG[sport]['official_source']
         apply_sport(partial, sport, partial_state)
         pe = partial['events'][0]
         assert pe.get('model_incomplete') is True
