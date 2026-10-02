@@ -375,7 +375,23 @@ def apply_sport(doc, sport, state):
                         o[k] = old[k]
                 local_carried += 1
                 carried += 1
-            if local_carried:
+
+            # A scratch / field change after the pre-race prediction can make
+            # the persisted distribution cover only part of the current field.
+            # Never publish a partial probability distribution. Results must
+            # still be publishable, so fail closed on model fields only.
+            if local_carried and local_carried != len(outcomes):
+                for o in outcomes:
+                    if o.get('model_source') == cfg['source']:
+                        for k in ('model_p', 'model_source', 'model_updated_at', 'model_state', 'model_validated', 'own_history_weight', 'official_seed_used'):
+                            o.pop(k, None)
+                e.pop('model_source', None)
+                e.pop('model_state', None)
+                e.pop('model_validated', None)
+                e['model_incomplete'] = True
+                e['model_incomplete_reason'] = f"OWN_STATE_PARTIAL_{local_carried}_OF_{len(outcomes)}"
+                e['value_enabled'] = False
+            elif local_carried:
                 e['model_source'] = cfg['source']
                 e['model_state'] = 'VALIDATED_OWN_WALK_FORWARD' if validated else 'PROVISIONAL_HYBRID_UNVALIDATED'
                 e['model_validated'] = bool(validated)
@@ -399,6 +415,36 @@ def self_test():
             o.pop('model_p', None);o.pop('model_source', None)
         _, _, _, _, carried = apply_sport(doc, sport, state)
         assert carried == n and all(o.get('model_source') == CONFIG[sport]['source'] for o in doc['events'][0]['outcomes'])
+
+        # A post-start scratch/field change may leave only a partial saved
+        # distribution. Suppress that model rather than blocking results.
+        partial = {
+            'date': '2099-01-01',
+            'events': [{
+                'id': f'{sport}-TEST-PARTIAL',
+                'sport': sport,
+                'status': 'RESULT_PENDING',
+                'outcomes': [{'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}'} for i in range(1, n + 1)],
+            }],
+            'providers': [],
+        }
+        partial_state = {'version': 2, 'predictions': {}}
+        for i in range(1, n):
+            key = f'{sport}-TEST-PARTIAL|N{i}'
+            partial_state['predictions'][key] = {
+                'date': '2099-01-01',
+                'sport': sport,
+                'model_p': 1.0 / n,
+                'model_source': CONFIG[sport]['source'],
+                'model_updated_at': '2099-01-01 00:00:00',
+                'model_state': 'PROVISIONAL_HYBRID_UNVALIDATED',
+                'model_validated': False,
+            }
+        apply_sport(partial, sport, partial_state)
+        pe = partial['events'][0]
+        assert pe.get('model_incomplete') is True
+        assert pe.get('value_enabled') is False
+        assert all(o.get('model_p') is None for o in pe['outcomes'])
 
         # Cold-start with no official seed must NOT fabricate uniform own probabilities.
         cold = {'outcomes': [{'key': f'N{i}', 'number': i, 'name': f'{i} 선수{i}'} for i in range(1, n + 1)]}
