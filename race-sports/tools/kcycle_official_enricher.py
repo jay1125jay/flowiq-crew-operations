@@ -163,8 +163,13 @@ def parse_ai(raw):
 
 
 def parse_winner(cell):
-    m = re.search(r'([1-7])\s*([가-힣]{2,5})', clean(cell))
-    return {'number': int(m.group(1)), 'name': m.group(2)} if m else None
+    # KCYCLE visually pads some short Korean names with an internal space
+    # (e.g. "정 관", "이 효"). Accept those cells and canonicalize the
+    # participant name by removing presentation-only whitespace.
+    m = re.search(r'([1-7])\s*([가-힣](?:\s*[가-힣]){1,4})', clean(cell))
+    if not m:
+        return None
+    return {'number': int(m.group(1)), 'name': re.sub(r'\s+', '', m.group(2))}
 
 
 def parse_market_cell(cell, market):
@@ -348,6 +353,9 @@ def self_test():
     assert valid_single_odds([1,2,3,4,5,6,7]) is False
     assert valid_single_odds([2.3,4.1,1.8,9.7,12.0,3.6,7.4]) is True
     assert valid_single_odds([0,2,3,4,5,6,7]) is False
+    assert parse_winner('1 정 관') == {'number': 1, 'name': '정관'}
+    assert parse_winner('2 이 효') == {'number': 2, 'name': '이효'}
+    assert parse_winner('7 황인혁') == {'number': 7, 'name': '황인혁'}
     print('KCYCLE_OFFICIAL_SELF_TEST=PASS')
 
 
