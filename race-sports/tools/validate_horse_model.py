@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 BACKFILL=Path("race-sports/data/backfill/horse")
+HISTORY=Path("race-sports/data/history")
 OUT=Path("race-sports/models/horse_empirical_bayes_v0.2.validation.json")
 KST=timezone(timedelta(hours=9))
 MODEL_SOURCE="horse_empirical_bayes_v0.2"
@@ -21,6 +22,33 @@ def sf(v):
 def ek(o,f):
     v=o.get(f);s=str(v).strip() if v is not None else ""
     return s or None
+
+
+def winner_number(e):
+    r=e.get("result") or {}
+    try:
+        if r.get("winner_number") is not None:return int(r.get("winner_number"))
+    except Exception:pass
+    for x in r.get("top3") or []:
+        try:
+            if int(x.get("rank"))==1:return int(x.get("number"))
+        except Exception:pass
+    return None
+
+
+def win_label(e,o):
+    if o.get("won") is True:return 1
+    if o.get("won") is False:return 0
+    try:
+        r=int(o.get("final_rank"))
+        return 1 if r==1 else 0
+    except Exception:pass
+    wn=winner_number(e)
+    try:n=int(o.get("number"))
+    except Exception:n=None
+    if (e.get("result") or {}).get("status")=="CONFIRMED" and wn is not None and n is not None:
+        return 1 if n==wn else 0
+    return None
 
 
 def post(pair,base,strength):
@@ -55,29 +83,42 @@ def score(e,stats,base):
 
 
 def records():
-    out=[]
-    if not BACKFILL.exists():return out
-    for p in sorted(BACKFILL.glob("*.jsonl")):
-        with p.open("r",encoding="utf-8") as f:
-            for line in f:
-                if not line.strip():continue
-                try:e=json.loads(line)
-                except Exception:continue
-                if e.get("sport")=="HORSE" and e.get("status")=="FINAL":
-                    outs=e.get("outcomes") or []
-                    if len(outs)>=2 and sum(1 for o in outs if o.get("final_rank")==1)==1:
-                        out.append(e)
+    by_id={}
+    def add(e):
+        if e.get("sport")!="HORSE" or e.get("status")!="FINAL":return
+        outs=e.get("outcomes") or []
+        labels=[win_label(e,o) for o in outs]
+        if len(outs)<2 or any(x is None for x in labels) or sum(labels)!=1:return
+        key=e.get("id") or f"HORSE|{e.get('event_date')}|{e.get('competition')}|{e.get('race_no')}"
+        by_id.setdefault(key,e)
+
+    if BACKFILL.exists():
+        for p in sorted(BACKFILL.glob("*.jsonl")):
+            try:
+                with p.open("r",encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():continue
+                        try:add(json.loads(line))
+                        except Exception:continue
+            except Exception:continue
+
+    if HISTORY.exists():
+        for p in sorted(HISTORY.glob("*.json")):
+            try:doc=json.loads(p.read_text(encoding="utf-8"))
+            except Exception:continue
+            for e in doc.get("events") or []:add(e)
+
+    out=list(by_id.values())
     out.sort(key=lambda e:(e.get("event_date") or "",e.get("id") or ""))
     return out
 
-
 def update(stats,e):
     starts=wins=0
-    for o in e.get("outcomes") or []:
-        r=o.get("final_rank")
-        try:r=int(r)
-        except Exception:continue
-        win=1 if r==1 else 0;starts+=1;wins+=win
+    outs=e.get("outcomes") or []
+    labels=[win_label(e,o) for o in outs]
+    if not outs or any(x is None for x in labels) or sum(labels)!=1:return 0,0
+    for o,win in zip(outs,labels):
+        starts+=1;wins+=win
         for b,f in (("horse","horse_name"),("jockey","jockey"),("trainer","trainer")):
             k=ek(o,f)
             if k:stats[b][k][0]+=1;stats[b][k][1]+=win
@@ -95,7 +136,7 @@ def main():
         base=(total_wins/total_starts) if total_starts else .10
         if i>=warmup and outs:
             probs=score(e,stats,base)
-            win_idx=next((j for j,o in enumerate(outs) if int(o.get("final_rank") or 0)==1),None)
+            win_idx=next((j for j,o in enumerate(outs) if win_label(e,o)==1),None)
             if probs and win_idx is not None:
                 n=len(probs);pw=max(1e-12,probs[win_idx])
                 ll += -math.log(pw);ull += math.log(n)
