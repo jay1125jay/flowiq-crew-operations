@@ -37,6 +37,14 @@ def rank_of(e,o):
     return None
 
 
+def win_label(e,o):
+    if o.get('won') is True:return 1
+    if o.get('won') is False:return 0
+    r=rank_of(e,o)
+    if r is not None:return 1 if r==1 else 0
+    return None
+
+
 def records(sport):
     d=BACKFILL/sport.lower();out=[]
     if not d.exists():return out
@@ -49,7 +57,8 @@ def records(sport):
                     except Exception:continue
                     if e.get('sport')!=sport or e.get('status')!='FINAL':continue
                     outs=e.get('outcomes') or []
-                    if len(outs)>=2 and sum(1 for o in outs if rank_of(e,o)==1)==1:out.append(e)
+                    labels=[win_label(e,o) for o in outs]
+                    if len(outs)>=2 and all(x is not None for x in labels) and sum(labels)==1:out.append(e)
         except Exception:continue
     out.sort(key=lambda e:(e.get('event_date') or '',e.get('id') or ''))
     return out
@@ -82,15 +91,15 @@ def validate(sport):
     for i,e in enumerate(rs):
         outs=e.get('outcomes') or [];base=(wins/starts) if starts else 1.0/cfg['n_default']
         if i>=warm and outs:
-            p=score(e,entity,lane,base,cfg);wi=next((j for j,o in enumerate(outs) if rank_of(e,o)==1),None)
+            p=score(e,entity,lane,base,cfg);wi=next((j for j,o in enumerate(outs) if win_label(e,o)==1),None)
             if p and wi is not None:
                 n=len(p);y=[1.0 if j==wi else 0.0 for j in range(n)];pw=max(1e-12,p[wi]);u=1.0/n
                 ll+=-math.log(pw);ull+=math.log(n);brier+=sum((p[j]-y[j])**2 for j in range(n))/n;ubrier+=sum((u-y[j])**2 for j in range(n))/n
                 top+=int(max(range(n),key=lambda j:p[j])==wi);uexp+=u;tests+=1
         for o in outs:
-            r=rank_of(e,o)
-            if r is None:continue
-            win=1 if r==1 else 0;starts+=1;wins+=win
+            win=win_label(e,o)
+            if win is None:continue
+            starts+=1;wins+=win
             nm=name_of(o);nu=num_of(o)
             if nm:entity[nm][0]+=1;entity[nm][1]+=win
             if nu is not None:lane[nu][0]+=1;lane[nu][1]+=win
