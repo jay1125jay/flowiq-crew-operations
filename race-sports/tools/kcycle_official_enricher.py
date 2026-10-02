@@ -1,5 +1,6 @@
 import html
 import json
+import math
 import re
 import time
 import urllib.request
@@ -202,6 +203,22 @@ def parse_results(raw):
     return date, out
 
 
+def valid_single_odds(vals):
+    if not vals or len(vals) != 7:
+        return False
+    try:
+        xs=[float(x) for x in vals]
+    except Exception:
+        return False
+    if any((not math.isfinite(x)) or x <= 0 or x > 10000 for x in xs):
+        return False
+    # KCYCLE tables place the lane header 1..7 next to the actual odds row.
+    # Never treat that header sequence itself as market odds.
+    if all(abs(xs[i] - float(i + 1)) < 1e-9 for i in range(7)):
+        return False
+    return True
+
+
 def parse_single_odds(raw):
     p, text = parsed(raw)
     date = page_date(text, p)
@@ -223,7 +240,7 @@ def parse_single_odds(raw):
                         nums.append(float(clean(x)))
                 if len(nums) >= 7:
                     cand = nums[-7:]
-                    if all(v > 0 for v in cand):
+                    if valid_single_odds(cand):
                         vals = cand
                         break
         if vals:
@@ -232,7 +249,8 @@ def parse_single_odds(raw):
         odds_token = r'(\d+(?:\.\d+)?)'
         m = re.search(r'단승식\s+1\s+2\s+3\s+4\s+5\s+6\s+7\s+' + r'\s+'.join([odds_token] * 7), text)
         if m:
-            vals = [float(x) for x in m.groups()]
+            cand = [float(x) for x in m.groups()]
+            vals = cand if valid_single_odds(cand) else None
     return date, key, vals
 
 
@@ -298,7 +316,7 @@ def apply_odds(payload, raw, observed_at):
     today = payload.get('date')
     captured = 0
     target = None
-    if key and vals and (date is None or date == today):
+    if key and valid_single_odds(vals) and (date is None or date == today):
         for e in payload.get('events', []):
             if e.get('sport') != 'CYCLE':
                 continue
