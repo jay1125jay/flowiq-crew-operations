@@ -13,7 +13,7 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
   workflow_dispatch:
   schedule:
-    - cron: '17 5,11,17,23 * * *'
+    - cron: '17 * * * *'
 
 permissions:
   contents: write
@@ -55,13 +55,8 @@ jobs:
       - name: Quality-gate existing historical records
         run: python race-sports/tools/backfill_quality_guard.py
 
-      - name: Smoke backfill on code changes
-        if: github.event_name == 'push'
-        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 20 --ksports-slice 30 --bull-slice 30 --max-seconds 45
-
-      - name: Full quota backfill on schedule or manual run
-        if: github.event_name != 'push'
-        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 625 --ksports-slice 625 --bull-slice 1125 --max-seconds 1500
+      - name: Exhaust remaining daily quota
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds 1500
 
       - name: Retry transient Horse and KSPORTS provider gaps
         shell: bash
@@ -78,7 +73,7 @@ jobs:
           if any(line.startswith(('HORSE ', 'CYCLE ', 'BOAT ')) for line in transient):
               subprocess.run([
                   'python','race-sports/tools/historical_backfill_runner.py',
-                  '--horse-slice','20','--ksports-slice','40','--bull-slice','0','--max-seconds','45'
+                  '--horse-slice','2500','--ksports-slice','2500','--bull-slice','0','--max-seconds','300'
               ], check=True)
           PY
 
