@@ -2,6 +2,7 @@ import html
 import json
 import math
 import re
+import sys
 import time
 import urllib.request
 from datetime import datetime, timezone, timedelta
@@ -343,7 +344,17 @@ def apply_odds(payload, raw, observed_at):
     return captured
 
 
+def self_test():
+    assert valid_single_odds([1,2,3,4,5,6,7]) is False
+    assert valid_single_odds([2.3,4.1,1.8,9.7,12.0,3.6,7.4]) is True
+    assert valid_single_odds([0,2,3,4,5,6,7]) is False
+    print('KCYCLE_OFFICIAL_SELF_TEST=PASS')
+
+
 def main():
+    if '--self-test' in sys.argv:
+        self_test()
+        return
     payload = json.loads(DATA.read_text(encoding='utf-8'))
     observed_at = datetime.now(KST).isoformat()
     statuses = {}
