@@ -42,20 +42,40 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
 
         iso = d.isocalendar()
         day = {4: 1, 5: 2, 6: 3}[d.weekday()]
-        card_url = hb.CYCLE_CARD.format(year=iso.year, week=iso.week, day=day)
-        try:
-            card_raw = hb.fetch(card_url, budget, 'ksports', timeout=10, retries=1)
-        except Exception as exc:
-            if _is_404(exc):
-                stats['errors'].append(f'CYCLE {d} CARD_404_NON_MEETING'[:220])
-                _advance(hb, state, stats)
-                continue
-            stats['errors'].append(f'CYCLE {d} CARD {type(exc).__name__}:{exc}'[:220])
-            break
 
-        card_day = hb.selected_date(card_raw, d.year)
-        if card_day is not None and card_day != d:
-            stats['errors'].append(f'CYCLE {d} CARD_DATE_MISMATCH:{card_day}'[:220])
+        # KCYCLE meeting number is not the ISO week number. Probe a bounded
+        # range around the calendar week and accept only a card whose visible
+        # official date exactly matches the requested historical date.
+        card_raw = None
+        card_url = None
+        meeting = None
+        candidates = []
+        for delta in (0, -1, -2, -3, -4, -5, -6, 1, 2):
+            m = int(iso.week) + delta
+            if m < 1 or m > 60 or m in candidates:
+                continue
+            candidates.append(m)
+
+        for m in candidates:
+            if not room(1) or not budget.time_left():
+                break
+            url = hb.CYCLE_CARD.format(year=d.year, week=m, day=day)
+            try:
+                raw = hb.fetch(url, budget, 'ksports', timeout=10, retries=1)
+            except Exception as exc:
+                if _is_404(exc):
+                    continue
+                stats['errors'].append(f'CYCLE {d} CARD M{m} {type(exc).__name__}:{exc}'[:220])
+                continue
+            visible = hb.selected_date(raw, d.year)
+            if visible == d:
+                card_raw = raw
+                card_url = url
+                meeting = m
+                break
+
+        if card_raw is None:
+            stats['errors'].append(f'CYCLE {d} CARD_MEETING_NOT_RESOLVED:{candidates}'[:220])
             _advance(hb, state, stats)
             continue
 
@@ -68,7 +88,7 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
         results = None
         selected_result_url = None
         attempts = []
-        for result_url in result_candidates(iso.year, iso.week, day):
+        for result_url in result_candidates(d.year, meeting, day):
             if not room(1) or not budget.time_left():
                 break
             try:
@@ -140,6 +160,8 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
                     'source': 'KCYCLE_RESULT_OFFICIAL',
                 },
                 'source_url': selected_result_url,
+                'card_source_url': card_url,
+                'meeting': meeting,
             }
             hb.append_record('cycle', event)
             seen.add(event_id)
