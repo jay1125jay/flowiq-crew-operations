@@ -442,36 +442,50 @@ def backfill_boat(state,budget,seen,stats,call_limit=None):
     def room(n=1):
         used=int(budget.ledger.get("ksports",0))-start_calls
         return (call_limit is None or used+n<=call_limit) and budget.available("ksports")>=n
-    while not cp.get("complete") and room(2) and budget.time_left():
+    while not cp.get("complete") and room(1) and budget.time_left():
         d=date.fromisoformat(cp["cursor_date"])
-        if d<START["boat"]:cp["complete"]=True;break
+        if d<START["boat"]:cp["complete"]=True;save_state(state);break
         iso=d.isocalendar()
-        for day in (1,2,3):
-            if not room(1):break
+        start_day=max(1,min(3,int(cp.get("resume_day",1) or 1)))
+        matched=False
+        for day in range(start_day,4):
+            if not room(1) or not budget.time_left():
+                cp["resume_day"]=day;save_state(state);return
             try:
-                card_url=BOAT_CARD.format(year=iso.year,week=iso.week,day=day);raw=fetch(card_url,budget,"ksports",timeout=10,retries=1,mobile=True)
+                card_url=BOAT_CARD.format(year=iso.year,week=iso.week,day=day)
+                raw=fetch(card_url,budget,"ksports",timeout=10,retries=1,mobile=True)
             except Exception as e:
-                stats["errors"].append(f"BOAT {d} card d{day} {type(e).__name__}:{e}"[:220]);continue
+                stats["errors"].append(f"BOAT {d} card d{day} {type(e).__name__}:{e}"[:220])
+                cp["resume_day"]=day;save_state(state);return
             pd=selected_date(raw,d.year)
-            if pd!=d:continue
+            if pd!=d:
+                cp["resume_day"]=day+1;save_state(state);continue
             card=parse_boat_card(raw,d)
-            if not card:continue
-            if not room(1):break
+            if not card:
+                cp["resume_day"]=day+1;save_state(state);continue
+            if not room(1) or not budget.time_left():
+                cp["resume_day"]=day;save_state(state);return
             try:
-                result_url=BOAT_RESULT.format(year=iso.year,week=iso.week,day=day);rraw=fetch(result_url,budget,"ksports",timeout=10,retries=1,mobile=True)
+                result_url=BOAT_RESULT.format(year=iso.year,week=iso.week,day=day)
+                rraw=fetch(result_url,budget,"ksports",timeout=10,retries=1,mobile=True)
             except Exception as e:
-                stats["errors"].append(f"BOAT {d} result d{day} {type(e).__name__}:{e}"[:220]);break
+                stats["errors"].append(f"BOAT {d} result d{day} {type(e).__name__}:{e}"[:220])
+                cp["resume_day"]=day;save_state(state);return
             results=parse_boat_results(rraw)
             for race_no,meta in card.items():
                 r=results.get(race_no)
                 if not r:continue
                 eid=f"BOAT-{d.strftime('%Y%m%d')}-{iso.week}-{day}-{race_no:02d}"
                 if eid in seen:continue
-                top_by={x["number"]:x["rank"] for x in r["top3"]};outs=[{"key":f"N{n}","number":n,"name":f"{n} {name}","racer_name":name,"final_rank":top_by.get(n),"won":top_by.get(n)==1} for n,name in sorted(meta["runners"].items())]
+                top_by={x["number"]:x["rank"] for x in r["top3"]}
+                outs=[{"key":f"N{n}","number":n,"name":f"{n} {name}","racer_name":name,"final_rank":top_by.get(n),"won":top_by.get(n)==1} for n,name in sorted(meta["runners"].items())]
                 event={"id":eid,"sport":"BOAT","provider":"KBOAT","competition":f"미사리 경정 {iso.week}회차 {day}일차","event_date":d.isoformat(),"start_time":meta["start_time"],"race_no":race_no,"status":"FINAL","market_type":"RUNNERS","outcomes":outs,"result":{"official":True,"status":"CONFIRMED","top3":r["top3"],"source":"KBOAT_RESULT_OFFICIAL"},"source_url":result_url}
                 append_record("boat",event);seen.add(eid);stats["boat_records"]+=1
+            matched=True
             break
-        stats["boat_dates"]+=1;advance_day(state["checkpoints"],"boat",START["boat"]);save_state(state)
+        cp.pop("resume_day",None)
+        stats["boat_dates"]+=1
+        advance_day(state["checkpoints"],"boat",START["boat"]);save_state(state)
 
 
 def bull_url(base,year,rnd,day,race=None):
@@ -514,24 +528,29 @@ def backfill_bull(state,budget,seen,stats):
         year=int(cp["year"]);rnd=int(cp["round"]);day=int(cp["day"])
         try:raw=fetch(bull_url(BULL_CARD,year,rnd,day),budget,"bull",timeout=10,retries=1)
         except Exception as e:
-            stats["errors"].append(f"BULL {year}-{rnd}-{day} card {type(e).__name__}:{e}"[:220]);break
+            stats["errors"].append(f"BULL {year}-{rnd}-{day} card {type(e).__name__}:{e}"[:220]);save_state(state);return
         hm=bull_header(textify(raw))
         if not hm or hm["year"]!=year or hm["round"]!=rnd or hm["day"]!=day:
-            step_bull(cp);save_state(state);continue
+            cp.pop("resume_race",None);step_bull(cp);save_state(state);continue
         d=hm["date"]
-        for race in range(1,13):
-            if budget.available("bull")<=0 or not budget.time_left():break
+        start_race=max(1,min(12,int(cp.get("resume_race",1) or 1)))
+        for race in range(start_race,13):
+            if budget.available("bull")<=0 or not budget.time_left():
+                cp["resume_race"]=race;save_state(state);return
             ru=bull_url(BULL_RESULT,year,rnd,day,race)
             try:rraw=fetch(ru,budget,"bull",timeout=8,retries=1)
             except Exception as e:
-                stats["errors"].append(f"BULL {year}-{rnd}-{day}-{race} {type(e).__name__}:{e}"[:220]);continue
+                stats["errors"].append(f"BULL {year}-{rnd}-{day}-{race} {type(e).__name__}:{e}"[:220])
+                cp["resume_race"]=race;save_state(state);return
             rh,res=parse_bull_result(rraw)
-            if not res or not rh or rh.get("date")!=d:continue
-            eid=f"BULL-{d.replace('-','')}-{rnd}-{day}-{race}"
-            if eid in seen:continue
-            outs=[{"key":"RED","name":res["red"],"decision":res["red_decision"],"won":res["winner"]=="RED"},{"key":"DRAW","name":"무승부","won":res["winner"]=="DRAW"},{"key":"BLUE","name":res["blue"],"decision":res["blue_decision"],"won":res["winner"]=="BLUE"}]
-            event={"id":eid,"sport":"BULL","provider":"CPC","competition":f"청도 소싸움 {rnd}회차 {day}일차","event_date":d,"race_no":race,"status":"FINAL","market_type":"THREE_WAY","left":res["red"],"right":res["blue"],"outcomes":outs,"result":{"official":True,"status":"CONFIRMED","winner":{"key":res["winner"],"label":{"RED":"홍","DRAW":"무","BLUE":"청"}[res["winner"]]},"source":"CPC_RESULT_OFFICIAL"},"source_url":ru}
-            append_record("bull",event);seen.add(eid);stats["bull_records"]+=1
+            if res and rh and rh.get("date")==d:
+                eid=f"BULL-{d.replace('-','')}-{rnd}-{day}-{race}"
+                if eid not in seen:
+                    outs=[{"key":"RED","name":res["red"],"decision":res["red_decision"],"won":res["winner"]=="RED"},{"key":"DRAW","name":"무승부","won":res["winner"]=="DRAW"},{"key":"BLUE","name":res["blue"],"decision":res["blue_decision"],"won":res["winner"]=="BLUE"}]
+                    event={"id":eid,"sport":"BULL","provider":"CPC","competition":f"청도 소싸움 {rnd}회차 {day}일차","event_date":d,"race_no":race,"status":"FINAL","market_type":"THREE_WAY","left":res["red"],"right":res["blue"],"outcomes":outs,"result":{"official":True,"status":"CONFIRMED","winner":{"key":res["winner"],"label":{"RED":"홍","DRAW":"무","BLUE":"청"}[res["winner"]]},"source":"CPC_RESULT_OFFICIAL"},"source_url":ru}
+                    append_record("bull",event);seen.add(eid);stats["bull_records"]+=1
+            cp["resume_race"]=race+1;save_state(state)
+        cp.pop("resume_race",None)
         stats["bull_cards"]+=1;step_bull(cp);save_state(state)
 
 
