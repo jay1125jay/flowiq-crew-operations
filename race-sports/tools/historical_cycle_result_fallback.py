@@ -56,6 +56,7 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
                 continue
             candidates.append(m)
 
+        future_seen = False
         for m in candidates:
             if not room(1) or not budget.time_left():
                 break
@@ -73,6 +74,13 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
                 card_url = url
                 meeting = m
                 break
+            if visible is not None:
+                if visible > d:
+                    future_seen = True
+                elif visible < d and future_seen:
+                    # Requested date is bracketed between two official meetings:
+                    # it is a non-meeting day/week. Stop probing immediately.
+                    break
 
         if card_raw is None:
             stats['errors'].append(f'CYCLE {d} CARD_MEETING_NOT_RESOLVED:{candidates}'[:220])
