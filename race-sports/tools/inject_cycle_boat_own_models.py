@@ -79,6 +79,20 @@ def rank_of(e, o):
     return None
 
 
+def win_label(e, o):
+    # FINAL KBOAT often publishes only top-3 ranks. The explicit won flag
+    # still labels every starter as winner/non-winner and avoids dropping
+    # 4th-6th starters from binary win-probability training.
+    if o.get('won') is True:
+        return 1
+    if o.get('won') is False:
+        return 0
+    r = rank_of(e, o)
+    if r is not None:
+        return 1 if r == 1 else 0
+    return None
+
+
 def history_docs(today_date):
     docs = []
     if not HISTORY.exists():
@@ -126,11 +140,10 @@ def build_stats(docs, sport):
             seen.add(e.get('id'))
         race_labeled = False
         for o in e.get('outcomes') or []:
-            r = rank_of(e, o)
-            if r is None:
+            win = win_label(e, o)
+            if win is None:
                 continue
             race_labeled = True
-            win = 1 if r == 1 else 0
             total_starts += 1
             total_wins += win
             name = participant_name(o)
