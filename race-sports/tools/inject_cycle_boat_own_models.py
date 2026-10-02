@@ -10,6 +10,7 @@ DATA = Path('race-sports/data/today.json')
 HISTORY = Path('race-sports/data/history')
 BACKFILL = Path('race-sports/data/backfill')
 STATE = Path('race-sports/data/model_state/cycle_boat_own_predictions.json')
+MODELS = Path('race-sports/models')
 KST = timezone(timedelta(hours=9))
 
 CONFIG = {
@@ -259,7 +260,23 @@ def trim_state(state, today_text, keep_days=90):
     state['predictions'] = {k: v for k, v in state.get('predictions', {}).items() if str(v.get('date') or '') >= cutoff}
 
 
-def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
+def validation_state(sport):
+    cfg = CONFIG[sport]
+    validation_source = cfg['source'].replace('_hybrid_bayes_', '_empirical_bayes_')
+    p = MODELS / f"{validation_source}.validation.json"
+    try:
+        v = json.loads(p.read_text(encoding='utf-8'))
+    except Exception:
+        return False, {}
+    ok = bool(
+        v.get('eligible_for_value')
+        and v.get('leakage_guards') == 'PASS'
+        and v.get('model_source') == validation_source
+    )
+    return ok, v
+
+
+def set_provider(doc, sport, status, rows, labeled_runners, labeled_races, validated=False, validation=None):
     cfg = CONFIG[sport]
     providers = doc.setdefault('providers', [])
     providers[:] = [x for x in providers if x.get('provider') != cfg['provider']]
@@ -268,9 +285,9 @@ def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
         'status': status,
         'rows': rows,
         'model_source': cfg['source'],
-        'model_validated': False,
-        'model_state': 'PROVISIONAL_HYBRID_UNVALIDATED',
-        'value_enabled': False,
+        'model_validated': bool(validated),
+        'model_state': 'VALIDATED_OWN_WALK_FORWARD' if validated else 'PROVISIONAL_HYBRID_UNVALIDATED',
+        'value_enabled': bool(validated),
         'history_labeled_runners': labeled_runners,
         'history_labeled_races': labeled_races,
         'own_history_weight': round(min(1.0, labeled_races / cfg['full_own_races']), 4),
@@ -279,6 +296,7 @@ def set_provider(doc, sport, status, rows, labeled_runners, labeled_races):
         'cold_start_policy': f"NO_OWN_PREDICTION_WITHOUT_OFFICIAL_SEED_BEFORE_{cfg['min_own_races_without_seed']}_LABELED_RACES",
         'backfill_source': str(BACKFILL / sport.lower()),
         'pre_race_prediction_state': str(STATE),
+        'validation': validation or {},
         'updated_at': datetime.now(KST).isoformat(timespec='seconds'),
     })
 
@@ -290,6 +308,9 @@ def apply_sport(doc, sport, state):
     updated = 0
     events = 0
     carried = 0
+    validation_ok, validation = validation_state(sport)
+    fully_own = labeled_races >= cfg['full_own_races']
+    validated = bool(validation_ok and fully_own)
     for e in doc.get('events') or []:
         if e.get('sport') != sport:
             continue
@@ -307,16 +328,16 @@ def apply_sport(doc, sport, state):
                 o['model_p'] = round(float(p), 8)
                 o['model_source'] = cfg['source']
                 o['model_updated_at'] = now_text()
-                o['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
-                o['model_validated'] = False
+                o['model_state'] = 'VALIDATED_OWN_WALK_FORWARD' if validated else 'PROVISIONAL_HYBRID_UNVALIDATED'
+                o['model_validated'] = bool(validated)
                 o['own_history_weight'] = round(history_weight, 4)
                 o['official_seed_used'] = bool(seeded)
                 save_prediction(state, doc, sport, e, o)
                 updated += 1
             e['model_source'] = cfg['source']
-            e['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
-            e['model_validated'] = False
-            e['value_enabled'] = False
+            e['model_state'] = 'VALIDATED_OWN_WALK_FORWARD' if validated else 'PROVISIONAL_HYBRID_UNVALIDATED'
+            e['model_validated'] = bool(validated)
+            e['value_enabled'] = bool(validated)
             e['own_history_weight'] = round(history_weight, 4)
             e['official_seed_used'] = bool(seeded)
         else:
@@ -332,11 +353,11 @@ def apply_sport(doc, sport, state):
                 carried += 1
             if local_carried:
                 e['model_source'] = cfg['source']
-                e['model_state'] = 'PROVISIONAL_HYBRID_UNVALIDATED'
-                e['model_validated'] = False
-                e['value_enabled'] = False
-    status = 'PROVISIONAL' if events else 'NO_TODAY_CARD'
-    set_provider(doc, sport, status, updated, labeled_runners, labeled_races)
+                e['model_state'] = 'VALIDATED_OWN_WALK_FORWARD' if validated else 'PROVISIONAL_HYBRID_UNVALIDATED'
+                e['model_validated'] = bool(validated)
+                e['value_enabled'] = bool(validated)
+    status = ('PASS' if validated else 'PROVISIONAL') if events else 'NO_TODAY_CARD'
+    set_provider(doc, sport, status, updated, labeled_runners, labeled_races, validated, validation)
     return updated, events, labeled_runners, labeled_races, carried
 
 
