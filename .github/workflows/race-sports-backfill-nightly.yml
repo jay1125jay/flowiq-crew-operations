@@ -1,0 +1,74 @@
+name: race-sports-backfill-nightly
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/race-sports-backfill-nightly.yml'
+      - 'race-sports/tools/historical_backfill.py'
+      - 'race-sports/tools/historical_backfill_hardening.py'
+      - 'race-sports/tools/historical_cycle_result_fallback.py'
+      - 'race-sports/tools/historical_backfill_runner.py'
+      - 'race-sports/tools/backfill_quality_guard.py'
+      - 'race-sports/tools/validate_horse_model.py'
+  schedule:
+    - cron: '0 14 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: race-sports-backfill-nightly
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Self tests
+        run: |
+          python race-sports/tools/historical_backfill.py --self-test
+          python race-sports/tools/historical_backfill_hardening.py --self-test
+          python race-sports/tools/historical_cycle_result_fallback.py --self-test
+
+      - name: Quality gate before collection
+        run: python race-sports/tools/backfill_quality_guard.py
+
+      - name: Push smoke collection
+        if: github.event_name == 'push'
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 20 --ksports-slice 30 --bull-slice 30 --max-seconds 45
+
+      - name: Daily 23 KST quota sweep
+        if: github.event_name != 'push'
+        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds 1500
+
+      - name: Quality gate after collection
+        run: python race-sports/tools/backfill_quality_guard.py
+
+      - name: Validate horse model
+        run: python race-sports/tools/validate_horse_model.py
+
+      - name: Commit backfill state
+        shell: bash
+        run: |
+          set -e
+          git config user.name "race-sports-backfill-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add race-sports/data/historical_state race-sports/data/backfill race-sports/models/horse_empirical_bayes_v0.2.validation.json
+          if git diff --cached --quiet; then
+            echo "No backfill change"
+            exit 0
+          fi
+          git commit -m "chore: advance official race sports historical backfill"
+          git push origin HEAD:main
