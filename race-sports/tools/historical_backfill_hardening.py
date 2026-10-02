@@ -162,6 +162,76 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
     }
 
 
+
+def _backfill_horse(hb, state, budget, seen, stats):
+    cp = state['checkpoints']['horse']
+    while not cp.get('complete') and budget.available('horse') > 0 and budget.time_left():
+        d = date.fromisoformat(cp['cursor_date'])
+        if d < hb.START['horse']:
+            cp['complete'] = True
+            hb.save_state(state)
+            break
+        if d.weekday() not in (4, 5, 6):
+            hb.advance_day(state['checkpoints'], 'horse', hb.START['horse'])
+            hb.save_state(state)
+            continue
+
+        transient = False
+        for meet in ('1', '2', '3', '4'):
+            if budget.available('horse') <= 0 or not budget.time_left():
+                break
+
+            first_url = hb.HORSE_DETAIL.format(meet=meet, ymd=d.strftime('%Y%m%d'), race=1)
+            try:
+                first_raw = hb.fetch(first_url, budget, 'horse', timeout=12, retries=2)
+            except Exception as exc:
+                stats['errors'].append(f'HORSE {d} M{meet} R1 {type(exc).__name__}:{exc}'[:220])
+                transient = True
+                continue
+
+            first = hb.parse_horse_detail(first_raw, meet, d, 1)
+            if first and first['id'] not in seen:
+                hb.append_record('horse', first)
+                seen.add(first['id'])
+                stats['horse_records'] += 1
+
+            empty = 0
+            for race_no in range(2, 17):
+                if budget.available('horse') <= 0 or not budget.time_left():
+                    break
+                url = hb.HORSE_DETAIL.format(meet=meet, ymd=d.strftime('%Y%m%d'), race=race_no)
+                try:
+                    raw = hb.fetch(url, budget, 'horse', timeout=12, retries=2)
+                except Exception as exc:
+                    stats['errors'].append(f'HORSE {d} M{meet} R{race_no} {type(exc).__name__}:{exc}'[:220])
+                    transient = True
+                    continue
+
+                event = hb.parse_horse_detail(raw, meet, d, race_no)
+                if not event:
+                    empty += 1
+                    if empty >= 2:
+                        break
+                    continue
+
+                empty = 0
+                if event['id'] not in seen:
+                    hb.append_record('horse', event)
+                    seen.add(event['id'])
+                    stats['horse_records'] += 1
+
+        # If any request on this date was transiently unavailable, keep the
+        # checkpoint on the same date so the next hourly run fills the gaps.
+        if transient:
+            hb.save_state(state)
+            break
+
+        stats['horse_dates'] += 1
+        hb.advance_day(state['checkpoints'], 'horse', hb.START['horse'])
+        hb.save_state(state)
+
+
+
 def _advance_cycle(hb, state, stats):
     stats['cycle_dates'] += 1
     hb.advance_day(state['checkpoints'], 'cycle', hb.START['cycle'])
@@ -278,6 +348,7 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
 
 def install(hb):
     hb.parse_horse_detail = lambda raw, meet, d, race_no: _parse_horse_detail(hb, raw, meet, d, race_no)
+    hb.backfill_horse = lambda state, budget, seen, stats: _backfill_horse(hb, state, budget, seen, stats)
     hb.backfill_cycle = lambda state, budget, seen, stats, call_limit=None: _backfill_cycle(hb, state, budget, seen, stats, call_limit)
     return hb
 
