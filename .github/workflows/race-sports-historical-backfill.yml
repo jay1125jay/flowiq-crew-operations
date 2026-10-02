@@ -13,7 +13,7 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
   workflow_dispatch:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '0 14 * * *'
 
 permissions:
   contents: write
@@ -46,7 +46,7 @@ jobs:
       - name: Quality-gate existing historical records
         run: python race-sports/tools/backfill_quality_guard.py
 
-      - name: Exhaust remaining daily quota
+      - name: Daily 23:00 KST quota sweep
         run: python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds 1500
 
       - name: Quality-gate newly collected historical records
