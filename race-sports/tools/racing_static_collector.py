@@ -180,8 +180,8 @@ def collect_cycle(z,errors):
         t=textify(fetch(url)); hs=list(re.finditer(r'(광명|창원|부산)\s*(\d{2})경주\s*\(([^)]*?)(\d{1,2}:\d{2})\)',t)); out=[]
         for i,a in enumerate(hs):
             seg=t[a.start():(hs[i+1].start() if i+1<len(hs) else min(len(t),a.start()+12000))]; rr={}
-            for m in re.finditer(r'(?:^|\s)([1-7])\s+([가-힣]{2,5})\s+\d{1,2}기',seg):
-                rr.setdefault(int(m.group(1)),m.group(2))
+            for m in re.finditer(r'(?:^|\s)([1-7])\s+([가-힣](?:\s*[가-힣]){1,4})\s+\d{1,2}기',seg):
+                rr.setdefault(int(m.group(1)),re.sub(r'\s+','',m.group(2)))
                 if len(rr)>=7:break
             if len(rr)<2:continue
             rn=int(a.group(2)); tm=a.group(4)
