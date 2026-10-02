@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT=Path('race-sports')
 BACKFILL=ROOT/'data'/'backfill'
+HISTORY=ROOT/'data'/'history'
 MODELS=ROOT/'models'
 KST=timezone(timedelta(hours=9))
 
@@ -37,32 +38,55 @@ def rank_of(e,o):
     return None
 
 
+def winner_number(e):
+    for x in (e.get('result') or {}).get('top3') or []:
+        try:
+            if int(x.get('rank'))==1:return int(x.get('number'))
+        except Exception:pass
+    return None
+
+
 def win_label(e,o):
     if o.get('won') is True:return 1
     if o.get('won') is False:return 0
     r=rank_of(e,o)
     if r is not None:return 1 if r==1 else 0
+    wn=winner_number(e);n=num_of(o)
+    if (e.get('result') or {}).get('status')=='CONFIRMED' and wn is not None and n is not None:
+        return 1 if n==wn else 0
     return None
 
 
 def records(sport):
-    d=BACKFILL/sport.lower();out=[]
-    if not d.exists():return out
-    for p in sorted(d.glob('*.jsonl')):
-        try:
-            with p.open('r',encoding='utf-8') as f:
-                for line in f:
-                    if not line.strip():continue
-                    try:e=json.loads(line)
-                    except Exception:continue
-                    if e.get('sport')!=sport or e.get('status')!='FINAL':continue
-                    outs=e.get('outcomes') or []
-                    labels=[win_label(e,o) for o in outs]
-                    if len(outs)>=2 and all(x is not None for x in labels) and sum(labels)==1:out.append(e)
-        except Exception:continue
+    by_id={}
+    def add(e):
+        if e.get('sport')!=sport or e.get('status')!='FINAL':return
+        outs=e.get('outcomes') or []
+        labels=[win_label(e,o) for o in outs]
+        if len(outs)<2 or any(x is None for x in labels) or sum(labels)!=1:return
+        key=e.get('id') or f"{sport}|{e.get('event_date')}|{e.get('competition')}|{e.get('race_no')}"
+        by_id.setdefault(key,e)
+
+    d=BACKFILL/sport.lower()
+    if d.exists():
+        for p in sorted(d.glob('*.jsonl')):
+            try:
+                with p.open('r',encoding='utf-8') as f:
+                    for line in f:
+                        if not line.strip():continue
+                        try:add(json.loads(line))
+                        except Exception:continue
+            except Exception:continue
+
+    if HISTORY.exists():
+        for p in sorted(HISTORY.glob('*.json')):
+            try:doc=json.loads(p.read_text(encoding='utf-8'))
+            except Exception:continue
+            for e in doc.get('events') or []:add(e)
+
+    out=list(by_id.values())
     out.sort(key=lambda e:(e.get('event_date') or '',e.get('id') or ''))
     return out
-
 
 def posterior(pair,base,strength):
     s,w=pair if pair else (0,0)
