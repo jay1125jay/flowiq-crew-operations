@@ -1,3 +1,4 @@
+import re
 import sys
 import urllib.error
 from datetime import date
@@ -98,7 +99,16 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
 
         card = hb.parse_cycle_card(card_raw, d)
         if not card:
-            stats['errors'].append(f'CYCLE {d} CARD_EMPTY_SKIPPED'[:220])
+            try:
+                _, dbg_text = hb.parse_html(card_raw)
+                heads = re.findall(r'(광명|창원|부산)\s*(\d{1,2})경주', dbg_text)
+                runners = re.findall(r'(?<!\d)([1-7])\s+([가-힣](?:\s*[가-힣]){1,4})\s+\d{1,2}기', dbg_text)
+                sample_pos = dbg_text.find('경주')
+                sample = dbg_text[max(0, sample_pos-80):sample_pos+500] if sample_pos >= 0 else dbg_text[:500]
+                sample = re.sub(r'\s+', ' ', sample)
+                stats['errors'].append(f'CYCLE {d} CARD_EMPTY_DIAG:H={len(heads)} R={len(runners)} S={sample}'[:900])
+            except Exception as diag_exc:
+                stats['errors'].append(f'CYCLE {d} CARD_EMPTY_DIAG_FAIL:{diag_exc}'[:220])
             _advance(hb, state, stats)
             continue
 
