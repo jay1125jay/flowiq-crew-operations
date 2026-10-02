@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CRYPTO STUDY — Clean MVP</title>
+  <style>
+    :root{
+      --bg:#0b0f14;--panel:#111821;--panel2:#151e29;--line:#223042;--text:#f5f7fa;
+      --muted:#8fa0b5;--accent:#6ea8fe;--green:#39d98a;--red:#ff6b6b;--yellow:#ffc857;
+      --shadow:0 14px 40px rgba(0,0,0,.28);--radius:20px
+    }
+    *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{min-height:100vh} button,a,textarea{font:inherit}.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 60px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#1d2a3a,#0f151e);border:1px solid #29384c;box-shadow:var(--shadow);font-weight:800;color:#9ec5ff}
+    .brand h1{font-size:20px;margin:0;letter-spacing:.2px}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
+    .mode{padding:9px 12px;border:1px solid #29415f;border-radius:999px;color:#bcd4ff;background:#101a26;font-size:12px;font-weight:700}
+    .hero{padding:26px;border-radius:26px;background:radial-gradient(circle at top right,rgba(110,168,254,.16),transparent 32%),linear-gradient(180deg,#141c26,#0f151d);border:1px solid #243247;box-shadow:var(--shadow);margin-bottom:18px}
+    .eyebrow{color:#8eb9ff;font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.hero h2{font-size:30px;line-height:1.25;margin:10px 0 10px;max-width:850px}.hero p{margin:0;color:var(--muted);font-size:15px;line-height:1.65}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.btn{border:1px solid #2c3c51;background:#152130;color:var(--text);border-radius:14px;padding:11px 14px;cursor:pointer;text-decoration:none;transition:.18s ease;font-weight:700;font-size:14px}.btn:hover{transform:translateY(-1px);border-color:#4b6482}.btn.primary{background:#eaf2ff;color:#0b1220;border-color:#eaf2ff}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.card{background:linear-gradient(180deg,var(--panel),#0f151d);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.16)}.card h3{font-size:17px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+    .flow-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.metric{background:var(--panel2);border:1px solid #263448;border-radius:16px;padding:14px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between}.metric .name{color:var(--muted);font-size:12px;line-height:1.3}.metric .value{font-size:18px;font-weight:800;margin-top:10px}
+    .chip{width:max-content;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#1b2735;color:#9fb1c6;border:1px solid #304156}.timeline{display:grid;gap:10px}.row{display:grid;grid-template-columns:112px 1fr auto;gap:14px;align-items:center;background:#131b25;border:1px solid #233144;border-radius:14px;padding:13px 14px}.time{font-weight:800;font-size:13px}.desc{color:#cfd7e3;font-size:13px;line-height:1.45}.move{font-weight:900;font-size:13px}.move.flat{color:var(--yellow)}
+    .questions{display:grid;gap:10px}.q{padding:15px;border-radius:14px;background:#131b25;border:1px solid #233144;display:flex;gap:12px;align-items:flex-start}.num{width:28px;height:28px;border-radius:9px;background:#1c2b3d;color:#9ec5ff;display:grid;place-items:center;font-size:12px;font-weight:900;flex:0 0 auto}.q strong{display:block;font-size:14px}.q span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.5}
+    .decision-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}.decision{padding:14px 10px;border-radius:14px;border:1px solid #2a394d;color:#dfe7f1;background:#121a24;cursor:pointer;font-weight:800}.decision.active[data-value="상승"]{border-color:rgba(57,217,138,.7);background:rgba(57,217,138,.12);color:#78e7b1}.decision.active[data-value="하락"]{border-color:rgba(255,107,107,.7);background:rgba(255,107,107,.12);color:#ff9898}.decision.active[data-value="관망"]{border-color:rgba(255,200,87,.65);background:rgba(255,200,87,.1);color:#ffd77f}
+    textarea{width:100%;min-height:120px;resize:vertical;border-radius:14px;border:1px solid #2b3b50;background:#0d141c;color:var(--text);padding:14px;outline:none}textarea:focus{border-color:#5c87bd}.save-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}.saved{font-size:12px;color:#7fdcaf;min-height:18px}
+    details{margin-top:18px;background:#0f151d;border:1px solid #233144;border-radius:16px;overflow:hidden}summary{cursor:pointer;padding:15px 16px;font-weight:800;color:#dfe7f1}.details-inner{padding:0 16px 16px;color:var(--muted);font-size:13px}.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.detail-box{background:#131b25;border:1px solid #223145;border-radius:12px;padding:12px}.detail-box b{display:block;color:#e8edf5;margin-bottom:4px}
+    .footer{margin-top:18px;text-align:center;color:#657589;font-size:11px}.demo-note{margin-top:10px;padding:10px 12px;border-radius:12px;background:#111a25;border:1px solid #22324a;color:#93a6bc;font-size:12px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.flow-grid{grid-template-columns:repeat(2,1fr)}.metric:last-child{grid-column:1/-1}.detail-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.wrap{padding:18px 12px 40px}.topbar{align-items:flex-start}.hero{padding:20px}.hero h2{font-size:24px}.flow-grid{grid-template-columns:1fr}.metric:last-child{grid-column:auto}.row{grid-template-columns:1fr;gap:6px}.decision-buttons{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="topbar"><div class="brand"><div class="logo">CS</div><div><h1>CRYPTO STUDY</h1><p>코인 공부 · 복기 전용 MVP</p></div></div><div class="mode">STUDY MODE · 학습 모드</div></header>
+    <section class="hero">
+      <div class="eyebrow">TODAY · 오늘</div><h2>오늘 시장을 한 문장으로 이해하고,<br/>자금 흐름만 확인한다.</h2>
+      <p id="todaySummary">현재는 디자인 검증용 화면입니다. 실시간 데이터 연결 전이므로 숫자를 임의로 표시하지 않습니다.</p>
+      <div class="hero-actions"><a class="btn primary" href="https://www.binance.com/en/trade/BTC_USDT?type=spot" target="_blank" rel="noopener">Binance 차트 보기</a><button class="btn" id="focusBtn">오늘 공부 3개 보기</button></div>
+      <div class="demo-note">※ LIVE 데이터 연결 전 상태. 이 화면은 복잡도를 줄인 UI 구조 검증용입니다.</div>
+    </section>
+    <section class="card" style="margin-bottom:18px"><h3>자금 흐름</h3><div class="sub">Money Flow · 가격보다 먼저 움직이는 자금 신호를 간단히 본다.</div><div class="flow-grid">
+      <div class="metric"><div class="name">현물 거래량<br/>Spot Volume</div><div class="value">연결 전</div><div class="chip">데이터 대기</div></div>
+      <div class="metric"><div class="name">ETF 자금 흐름<br/>ETF Flow</div><div class="value">연결 전</div><div class="chip">데이터 대기</div></div>
+      <div class="metric"><div class="name">미결제약정<br/>Open Interest</div><div class="value">연결 전</div><div class="chip">데이터 대기</div></div>
+      <div class="metric"><div class="name">펀딩비<br/>Funding Rate</div><div class="value">연결 전</div><div class="chip">데이터 대기</div></div>
+      <div class="metric"><div class="name">청산<br/>Liquidation</div><div class="value">연결 전</div><div class="chip">데이터 대기</div></div>
+    </div></section>
+    <section class="grid">
+      <div class="card"><h3>어젯밤 BTC 복기</h3><div class="sub">US Session Replay · 미국장 시간대를 네 구간으로만 본다.</div><div class="timeline">
+        <div class="row"><div class="time">개장 전</div><div class="desc">경제지표·뉴스 확인 후 BTC 반응 기록</div><div class="move flat">대기</div></div>
+        <div class="row"><div class="time">미장 초반</div><div class="desc">개장 후 1시간 가격·거래량·OI 변화</div><div class="move flat">대기</div></div>
+        <div class="row"><div class="time">장 중반</div><div class="desc">초반 움직임이 유지됐는지 확인</div><div class="move flat">대기</div></div>
+        <div class="row"><div class="time">마감</div><div class="desc">종가 방향과 밤사이 핵심 변수를 한 줄로 정리</div><div class="move flat">대기</div></div>
+      </div><details><summary>경제 지표 상세보기</summary><div class="details-inner"><div class="detail-grid">
+        <div class="detail-box"><b>미국 10년물 금리</b>데이터 연결 전</div><div class="detail-box"><b>DXY 달러지수</b>데이터 연결 전</div><div class="detail-box"><b>NASDAQ</b>데이터 연결 전</div><div class="detail-box"><b>시장 유동성</b>데이터 연결 전</div>
+      </div></div></details></div>
+      <div class="card" id="lessonCard"><h3>오늘 공부할 것 3개</h3><div class="sub">Today’s Lesson · 많이 보지 말고 세 가지만 확인한다.</div><div class="questions">
+        <div class="q"><div class="num">1</div><div><strong>가격이 움직이기 전에 거래량 변화가 있었나?</strong><span>현물 거래량이 먼저 살아났는지 확인한다.</span></div></div>
+        <div class="q"><div class="num">2</div><div><strong>OI가 가격보다 먼저 급증했나?</strong><span>레버리지 자금이 먼저 과열됐는지 확인한다.</span></div></div>
+        <div class="q"><div class="num">3</div><div><strong>달러·나스닥과 BTC 반응이 일치했나?</strong><span>거시 흐름과 BTC 반응이 같은 방향이었는지 비교한다.</span></div></div>
+      </div></div>
+      <div class="card"><h3>내 판단</h3><div class="sub">My Decision · 맞히는 것보다 근거를 남기는 게 목적이다.</div><div class="decision-buttons">
+        <button class="decision" data-value="상승">상승</button><button class="decision" data-value="하락">하락</button><button class="decision" data-value="관망">관망</button>
+      </div><textarea id="reason" placeholder="예: DXY 하락 + 현물 거래량 증가 + OI 과열 없음 → 상승 쪽으로 판단"></textarea><div class="save-row"><div class="saved" id="savedMsg"></div><button class="btn primary" id="saveBtn">오늘 판단 저장</button></div></div>
+      <div class="card"><h3>어제 판단 복기</h3><div class="sub">Review · 결과보다 판단 근거가 논리적이었는지 확인한다.</div><div class="timeline">
+        <div class="row"><div class="time">내 판단</div><div class="desc" id="reviewDecision">저장된 기록 없음</div><div class="move flat">—</div></div>
+        <div class="row"><div class="time">내 근거</div><div class="desc" id="reviewReason">오늘 판단을 저장하면 여기에 표시됩니다.</div><div class="move flat">—</div></div>
+      </div></div>
+    </section>
+    <div class="footer">CRYPTO STUDY MVP · 차트는 Binance에서 확인하고, 이 앱은 공부와 복기에 집중합니다.</div>
+  </main>
+  <script>
+    const buttons=[...document.querySelectorAll('.decision')],reason=document.getElementById('reason'),savedMsg=document.getElementById('savedMsg'),reviewDecision=document.getElementById('reviewDecision'),reviewReason=document.getElementById('reviewReason');let selected=localStorage.getItem('cryptoStudyDecision')||'';
+    function paintSelection(){buttons.forEach(btn=>btn.classList.toggle('active',btn.dataset.value===selected))}
+    function loadSaved(){const savedReason=localStorage.getItem('cryptoStudyReason')||'';if(selected)reviewDecision.textContent=selected;if(savedReason){reviewReason.textContent=savedReason;reason.value=savedReason}paintSelection()}
+    buttons.forEach(btn=>btn.addEventListener('click',()=>{selected=btn.dataset.value;paintSelection()}));
+    document.getElementById('saveBtn').addEventListener('click',()=>{if(!selected){savedMsg.textContent='상승 / 하락 / 관망 중 하나를 먼저 선택하세요.';return}localStorage.setItem('cryptoStudyDecision',selected);localStorage.setItem('cryptoStudyReason',reason.value.trim());reviewDecision.textContent=selected;reviewReason.textContent=reason.value.trim()||'근거 미작성';savedMsg.textContent='저장 완료';setTimeout(()=>savedMsg.textContent='',1800)});
+    document.getElementById('focusBtn').addEventListener('click',()=>document.getElementById('lessonCard').scrollIntoView({behavior:'smooth',block:'center'}));loadSaved();
+  </script>
+</body>
+</html>
