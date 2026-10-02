@@ -175,8 +175,23 @@ def collect_boat(z,errors):
 
 def collect_cycle(z,errors):
     if z.weekday() not in (4,5,6):return [],[{'provider':'CYCLE_KCYCLE','status':'NO_RACE_WEEKDAY','detail':{}}]
-    day={4:1,5:2,6:3}[z.weekday()]; y=z.year; w=z.isocalendar().week; date=z.strftime('%Y-%m-%d'); url=f'https://www.kcycle.or.kr/race/card/decision/{y}/{w}/{day}'
+    day={4:1,5:2,6:3}[z.weekday()]; y=z.year; date=z.strftime('%Y-%m-%d')
     try:
+        # KCYCLE meeting number is NOT the ISO calendar week. Resolve the
+        # official meeting from the current KCYCLE home page and fail closed
+        # rather than loading the wrong race card.
+        home=textify(fetch('https://www.kcycle.or.kr/main'))
+        dm=re.search(r'(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일',home)
+        if dm:
+            home_date=f'{int(dm.group(1)):04d}-{int(dm.group(2)):02d}-{int(dm.group(3)):02d}'
+            if home_date!=date:raise RuntimeError(f'KCYCLE_HOME_DATE_MISMATCH:{home_date}')
+        mm=re.search(r'광명\s*제\s*\d+경주[\s\S]{0,80}?(\d+)회\s*(\d+)일차',home)
+        if not mm:
+            mm=re.search(r'광명[\s\S]{0,160}?(\d+)회\s*(\d+)일차',home)
+        if not mm:raise RuntimeError('KCYCLE_MEETING_NOT_PARSED')
+        meeting=int(mm.group(1)); published_day=int(mm.group(2))
+        if published_day!=day:raise RuntimeError(f'KCYCLE_DAY_MISMATCH:{published_day}!={day}')
+        url=f'https://www.kcycle.or.kr/race/card/decision/{y}/{meeting}/{day}'
         t=textify(fetch(url)); hs=list(re.finditer(r'(광명|창원|부산)\s*(\d{2})경주\s*\(([^)]*?)(\d{1,2}:\d{2})\)',t)); out=[]
         for i,a in enumerate(hs):
             seg=t[a.start():(hs[i+1].start() if i+1<len(hs) else min(len(t),a.start()+12000))]; rr={}
@@ -186,7 +201,7 @@ def collect_cycle(z,errors):
             if len(rr)<2:continue
             rn=int(a.group(2)); tm=a.group(4)
             out.append({'id':f'CYCLE-{date.replace("-","")}-{a.group(1)}-{rn:02d}','sport':'CYCLE','provider':'KCYCLE','competition':a.group(1)+' 경륜','event_date':date,'start_time':tm,'race_no':rn,'status':status_for(tm,None,35),'title':a.group(1)+f' {rn:02d}경주','market_type':'RUNNERS','outcomes':[{'key':f'N{n}','name':f'{n} {rr[n]}','number':n,'model_p':None} for n in sorted(rr)],'source_url':url})
-        return out,[{'provider':'CYCLE_KCYCLE','status':'PASS','detail':{'week':w,'day':day,'published':len(out)}}]
+        return out,[{'provider':'CYCLE_KCYCLE','status':'PASS','detail':{'meeting':meeting,'day':day,'published':len(out),'meeting_source':'KCYCLE_HOME_OFFICIAL'}}]
     except Exception as e:errors.append(f'CYCLE:{e}');return [],[{'provider':'CYCLE_KCYCLE','status':'FAIL','detail':{'error':str(e)}}]
 
 def collect_bull(z,errors):
