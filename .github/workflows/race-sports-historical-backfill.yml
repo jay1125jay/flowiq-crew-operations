@@ -1,8 +1,10 @@
 name: race-sports-historical-backfill
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '.github/workflows/race-sports-historical-backfill.yml'
       - 'race-sports/tools/historical_backfill.py'
@@ -11,13 +13,11 @@ on:
       - 'race-sports/tools/historical_backfill_runner.py'
       - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/validate_horse_model.py'
-  workflow_dispatch:
   schedule:
     - cron: '0 14 * * *'
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: race-sports-historical-backfill
@@ -28,97 +28,51 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Sync latest main before backfill
-        shell: bash
+      - name: Self tests
         run: |
-          set -euo pipefail
-          git fetch origin main
-          git reset --hard origin/main
+          python race-sports/tools/historical_backfill.py --self-test
+          python race-sports/tools/historical_backfill_hardening.py --self-test
+          python race-sports/tools/historical_cycle_result_fallback.py --self-test
 
-      - name: Self-test base backfill parser
-        run: python race-sports/tools/historical_backfill.py --self-test
-
-      - name: Self-test hardened Horse and Cycle adapters
-        run: python race-sports/tools/historical_backfill_hardening.py --self-test
-
-      - name: Self-test KCYCLE result URL fallback
-        run: python race-sports/tools/historical_cycle_result_fallback.py --self-test
-
-      - name: Quality-gate existing historical records
+      - name: Quality gate before collection
         run: python race-sports/tools/backfill_quality_guard.py
 
-      - name: Smoke backfill on code changes
+      - name: Push smoke collection
         if: github.event_name == 'push'
         run: python race-sports/tools/historical_backfill_runner.py --horse-slice 20 --ksports-slice 30 --bull-slice 30 --max-seconds 45
 
-      - name: Daily 23:00 KST exhaust remaining quota
+      - name: Daily 23 KST quota sweep
         if: github.event_name != 'push'
         run: python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds 1500
 
-      - name: Retry transient Horse and KSPORTS provider gaps
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, subprocess
-          from pathlib import Path
-          p=Path('race-sports/data/historical_state/backfill_report.json')
-          if not p.exists():
-              raise SystemExit(0)
-          d=json.loads(p.read_text(encoding='utf-8'))
-          errs='\n'.join((d.get('new') or {}).get('errors') or [])
-          transient = [line for line in errs.splitlines() if line and '404' not in line and 'SKIPPED' not in line and 'DATE_MISMATCH' not in line and 'FALLBACK_MISS' not in line]
-          if any(line.startswith(('HORSE ', 'CYCLE ', 'BOAT ')) for line in transient):
-              subprocess.run([
-                  'python','race-sports/tools/historical_backfill_runner.py',
-                  '--horse-slice','2500','--ksports-slice','2500','--bull-slice','0','--max-seconds','300'
-              ], check=True)
-          PY
-
-      - name: Quality-gate newly collected historical records
+      - name: Quality gate after collection
         run: python race-sports/tools/backfill_quality_guard.py
 
-      - name: Walk-forward validate Horse model
+      - name: Validate horse model
         run: python race-sports/tools/validate_horse_model.py
 
-      - name: Publish checkpoints data and model validation conflict-safe
+      - name: Commit backfill state
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
           git config user.name "race-sports-backfill-bot"
           git config user.email "actions@users.noreply.github.com"
-
-          tar -czf /tmp/race-sports-backfill-output.tgz \
-            race-sports/data/historical_state \
-            race-sports/data/backfill \
-            race-sports/models/horse_empirical_bayes_v0.2.validation.json
-
-          for n in 1 2 3; do
-            git fetch origin main
-            git reset --hard origin/main
-            tar -xzf /tmp/race-sports-backfill-output.tgz
-            git add race-sports/data/historical_state race-sports/data/backfill race-sports/models/horse_empirical_bayes_v0.2.validation.json
-            if git diff --cached --quiet; then
-              echo "No backfill change"
-              exit 0
-            fi
-            git commit -m "chore: advance official race sports historical backfill"
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "Push raced with another main update; replaying generated backfill output attempt $n"
-          done
-          echo "BACKFILL_PUBLISH=FAIL"
-          exit 1
-
-      - name: Dispatch live AI refresh after backfill
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run race-sports-static-refresh.yml --ref main
+          git add race-sports/data/historical_state
+          git add race-sports/data/backfill
+          git add race-sports/models/horse_empirical_bayes_v0.2.validation.json
+          if git diff --cached --quiet; then
+            echo "No backfill change"
+            exit 0
+          fi
+          git commit -m "chore: advance official race sports historical backfill"
+          git push origin HEAD:main
