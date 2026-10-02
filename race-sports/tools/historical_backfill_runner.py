@@ -40,9 +40,18 @@ def main():
     }
     before=dict(budget.ledger)
 
-    horse_end=start+total*0.35
-    cycle_end=start+total*0.525
-    boat_end=start+total*0.70
+    # Catch-up priority: KCYCLE is far behind the other sports. Until at
+    # least 100 clean cycle races exist, give it enough wall-clock time to
+    # cross non-meeting weekends and reach the next real meeting.
+    cycle_backlog = len(seen['cycle']) < 100
+    if cycle_backlog:
+        horse_end=start+total*0.20
+        cycle_end=start+total*0.65
+        boat_end=start+total*0.78
+    else:
+        horse_end=start+total*0.35
+        cycle_end=start+total*0.525
+        boat_end=start+total*0.70
     bull_end=start+total
 
     budget.deadline=horse_end
@@ -92,7 +101,7 @@ def main():
         'new':stats,
         'records_total':{s:len(seen[s]) for s in seen},
         'quota_policy':'daily hard caps; use remaining quota opportunistically; KCYCLE/KBOAT start 50/50 then reallocate unused shared quota',
-        'runtime_policy':{'horse':0.35,'cycle_initial':0.175,'boat_initial':0.175,'ksports_reallocation':'until 70% runtime','bull':0.30},
+        'runtime_policy':({'horse':0.20,'cycle_until':0.65,'boat_until':0.78,'bull_until':1.0,'mode':'CYCLE_CATCHUP_UNTIL_100'} if cycle_backlog else {'horse':0.35,'cycle_until':0.525,'boat_until':0.70,'bull_until':1.0,'mode':'BALANCED'}),
         'runtime_seconds':total,
         'hardening':{
             'horse':'STRICT_RENDERED_RACE_AND_ROW_QUALITY_BEFORE_PERSIST',
