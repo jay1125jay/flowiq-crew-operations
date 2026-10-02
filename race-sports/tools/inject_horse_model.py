@@ -56,20 +56,45 @@ def rank_of(e,o):
     return None
 
 
+def winner_number(e):
+    r=e.get("result") or {}
+    try:
+        if r.get("winner_number") is not None:return int(r.get("winner_number"))
+    except Exception:pass
+    for x in r.get("top3") or []:
+        try:
+            if int(x.get("rank"))==1:return int(x.get("number"))
+        except Exception:pass
+    return None
+
+
+def win_label(e,o):
+    if o.get("won") is True:return 1
+    if o.get("won") is False:return 0
+    r=rank_of(e,o)
+    if r is not None:return 1 if r==1 else 0
+    wn=winner_number(e)
+    try:n=int(o.get("number"))
+    except Exception:n=None
+    if (e.get("result") or {}).get("status")=="CONFIRMED" and wn is not None and n is not None:
+        return 1 if n==wn else 0
+    return None
+
+
 def build_stats():
     stats={"horse":defaultdict(lambda:[0,0]),"jockey":defaultdict(lambda:[0,0]),"trainer":defaultdict(lambda:[0,0])}
     total=0;wins=0;races=0;backfill_ids=set()
     for e in iter_backfill() or []:
         if e.get("id"):backfill_ids.add(e.get("id"))
-        labeled=False
-        for o in e.get("outcomes") or []:
-            r=rank_of(e,o)
-            if r is None:continue
-            labeled=True;total+=1;win=1 if r==1 else 0;wins+=win
+        outs=list(e.get("outcomes") or [])
+        labels=[win_label(e,o) for o in outs]
+        if not outs or any(x is None for x in labels) or sum(labels)!=1:continue
+        for o,win in zip(outs,labels):
+            total+=1;wins+=win
             for bucket,field in (("horse","horse_name"),("jockey","jockey"),("trainer","trainer")):
                 k=entity_key(o,field)
                 if k:stats[bucket][k][0]+=1;stats[bucket][k][1]+=win
-        if labeled:races+=1
+        races+=1
     if HISTORY.exists():
         for p in sorted(HISTORY.glob("*.json")):
             try:d=json.loads(p.read_text(encoding="utf-8"))
