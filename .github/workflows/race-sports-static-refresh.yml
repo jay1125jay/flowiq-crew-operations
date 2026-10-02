@@ -22,6 +22,7 @@ on:
       - 'race-sports/tools/kra_odds_endpoint_guard.py'
       - 'race-sports/tools/bull_model_features_v130.py'
       - 'race-sports/tools/bull_official_enricher.py'
+      - 'race-sports/tools/bull_contract_guard.py'
       - 'race-sports/tools/inject_bull_model.py'
       - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/ui_multisport_patch.py'
@@ -115,6 +116,10 @@ jobs:
       - name: Test CPC official bull odds and results
         if: github.event_name == 'push'
         run: python race-sports/tools/bull_official_enricher.py --self-test
+
+      - name: Guard Bull official odds and final retention contract
+        if: github.event_name == 'push'
+        run: python race-sports/tools/bull_contract_guard.py
 
       - name: Guard KRA odds endpoints
         if: github.event_name == 'push'
