@@ -79,10 +79,19 @@ def rank_of(e, o):
     return None
 
 
+def winner_number(e):
+    for x in (e.get('result') or {}).get('top3') or []:
+        try:
+            if int(x.get('rank')) == 1:
+                return int(x.get('number'))
+        except Exception:
+            pass
+    return None
+
+
 def win_label(e, o):
-    # FINAL KBOAT often publishes only top-3 ranks. The explicit won flag
-    # still labels every starter as winner/non-winner and avoids dropping
-    # 4th-6th starters from binary win-probability training.
+    # FINAL result pages often publish only top-3 ranks. When the official
+    # result is confirmed, every other listed starter is still a valid loser.
     if o.get('won') is True:
         return 1
     if o.get('won') is False:
@@ -90,6 +99,10 @@ def win_label(e, o):
     r = rank_of(e, o)
     if r is not None:
         return 1 if r == 1 else 0
+    wn = winner_number(e)
+    n = number_of(o)
+    if (e.get('result') or {}).get('status') == 'CONFIRMED' and wn is not None and n is not None:
+        return 1 if n == wn else 0
     return None
 
 
@@ -136,14 +149,13 @@ def build_stats(docs, sport):
 
     def consume(e):
         nonlocal total_starts, total_wins, labeled_races
+        outcomes=list(e.get('outcomes') or [])
+        labels=[win_label(e,o) for o in outcomes]
+        if not outcomes or any(x is None for x in labels) or sum(labels) != 1:
+            return
         if e.get('id'):
             seen.add(e.get('id'))
-        race_labeled = False
-        for o in e.get('outcomes') or []:
-            win = win_label(e, o)
-            if win is None:
-                continue
-            race_labeled = True
+        for o, win in zip(outcomes, labels):
             total_starts += 1
             total_wins += win
             name = participant_name(o)
@@ -154,8 +166,7 @@ def build_stats(docs, sport):
             if num is not None:
                 lane[num][0] += 1
                 lane[num][1] += win
-        if race_labeled:
-            labeled_races += 1
+        labeled_races += 1
 
     for e in iter_backfill(sport) or []:
         consume(e)
