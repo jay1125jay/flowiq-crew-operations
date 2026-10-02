@@ -57,6 +57,7 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
             candidates.append(m)
 
         future_seen = False
+        jump_date = None
         for m in candidates:
             if not room(1) or not budget.time_left():
                 break
@@ -78,11 +79,19 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
                 if visible > d:
                     future_seen = True
                 elif visible < d and future_seen:
-                    # Requested date is bracketed between two official meetings:
-                    # it is a non-meeting day/week. Stop probing immediately.
+                    # Requested date is bracketed between two official meetings.
+                    # Jump directly to the previous real meeting day instead of
+                    # burning one workflow run per empty calendar day.
+                    jump_date = visible
                     break
 
         if card_raw is None:
+            if jump_date is not None:
+                cp['cursor_date'] = jump_date.isoformat()
+                stats['cycle_dates'] += 1
+                hb.save_state(state)
+                stats['errors'].append(f'CYCLE {d} NON_MEETING_JUMP:{jump_date}'[:220])
+                continue
             stats['errors'].append(f'CYCLE {d} CARD_MEETING_NOT_RESOLVED:{candidates}'[:220])
             _advance(hb, state, stats)
             continue
