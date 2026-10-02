@@ -1,3 +1,4 @@
+INLINE_KBOAT_ODDS_ENABLED = False
 import json,re,html,urllib.request,time
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
@@ -161,7 +162,7 @@ def collect_boat(z,errors):
                     hit=next((x for x in r['top3'] if x['number']==o['number']),None)
                     if hit:o['final_rank']=hit['rank']
             hh,mm=map(int,e['start_time'].split(':')); delta=hh*60+mm-cur
-            if -35<=delta<=120 and not r:
+            if INLINE_KBOAT_ODDS_ENABLED and -35<=delta<=120 and not r:
                 try:
                     odds_url=f'https://kboat.or.kr/race/dividendrate/final/{y}/{w}/{day_used}/{e["race_no"]:02d}'
                     vals=parse_single_odds(kboat_fetch(odds_url,timeout=12,retries=3),e['race_no'])
