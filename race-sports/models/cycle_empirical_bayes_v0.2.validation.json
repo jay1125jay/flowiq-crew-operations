@@ -1,7 +1,8 @@
 {
-  "model_source": "horse_empirical_bayes_v0.2",
+  "sport": "CYCLE",
+  "model_source": "cycle_empirical_bayes_v0.2",
   "generated_at": "2026-10-02T16:52:25+09:00",
-  "input_races": 5,
+  "input_races": 1,
   "warmup_races": 100,
   "walk_forward_races": 0,
   "log_loss": null,
@@ -10,23 +11,18 @@
   "uniform_brier": null,
   "top1_accuracy": null,
   "uniform_expected_top1": null,
+  "leakage_guards": "PASS",
+  "eligible_for_value": false,
   "feature_whitelist": [
-    "horse_name",
-    "jockey",
-    "trainer",
-    "age",
-    "assigned_weight"
+    "participant_name",
+    "lane_number"
   ],
   "forbidden_postrace_fields": [
     "final_rank",
     "won",
-    "final_odds",
-    "final_place_odds",
     "result",
     "markets",
-    "body_weight"
+    "odds"
   ],
-  "leakage_guards": "PASS",
-  "eligible_for_value": false,
   "promotion_rule": "walk_forward>=500 and logloss/brier beat uniform by >=0.5% and top1 beats uniform expectation by >5%"
 }
