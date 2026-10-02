@@ -89,6 +89,29 @@ def winner_number(e):
     return None
 
 
+def norm_person_name(v):
+    s = re.sub(r'^\s*\d+\s*', '', str(v or '')).strip()
+    return re.sub(r'\s+', '', s)
+
+
+def cycle_result_matches_card(e):
+    if e.get('sport') != 'CYCLE':
+        return True
+    outs = {number_of(o): norm_person_name(participant_name(o)) for o in (e.get('outcomes') or [])}
+    top3 = (e.get('result') or {}).get('top3') or []
+    if not top3:
+        return False
+    for x in top3:
+        try:
+            n = int(x.get('number'))
+        except Exception:
+            return False
+        result_name = norm_person_name(x.get('name'))
+        if n not in outs or not outs[n] or not result_name or outs[n] != result_name:
+            return False
+    return True
+
+
 def win_label(e, o):
     # FINAL result pages often publish only top-3 ranks. When the official
     # result is confirmed, every other listed starter is still a valid loser.
@@ -149,6 +172,8 @@ def build_stats(docs, sport):
 
     def consume(e):
         nonlocal total_starts, total_wins, labeled_races
+        if sport == 'CYCLE' and not cycle_result_matches_card(e):
+            return
         outcomes=list(e.get('outcomes') or [])
         labels=[win_label(e,o) for o in outcomes]
         if not outcomes or any(x is None for x in labels) or sum(labels) != 1:
