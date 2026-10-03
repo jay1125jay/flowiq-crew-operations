@@ -86,7 +86,7 @@ def check_ui_contract():
     required = [
         "e.sport==='BULL'&&e.result.winner",
         "e.status==='FINAL'?'공식 결과':'공식 출전표'",
-        "e.status==='FINAL'?'종료 · 추천 비활성'",
+        "e.status==='FINAL'?'종료 · AI 예측/실제 결과 비교 · 추천 비활성'",
         "a.length?a.map(card).join('')",
     ]
     for token in required:
