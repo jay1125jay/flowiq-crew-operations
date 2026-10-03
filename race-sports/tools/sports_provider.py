@@ -228,8 +228,11 @@ def _kovo_season_for_day(d:date)->str:
     start_year=d.year if d.month>=7 else d.year-1
     return f"{start_year-2003:03d}"
 
-def _kovo_month_url(d:date)->str:
-    return f"{KOVO_BASE}?season={_kovo_season_for_day(d)}&yymm={d.strftime('%Y-%m')}&s_part=0&r_round="
+def _kovo_month_urls(d:date)->list[str]:
+    base=f"{KOVO_BASE}?season={_kovo_season_for_day(d)}&team=&yymm={d.strftime('%Y-%m')}&r_round="
+    # Current KOVO pages are most reliable when men's/women's divisions are
+    # requested explicitly. Merge both into one top-tier V-League feed.
+    return [base+"&s_part=1", base+"&s_part=2"]
 
 def _canonical_kovo_teams(text:str)->list[str]:
     found=[]
@@ -315,14 +318,25 @@ def _parse_kovo_month(html:str,month_date:date,source_url:str)->list[dict]:
 def _fetch_kovo_day(day:str)->tuple[list[dict],dict]:
     d=date.fromisoformat(day);key=d.strftime("%Y-%m")
     if key not in _KOVO_CACHE:
-        url=_kovo_month_url(d);html=_http_text(url)
-        parsed=_parse_kovo_month(html,d,url)
-        _KOVO_CACHE[key]=(parsed,url,len(html))
-    parsed,url,html_len=_KOVO_CACHE[key]
+        merged=[];urls=[];failures=[];html_bytes=0;success=0
+        for url in _kovo_month_urls(d):
+            try:
+                html=_http_text(url);html_bytes+=len(html);success+=1;urls.append(url)
+                merged.extend(_parse_kovo_month(html,d,url))
+            except Exception as exc:
+                failures.append({"url":url,"error":str(exc)[:250]})
+        if success==0:
+            raise RuntimeError("KOVO_ALL_DIVISIONS_FAILED:"+json.dumps(failures,ensure_ascii=False))
+        uniq={e["id"]:e for e in merged}
+        parsed=sorted(uniq.values(),key=lambda e:(e["start_timestamp"],e["id"]))
+        _KOVO_CACHE[key]=(parsed,urls,html_bytes,success,failures)
+    parsed,urls,html_len,success,failures=_KOVO_CACHE[key]
     events=[e for e in parsed if e.get("event_date")==day]
-    return events,{"sport":"VOLLEYBALL","provider":"KOVO_OFFICIAL","status":"PASS","requests":1,
-                   "successful_requests":1,"raw_events":len(parsed),"top_tier_events":len(events),
-                   "source_urls":[url],"html_bytes":html_len,"failures":[]}
+    return events,{"sport":"VOLLEYBALL","provider":"KOVO_OFFICIAL",
+                   "status":"PASS" if not failures else "PARTIAL","requests":2,
+                   "successful_requests":success,"raw_events":len(parsed),
+                   "top_tier_events":len(events),"source_urls":urls,
+                   "html_bytes":html_len,"failures":failures}
 
 def fetch_sport_day(sport:str,day:str)->tuple[list[dict],dict]:
     if sport=="VOLLEYBALL":return _fetch_kovo_day(day)
