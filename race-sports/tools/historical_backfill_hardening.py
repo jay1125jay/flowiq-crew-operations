@@ -201,10 +201,16 @@ def _backfill_horse(hb, state, budget, seen, stats):
                     raw = hb.fetch(url, budget, 'horse', timeout=12, retries=2)
                 except Exception as exc:
                     stats['errors'].append(f'HORSE {d} M{meet} R{race_no} {type(exc).__name__}:{exc}'[:220])
+                    # A single bad historical endpoint must not pin the entire
+                    # daily quota. Queue it for later repair and continue.
+                    rq = state.setdefault('retry_queue', {}).setdefault('horse', [])
+                    key = {'date': d.isoformat(), 'meet': meet, 'race_no': race_no}
+                    if key not in rq:
+                        rq.append(key)
                     cp['resume_meet_idx'] = mi
-                    cp['resume_race_no'] = race_no
+                    cp['resume_race_no'] = race_no + 1
                     hb.save_state(state)
-                    return
+                    continue
 
                 event = hb.parse_horse_detail(raw, meet, d, race_no)
                 if event:
