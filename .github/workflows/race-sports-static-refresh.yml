@@ -271,9 +271,9 @@ jobs:
             mkdir -p /tmp/race-sports-model-state
             cp race-sports/data/model_state/cycle_boat_own_predictions.json /tmp/race-sports-model-state/cycle_boat_own_predictions.json
           fi
-          if [ -f race-sports/data/model_state/sports_elo_v0.1.validation.json ]; then
+          if [ -f race-sports/data/model_state/sports_elo_v0.2.validation.json ]; then
             mkdir -p /tmp/race-sports-model-state
-            cp race-sports/data/model_state/sports_elo_v0.1.validation.json /tmp/race-sports-model-state/sports_elo_v0.1.validation.json
+            cp race-sports/data/model_state/sports_elo_v0.2.validation.json /tmp/race-sports-model-state/sports_elo_v0.2.validation.json
           fi
           DATE=$(python - <<'PY'
           import json
@@ -321,9 +321,9 @@ jobs:
               cp /tmp/race-sports-model-state/cycle_boat_own_predictions.json race-sports/data/model_state/cycle_boat_own_predictions.json
               git add race-sports/data/model_state/cycle_boat_own_predictions.json
             fi
-            if [ -f /tmp/race-sports-model-state/sports_elo_v0.1.validation.json ]; then
-              cp /tmp/race-sports-model-state/sports_elo_v0.1.validation.json race-sports/data/model_state/sports_elo_v0.1.validation.json
-              git add race-sports/data/model_state/sports_elo_v0.1.validation.json
+            if [ -f /tmp/race-sports-model-state/sports_elo_v0.2.validation.json ]; then
+              cp /tmp/race-sports-model-state/sports_elo_v0.2.validation.json race-sports/data/model_state/sports_elo_v0.2.validation.json
+              git add race-sports/data/model_state/sports_elo_v0.2.validation.json
             fi
 
             if git diff --cached --quiet; then
