@@ -33,6 +33,7 @@ on:
       - 'race-sports/tools/inject_sports_model.py'
       - 'race-sports/tools/validate_sports_snapshot.py'
       - 'race-sports/tools/sports_history_backfill.py'
+      - 'race-sports/tools/kovo_official_pdf_backfill.py'
   workflow_dispatch:
   schedule:
     - cron: '2,32 * * * *'
@@ -148,11 +149,15 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/inject_cycle_boat_own_models.py --self-test
 
+      - name: Install KOVO PDF test parser
+        if: github.event_name == 'push'
+        run: python -m pip install --disable-pip-version-check pypdf
+
       - name: Test four-sport provider and model
         if: github.event_name == 'push'
         run: |
           python race-sports/tools/sports_provider.py --self-test
-          python race-sports/tools/sports_provider.py --kovo-regression-probe
+          python race-sports/tools/kovo_official_pdf_backfill.py --self-test
           python race-sports/tools/inject_sports_model.py --self-test
           python race-sports/tools/sports_history_backfill.py --self-test
 
