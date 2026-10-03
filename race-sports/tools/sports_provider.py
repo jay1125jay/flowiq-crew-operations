@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 import argparse, json, time, urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date, timezone, timedelta
 from typing import Any
 
@@ -55,14 +56,12 @@ def _http_json(url:str,timeout:int=18,retries:int=2)->dict:
             if i<retries: time.sleep(1+i)
     raise RuntimeError(f"FETCH_FAILED:{url}:{last!r}")
 
-def _range_param(day:str)->str:
+def _query_days(day:str)->list[str]:
     d=date.fromisoformat(day)
-    a=(d-timedelta(days=1)).strftime("%Y%m%d")
-    b=(d+timedelta(days=1)).strftime("%Y%m%d")
-    return f"{a}-{b}"
+    return [(d-timedelta(days=1)).strftime("%Y%m%d"), d.strftime("%Y%m%d")]
 
-def _league_url(sport_slug:str,league_slug:str,day:str)->str:
-    return f"{ESPN_BASE}/{sport_slug}/{league_slug}/scoreboard?dates={_range_param(day)}&limit=500"
+def _league_url(sport_slug:str,league_slug:str,query_day:str)->str:
+    return f"{ESPN_BASE}/{sport_slug}/{league_slug}/scoreboard?dates={query_day}"
 
 def _parse_iso(s:str)->datetime:
     if s.endswith("Z"): s=s[:-1]+"+00:00"
@@ -162,23 +161,32 @@ def parse_event(sport:str,ev:dict,requested_day:str,league_name:str,source_url:s
 
 def fetch_sport_day(sport:str,day:str)->tuple[list[dict],dict]:
     if sport not in LEAGUES:raise KeyError(sport)
-    all_events=[]; sources=[]; failures=[]
-    success=0; raw_count=0
+    jobs=[]
     for sport_slug,league_slug,league_name in LEAGUES[sport]:
-        url=_league_url(sport_slug,league_slug,day)
-        try:
-            obj=_http_json(url)
-            raw=obj.get("events")
-            if not isinstance(raw,list):raise RuntimeError("EVENTS_NOT_LIST")
-            success+=1; raw_count+=len(raw); sources.append(url)
-            for ev in raw:
-                try:
-                    x=parse_event(sport,ev,day,league_name,url)
-                    if x:all_events.append(x)
-                except Exception:
-                    continue
-        except Exception as exc:
-            failures.append({"league":league_name,"error":str(exc)[:250],"url":url})
+        for qd in _query_days(day):
+            jobs.append((sport_slug,league_slug,league_name,_league_url(sport_slug,league_slug,qd)))
+    all_events=[];sources=[];failures=[];success=0;raw_count=0
+    def one(job):
+        sport_slug,league_slug,league_name,url=job
+        obj=_http_json(url)
+        raw=obj.get("events")
+        if not isinstance(raw,list):raise RuntimeError("EVENTS_NOT_LIST")
+        return league_name,url,raw
+    with ThreadPoolExecutor(max_workers=min(6,len(jobs))) as ex:
+        futs={ex.submit(one,j):j for j in jobs}
+        for fut in as_completed(futs):
+            j=futs[fut]
+            try:
+                league_name,url,raw=fut.result()
+                success+=1;raw_count+=len(raw);sources.append(url)
+                for ev in raw:
+                    try:
+                        x=parse_event(sport,ev,day,league_name,url)
+                        if x:all_events.append(x)
+                    except Exception:
+                        continue
+            except Exception as exc:
+                failures.append({"league":j[2],"error":str(exc)[:250],"url":j[3]})
     if success==0:
         raise RuntimeError("ALL_LEAGUES_FAILED:"+json.dumps(failures,ensure_ascii=False))
     uniq={e["id"]:e for e in all_events}
@@ -186,7 +194,7 @@ def fetch_sport_day(sport:str,day:str)->tuple[list[dict],dict]:
     return events,{
         "sport":sport,
         "status":"PASS" if not failures else "PARTIAL",
-        "requests":len(LEAGUES[sport]),
+        "requests":len(jobs),
         "successful_requests":success,
         "raw_events":raw_count,
         "top_tier_events":len(events),
