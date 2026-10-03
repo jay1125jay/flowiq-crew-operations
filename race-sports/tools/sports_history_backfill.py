@@ -23,7 +23,8 @@ def load_state():
                     "cursor_date":latest,"complete":False,
                     "calls_total":int(s.get("calls_total",0)),
                     "days_saved":int(s.get("days_saved",0)),
-                    "revision":REVISION,"repair_replay":True
+                    "revision":REVISION,"repair_replay":True,
+                    "repair_until":str(s.get("cursor_date") or latest)
                 }
             return s
         except Exception:pass
@@ -38,22 +39,48 @@ def run(max_days=30,max_seconds=900,sleep_seconds=.25):
     started=time.monotonic();days=0;calls=0;saved=0
     while cur>=START and days<max_days and time.monotonic()-started<max_seconds:
         day=cur.isoformat();events=[];providers=[];ok_any=False;day_calls=0
-        for sport in SPORTS:
-            if time.monotonic()-started>=max_seconds:break
+        repair=bool(s.get("repair_replay"))
+        existing=HIST/f"{day}.json"
+        if repair and existing.exists():
             try:
-                ev,meta=fetch_sport_day(sport,day);events.extend(ev);providers.append(meta);ok_any=True;day_calls+=int(meta.get("requests",0))
+                prev=json.loads(existing.read_text(encoding="utf-8"))
+                events=[e for e in prev.get("events",[]) if e.get("sport")!="VOLLEYBALL"]
+                providers=[m for m in prev.get("providers",[]) if m.get("sport")!="VOLLEYBALL"]
+            except Exception:
+                events=[];providers=[]
+            try:
+                ev,meta=fetch_sport_day("VOLLEYBALL",day)
+                events.extend(ev);providers.append(meta);ok_any=True;day_calls+=int(meta.get("requests",0))
             except Exception as exc:
-                providers.append({"sport":sport,"status":"FAIL","error":str(exc)[:300]})
-            time.sleep(sleep_seconds)
+                providers.append({"sport":"VOLLEYBALL","status":"FAIL","error":str(exc)[:300]})
+        else:
+            for sport in SPORTS:
+                if time.monotonic()-started>=max_seconds:break
+                try:
+                    ev,meta=fetch_sport_day(sport,day);events.extend(ev);providers.append(meta);ok_any=True;day_calls+=int(meta.get("requests",0))
+                except Exception as exc:
+                    providers.append({"sport":sport,"status":"FAIL","error":str(exc)[:300]})
+                time.sleep(sleep_seconds)
         calls+=day_calls
         if not ok_any:break
+        events.sort(key=lambda e:(e.get("start_timestamp",0),e.get("sport",""),e.get("id","")))
         payload={"date":day,"domain":"SPORTS","enabled_sports":list(SPORTS),"providers":providers,"events":events,"generated_at":datetime.now(KST).isoformat()}
         (HIST/f"{day}.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding="utf-8")
         saved+=1;days+=1;cur-=timedelta(days=1)
-        s["cursor_date"]=cur.isoformat();s["days_saved"]=int(s.get("days_saved",0))+1;s["calls_total"]=int(s.get("calls_total",0))+day_calls;save_state(s)
+        s["cursor_date"]=cur.isoformat();s["days_saved"]=int(s.get("days_saved",0))+1;s["calls_total"]=int(s.get("calls_total",0))+day_calls
+        if s.get("repair_replay") and s.get("repair_until"):
+            try:
+                if date.fromisoformat(day)<=date.fromisoformat(s["repair_until"]):
+                    s["repair_replay"]=False
+                    s.pop("repair_until",None)
+            except Exception:
+                pass
+        save_state(s)
     if cur<START:s["complete"]=True
     s["revision"]=REVISION
-    s["repair_replay"]=False
+    if cur<START:
+        s["repair_replay"]=False
+        s.pop("repair_until",None)
     save_state(s)
     print(json.dumps({"SPORTS_BACKFILL":"PASS","days_this_run":days,"files_saved":saved,"calls_this_run":calls,"cursor_date":s["cursor_date"],"complete":s.get("complete",False)},ensure_ascii=False))
 
