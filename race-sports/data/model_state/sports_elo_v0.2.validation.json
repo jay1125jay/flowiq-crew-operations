@@ -2,56 +2,20 @@
   "model": "sports_elo_v0.2",
   "validation": {
     "SOCCER": {
-      "games": 2347,
-      "holdout_rows": 705,
-      "walk_forward_rows": 705,
-      "accuracy": 0.506383,
-      "log_loss": 1.004767,
-      "brier": 0.199791,
+      "games": 2209,
+      "holdout_rows": 663,
+      "walk_forward_rows": 663,
+      "accuracy": 0.502262,
+      "log_loss": 1.011167,
+      "brier": 0.201273,
       "uniform_log_loss": 1.098612,
-      "log_loss_edge": 0.093846,
+      "log_loss_edge": 0.087446,
       "validated": true,
       "selected_params": {
         "k": 32.0,
         "home_adv": 60.0,
         "scale": 350.0,
         "shrink": 1.0
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "BASKETBALL": {
-      "games": 1433,
-      "holdout_rows": 430,
-      "walk_forward_rows": 430,
-      "accuracy": 0.723256,
-      "log_loss": 0.553156,
-      "brier": 0.184848,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.139991,
-      "validated": true,
-      "selected_params": {
-        "k": 20.0,
-        "home_adv": 30.0,
-        "scale": 430.0,
-        "shrink": 1.0
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "BASEBALL": {
-      "games": 4807,
-      "holdout_rows": 1443,
-      "walk_forward_rows": 1443,
-      "accuracy": 0.557866,
-      "log_loss": 0.684466,
-      "brier": 0.245684,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.008681,
-      "validated": true,
-      "selected_params": {
-        "k": 8.0,
-        "home_adv": 40.0,
-        "scale": 350.0,
-        "shrink": 0.6
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
@@ -72,9 +36,45 @@
         "shrink": 0.65
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
+    "BASKETBALL": {
+      "games": 1403,
+      "holdout_rows": 421,
+      "walk_forward_rows": 421,
+      "accuracy": 0.729216,
+      "log_loss": 0.550713,
+      "brier": 0.183677,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.142434,
+      "validated": true,
+      "selected_params": {
+        "k": 20.0,
+        "home_adv": 30.0,
+        "scale": 430.0,
+        "shrink": 1.0
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
+    "BASEBALL": {
+      "games": 4412,
+      "holdout_rows": 1324,
+      "walk_forward_rows": 1324,
+      "accuracy": 0.559668,
+      "log_loss": 0.683887,
+      "brier": 0.245396,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.00926,
+      "validated": true,
+      "selected_params": {
+        "k": 8.0,
+        "home_adv": 40.0,
+        "scale": 350.0,
+        "shrink": 0.6
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 9334,
+  "history_events": 8771,
   "safety": {
     "value_enabled": false,
     "market_odds_required_before_value": true
