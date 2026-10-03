@@ -213,13 +213,17 @@ def save_state(s):
     STATE.parent.mkdir(parents=True,exist_ok=True)
     STATE.write_text(json.dumps(s,ensure_ascii=False,indent=2),encoding="utf-8")
 
-def backfill(seasons:list[str],max_game:int,workers:int):
+def backfill(seasons:list[str],max_game:int,workers:int,force:bool=False):
     state=load_state();all_events=[];reports=[]
-    for season in seasons:
+    done=set(state.get("completed_seed_seasons") or [])
+    selected=[s for s in seasons if force or s not in done]
+    if not selected:
+        print(json.dumps({"KOVO_PDF_BACKFILL":"PASS","skipped_completed":seasons,"events":0,"merge":{"changed_files":0,"added":0,"replaced":0}},ensure_ascii=False))
+        return
+    for season in selected:
         events,meta=scan_season(season,max_game,workers)
         reports.append(meta);all_events.extend(events)
     merge=merge_events(all_events)
-    done=set(state.get("completed_seed_seasons") or [])
     for meta in reports:
         if meta["status"]=="PASS":done.add(meta["season"])
     state["completed_seed_seasons"]=sorted(done,reverse=True)
@@ -250,10 +254,11 @@ def main():
     ap.add_argument("--seasons",default=",".join(SEED_SEASONS))
     ap.add_argument("--max-game",type=int,default=MAX_GAME_DEFAULT)
     ap.add_argument("--workers",type=int,default=6)
+    ap.add_argument("--force",action="store_true")
     a=ap.parse_args()
     if a.self_test:return self_test()
     seasons=[x.strip() for x in a.seasons.split(",") if x.strip()]
-    backfill(seasons,a.max_game,a.workers)
+    backfill(seasons,a.max_game,a.workers,a.force)
 
 if __name__=="__main__":
     main()
