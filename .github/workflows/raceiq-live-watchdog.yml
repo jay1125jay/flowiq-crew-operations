@@ -2,6 +2,10 @@ name: raceiq-live-watchdog
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-live-watchdog.yml'
   schedule:
     # Redundant half-hour anchors. Each run dispatches the full RACEIQ refresh
     # every 5 minutes for 30 minutes, avoiding gaps when GitHub cron is delayed.
@@ -27,6 +31,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "RACEIQ_WATCHDOG_SMOKE=1"
+            gh workflow run race-sports-static-refresh.yml --ref main
+            exit 0
+          fi
           for n in 1 2 3 4 5 6; do
             echo "RACEIQ_REFRESH_DISPATCH=$n/6"
             gh workflow run race-sports-static-refresh.yml --ref main
