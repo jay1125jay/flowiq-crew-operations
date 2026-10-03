@@ -14,9 +14,9 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/tools/validate_cycle_boat_models.py'
   schedule:
-    # Continue backfill every hour. Daily usage is persisted in KST and each
-    # provider stops automatically when its daily request cap is exhausted.
-    - cron: '15 * * * *'
+    # 07:00 KST every day (= 22:00 UTC on the previous calendar date).
+    # One run starts the chain; self-dispatch continues until caps or 23:00 KST.
+    - cron: '0 22 * * *'
 
 permissions:
   contents: write
@@ -41,6 +41,20 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Check KST collection window
+        id: window
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from datetime import datetime, timedelta, timezone
+          KST=timezone(timedelta(hours=9))
+          now=datetime.now(KST)
+          allowed = 7 <= now.hour < 23
+          print(f"allowed={'1' if allowed else '0'}")
+          print(f"kst_now={now.isoformat(timespec='seconds')}")
+          print(f"BACKFILL_WINDOW={'OPEN' if allowed else 'CLOSED'}")
+          PY
+
       - name: Self tests
         run: |
           python race-sports/tools/historical_backfill.py --self-test
@@ -51,14 +65,15 @@ jobs:
         run: python race-sports/tools/backfill_quality_guard.py
 
       - name: Consume daily quota
+        if: steps.window.outputs.allowed == '1'
         shell: bash
         run: |
           MAX_SECONDS=$(python - <<'PY'
           from datetime import datetime, timedelta, timezone
           KST=timezone(timedelta(hours=9))
           now=datetime.now(KST)
-          midnight=(now+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
-          remain=max(60,int((midnight-now).total_seconds())-240)
+          stop=now.replace(hour=23,minute=0,second=0,microsecond=0)
+          remain=max(60,int((stop-now).total_seconds())-240)
           print(min(3300,remain))
           PY
           )
@@ -70,15 +85,19 @@ jobs:
             --max-seconds "$MAX_SECONDS"
 
       - name: Quality gate after collection
+        if: steps.window.outputs.allowed == '1'
         run: python race-sports/tools/backfill_quality_guard.py
 
       - name: Validate horse model
+        if: steps.window.outputs.allowed == '1'
         run: python race-sports/tools/validate_horse_model.py
 
       - name: Validate cycle and boat own models
+        if: steps.window.outputs.allowed == '1'
         run: python race-sports/tools/validate_cycle_boat_models.py
 
       - name: Publish backfill state conflict-safe
+        if: steps.window.outputs.allowed == '1'
         shell: bash
         run: |
           set -euo pipefail
@@ -120,11 +139,13 @@ jobs:
           exit 1
 
       - name: Dispatch live refresh after backfill
+        if: steps.window.outputs.allowed == '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run race-sports-static-refresh.yml --ref main
 
       - name: Continue until daily caps are exhausted
+        if: steps.window.outputs.allowed == '1'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -148,10 +169,11 @@ jobs:
           }
           progress=sum(max(0,int(used.get(k,0))-int(before.get(k,0))) for k in remaining)
           now=datetime.now(KST)
-          midnight=(now+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
-          seconds_left=(midnight-now).total_seconds()
+          stop=now.replace(hour=23,minute=0,second=0,microsecond=0)
+          seconds_left=(stop-now).total_seconds()
+          in_window = 7 <= now.hour < 23
 
-          should_continue=any(v>0 for v in remaining.values()) and progress>0 and seconds_left>600
+          should_continue=in_window and any(v>0 for v in remaining.values()) and progress>0 and seconds_left>600
           print(f"CONTINUE={'1' if should_continue else '0'}")
           print("REMAINING_HORSE="+str(remaining["horse"]))
           print("REMAINING_KSPORTS="+str(remaining["ksports"]))
