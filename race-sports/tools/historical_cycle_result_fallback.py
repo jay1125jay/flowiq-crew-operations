@@ -1,19 +1,17 @@
 import re
 import sys
 import urllib.error
+from datetime import date
 
 
 def _is_404(exc):
     return isinstance(exc, urllib.error.HTTPError) and int(getattr(exc, 'code', 0)) == 404
 
 
-def result_candidates(year, meeting, day):
+def result_url(year, meeting, day, selector=None):
     root = 'https://www.kcycle.or.kr/race/result/general'
-    return [
-        f'{root}/{year}/{meeting}/{day}',
-        f'{root}/{year}/{meeting}/{day}/01',
-        root,
-    ]
+    base = f'{root}/{year}/{meeting}/{day}'
+    return base if selector is None else f'{base}/{int(selector):02d}'
 
 
 def _meeting_header(hb, raw):
@@ -21,18 +19,13 @@ def _meeting_header(hb, raw):
         _, text = hb.parse_html(raw)
     except Exception:
         return None
-    pats = [
-        r'(\d{4})년\s*(\d+)회(?:차)?\s*(\d+)일차\s*\((\d{2})월\s*(\d{2})일\)',
-        r'(\d{4})년\s*(\d+)회(?:차)?\s*(\d+)일차',
-    ]
-    for pat in pats:
-        m = re.search(pat, text)
-        if not m:
-            continue
-        out = {'year': int(m.group(1)), 'meeting': int(m.group(2)), 'day': int(m.group(3))}
-        if len(m.groups()) >= 5:
-            out['date'] = f'{int(m.group(1)):04d}-{int(m.group(4)):02d}-{int(m.group(5)):02d}'
-        return out
+    # Summary header: 2026년 39회 1일차 (10월 02일) 경주결과
+    m = re.search(r'(\d{4})년\s*(\d+)회(?:차)?\s*(\d+)일차\s*\((\d{2})월\s*(\d{2})일\)', text)
+    if m:
+        return {
+            'year': int(m.group(1)), 'meeting': int(m.group(2)), 'day': int(m.group(3)),
+            'date': f'{int(m.group(1)):04d}-{int(m.group(4)):02d}-{int(m.group(5)):02d}',
+        }
     return None
 
 
@@ -55,12 +48,98 @@ def _step(cp, hb):
         cp['complete'] = True
 
 
+def _norm(v):
+    return re.sub(r'\s+', '', str(v or ''))
+
+
+def _parse_detail(hb, raw):
+    p, text = hb.parse_html(raw)
+    heads = list(re.finditer(
+        r'(광명|창원|부산)\s*0?(\d{1,2})경주\s*\(([^)]*?)(\d{1,2}:\d{2})\)',
+        text
+    ))
+    if not heads:
+        return None
+    # The result page contains the race list first and the selected detailed
+    # race at the bottom. The last full "(grade time)" heading is the detail.
+    h = heads[-1]
+    venue = h.group(1)
+    race_no = int(h.group(2))
+    start_time = h.group(4)
+
+    dm = re.search(
+        r'(\d{4})년\s*(\d{2})월\s*(\d{2})일\s*(\d+)회(?:차)?\s*(\d+)일차',
+        text[h.start():]
+    )
+    event_date = None
+    local_meeting = None
+    local_day = None
+    if dm:
+        event_date = date(int(dm.group(1)), int(dm.group(2)), int(dm.group(3)))
+        local_meeting = int(dm.group(4))
+        local_day = int(dm.group(5))
+
+    rows = []
+    for row in p.rows:
+        if len(row) < 2:
+            continue
+        first = re.sub(r'\s+', ' ', str(row[0] or '')).strip()
+        m = re.fullmatch(r'([1-7])\s+([가-힣](?:\s*[가-힣]){1,4})', first)
+        if not m:
+            continue
+        rank = hb.as_int(row[1])
+        if rank is None or not 1 <= int(rank) <= 7:
+            continue
+        rows.append({
+            'number': int(m.group(1)),
+            'name': _norm(m.group(2)),
+            'final_rank': int(rank),
+        })
+
+    by_num = {}
+    for x in rows:
+        by_num.setdefault(x['number'], x)
+    rows = sorted(by_num.values(), key=lambda x: x['number'])
+    if len(rows) < 5:
+        return None
+    if len({x['final_rank'] for x in rows}) != len(rows):
+        return None
+    if sum(1 for x in rows if x['final_rank'] == 1) != 1:
+        return None
+
+    return {
+        'venue': venue,
+        'race_no': race_no,
+        'start_time': start_time,
+        'event_date': event_date,
+        'local_meeting': local_meeting,
+        'local_day': local_day,
+        'runners': rows,
+    }
+
+
+def _summary_matches_detail(summary, detail):
+    if not summary or not detail:
+        return False
+    by_rank = {int(x['final_rank']): x for x in detail['runners']}
+    for x in summary.get('top3') or []:
+        try:
+            rank = int(x.get('rank'))
+            number = int(x.get('number'))
+        except Exception:
+            return False
+        d = by_rank.get(rank)
+        if not d or int(d['number']) != number or _norm(d['name']) != _norm(x.get('name')):
+            return False
+    return len(summary.get('top3') or []) == 3
+
+
 def _ensure_meeting_cursor(hb, state, budget, stats, room):
     cp = state['checkpoints']['cycle']
-    if cp.get('cursor_mode') == 'MEETING_DAY_V1' and cp.get('year') and cp.get('meeting') and cp.get('day'):
+    if cp.get('cursor_mode') == 'RESULT_DETAIL_MEETING_V2' and cp.get('year') and cp.get('meeting') and cp.get('day'):
         return True
 
-    # One official request discovers the latest published KCYCLE meeting/day.
+    # Discover the latest official global meeting/day from the result page.
     if not room(1) or not budget.time_left():
         return False
     root = 'https://www.kcycle.or.kr/race/result/general'
@@ -75,10 +154,11 @@ def _ensure_meeting_cursor(hb, state, budget, stats, room):
         return False
     cp.clear()
     cp.update({
-        'cursor_mode': 'MEETING_DAY_V1',
+        'cursor_mode': 'RESULT_DETAIL_MEETING_V2',
         'year': h['year'],
         'meeting': h['meeting'],
         'day': h['day'],
+        'selector': 1,
         'complete': False,
     })
     hb.save_state(state)
@@ -100,130 +180,157 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
         year = int(cp['year'])
         meeting = int(cp['meeting'])
         day = int(cp['day'])
-
         if year < hb.START['cycle'].year:
             cp['complete'] = True
             hb.save_state(state)
             break
 
-        card_url = hb.CYCLE_CARD.format(year=year, week=meeting, day=day)
-        try:
-            card_raw = hb.fetch(card_url, budget, 'ksports', timeout=12, retries=2)
-        except Exception as exc:
-            if not _is_404(exc):
-                stats['errors'].append(f'CYCLE {year}-M{meeting}-D{day} CARD {type(exc).__name__}:{exc}'[:220])
-            _step(cp, hb)
-            stats['cycle_dates'] += 1
-            hb.save_state(state)
-            continue
-
-        ch = _meeting_header(hb, card_raw)
-        # Invalid meeting/day URLs sometimes render another page. Never accept
-        # unless the visible official header matches the requested cursor.
-        if ch and (ch['year'] != year or ch['meeting'] != meeting or ch['day'] != day):
-            _step(cp, hb)
-            stats['cycle_dates'] += 1
-            hb.save_state(state)
-            continue
-
-        d = hb.selected_date(card_raw, year)
-        if d is None and ch and ch.get('date'):
-            try:
-                from datetime import date
-                yy, mm, dd = map(int, ch['date'].split('-'))
-                d = date(yy, mm, dd)
-            except Exception:
-                d = None
-
-        card = hb.parse_cycle_card(card_raw, d)
-        if not card or d is None:
-            _step(cp, hb)
-            stats['cycle_dates'] += 1
-            hb.save_state(state)
-            continue
-
-        results = None
-        selected_result_url = None
-        for result_url in result_candidates(year, meeting, day):
+        # Result summary is the authoritative day index and confirmed payouts.
+        summary_raw = None
+        summary_url = None
+        for u in (result_url(year, meeting, day), result_url(year, meeting, day, 1)):
             if not room(1) or not budget.time_left():
                 break
             try:
-                result_raw = hb.fetch(result_url, budget, 'ksports', timeout=12, retries=2)
-            except Exception:
+                raw = hb.fetch(u, budget, 'ksports', timeout=12, retries=2)
+            except Exception as exc:
+                if not _is_404(exc):
+                    stats['errors'].append(f'CYCLE {year}-M{meeting}-D{day} RESULT {type(exc).__name__}:{exc}'[:220])
                 continue
-            rh = _meeting_header(hb, result_raw)
-            rd = hb.selected_date(result_raw, year)
-            if rh and (rh['year'] != year or rh['meeting'] != meeting or rh['day'] != day):
+            mh = _meeting_header(hb, raw)
+            if not mh:
                 continue
-            if rd is not None and rd != d:
-                continue
-            parsed = hb.parse_cycle_results(result_raw)
-            if parsed:
-                results = parsed
-                selected_result_url = result_url
+            if mh['year'] == year and mh['meeting'] == meeting and mh['day'] == day:
+                summary_raw = raw
+                summary_url = u
                 break
 
-        if results:
-            for key, meta in card.items():
-                result = results.get(key)
-                if not result:
-                    continue
-                venue, race_no = key
-                event_id = f'CYCLE-{d.strftime("%Y%m%d")}-{venue}-{race_no:02d}'
-                if event_id in seen:
-                    continue
-                card_names = {int(n): re.sub(r'\s+', '', str(name)) for n, name in meta['runners'].items()}
-                identity_ok = True
-                for x in result['top3']:
-                    try:
-                        n = int(x['number'])
-                    except Exception:
-                        identity_ok = False
-                        break
-                    if card_names.get(n) != re.sub(r'\s+', '', str(x.get('name') or '')):
-                        identity_ok = False
-                        break
-                if not identity_ok:
-                    result_names = {int(x.get('number')): re.sub(r'\\s+', '', str(x.get('name') or '')) for x in result['top3'] if x.get('number') is not None}
-                    stats['errors'].append(
-                        f'CYCLE {event_id} CARD_RESULT_NAME_MISMATCH '
-                        f'CARD={card_names} RESULT={result_names} '
-                        f'CARD_URL={card_url} RESULT_URL={selected_result_url}'
-                    )
-                    continue
+        if summary_raw is None:
+            _step(cp, hb)
+            cp['selector'] = 1
+            stats['cycle_dates'] += 1
+            hb.save_state(state)
+            continue
 
-                top_by = {x['number']: x['rank'] for x in result['top3']}
-                outcomes = [
-                    {
-                        'key': f'N{n}', 'number': n, 'name': f'{n} {name}',
-                        'rider_name': name, 'final_rank': top_by.get(n),
-                        'won': top_by.get(n) == 1,
-                    }
-                    for n, name in sorted(meta['runners'].items())
-                ]
-                if len(outcomes) < 5 or sum(1 for o in outcomes if o['won']) != 1:
-                    continue
-                event = {
-                    'id': event_id, 'sport': 'CYCLE', 'provider': 'KCYCLE',
-                    'competition': venue + ' 경륜', 'event_date': d.isoformat(),
-                    'start_time': meta['start_time'], 'race_no': race_no,
-                    'status': 'FINAL', 'market_type': 'RUNNERS', 'outcomes': outcomes,
-                    'result': {
-                        'official': True, 'status': 'CONFIRMED',
-                        'top3': result['top3'], 'markets': result['markets'],
-                        'source': 'KCYCLE_RESULT_OFFICIAL',
-                    },
-                    'source_url': selected_result_url,
-                    'card_source_url': card_url,
-                    'meeting': meeting,
-                    'meeting_day': day,
+        mh = _meeting_header(hb, summary_raw)
+        try:
+            event_day = date.fromisoformat(mh['date'])
+        except Exception:
+            event_day = hb.selected_date(summary_raw, year)
+
+        summary = hb.parse_cycle_results(summary_raw)
+        if not summary or event_day is None:
+            _step(cp, hb)
+            cp['selector'] = 1
+            stats['cycle_dates'] += 1
+            hb.save_state(state)
+            continue
+
+        # KCYCLE result detail already contains all starters + final ranks.
+        # Scan selectors and dedupe by venue/race. No historical card request.
+        selector = max(1, int(cp.get('selector', 1) or 1))
+        unique_details = {}
+        empty_or_dup = 0
+        max_selector = 32
+        while selector <= max_selector and room(1) and budget.time_left():
+            u = result_url(year, meeting, day, selector)
+            try:
+                raw = hb.fetch(u, budget, 'ksports', timeout=10, retries=1)
+            except Exception as exc:
+                if not _is_404(exc):
+                    stats['errors'].append(f'CYCLE {year}-M{meeting}-D{day}-S{selector:02d} DETAIL {type(exc).__name__}:{exc}'[:220])
+                selector += 1
+                cp['selector'] = selector
+                hb.save_state(state)
+                continue
+
+            detail = _parse_detail(hb, raw)
+            if not detail:
+                empty_or_dup += 1
+            else:
+                key = (detail['venue'], int(detail['race_no']))
+                if key in unique_details:
+                    empty_or_dup += 1
+                else:
+                    unique_details[key] = (detail, u)
+                    empty_or_dup = 0
+
+            selector += 1
+            cp['selector'] = selector
+            hb.save_state(state)
+
+            # Stop once all summarized races were recovered, or after enough
+            # consecutive selectors add nothing.
+            if len(unique_details) >= len(summary):
+                break
+            if selector > 12 and empty_or_dup >= 8:
+                break
+
+        added = 0
+        for key, pair in unique_details.items():
+            detail, detail_url = pair
+            r = summary.get(key)
+            if not _summary_matches_detail(r, detail):
+                stats['errors'].append(
+                    f'CYCLE {event_day} {key[0]}-{key[1]:02d} DETAIL_SUMMARY_MISMATCH'
+                )
+                continue
+            eid = f'CYCLE-{event_day.strftime("%Y%m%d")}-{key[0]}-{key[1]:02d}'
+            if eid in seen:
+                continue
+
+            outs = [
+                {
+                    'key': f'N{x["number"]}',
+                    'number': x['number'],
+                    'name': f'{x["number"]} {x["name"]}',
+                    'rider_name': x['name'],
+                    'final_rank': x['final_rank'],
+                    'won': x['final_rank'] == 1,
                 }
-                hb.append_record('cycle', event)
-                seen.add(event_id)
-                stats['cycle_records'] += 1
+                for x in detail['runners']
+            ]
+            event = {
+                'id': eid,
+                'sport': 'CYCLE',
+                'provider': 'KCYCLE',
+                'competition': key[0] + ' 경륜',
+                'event_date': event_day.isoformat(),
+                'start_time': detail.get('start_time'),
+                'race_no': key[1],
+                'status': 'FINAL',
+                'market_type': 'RUNNERS',
+                'outcomes': outs,
+                'result': {
+                    'official': True,
+                    'status': 'CONFIRMED',
+                    'top3': r['top3'],
+                    'markets': r.get('markets') or [],
+                    'source': 'KCYCLE_RESULT_DETAIL_OFFICIAL',
+                },
+                'source_url': detail_url,
+                'summary_source_url': summary_url,
+                'meeting': meeting,
+                'meeting_day': day,
+                'local_meeting': detail.get('local_meeting'),
+                'local_day': detail.get('local_day'),
+                'feature_contract': {
+                    'allowed_prerace_fields': ['rider_name', 'lane_number'],
+                    'blocked_postrace_fields': ['final_rank', 'won', 'result', 'markets', 'odds'],
+                    'source_note': 'starter identity/lane recovered from official confirmed result detail; outcome labels stored separately',
+                },
+            }
+            hb.append_record('cycle', event)
+            seen.add(eid)
+            stats['cycle_records'] += 1
+            added += 1
 
         stats['cycle_dates'] += 1
+        stats['errors'].append(
+            f'CYCLE {event_day} RESULT_DETAIL_SCAN summary={len(summary)} detail={len(unique_details)} added={added}'
+        )
         _step(cp, hb)
+        cp['selector'] = 1
         hb.save_state(state)
 
 
@@ -236,18 +343,33 @@ def install(hb):
 
 def self_test():
     class Dummy:
-        START = {'cycle': __import__('datetime').date(2011, 1, 1)}
+        START = {'cycle': date(2011, 1, 1)}
     cp = {'year': 2026, 'meeting': 39, 'day': 1}
     _step(cp, Dummy)
     assert cp == {'year': 2026, 'meeting': 38, 'day': 3}
     cp = {'year': 2026, 'meeting': 1, 'day': 1}
     _step(cp, Dummy)
     assert cp['year'] == 2025 and cp['meeting'] == 60 and cp['day'] == 3
-    urls = result_candidates(2026, 38, 3)
-    assert urls[0].endswith('/2026/38/3')
-    assert urls[1].endswith('/2026/38/3/01')
-    assert urls[2].endswith('/race/result/general')
-    print('KCYCLE_MEETING_CURSOR_SELF_TEST=PASS')
+
+    fixture = '''
+    <h2>광명 16경주 (특선 18:56)</h2>
+    <div>2026년 10월 02일 39회 1일차</div>
+    <table>
+      <tr><th>선수명</th><th>순위</th><th>착차</th></tr>
+      <tr><td>1 김범수</td><td>4</td><td>1W</td></tr>
+      <tr><td>2 류재민</td><td>6</td><td>3/4B</td></tr>
+      <tr><td>3 김희준</td><td>3</td><td>1B</td></tr>
+      <tr><td>4 공태민</td><td>1</td><td>-</td></tr>
+      <tr><td>5 이인우</td><td>5</td><td>1.3/4B</td></tr>
+      <tr><td>6 양승원</td><td>2</td><td>1/2B</td></tr>
+      <tr><td>7 곽현명</td><td>7</td><td>1.1/4B</td></tr>
+    </table>
+    '''
+    import historical_backfill as hb
+    d = _parse_detail(hb, fixture)
+    assert d and d['venue'] == '광명' and d['race_no'] == 16 and len(d['runners']) == 7
+    assert next(x for x in d['runners'] if x['number'] == 4)['final_rank'] == 1
+    print('KCYCLE_RESULT_DETAIL_BACKFILL_SELF_TEST=PASS')
 
 
 if __name__ == '__main__' and '--self-test' in sys.argv:
