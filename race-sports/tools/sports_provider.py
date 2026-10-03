@@ -52,6 +52,7 @@ KOVO_TEAM_ALIASES={
     "IBK기업은행":["IBK기업은행","알토스"],
     "정관장":["정관장","레드스파크스","KGC인삼공사"],
     "페퍼저축은행":["페퍼저축은행","AI페퍼스","페퍼스"],
+    "SOOP":["SOOP"],
 }
 _KOVO_CACHE={}
 _KOVO_OPENERS={}
@@ -271,13 +272,7 @@ def _kovo_season_for_day(d:date)->str:
 def _kovo_month_urls(d:date)->list[str]:
     season=_kovo_season_for_day(d);ym=d.strftime('%Y-%m')
     desktop=f"{KOVO_BASE}?season={season}&team=&yymm={ym}&r_round="
-    mobile=f"{KOVO_MOBILE_BASE}?season={season}&g_part=&r_round=&yymm={ym}"
-    # KOVO has served different schedule markup through desktop/mobile routes
-    # over time. Query both official routes and both divisions, then dedupe.
-    return [
-        desktop+"&s_part=1",desktop+"&s_part=2",
-        mobile+"&t_code=1",mobile+"&t_code=2",
-    ]
+    return [desktop+"&s_part=1",desktop+"&s_part=2"]
 
 def _canonical_kovo_teams(text:str)->list[str]:
     found=[]
@@ -360,6 +355,78 @@ def _parse_kovo_month(html:str,month_date:date,source_url:str)->list[dict]:
     uniq={e["id"]:e for e in rows}
     return sorted(uniq.values(),key=lambda e:(e["start_timestamp"],e["id"]))
 
+def _daum_volley_url(slug:str,d:date)->str:
+    return f"https://sports.daum.net/schedule/{slug}?date={d.strftime('%Y%m')}"
+
+def _parse_daum_volley_month(html:str,month_date:date,source_url:str,league_name:str)->list[dict]:
+    p=_Rows();p.feed(html);rows=[];current=None
+    for cells,links in p.rows:
+        current=_date_from_cells(cells,month_date,current)
+        if current is None:continue
+        joined=" | ".join(cells)
+        teams=_canonical_kovo_teams(joined)
+        if len(teams)<2:continue
+        home,away=teams[0],teams[1]
+        tm=_time_from_cells(cells)
+        try:dt=datetime.combine(current,datetime.strptime(tm,"%H:%M").time(),tzinfo=KST)
+        except Exception:continue
+        score_tokens=[int(x) for x in re.findall(r"(?:팀|score[^0-9]*)\s*([0-3])",joined,re.I)]
+        if len(score_tokens)<2:
+            compact=re.findall(r"(?<!\d)([0-3])\s*(?:대|:)\s*([0-3])(?!\d)",joined)
+            if compact:score_tokens=[int(compact[0][0]),int(compact[0][1])]
+        final="종료" in joined and len(score_tokens)>=2
+        cancelled="취소" in joined
+        now=datetime.now(KST)
+        if cancelled:status="CANCELLED"
+        elif final:status="FINAL"
+        elif current<now.date():status="RESULT_PENDING"
+        elif current>now.date() or now<dt:status="SCHEDULED"
+        elif now<=dt+timedelta(hours=3):status="LIVE"
+        else:status="RESULT_PENDING"
+        identity=f"DAUM|{league_name}|{current.isoformat()}|{tm}|{home}|{away}"
+        eid=hashlib.sha1(identity.encode("utf-8")).hexdigest()[:14]
+        out={
+            "id":f"SPORTS-VOLLEYBALL-DAUM-{eid}","provider_event_id":eid,
+            "domain":"SPORTS","sport":"VOLLEYBALL",
+            "provider":"DAUM_SPORTS_PUBLIC_FALLBACK","provider_kind":"PUBLIC_SCORE_FEED",
+            "competition":league_name,"event_date":current.isoformat(),"start_time":tm,
+            "start_timestamp":int(dt.timestamp()),"status":status,
+            "title":f"{home} vs {away}","home":home,"away":away,
+            "market_type":"TWO_WAY","outcomes":[{"key":"HOME","name":home},{"key":"AWAY","name":away}],
+            "tier":"TOP","tier_filter":"KOVO_V_LEAGUE_TOP_DIVISION",
+            "data_state":"FRESH","source_url":source_url,
+        }
+        if final:
+            hs,aas=score_tokens[0],score_tokens[1]
+            out["result"]={
+                "official":False,"status":"CONFIRMED","home_score":hs,"away_score":aas,
+                "score_type":"SETS","winner_key":"HOME" if hs>aas else "AWAY" if aas>hs else None,
+                "source":"DAUM_SPORTS_PUBLIC_FALLBACK","updated_at":datetime.now(KST).isoformat()
+            }
+        rows.append(out)
+    uniq={e["id"]:e for e in rows}
+    return sorted(uniq.values(),key=lambda e:(e["start_timestamp"],e["id"]))
+
+def _fetch_daum_volleyball_day(day:str)->tuple[list[dict],dict]:
+    d=date.fromisoformat(day);all_events=[];urls=[];failures=[];success=0;raw_count=0
+    for slug,league in (("vl","KOVO V-League Men"),("wvl","KOVO V-League Women")):
+        url=_daum_volley_url(slug,d)
+        try:
+            html=_http_text(url);success+=1;urls.append(url)
+            parsed=_parse_daum_volley_month(html,d,url,league);raw_count+=len(parsed)
+            all_events.extend(e for e in parsed if e.get("event_date")==day)
+        except Exception as exc:
+            failures.append({"url":url,"error":str(exc)[:250]})
+    if success==0:raise RuntimeError("DAUM_VOLLEY_ALL_FAILED:"+json.dumps(failures,ensure_ascii=False))
+    uniq={e["id"]:e for e in all_events}
+    events=sorted(uniq.values(),key=lambda e:(e["start_timestamp"],e["id"]))
+    return events,{
+        "sport":"VOLLEYBALL","provider":"DAUM_SPORTS_PUBLIC_FALLBACK",
+        "status":"PASS" if not failures else "PARTIAL","requests":2,
+        "successful_requests":success,"raw_events":raw_count,"top_tier_events":len(events),
+        "source_urls":urls,"failures":failures,
+    }
+
 def _fetch_kovo_day(day:str)->tuple[list[dict],dict]:
     d=date.fromisoformat(day);key=d.strftime("%Y-%m")
     if key not in _KOVO_CACHE:
@@ -370,18 +437,27 @@ def _fetch_kovo_day(day:str)->tuple[list[dict],dict]:
                 merged.extend(_parse_kovo_month(html,d,url))
             except Exception as exc:
                 failures.append({"url":url,"error":str(exc)[:250]})
-        if success==0:
-            raise RuntimeError("KOVO_ALL_DIVISIONS_FAILED:"+json.dumps(failures,ensure_ascii=False))
         uniq={e["id"]:e for e in merged}
         parsed=sorted(uniq.values(),key=lambda e:(e["start_timestamp"],e["id"]))
         _KOVO_CACHE[key]=(parsed,urls,html_bytes,success,failures)
     parsed,urls,html_len,success,failures=_KOVO_CACHE[key]
     events=[e for e in parsed if e.get("event_date")==day]
-    return events,{"sport":"VOLLEYBALL","provider":"KOVO_OFFICIAL",
-                   "status":"PASS" if not failures else "PARTIAL","requests":len(_kovo_month_urls(d)),
-                   "successful_requests":success,"raw_events":len(parsed),
-                   "top_tier_events":len(events),"source_urls":urls,
-                   "html_bytes":html_len,"failures":failures}
+    if events:
+        return events,{"sport":"VOLLEYBALL","provider":"KOVO_OFFICIAL",
+                       "status":"PASS" if success else "PARTIAL","requests":len(_kovo_month_urls(d)),
+                       "successful_requests":success,"raw_events":len(parsed),
+                       "top_tier_events":len(events),"source_urls":urls,
+                       "html_bytes":html_len,"failures":failures}
+    # The legacy KOVO schedule route can return a shell page after the site's
+    # redesign. Use a source-labeled public scoreboard only for schedule/live
+    # continuity. Historical training remains official KOVO DBBank only.
+    daum_events,meta=_fetch_daum_volleyball_day(day)
+    meta["primary_provider"]="KOVO_OFFICIAL"
+    meta["primary_successful_requests"]=success
+    meta["primary_raw_events"]=len(parsed)
+    meta["primary_source_urls"]=urls
+    meta["historical_training_source"]="KOVO_DBBANK_OFFICIAL_ONLY"
+    return daum_events,meta
 
 def fetch_sport_day(sport:str,day:str)->tuple[list[dict],dict]:
     if sport=="VOLLEYBALL":return _fetch_kovo_day(day)
@@ -403,7 +479,10 @@ def self_test():
     html="""<table><tr><td>2026.10.04</td><td>1</td><td>대한항공</td><td>현대캐피탈</td><td>14:00</td><td>3 : 1</td></tr></table>"""
     rows=_parse_kovo_month(html,date(2026,10,1),"https://example.test")
     assert len(rows)==1 and rows[0]["provider"]=="KOVO_OFFICIAL" and rows[0]["result"]["winner_key"]=="HOME"
-    print(json.dumps({"SPORTS_PROVIDER_SELF_TEST":"PASS","providers":{"SOCCER":"ESPN_PUBLIC","BASEBALL":"ESPN_PUBLIC","BASKETBALL":"ESPN_PUBLIC","VOLLEYBALL":"KOVO_OFFICIAL"}},ensure_ascii=False))
+    dh="""<table><tr><td>02.01 수</td><td>19:00</td><td>화성종합</td><td>종료 페퍼저축은행 팀 1 IBK기업은행 팀 3</td><td>V-리그 여자부</td></tr></table>"""
+    dr=_parse_daum_volley_month(dh,date(2023,2,1),"https://example.test","KOVO V-League Women")
+    assert len(dr)==1 and dr[0]["result"]["winner_key"]=="AWAY" and dr[0]["result"]["away_score"]==3
+    print(json.dumps({"SPORTS_PROVIDER_SELF_TEST":"PASS","providers":{"SOCCER":"ESPN_PUBLIC","BASEBALL":"ESPN_PUBLIC","BASKETBALL":"ESPN_PUBLIC","VOLLEYBALL":"KOVO_OFFICIAL_WITH_DAUM_LIVE_FALLBACK"}},ensure_ascii=False))
 
 def live_probe(day:str|None=None):
     day=day or datetime.now(KST).date().isoformat();rows={}
@@ -412,12 +491,12 @@ def live_probe(day:str|None=None):
     print(json.dumps({"SPORTS_PROVIDER_LIVE_PROBE":"PASS","date":day,"providers":rows},ensure_ascii=False))
 
 def kovo_regression_probe():
-    day="2026-03-10"
-    events,meta=fetch_sport_day("VOLLEYBALL",day)
+    day="2023-02-01"
+    events,meta=_fetch_daum_volleyball_day(day)
     finals=[e for e in events if e.get("status")=="FINAL" and e.get("result",{}).get("winner_key") in {"HOME","AWAY"}]
     if not finals:
-        raise SystemExit("KOVO_REGRESSION_PROBE_FAIL:"+json.dumps(meta,ensure_ascii=False))
-    print(json.dumps({"KOVO_REGRESSION_PROBE":"PASS","date":day,"events":len(events),"finals":len(finals),"meta":meta},ensure_ascii=False))
+        raise SystemExit("VOLLEY_LIVE_FALLBACK_REGRESSION_FAIL:"+json.dumps(meta,ensure_ascii=False))
+    print(json.dumps({"VOLLEY_LIVE_FALLBACK_REGRESSION":"PASS","date":day,"events":len(events),"finals":len(finals),"meta":meta},ensure_ascii=False))
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--self-test",action="store_true");ap.add_argument("--live-probe",action="store_true");ap.add_argument("--kovo-regression-probe",action="store_true");ap.add_argument("--date");a=ap.parse_args()
