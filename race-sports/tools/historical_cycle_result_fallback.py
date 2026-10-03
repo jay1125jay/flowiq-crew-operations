@@ -139,7 +139,17 @@ def _ensure_meeting_cursor(hb, state, budget, stats, room):
     if cp.get('cursor_mode') == 'RESULT_DETAIL_MEETING_V2' and cp.get('year') and cp.get('meeting') and cp.get('day'):
         return True
 
-    # Discover the latest official global meeting/day from the result page.
+    # Migrate the already-validated meeting/day cursor in place. Never throw
+    # away historical progress just because the generic current result page is
+    # temporarily slow or unavailable.
+    if cp.get('cursor_mode') == 'MEETING_DAY_V1' and cp.get('year') and cp.get('meeting') and cp.get('day'):
+        cp['cursor_mode'] = 'RESULT_DETAIL_MEETING_V2'
+        cp['selector'] = max(1, int(cp.get('selector', 1) or 1))
+        cp['complete'] = False
+        hb.save_state(state)
+        return True
+
+    # Discover the latest official global meeting/day only for a fresh state.
     if not room(1) or not budget.time_left():
         return False
     root = 'https://www.kcycle.or.kr/race/result/general'
