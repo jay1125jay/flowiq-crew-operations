@@ -1,7 +1,7 @@
 {
   "date": "2026-10-04",
-  "time": "06:50:39",
-  "generated_at": "2026-10-04T06:50:39.708289+09:00",
+  "time": "06:56:09",
+  "generated_at": "2026-10-04T06:56:09.177916+09:00",
   "domain": "SPORTS",
   "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
   "enabled_sports": [
@@ -44,12 +44,21 @@
     {
       "provider": "SPORTS_VOLLEYBALL_KOVO_OFFICIAL",
       "sport": "VOLLEYBALL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-10&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-10&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-10&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-10&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
@@ -96,7 +105,7 @@
         "away_score": 3,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:39.908636+09:00"
+        "updated_at": "2026-10-04T06:56:09.643959+09:00"
       },
       "model_source": "sports_elo_v0.2",
       "model_validated": true,
