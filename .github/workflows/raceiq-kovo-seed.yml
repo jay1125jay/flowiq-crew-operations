@@ -33,8 +33,8 @@ jobs:
       - name: Verify official KOVO report contract
         run: python race-sports/tools/kovo_official_pdf_backfill.py --self-test
 
-      - name: Seed two completed KOVO seasons
-        run: python race-sports/tools/kovo_official_pdf_backfill.py --seasons 022,021 --max-game 260 --workers 6
+      - name: Seed additional completed KOVO seasons
+        run: python race-sports/tools/kovo_official_pdf_backfill.py --seasons 020,019,018 --max-game 260 --workers 6
 
       - name: Rebuild and validate SPORTS model
         run: |
