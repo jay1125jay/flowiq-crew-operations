@@ -14,7 +14,9 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/tools/validate_cycle_boat_models.py'
   schedule:
-    - cron: '0 14 * * *'
+    # Continue backfill throughout the KST day. Budget state is cumulative,
+    # so later runs stop automatically after the daily provider caps are used.
+    - cron: '15 */2 * * *'
 
 permissions:
   contents: write
@@ -52,7 +54,7 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/historical_backfill_runner.py --horse-slice 0 --ksports-slice 80 --bull-slice 0 --max-seconds 45
 
-      - name: Daily 23 KST quota sweep
+      - name: Continue daily quota sweep
         if: github.event_name != 'push'
         shell: bash
         run: |
