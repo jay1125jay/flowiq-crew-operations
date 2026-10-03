@@ -17,18 +17,18 @@
       "raw_events": 3,
       "top_tier_events": 1,
       "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260827",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260827",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260827",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260826",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260827",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260827",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260826",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260826",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260827",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260826",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260827",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260827",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260826",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260826",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260827",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260827",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260826"
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260826",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260826"
       ],
       "failures": []
     },
@@ -55,16 +55,16 @@
       "raw_events": 0,
       "top_tier_events": 0,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260826",
-        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260827"
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260827",
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260826"
       ],
       "failures": []
     },
     {
       "sport": "VOLLEYBALL",
       "provider": "KOVO_OFFICIAL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
@@ -73,10 +73,59 @@
         "https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&team=&yymm=2026-08&r_round=&s_part=2"
       ],
       "html_bytes": 6066,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
+    {
+      "id": "SPORTS-BASEBALL-401816686",
+      "provider_event_id": "401816686",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-08-27",
+      "start_time": "02:10",
+      "start_timestamp": 1787764200,
+      "status": "FINAL",
+      "title": "Detroit Tigers vs Tampa Bay Rays",
+      "home": "Detroit Tigers",
+      "away": "Tampa Bay Rays",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Detroit Tigers"
+        },
+        {
+          "key": "AWAY",
+          "name": "Tampa Bay Rays"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260826",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 0,
+        "away_score": 3,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:49:34.279578+09:00"
+      }
+    },
     {
       "id": "SPORTS-SOCCER-401882919",
       "provider_event_id": "401882919",
@@ -118,47 +167,7 @@
         "away_score": 1,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.400421+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401816686",
-      "provider_event_id": "401816686",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-08-27",
-      "start_time": "02:10",
-      "start_timestamp": 1787764200,
-      "status": "FINAL",
-      "title": "Detroit Tigers vs Tampa Bay Rays",
-      "home": "Detroit Tigers",
-      "away": "Tampa Bay Rays",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Detroit Tigers"
-        },
-        {
-          "key": "AWAY",
-          "name": "Tampa Bay Rays"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260826",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 0,
-        "away_score": 3,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939502+09:00"
+        "updated_at": "2026-10-04T00:49:33.882144+09:00"
       }
     },
     {
@@ -198,7 +207,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939530+09:00"
+        "updated_at": "2026-10-04T00:49:34.279598+09:00"
       }
     },
     {
@@ -238,7 +247,7 @@
         "away_score": 10,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939550+09:00"
+        "updated_at": "2026-10-04T00:49:34.279611+09:00"
       }
     },
     {
@@ -278,7 +287,7 @@
         "away_score": 4,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939569+09:00"
+        "updated_at": "2026-10-04T00:49:34.279622+09:00"
       }
     },
     {
@@ -318,7 +327,7 @@
         "away_score": 6,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939586+09:00"
+        "updated_at": "2026-10-04T00:49:34.279632+09:00"
       }
     },
     {
@@ -358,7 +367,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939603+09:00"
+        "updated_at": "2026-10-04T00:49:34.279642+09:00"
       }
     },
     {
@@ -398,7 +407,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939639+09:00"
+        "updated_at": "2026-10-04T00:49:34.279652+09:00"
       }
     },
     {
@@ -438,7 +447,7 @@
         "away_score": 13,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939657+09:00"
+        "updated_at": "2026-10-04T00:49:34.279662+09:00"
       }
     },
     {
@@ -478,7 +487,7 @@
         "away_score": 3,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939673+09:00"
+        "updated_at": "2026-10-04T00:49:34.279673+09:00"
       }
     },
     {
@@ -518,7 +527,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939691+09:00"
+        "updated_at": "2026-10-04T00:49:34.279682+09:00"
       }
     },
     {
@@ -558,7 +567,7 @@
         "away_score": 8,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939707+09:00"
+        "updated_at": "2026-10-04T00:49:34.279692+09:00"
       }
     },
     {
@@ -598,7 +607,7 @@
         "away_score": 5,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939723+09:00"
+        "updated_at": "2026-10-04T00:49:34.279701+09:00"
       }
     },
     {
@@ -638,7 +647,7 @@
         "away_score": 4,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939740+09:00"
+        "updated_at": "2026-10-04T00:49:34.279710+09:00"
       }
     },
     {
@@ -678,7 +687,7 @@
         "away_score": 8,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939757+09:00"
+        "updated_at": "2026-10-04T00:49:34.279719+09:00"
       }
     },
     {
@@ -718,9 +727,9 @@
         "away_score": 4,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:24.939773+09:00"
+        "updated_at": "2026-10-04T00:49:34.279728+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T06:50:25.792115+09:00"
+  "generated_at": "2026-10-04T06:56:00.777350+09:00"
 }

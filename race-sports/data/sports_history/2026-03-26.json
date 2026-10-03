@@ -17,18 +17,18 @@
       "raw_events": 0,
       "top_tier_events": 0,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260325",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260326",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260326",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260326",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260325",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260326",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260325",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260326",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260325",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260325",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260326",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260325",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260325",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260326",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260325"
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260325",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260325",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260326",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260325"
       ],
       "failures": []
     },
@@ -63,8 +63,8 @@
     {
       "sport": "VOLLEYBALL",
       "provider": "KOVO_OFFICIAL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
@@ -73,50 +73,19 @@
         "https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&team=&yymm=2026-03&r_round=&s_part=2"
       ],
       "html_bytes": 6066,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-03&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-03&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-03&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-03&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
-    {
-      "id": "SPORTS-BASEBALL-401814702",
-      "provider_event_id": "401814702",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-03-26",
-      "start_time": "09:05",
-      "start_timestamp": 1774483500,
-      "status": "FINAL",
-      "title": "San Francisco Giants vs New York Yankees",
-      "home": "San Francisco Giants",
-      "away": "New York Yankees",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "San Francisco Giants"
-        },
-        {
-          "key": "AWAY",
-          "name": "New York Yankees"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260325",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 0,
-        "away_score": 7,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.416649+09:00"
-      }
-    },
     {
       "id": "SPORTS-BASKETBALL-401810906",
       "provider_event_id": "401810906",
@@ -154,7 +123,7 @@
         "away_score": 130,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775226+09:00"
+        "updated_at": "2026-10-04T00:53:21.037564+09:00"
       }
     },
     {
@@ -194,7 +163,7 @@
         "away_score": 137,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775252+09:00"
+        "updated_at": "2026-10-04T00:53:21.037585+09:00"
       }
     },
     {
@@ -234,7 +203,7 @@
         "away_score": 137,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775270+09:00"
+        "updated_at": "2026-10-04T00:53:21.037597+09:00"
       }
     },
     {
@@ -274,7 +243,7 @@
         "away_score": 109,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775287+09:00"
+        "updated_at": "2026-10-04T00:53:21.037610+09:00"
       }
     },
     {
@@ -314,7 +283,7 @@
         "away_score": 120,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775303+09:00"
+        "updated_at": "2026-10-04T00:53:21.037621+09:00"
       }
     },
     {
@@ -354,7 +323,47 @@
         "away_score": 123,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775319+09:00"
+        "updated_at": "2026-10-04T00:53:21.037632+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401814702",
+      "provider_event_id": "401814702",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-03-26",
+      "start_time": "09:05",
+      "start_timestamp": 1774483500,
+      "status": "FINAL",
+      "title": "San Francisco Giants vs New York Yankees",
+      "home": "San Francisco Giants",
+      "away": "New York Yankees",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "San Francisco Giants"
+        },
+        {
+          "key": "AWAY",
+          "name": "New York Yankees"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260325",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 0,
+        "away_score": 7,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:53:20.691232+09:00"
       }
     },
     {
@@ -394,7 +403,7 @@
         "away_score": 133,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775335+09:00"
+        "updated_at": "2026-10-04T00:53:21.037643+09:00"
       }
     },
     {
@@ -434,7 +443,7 @@
         "away_score": 108,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775351+09:00"
+        "updated_at": "2026-10-04T00:53:21.037654+09:00"
       }
     },
     {
@@ -474,7 +483,7 @@
         "away_score": 135,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775366+09:00"
+        "updated_at": "2026-10-04T00:53:21.037664+09:00"
       }
     },
     {
@@ -514,7 +523,7 @@
         "away_score": 106,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775382+09:00"
+        "updated_at": "2026-10-04T00:53:21.037675+09:00"
       }
     },
     {
@@ -554,7 +563,7 @@
         "away_score": 99,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775398+09:00"
+        "updated_at": "2026-10-04T00:53:21.037685+09:00"
       }
     },
     {
@@ -594,9 +603,9 @@
         "away_score": 94,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:54:22.775413+09:00"
+        "updated_at": "2026-10-04T00:53:21.037694+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T06:54:23.276227+09:00"
+  "generated_at": "2026-10-04T06:56:36.221247+09:00"
 }

@@ -19,16 +19,16 @@
       "source_urls": [
         "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260522",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260522",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260521",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260521",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260522",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260521",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260521",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260521",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260522",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260522",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260521",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260521",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260522",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260521",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260522"
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260521",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260521"
       ],
       "failures": []
     },
@@ -55,16 +55,16 @@
       "raw_events": 2,
       "top_tier_events": 1,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260521",
-        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260522"
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260522",
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260521"
       ],
       "failures": []
     },
     {
       "sport": "VOLLEYBALL",
       "provider": "KOVO_OFFICIAL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
@@ -73,7 +73,16 @@
         "https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&team=&yymm=2026-05&r_round=&s_part=2"
       ],
       "html_bytes": 6066,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-05&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-05&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-05&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-05&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
@@ -114,7 +123,7 @@
         "away_score": 3,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006686+09:00"
+        "updated_at": "2026-10-04T00:51:57.161371+09:00"
       }
     },
     {
@@ -154,7 +163,7 @@
         "away_score": 6,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006716+09:00"
+        "updated_at": "2026-10-04T00:51:57.161392+09:00"
       }
     },
     {
@@ -194,7 +203,7 @@
         "away_score": 2,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006733+09:00"
+        "updated_at": "2026-10-04T00:51:57.161404+09:00"
       }
     },
     {
@@ -234,7 +243,7 @@
         "away_score": 9,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006750+09:00"
+        "updated_at": "2026-10-04T00:51:57.161415+09:00"
       }
     },
     {
@@ -274,87 +283,7 @@
         "away_score": 2,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006767+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815439",
-      "provider_event_id": "401815439",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-05-22",
-      "start_time": "10:38",
-      "start_timestamp": 1779413880,
-      "status": "FINAL",
-      "title": "Los Angeles Angels vs Athletics",
-      "home": "Los Angeles Angels",
-      "away": "Athletics",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Los Angeles Angels"
-        },
-        {
-          "key": "AWAY",
-          "name": "Athletics"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260521",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 2,
-        "away_score": 3,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006783+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815440",
-      "provider_event_id": "401815440",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-05-22",
-      "start_time": "10:40",
-      "start_timestamp": 1779414000,
-      "status": "FINAL",
-      "title": "Arizona Diamondbacks vs Colorado Rockies",
-      "home": "Arizona Diamondbacks",
-      "away": "Colorado Rockies",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Arizona Diamondbacks"
-        },
-        {
-          "key": "AWAY",
-          "name": "Colorado Rockies"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260521",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 2,
-        "away_score": 1,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.006798+09:00"
+        "updated_at": "2026-10-04T00:51:57.161425+09:00"
       }
     },
     {
@@ -394,9 +323,89 @@
         "away_score": 93,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:52:53.356694+09:00"
+        "updated_at": "2026-10-04T00:51:57.499336+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815439",
+      "provider_event_id": "401815439",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-05-22",
+      "start_time": "10:38",
+      "start_timestamp": 1779413880,
+      "status": "FINAL",
+      "title": "Los Angeles Angels vs Athletics",
+      "home": "Los Angeles Angels",
+      "away": "Athletics",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Los Angeles Angels"
+        },
+        {
+          "key": "AWAY",
+          "name": "Athletics"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260521",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 3,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:51:57.161435+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815440",
+      "provider_event_id": "401815440",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-05-22",
+      "start_time": "10:40",
+      "start_timestamp": 1779414000,
+      "status": "FINAL",
+      "title": "Arizona Diamondbacks vs Colorado Rockies",
+      "home": "Arizona Diamondbacks",
+      "away": "Colorado Rockies",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Arizona Diamondbacks"
+        },
+        {
+          "key": "AWAY",
+          "name": "Colorado Rockies"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260521",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:51:57.161445+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T06:52:53.862641+09:00"
+  "generated_at": "2026-10-04T06:56:21.799745+09:00"
 }

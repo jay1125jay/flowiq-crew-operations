@@ -18,15 +18,15 @@
       "top_tier_events": 1,
       "source_urls": [
         "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260818",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260817",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260818",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260817",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260818",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260817",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260817",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260818",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260818",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260817",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260817",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260818",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260817",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260817",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260817",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260818",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260817"
       ],
@@ -63,8 +63,8 @@
     {
       "sport": "VOLLEYBALL",
       "provider": "KOVO_OFFICIAL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
@@ -73,10 +73,59 @@
         "https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&team=&yymm=2026-08&r_round=&s_part=2"
       ],
       "html_bytes": 6066,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-08&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
+    {
+      "id": "SPORTS-BASEBALL-401873710",
+      "provider_event_id": "401873710",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-08-18",
+      "start_time": "02:40",
+      "start_timestamp": 1786988400,
+      "status": "FINAL",
+      "title": "Cincinnati Reds vs St. Louis Cardinals",
+      "home": "Cincinnati Reds",
+      "away": "St. Louis Cardinals",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Cincinnati Reds"
+        },
+        {
+          "key": "AWAY",
+          "name": "St. Louis Cardinals"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260817",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 2,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:49:47.035862+09:00"
+      }
+    },
     {
       "id": "SPORTS-SOCCER-401882923",
       "provider_event_id": "401882923",
@@ -118,47 +167,7 @@
         "away_score": 1,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:37.592653+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401873710",
-      "provider_event_id": "401873710",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-08-18",
-      "start_time": "02:40",
-      "start_timestamp": 1786988400,
-      "status": "FINAL",
-      "title": "Cincinnati Reds vs St. Louis Cardinals",
-      "home": "Cincinnati Reds",
-      "away": "St. Louis Cardinals",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Cincinnati Reds"
-        },
-        {
-          "key": "AWAY",
-          "name": "St. Louis Cardinals"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260817",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 1,
-        "away_score": 2,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193806+09:00"
+        "updated_at": "2026-10-04T00:49:46.597392+09:00"
       }
     },
     {
@@ -198,7 +207,7 @@
         "away_score": 6,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193832+09:00"
+        "updated_at": "2026-10-04T00:49:47.035882+09:00"
       }
     },
     {
@@ -238,7 +247,7 @@
         "away_score": 5,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193849+09:00"
+        "updated_at": "2026-10-04T00:49:47.035895+09:00"
       }
     },
     {
@@ -278,7 +287,7 @@
         "away_score": 5,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193864+09:00"
+        "updated_at": "2026-10-04T00:49:47.035906+09:00"
       }
     },
     {
@@ -318,7 +327,7 @@
         "away_score": 8,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193878+09:00"
+        "updated_at": "2026-10-04T00:49:47.035916+09:00"
       }
     },
     {
@@ -358,7 +367,7 @@
         "away_score": 1,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193892+09:00"
+        "updated_at": "2026-10-04T00:49:47.035926+09:00"
       }
     },
     {
@@ -398,7 +407,7 @@
         "away_score": 1,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193906+09:00"
+        "updated_at": "2026-10-04T00:49:47.035935+09:00"
       }
     },
     {
@@ -438,7 +447,7 @@
         "away_score": 5,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193920+09:00"
+        "updated_at": "2026-10-04T00:49:47.035945+09:00"
       }
     },
     {
@@ -478,7 +487,7 @@
         "away_score": 2,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193934+09:00"
+        "updated_at": "2026-10-04T00:49:47.035955+09:00"
       }
     },
     {
@@ -518,7 +527,7 @@
         "away_score": 5,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193949+09:00"
+        "updated_at": "2026-10-04T00:49:47.035964+09:00"
       }
     },
     {
@@ -558,9 +567,9 @@
         "away_score": 11,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:50:38.193964+09:00"
+        "updated_at": "2026-10-04T00:49:47.035974+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T06:50:39.043515+09:00"
+  "generated_at": "2026-10-04T06:56:00.791652+09:00"
 }

@@ -17,15 +17,15 @@
       "raw_events": 0,
       "top_tier_events": 0,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260923",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260923",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260923",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260922",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260923",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260923",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260922",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260922",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260922",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260923",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260923",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260922",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260923",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260923",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260922",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260922"
@@ -41,8 +41,8 @@
       "raw_events": 32,
       "top_tier_events": 16,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260922",
-        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260923"
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260923",
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260922"
       ],
       "failures": []
     },
@@ -63,8 +63,8 @@
     {
       "sport": "VOLLEYBALL",
       "provider": "KOVO_OFFICIAL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
@@ -73,7 +73,16 @@
         "https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&team=&yymm=2026-09&r_round=&s_part=2"
       ],
       "html_bytes": 6066,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-09&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-09&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-09&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=023&g_part=&r_round=&yymm=2026-09&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
@@ -114,7 +123,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359696+09:00"
+        "updated_at": "2026-10-04T00:37:21.240950+09:00"
       }
     },
     {
@@ -146,7 +155,11 @@
       "tier": "TOP",
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260922"
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260922",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-BASEBALL-401817032",
@@ -185,7 +198,7 @@
         "away_score": 4,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359737+09:00"
+        "updated_at": "2026-10-04T00:37:21.240994+09:00"
       }
     },
     {
@@ -225,7 +238,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359753+09:00"
+        "updated_at": "2026-10-04T00:37:21.241012+09:00"
       }
     },
     {
@@ -265,7 +278,7 @@
         "away_score": 3,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359768+09:00"
+        "updated_at": "2026-10-04T00:37:21.241028+09:00"
       }
     },
     {
@@ -305,7 +318,7 @@
         "away_score": 3,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359784+09:00"
+        "updated_at": "2026-10-04T00:37:21.241043+09:00"
       }
     },
     {
@@ -345,7 +358,7 @@
         "away_score": 6,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359798+09:00"
+        "updated_at": "2026-10-04T00:37:21.241057+09:00"
       }
     },
     {
@@ -385,7 +398,7 @@
         "away_score": 4,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359812+09:00"
+        "updated_at": "2026-10-04T00:37:21.241071+09:00"
       }
     },
     {
@@ -425,7 +438,7 @@
         "away_score": 14,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359827+09:00"
+        "updated_at": "2026-10-04T00:37:21.241085+09:00"
       }
     },
     {
@@ -465,7 +478,7 @@
         "away_score": 8,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359842+09:00"
+        "updated_at": "2026-10-04T00:37:21.241099+09:00"
       }
     },
     {
@@ -505,7 +518,7 @@
         "away_score": 6,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359856+09:00"
+        "updated_at": "2026-10-04T00:37:21.241114+09:00"
       }
     },
     {
@@ -545,7 +558,7 @@
         "away_score": 7,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359871+09:00"
+        "updated_at": "2026-10-04T00:37:21.241195+09:00"
       }
     },
     {
@@ -585,7 +598,7 @@
         "away_score": 7,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359885+09:00"
+        "updated_at": "2026-10-04T00:37:21.241214+09:00"
       }
     },
     {
@@ -625,7 +638,7 @@
         "away_score": 7,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359899+09:00"
+        "updated_at": "2026-10-04T00:37:21.241235+09:00"
       }
     },
     {
@@ -665,7 +678,7 @@
         "away_score": 3,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359914+09:00"
+        "updated_at": "2026-10-04T00:37:21.241254+09:00"
       }
     },
     {
@@ -705,9 +718,9 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:49:42.359927+09:00"
+        "updated_at": "2026-10-04T00:37:21.241272+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T06:49:43.220700+09:00"
+  "generated_at": "2026-10-04T06:55:53.777159+09:00"
 }

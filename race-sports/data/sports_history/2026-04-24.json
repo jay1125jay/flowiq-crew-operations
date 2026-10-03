@@ -17,18 +17,18 @@
       "raw_events": 8,
       "top_tier_events": 3,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260424",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260424",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260423",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260423",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260424",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260423",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260424",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20260423",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260424",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260424",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260424",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260423",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260423",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260424",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260423",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260423"
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260423",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20260424",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260423",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20260424",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20260424"
       ],
       "failures": []
     },
@@ -41,8 +41,8 @@
       "raw_events": 23,
       "top_tier_events": 9,
       "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260424"
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260424",
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423"
       ],
       "failures": []
     },
@@ -63,8 +63,8 @@
     {
       "sport": "VOLLEYBALL",
       "provider": "KOVO_OFFICIAL",
-      "status": "PASS",
-      "requests": 2,
+      "status": "PARTIAL",
+      "requests": 4,
       "successful_requests": 2,
       "raw_events": 0,
       "top_tier_events": 0,
@@ -73,7 +73,16 @@
         "https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&team=&yymm=2026-04&r_round=&s_part=2"
       ],
       "html_bytes": 6066,
-      "failures": []
+      "failures": [
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-04&t_code=1",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-04&t_code=1:URLError(gaierror(-2, 'Name or service not known'))"
+        },
+        {
+          "url": "https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-04&t_code=2",
+          "error": "KOVO_FETCH_FAILED:https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp?season=022&g_part=&r_round=&yymm=2026-04&t_code=2:URLError(gaierror(-2, 'Name or service not known'))"
+        }
+      ]
     }
   ],
   "events": [
@@ -118,7 +127,87 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:36.958728+09:00"
+        "updated_at": "2026-10-04T00:52:38.231504+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815056",
+      "provider_event_id": "401815056",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-04-24",
+      "start_time": "02:05",
+      "start_timestamp": 1776963900,
+      "status": "FINAL",
+      "title": "Washington Nationals vs Atlanta Braves",
+      "home": "Washington Nationals",
+      "away": "Atlanta Braves",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Washington Nationals"
+        },
+        {
+          "key": "AWAY",
+          "name": "Atlanta Braves"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 7,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:52:38.704390+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815057",
+      "provider_event_id": "401815057",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-04-24",
+      "start_time": "02:10",
+      "start_timestamp": 1776964200,
+      "status": "FINAL",
+      "title": "Detroit Tigers vs Milwaukee Brewers",
+      "home": "Detroit Tigers",
+      "away": "Milwaukee Brewers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Detroit Tigers"
+        },
+        {
+          "key": "AWAY",
+          "name": "Milwaukee Brewers"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 5,
+        "away_score": 4,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:52:38.704411+09:00"
       }
     },
     {
@@ -162,7 +251,87 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:36.958752+09:00"
+        "updated_at": "2026-10-04T00:52:38.231535+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815060",
+      "provider_event_id": "401815060",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-04-24",
+      "start_time": "03:20",
+      "start_timestamp": 1776968400,
+      "status": "FINAL",
+      "title": "Chicago Cubs vs Philadelphia Phillies",
+      "home": "Chicago Cubs",
+      "away": "Philadelphia Phillies",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Chicago Cubs"
+        },
+        {
+          "key": "AWAY",
+          "name": "Philadelphia Phillies"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 8,
+        "away_score": 7,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:52:38.704426+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815062",
+      "provider_event_id": "401815062",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-04-24",
+      "start_time": "04:10",
+      "start_timestamp": 1776971400,
+      "status": "FINAL",
+      "title": "Colorado Rockies vs San Diego Padres",
+      "home": "Colorado Rockies",
+      "away": "San Diego Padres",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Colorado Rockies"
+        },
+        {
+          "key": "AWAY",
+          "name": "San Diego Padres"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 8,
+        "away_score": 10,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:52:38.704437+09:00"
       }
     },
     {
@@ -206,167 +375,7 @@
         "away_score": 1,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:36.958767+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815056",
-      "provider_event_id": "401815056",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-04-24",
-      "start_time": "02:05",
-      "start_timestamp": 1776963900,
-      "status": "FINAL",
-      "title": "Washington Nationals vs Atlanta Braves",
-      "home": "Washington Nationals",
-      "away": "Atlanta Braves",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Washington Nationals"
-        },
-        {
-          "key": "AWAY",
-          "name": "Atlanta Braves"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 2,
-        "away_score": 7,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.353929+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815057",
-      "provider_event_id": "401815057",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-04-24",
-      "start_time": "02:10",
-      "start_timestamp": 1776964200,
-      "status": "FINAL",
-      "title": "Detroit Tigers vs Milwaukee Brewers",
-      "home": "Detroit Tigers",
-      "away": "Milwaukee Brewers",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Detroit Tigers"
-        },
-        {
-          "key": "AWAY",
-          "name": "Milwaukee Brewers"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 5,
-        "away_score": 4,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.353954+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815060",
-      "provider_event_id": "401815060",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-04-24",
-      "start_time": "03:20",
-      "start_timestamp": 1776968400,
-      "status": "FINAL",
-      "title": "Chicago Cubs vs Philadelphia Phillies",
-      "home": "Chicago Cubs",
-      "away": "Philadelphia Phillies",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Chicago Cubs"
-        },
-        {
-          "key": "AWAY",
-          "name": "Philadelphia Phillies"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 8,
-        "away_score": 7,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.353972+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815062",
-      "provider_event_id": "401815062",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-04-24",
-      "start_time": "04:10",
-      "start_timestamp": 1776971400,
-      "status": "FINAL",
-      "title": "Colorado Rockies vs San Diego Padres",
-      "home": "Colorado Rockies",
-      "away": "San Diego Padres",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Colorado Rockies"
-        },
-        {
-          "key": "AWAY",
-          "name": "San Diego Padres"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 8,
-        "away_score": 10,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.353989+09:00"
+        "updated_at": "2026-10-04T00:52:38.231550+09:00"
       }
     },
     {
@@ -406,7 +415,7 @@
         "away_score": 4,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.354004+09:00"
+        "updated_at": "2026-10-04T00:52:38.704447+09:00"
       }
     },
     {
@@ -446,7 +455,7 @@
         "away_score": 3,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.354019+09:00"
+        "updated_at": "2026-10-04T00:52:38.704458+09:00"
       }
     },
     {
@@ -486,87 +495,7 @@
         "away_score": 4,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.354035+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815058",
-      "provider_event_id": "401815058",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-04-24",
-      "start_time": "08:10",
-      "start_timestamp": 1776985800,
-      "status": "FINAL",
-      "title": "New York Mets vs Minnesota Twins",
-      "home": "New York Mets",
-      "away": "Minnesota Twins",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "New York Mets"
-        },
-        {
-          "key": "AWAY",
-          "name": "Minnesota Twins"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 10,
-        "away_score": 8,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.354050+09:00"
-      }
-    },
-    {
-      "id": "SPORTS-BASEBALL-401815061",
-      "provider_event_id": "401815061",
-      "domain": "SPORTS",
-      "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
-      "provider_kind": "PUBLIC_SCORE_FEED",
-      "competition": "MLB",
-      "event_date": "2026-04-24",
-      "start_time": "09:05",
-      "start_timestamp": 1776989100,
-      "status": "FINAL",
-      "title": "Texas Rangers vs Pittsburgh Pirates",
-      "home": "Texas Rangers",
-      "away": "Pittsburgh Pirates",
-      "market_type": "TWO_WAY",
-      "outcomes": [
-        {
-          "key": "HOME",
-          "name": "Texas Rangers"
-        },
-        {
-          "key": "AWAY",
-          "name": "Pittsburgh Pirates"
-        }
-      ],
-      "tier": "TOP",
-      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
-      "data_state": "FRESH",
-      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 6,
-        "away_score": 1,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.354065+09:00"
+        "updated_at": "2026-10-04T00:52:38.704467+09:00"
       }
     },
     {
@@ -606,7 +535,47 @@
         "away_score": 108,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.698746+09:00"
+        "updated_at": "2026-10-04T00:52:39.041143+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815058",
+      "provider_event_id": "401815058",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-04-24",
+      "start_time": "08:10",
+      "start_timestamp": 1776985800,
+      "status": "FINAL",
+      "title": "New York Mets vs Minnesota Twins",
+      "home": "New York Mets",
+      "away": "Minnesota Twins",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "New York Mets"
+        },
+        {
+          "key": "AWAY",
+          "name": "Minnesota Twins"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 10,
+        "away_score": 8,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:52:38.704477+09:00"
       }
     },
     {
@@ -646,7 +615,47 @@
         "away_score": 104,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.698772+09:00"
+        "updated_at": "2026-10-04T00:52:39.041163+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASEBALL-401815061",
+      "provider_event_id": "401815061",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-04-24",
+      "start_time": "09:05",
+      "start_timestamp": 1776989100,
+      "status": "FINAL",
+      "title": "Texas Rangers vs Pittsburgh Pirates",
+      "home": "Texas Rangers",
+      "away": "Pittsburgh Pirates",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Texas Rangers"
+        },
+        {
+          "key": "AWAY",
+          "name": "Pittsburgh Pirates"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20260423",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 6,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T00:52:38.704487+09:00"
       }
     },
     {
@@ -686,9 +695,9 @@
         "away_score": 96,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T06:53:37.698791+09:00"
+        "updated_at": "2026-10-04T00:52:39.041175+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T06:53:38.204684+09:00"
+  "generated_at": "2026-10-04T06:56:28.869055+09:00"
 }
