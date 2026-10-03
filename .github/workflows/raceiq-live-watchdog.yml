@@ -1,0 +1,36 @@
+name: raceiq-live-watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Redundant half-hour anchors. Each run dispatches the full RACEIQ refresh
+    # every 5 minutes for 30 minutes, avoiding gaps when GitHub cron is delayed.
+    - cron: '7,37 * * * *'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: raceiq-live-watchdog
+  cancel-in-progress: true
+
+jobs:
+  dispatch-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 29
+    steps:
+      - name: Dispatch RACEIQ refresh every 5 minutes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for n in 1 2 3 4 5 6; do
+            echo "RACEIQ_REFRESH_DISPATCH=$n/6"
+            gh workflow run race-sports-static-refresh.yml --ref main
+            if [ "$n" -lt 6 ]; then
+              sleep 300
+            fi
+          done
