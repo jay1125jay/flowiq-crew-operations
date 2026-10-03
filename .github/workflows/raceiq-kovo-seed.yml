@@ -1,0 +1,80 @@
+name: raceiq-kovo-seed
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-kovo-seed.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raceiq-kovo-seed
+  cancel-in-progress: true
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PDF parser
+        run: python -m pip install --disable-pip-version-check pypdf
+
+      - name: Verify official KOVO report contract
+        run: python race-sports/tools/kovo_official_pdf_backfill.py --self-test
+
+      - name: Seed two completed KOVO seasons
+        run: python race-sports/tools/kovo_official_pdf_backfill.py --seasons 022,021 --max-game 260 --workers 6
+
+      - name: Rebuild and validate SPORTS model
+        run: |
+          python race-sports/tools/inject_sports_model.py
+          python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+
+      - name: Pack verified KOVO outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf /tmp/raceiq-kovo-seed.tgz \
+            race-sports/data/sports_history \
+            race-sports/data/historical_state/kovo_pdf_backfill_state.json \
+            race-sports/data/model_state/sports_elo_v0.2.validation.json \
+            race-sports/data/sports_today.json
+
+      - name: Publish verified KOVO seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "raceiq-kovo-seed-bot"
+          git config user.email "actions@users.noreply.github.com"
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            tar -xzf /tmp/raceiq-kovo-seed.tgz
+            git add race-sports/data/sports_history
+            git add race-sports/data/historical_state/kovo_pdf_backfill_state.json
+            git add race-sports/data/model_state/sports_elo_v0.2.validation.json
+            git add race-sports/data/sports_today.json
+            if git diff --cached --quiet; then
+              echo "KOVO_SEED_NO_CHANGE=PASS"
+              exit 0
+            fi
+            git commit -m "chore: seed official KOVO history and retrain SPORTS model"
+            if git push origin HEAD:main; then
+              echo "KOVO_SEED_PUBLISH=PASS"
+              exit 0
+            fi
+            echo "KOVO seed push conflict; retrying ($n/5)"
+          done
+          echo "KOVO_SEED_PUBLISH=FAIL"
+          exit 1
