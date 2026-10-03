@@ -14,9 +14,9 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/tools/validate_cycle_boat_models.py'
   schedule:
-    # Continue backfill throughout the KST day. Budget state is cumulative,
-    # so later runs stop automatically after the daily provider caps are used.
-    - cron: '15 */2 * * *'
+    # Continue backfill every hour. Daily usage is persisted in KST and each
+    # provider stops automatically when its daily request cap is exhausted.
+    - cron: '15 * * * *'
 
 permissions:
   contents: write
