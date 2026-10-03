@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, re, time, urllib.request
+import argparse, hashlib, json, re, time, urllib.request, http.cookiejar
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date, timezone, timedelta
 from html.parser import HTMLParser
@@ -9,6 +9,7 @@ from typing import Any
 KST=timezone(timedelta(hours=9))
 ESPN_BASE="https://site.api.espn.com/apis/site/v2/sports"
 KOVO_BASE="https://www.kovo.co.kr/game/v-league/11110_schedule_list.asp"
+KOVO_MOBILE_BASE="https://m.kovo.co.kr/game/v-league/11110_schedule_list.asp"
 
 SPORTS={
     "SOCCER":{"provider":"ESPN_PUBLIC"},
@@ -53,6 +54,7 @@ KOVO_TEAM_ALIASES={
     "페퍼저축은행":["페퍼저축은행","AI페퍼스","페퍼스"],
 }
 _KOVO_CACHE={}
+_KOVO_OPENERS={}
 
 def _http_bytes(url:str,timeout:int=18,retries:int=2)->tuple[bytes,dict]:
     last=None
@@ -78,8 +80,7 @@ def _http_json(url:str,timeout:int=18,retries:int=2)->dict:
     if not isinstance(obj,dict): raise RuntimeError("JSON_NOT_OBJECT")
     return obj
 
-def _http_text(url:str,timeout:int=18,retries:int=2)->str:
-    raw,headers=_http_bytes(url,timeout,retries)
+def _decode_html(raw:bytes,headers:dict)->str:
     ctype=headers.get("Content-Type","")
     m=re.search(r"charset=([A-Za-z0-9_-]+)",ctype,re.I)
     encs=[m.group(1)] if m else []
@@ -91,6 +92,45 @@ def _http_text(url:str,timeout:int=18,retries:int=2)->str:
         try:return raw.decode(enc)
         except Exception:pass
     return raw.decode("utf-8","replace")
+
+def _http_text(url:str,timeout:int=18,retries:int=2)->str:
+    raw,headers=_http_bytes(url,timeout,retries)
+    return _decode_html(raw,headers)
+
+def _kovo_session_text(url:str,timeout:int=18,retries:int=2)->str:
+    mobile="://m.kovo.co.kr/" in url
+    origin="https://m.kovo.co.kr/" if mobile else "https://www.kovo.co.kr/"
+    opener=_KOVO_OPENERS.get(origin)
+    if opener is None:
+        jar=http.cookiejar.CookieJar()
+        opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        _KOVO_OPENERS[origin]=opener
+        try:
+            req=urllib.request.Request(origin,headers={
+                "Accept":"text/html,*/*;q=0.8",
+                "Accept-Language":"ko-KR,ko;q=0.9,en;q=0.8",
+                "User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148" if mobile else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+            })
+            with opener.open(req,timeout=timeout) as r:r.read()
+        except Exception:
+            pass
+    last=None
+    for i in range(retries+1):
+        try:
+            req=urllib.request.Request(url,headers={
+                "Accept":"text/html,application/xhtml+xml,*/*;q=0.8",
+                "Accept-Language":"ko-KR,ko;q=0.9,en;q=0.8",
+                "Referer":origin,
+                "User-Agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148" if mobile else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+            })
+            with opener.open(req,timeout=timeout) as r:
+                if r.status!=200:raise RuntimeError(f"HTTP_{r.status}")
+                raw=r.read();headers=dict(r.headers.items())
+                return _decode_html(raw,headers)
+        except Exception as exc:
+            last=exc
+            if i<retries:time.sleep(1+i)
+    raise RuntimeError(f"KOVO_FETCH_FAILED:{url}:{last!r}")
 
 def _query_days(day:str)->list[str]:
     d=date.fromisoformat(day)
@@ -229,10 +269,15 @@ def _kovo_season_for_day(d:date)->str:
     return f"{start_year-2003:03d}"
 
 def _kovo_month_urls(d:date)->list[str]:
-    base=f"{KOVO_BASE}?season={_kovo_season_for_day(d)}&team=&yymm={d.strftime('%Y-%m')}&r_round="
-    # Current KOVO pages are most reliable when men's/women's divisions are
-    # requested explicitly. Merge both into one top-tier V-League feed.
-    return [base+"&s_part=1", base+"&s_part=2"]
+    season=_kovo_season_for_day(d);ym=d.strftime('%Y-%m')
+    desktop=f"{KOVO_BASE}?season={season}&team=&yymm={ym}&r_round="
+    mobile=f"{KOVO_MOBILE_BASE}?season={season}&g_part=&r_round=&yymm={ym}"
+    # KOVO has served different schedule markup through desktop/mobile routes
+    # over time. Query both official routes and both divisions, then dedupe.
+    return [
+        desktop+"&s_part=1",desktop+"&s_part=2",
+        mobile+"&t_code=1",mobile+"&t_code=2",
+    ]
 
 def _canonical_kovo_teams(text:str)->list[str]:
     found=[]
@@ -321,7 +366,7 @@ def _fetch_kovo_day(day:str)->tuple[list[dict],dict]:
         merged=[];urls=[];failures=[];html_bytes=0;success=0
         for url in _kovo_month_urls(d):
             try:
-                html=_http_text(url);html_bytes+=len(html);success+=1;urls.append(url)
+                html=_kovo_session_text(url);html_bytes+=len(html);success+=1;urls.append(url)
                 merged.extend(_parse_kovo_month(html,d,url))
             except Exception as exc:
                 failures.append({"url":url,"error":str(exc)[:250]})
@@ -333,7 +378,7 @@ def _fetch_kovo_day(day:str)->tuple[list[dict],dict]:
     parsed,urls,html_len,success,failures=_KOVO_CACHE[key]
     events=[e for e in parsed if e.get("event_date")==day]
     return events,{"sport":"VOLLEYBALL","provider":"KOVO_OFFICIAL",
-                   "status":"PASS" if not failures else "PARTIAL","requests":2,
+                   "status":"PASS" if not failures else "PARTIAL","requests":len(_kovo_month_urls(d)),
                    "successful_requests":success,"raw_events":len(parsed),
                    "top_tier_events":len(events),"source_urls":urls,
                    "html_bytes":html_len,"failures":failures}
