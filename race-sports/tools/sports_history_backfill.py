@@ -8,13 +8,26 @@ from sports_provider import KST,SPORTS,fetch_sport_day
 ROOT=Path(__file__).resolve().parents[1]
 HIST=ROOT/"data"/"sports_history"
 STATE=ROOT/"data"/"historical_state"/"sports_backfill_state.json"
-START=date(2024,1,1)
+START=date(2022,1,1)
+REVISION="SPORTS_BACKFILL_V2_KOVO_REPAIR"
 
 def load_state():
+    latest=(datetime.now(KST).date()-timedelta(days=1)).isoformat()
     if STATE.exists():
-        try:return json.loads(STATE.read_text(encoding="utf-8"))
+        try:
+            s=json.loads(STATE.read_text(encoding="utf-8"))
+            if s.get("revision")!=REVISION:
+                # Provider/parser contract changed: replay recent history so old
+                # zero-event volleyball snapshots are repaired deterministically.
+                return {
+                    "cursor_date":latest,"complete":False,
+                    "calls_total":int(s.get("calls_total",0)),
+                    "days_saved":int(s.get("days_saved",0)),
+                    "revision":REVISION,"repair_replay":True
+                }
+            return s
         except Exception:pass
-    return {"cursor_date":(datetime.now(KST).date()-timedelta(days=1)).isoformat(),"complete":False,"calls_total":0,"days_saved":0}
+    return {"cursor_date":latest,"complete":False,"calls_total":0,"days_saved":0,"revision":REVISION}
 
 def save_state(s):
     STATE.parent.mkdir(parents=True,exist_ok=True)
@@ -38,12 +51,16 @@ def run(max_days=30,max_seconds=900,sleep_seconds=.25):
         (HIST/f"{day}.json").write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding="utf-8")
         saved+=1;days+=1;cur-=timedelta(days=1)
         s["cursor_date"]=cur.isoformat();s["days_saved"]=int(s.get("days_saved",0))+1;s["calls_total"]=int(s.get("calls_total",0))+day_calls;save_state(s)
-    if cur<START:s["complete"]=True;save_state(s)
+    if cur<START:s["complete"]=True
+    s["revision"]=REVISION
+    s["repair_replay"]=False
+    save_state(s)
     print(json.dumps({"SPORTS_BACKFILL":"PASS","days_this_run":days,"files_saved":saved,"calls_this_run":calls,"cursor_date":s["cursor_date"],"complete":s.get("complete",False)},ensure_ascii=False))
 
 def self_test():
-    assert START.isoformat()=="2024-01-01"
-    print(json.dumps({"SPORTS_BACKFILL_SELF_TEST":"PASS","start":START.isoformat()},ensure_ascii=False))
+    assert START.isoformat()=="2022-01-01"
+    assert REVISION=="SPORTS_BACKFILL_V2_KOVO_REPAIR"
+    print(json.dumps({"SPORTS_BACKFILL_SELF_TEST":"PASS","start":START.isoformat(),"revision":REVISION},ensure_ascii=False))
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--max-days",type=int,default=30);ap.add_argument("--max-seconds",type=int,default=900);ap.add_argument("--sleep-seconds",type=float,default=.25);ap.add_argument("--self-test",action="store_true");a=ap.parse_args()
