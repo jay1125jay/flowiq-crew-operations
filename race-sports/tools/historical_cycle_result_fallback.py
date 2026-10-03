@@ -184,7 +184,12 @@ def _backfill_cycle(hb, state, budget, seen, stats, call_limit=None):
                         identity_ok = False
                         break
                 if not identity_ok:
-                    stats['errors'].append(f'CYCLE {event_id} CARD_RESULT_NAME_MISMATCH')
+                    result_names = {int(x.get('number')): re.sub(r'\\s+', '', str(x.get('name') or '')) for x in result['top3'] if x.get('number') is not None}
+                    stats['errors'].append(
+                        f'CYCLE {event_id} CARD_RESULT_NAME_MISMATCH '
+                        f'CARD={card_names} RESULT={result_names} '
+                        f'CARD_URL={card_url} RESULT_URL={selected_result_url}'
+                    )
                     continue
 
                 top_by = {x['number']: x['rank'] for x in result['top3']}
