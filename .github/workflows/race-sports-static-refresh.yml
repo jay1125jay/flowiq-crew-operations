@@ -28,6 +28,11 @@ on:
       - 'race-sports/tools/ui_multisport_patch.py'
       - 'race-sports/tools/snapshot_guard.py'
       - 'race-sports/tools/validate_snapshot.py'
+      - 'race-sports/tools/sports_provider.py'
+      - 'race-sports/tools/sports_static_collector.py'
+      - 'race-sports/tools/inject_sports_model.py'
+      - 'race-sports/tools/validate_sports_snapshot.py'
+      - 'race-sports/tools/sports_history_backfill.py'
   workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
@@ -42,7 +47,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,7 +79,9 @@ jobs:
               'data-view="TODAY"','data-view="VALUE"','data-view="ANALYSIS"','data-view="SETTINGS"',
               'STALE_LAST_KNOWN_GOOD','setInterval(load,10000)',
               'KCYCLE_FINAL_SINGLE_AUTO','KCYCLE_AI_OFFICIAL','CPC_FINAL_SINGLE_AUTO','소싸움 3분류 모델',
-              'valueModelReady(e)','경마 AI MVP','CYCLE_OWN_MODEL','BOAT_OWN_MODEL'
+              'valueModelReady(e)','경마 AI MVP','CYCLE_OWN_MODEL','BOAT_OWN_MODEL',
+              'data-domain="RACING"','data-domain="SPORTS"','./data/sports_today.json',
+              "['SOCCER','축구']","['BASEBALL','야구']","['BASKETBALL','농구']","['VOLLEYBALL','배구']"
           ]:
               if token not in s: raise SystemExit('UI_TOKEN_MISSING:'+token)
           PY
@@ -141,15 +148,32 @@ jobs:
         if: github.event_name == 'push'
         run: python race-sports/tools/inject_cycle_boat_own_models.py --self-test
 
+      - name: Test four-sport provider and model
+        if: github.event_name == 'push'
+        run: |
+          python race-sports/tools/sports_provider.py --self-test
+          python race-sports/tools/inject_sports_model.py --self-test
+          python race-sports/tools/sports_history_backfill.py --self-test
+
+      - name: Probe live four-sport provider
+        if: github.event_name == 'push'
+        run: python race-sports/tools/sports_provider.py --live-probe
+
       - name: Preserve previous same-day snapshot
         shell: bash
         run: |
           if [ -f race-sports/data/today.json ]; then
             cp race-sports/data/today.json /tmp/race-sports-prev.json
           fi
+          if [ -f race-sports/data/sports_today.json ]; then
+            cp race-sports/data/sports_today.json /tmp/race-sports-sports-prev.json
+          fi
 
       - name: Collect official 4-sport racing data
         run: python race-sports/tools/racing_static_collector.py
+
+      - name: Collect four-sport scoreboard data
+        run: python race-sports/tools/sports_static_collector.py
 
       - name: Recover last-known-good events on provider failure
         run: python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
@@ -223,6 +247,16 @@ jobs:
       - name: Inject validated Bull RED DRAW BLUE model
         run: python race-sports/tools/inject_bull_model.py
 
+      - name: Inject SPORTS Elo probabilities
+        shell: bash
+        run: |
+          if ! python race-sports/tools/inject_sports_model.py; then
+            echo 'SPORTS model unavailable this cycle; source-labeled scoreboard remains publishable'
+          fi
+
+      - name: Validate SPORTS snapshot
+        run: python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+
       - name: Validate publish snapshot
         run: python race-sports/tools/validate_snapshot.py race-sports/data/today.json
 
@@ -231,42 +265,79 @@ jobs:
         run: |
           set -euo pipefail
           cp race-sports/data/today.json /tmp/race-sports-today.json
+          cp race-sports/data/sports_today.json /tmp/race-sports-sports-today.json
           cp race-sports/live.html /tmp/race-sports-live.html
           if [ -f race-sports/data/model_state/cycle_boat_own_predictions.json ]; then
             mkdir -p /tmp/race-sports-model-state
             cp race-sports/data/model_state/cycle_boat_own_predictions.json /tmp/race-sports-model-state/cycle_boat_own_predictions.json
+          fi
+          if [ -f race-sports/data/model_state/sports_elo_v0.1.validation.json ]; then
+            mkdir -p /tmp/race-sports-model-state
+            cp race-sports/data/model_state/sports_elo_v0.1.validation.json /tmp/race-sports-model-state/sports_elo_v0.1.validation.json
           fi
           DATE=$(python - <<'PY'
           import json
           print(json.load(open('race-sports/data/today.json',encoding='utf-8'))['date'])
           PY
           )
-          mkdir -p /tmp/race-sports-history
+          SPORTS_DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('race-sports/data/sports_today.json',encoding='utf-8'))['date'])
+          PY
+          )
+          mkdir -p /tmp/race-sports-history /tmp/race-sports-sports-history
           cp race-sports/data/today.json "/tmp/race-sports-history/${DATE}.json"
+          cp race-sports/data/sports_today.json "/tmp/race-sports-sports-history/${SPORTS_DATE}.json"
           echo "$DATE" > /tmp/race-sports-date.txt
+          echo "$SPORTS_DATE" > /tmp/race-sports-sports-date.txt
 
-      - name: Publish static snapshot without rebase conflicts
+      - name: Publish static snapshot conflict-safe
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "race-sports-bot"
           git config user.email "actions@users.noreply.github.com"
           DATE=$(cat /tmp/race-sports-date.txt)
-          git fetch origin main
-          git reset --hard origin/main
-          cp /tmp/race-sports-today.json race-sports/data/today.json
-          cp /tmp/race-sports-live.html race-sports/live.html
-          mkdir -p race-sports/data/history
-          cp "/tmp/race-sports-history/${DATE}.json" "race-sports/data/history/${DATE}.json"
-          git add race-sports/data/today.json race-sports/live.html "race-sports/data/history/${DATE}.json"
-          if [ -f /tmp/race-sports-model-state/cycle_boat_own_predictions.json ]; then
-            mkdir -p race-sports/data/model_state
-            cp /tmp/race-sports-model-state/cycle_boat_own_predictions.json race-sports/data/model_state/cycle_boat_own_predictions.json
-            git add race-sports/data/model_state/cycle_boat_own_predictions.json
-          fi
-          if git diff --cached --quiet; then
-            echo "No data change"
-            exit 0
-          fi
-          git commit -m "chore: refresh race sports static snapshot"
-          git push origin HEAD:main
+          SPORTS_DATE=$(cat /tmp/race-sports-sports-date.txt)
+
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            cp /tmp/race-sports-today.json race-sports/data/today.json
+            cp /tmp/race-sports-sports-today.json race-sports/data/sports_today.json
+            cp /tmp/race-sports-live.html race-sports/live.html
+            mkdir -p race-sports/data/history race-sports/data/sports_history race-sports/data/model_state
+            cp "/tmp/race-sports-history/${DATE}.json" "race-sports/data/history/${DATE}.json"
+            cp "/tmp/race-sports-sports-history/${SPORTS_DATE}.json" "race-sports/data/sports_history/${SPORTS_DATE}.json"
+
+            git add race-sports/data/today.json
+            git add race-sports/data/sports_today.json
+            git add race-sports/live.html
+            git add "race-sports/data/history/${DATE}.json"
+            git add "race-sports/data/sports_history/${SPORTS_DATE}.json"
+
+            if [ -f /tmp/race-sports-model-state/cycle_boat_own_predictions.json ]; then
+              cp /tmp/race-sports-model-state/cycle_boat_own_predictions.json race-sports/data/model_state/cycle_boat_own_predictions.json
+              git add race-sports/data/model_state/cycle_boat_own_predictions.json
+            fi
+            if [ -f /tmp/race-sports-model-state/sports_elo_v0.1.validation.json ]; then
+              cp /tmp/race-sports-model-state/sports_elo_v0.1.validation.json race-sports/data/model_state/sports_elo_v0.1.validation.json
+              git add race-sports/data/model_state/sports_elo_v0.1.validation.json
+            fi
+
+            if git diff --cached --quiet; then
+              echo "No data change"
+              exit 0
+            fi
+
+            git commit -m "chore: refresh RACEIQ racing and sports snapshot"
+            if git push origin HEAD:main; then
+              echo "STATIC_PUBLISH=PASS"
+              exit 0
+            fi
+            echo "Push conflict; replaying generated output ($n/5)"
+          done
+
+          echo "STATIC_PUBLISH=FAIL"
+          exit 1

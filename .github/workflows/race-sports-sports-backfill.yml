@@ -1,0 +1,100 @@
+name: race-sports-sports-backfill
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/race-sports-sports-backfill.yml'
+      - 'race-sports/tools/sports_provider.py'
+      - 'race-sports/tools/sports_history_backfill.py'
+      - 'race-sports/tools/inject_sports_model.py'
+      - 'race-sports/tools/validate_sports_snapshot.py'
+  schedule:
+    # 07:15 KST daily (= 22:15 UTC previous calendar date)
+    - cron: '15 22 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: race-sports-sports-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Self tests
+        run: |
+          python race-sports/tools/sports_provider.py --self-test
+          python race-sports/tools/sports_history_backfill.py --self-test
+          python race-sports/tools/inject_sports_model.py --self-test
+
+      - name: Live provider probe
+        if: github.event_name == 'push'
+        run: python race-sports/tools/sports_provider.py --live-probe
+
+      - name: Backfill recent sports history on push
+        if: github.event_name == 'push'
+        run: python race-sports/tools/sports_history_backfill.py --max-days 14 --max-seconds 300 --sleep-seconds 0.35
+
+      - name: Continue sports history backfill
+        if: github.event_name != 'push'
+        run: python race-sports/tools/sports_history_backfill.py --max-days 160 --max-seconds 3000 --sleep-seconds 0.35
+
+      - name: Rebuild SPORTS model state
+        shell: bash
+        run: |
+          if [ -f race-sports/data/sports_today.json ]; then
+            python race-sports/tools/inject_sports_model.py
+            python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+          fi
+
+      - name: Pack generated SPORTS outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf /tmp/raceiq-sports-backfill.tgz             race-sports/data/sports_history             race-sports/data/historical_state/sports_backfill_state.json             race-sports/data/model_state/sports_elo_v0.1.validation.json             race-sports/data/sports_today.json
+
+      - name: Publish SPORTS backfill conflict-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "raceiq-sports-backfill-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            tar -xzf /tmp/raceiq-sports-backfill.tgz
+
+            git add race-sports/data/sports_history
+            git add race-sports/data/historical_state/sports_backfill_state.json
+            git add race-sports/data/model_state/sports_elo_v0.1.validation.json
+            git add race-sports/data/sports_today.json
+
+            if git diff --cached --quiet; then
+              echo "No SPORTS backfill change"
+              exit 0
+            fi
+
+            git commit -m "chore: advance RACEIQ sports history backfill"
+            if git push origin HEAD:main; then
+              echo "SPORTS_BACKFILL_PUBLISH=PASS"
+              exit 0
+            fi
+            echo "Push conflict; replaying generated SPORTS output ($n/5)"
+          done
+
+          echo "SPORTS_BACKFILL_PUBLISH=FAIL"
+          exit 1
