@@ -167,7 +167,7 @@ def parse_event(sport:str,ev:dict,requested_day:str,league_name:str,source_url:s
         out["result"]={"official":False,"status":"CONFIRMED","home_score":hs,"away_score":aas,
                        "winner_key":_winner_key(sport,home_c,away_c,hs,aas),
                        "source":"ESPN_PUBLIC","updated_at":datetime.now(KST).isoformat()}
-    elif hs is not None and aas is not None:
+    elif status=="LIVE" and hs is not None and aas is not None:
         out["score"]={"home":hs,"away":aas}
     return out
 
