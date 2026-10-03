@@ -29,7 +29,7 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 65
+    timeout-minutes: 70
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,12 +50,7 @@ jobs:
       - name: Quality gate before collection
         run: python race-sports/tools/backfill_quality_guard.py
 
-      - name: Push smoke collection
-        if: github.event_name == 'push'
-        run: python race-sports/tools/historical_backfill_runner.py --horse-slice 0 --ksports-slice 300 --bull-slice 0 --max-seconds 180
-
-      - name: Continue daily quota sweep
-        if: github.event_name != 'push'
+      - name: Consume daily quota
         shell: bash
         run: |
           MAX_SECONDS=$(python - <<'PY'
@@ -63,12 +58,16 @@ jobs:
           KST=timezone(timedelta(hours=9))
           now=datetime.now(KST)
           midnight=(now+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
-          remain=max(60,int((midnight-now).total_seconds())-180)
+          remain=max(60,int((midnight-now).total_seconds())-240)
           print(min(3300,remain))
           PY
           )
           echo "BACKFILL_MAX_SECONDS=$MAX_SECONDS"
-          python race-sports/tools/historical_backfill_runner.py --horse-slice 2500 --ksports-slice 2500 --bull-slice 4500 --max-seconds "$MAX_SECONDS"
+          python race-sports/tools/historical_backfill_runner.py \
+            --horse-slice 2500 \
+            --ksports-slice 2500 \
+            --bull-slice 4500 \
+            --max-seconds "$MAX_SECONDS"
 
       - name: Quality gate after collection
         run: python race-sports/tools/backfill_quality_guard.py
@@ -124,3 +123,48 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run race-sports-static-refresh.yml --ref main
+
+      - name: Continue until daily caps are exhausted
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python - <<'PY' > /tmp/backfill_continue.env
+          import json
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+
+          KST=timezone(timedelta(hours=9))
+          p=Path("race-sports/data/historical_state/backfill_report.json")
+          r=json.loads(p.read_text(encoding="utf-8"))
+          caps=r.get("caps", {})
+          used=r.get("usage_today", {})
+          before=r.get("usage_before_run", {})
+
+          remaining={
+              "horse": max(0, int(caps.get("horse",0))-int(used.get("horse",0))),
+              "ksports": max(0, int(caps.get("ksports",0))-int(used.get("ksports",0))),
+              "bull": max(0, int(caps.get("bull",0))-int(used.get("bull",0))),
+          }
+          progress=sum(max(0,int(used.get(k,0))-int(before.get(k,0))) for k in remaining)
+          now=datetime.now(KST)
+          midnight=(now+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
+          seconds_left=(midnight-now).total_seconds()
+
+          should_continue=any(v>0 for v in remaining.values()) and progress>0 and seconds_left>600
+          print(f"CONTINUE={'1' if should_continue else '0'}")
+          print("REMAINING_HORSE="+str(remaining["horse"]))
+          print("REMAINING_KSPORTS="+str(remaining["ksports"]))
+          print("REMAINING_BULL="+str(remaining["bull"]))
+          print("PROGRESS_CALLS="+str(progress))
+          PY
+
+          cat /tmp/backfill_continue.env
+          source /tmp/backfill_continue.env
+
+          if [ "$CONTINUE" = "1" ]; then
+            echo "BACKFILL_SELF_DISPATCH=YES"
+            gh workflow run race-sports-historical-backfill.yml --ref main
+          else
+            echo "BACKFILL_SELF_DISPATCH=NO"
+          fi
