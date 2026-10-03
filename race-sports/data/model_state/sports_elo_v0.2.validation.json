@@ -1,13 +1,6 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
-    "VOLLEYBALL": {
-      "games": 0,
-      "holdout_rows": 0,
-      "walk_forward_rows": 0,
-      "validated": false,
-      "validation_contract": "INSUFFICIENT_HISTORY"
-    },
     "SOCCER": {
       "games": 2209,
       "holdout_rows": 663,
@@ -26,23 +19,12 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
-    "BASKETBALL": {
-      "games": 1397,
-      "holdout_rows": 420,
-      "walk_forward_rows": 420,
-      "accuracy": 0.728571,
-      "log_loss": 0.550804,
-      "brier": 0.183709,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.142343,
-      "validated": true,
-      "selected_params": {
-        "k": 20.0,
-        "home_adv": 30.0,
-        "scale": 430.0,
-        "shrink": 1.0
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    "VOLLEYBALL": {
+      "games": 0,
+      "holdout_rows": 0,
+      "walk_forward_rows": 0,
+      "validated": false,
+      "validation_contract": "INSUFFICIENT_HISTORY"
     },
     "BASEBALL": {
       "games": 4009,
@@ -59,6 +41,24 @@
         "home_adv": 40.0,
         "scale": 450.0,
         "shrink": 0.8
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
+    "BASKETBALL": {
+      "games": 1397,
+      "holdout_rows": 420,
+      "walk_forward_rows": 420,
+      "accuracy": 0.728571,
+      "log_loss": 0.550804,
+      "brier": 0.183709,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.142343,
+      "validated": true,
+      "selected_params": {
+        "k": 20.0,
+        "home_adv": 30.0,
+        "scale": 430.0,
+        "shrink": 1.0
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
