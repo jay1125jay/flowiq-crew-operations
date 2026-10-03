@@ -29,7 +29,7 @@ def collect(day=None):
             got,meta=fetch_sport_day(sport,day)
             events.extend(got)
             providers.append({
-                "provider":f"SPORTS_{sport}_ESPN",
+                "provider":f"SPORTS_{sport}_{meta.get('provider','SOURCE')}",
                 "sport":sport,
                 "status":meta["status"],
                 "requests":meta["requests"],
@@ -41,7 +41,7 @@ def collect(day=None):
         except Exception as exc:
             recovered=[stale_copy(e,"PROVIDER_FETCH_FAILED") for e in old.get(sport,[])]
             events.extend(recovered)
-            providers.append({"provider":f"SPORTS_{sport}_ESPN","sport":sport,"status":"FAIL","error":str(exc)[:500],"recovered_events":len(recovered)})
+            providers.append({"provider":f"SPORTS_{sport}_SOURCE","sport":sport,"status":"FAIL","error":str(exc)[:500],"recovered_events":len(recovered)})
     events.sort(key=lambda e:(e.get("start_timestamp",0),e.get("sport",""),e.get("id","")))
     payload={
         "date":day,"time":now.strftime("%H:%M:%S"),"generated_at":now.isoformat(),
