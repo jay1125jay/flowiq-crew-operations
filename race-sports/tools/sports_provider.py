@@ -411,8 +411,17 @@ def live_probe(day:str|None=None):
         events,meta=fetch_sport_day(sport,day);rows[sport]=meta
     print(json.dumps({"SPORTS_PROVIDER_LIVE_PROBE":"PASS","date":day,"providers":rows},ensure_ascii=False))
 
+def kovo_regression_probe():
+    day="2026-03-10"
+    events,meta=fetch_sport_day("VOLLEYBALL",day)
+    finals=[e for e in events if e.get("status")=="FINAL" and e.get("result",{}).get("winner_key") in {"HOME","AWAY"}]
+    if not finals:
+        raise SystemExit("KOVO_REGRESSION_PROBE_FAIL:"+json.dumps(meta,ensure_ascii=False))
+    print(json.dumps({"KOVO_REGRESSION_PROBE":"PASS","date":day,"events":len(events),"finals":len(finals),"meta":meta},ensure_ascii=False))
+
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument("--self-test",action="store_true");ap.add_argument("--live-probe",action="store_true");ap.add_argument("--date");a=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument("--self-test",action="store_true");ap.add_argument("--live-probe",action="store_true");ap.add_argument("--kovo-regression-probe",action="store_true");ap.add_argument("--date");a=ap.parse_args()
     if a.self_test:return self_test()
+    if a.kovo_regression_probe:return kovo_regression_probe()
     return live_probe(a.date)
 if __name__=="__main__":main()
