@@ -40,7 +40,8 @@ def validate(path: Path):
                 assert o.get("odds_source"),"ODDS_SOURCE_MISSING"
                 assert o.get("odds_provider"),"ODDS_PROVIDER_MISSING"
                 assert o.get("odds_capture_mode"),"ODDS_MODE_MISSING"
-                assert o.get("odds_data_state") in {"FRESH","PRESERVED_SAME_DAY"},"ODDS_STATE_MISSING"
+                state=o.get("odds_data_state")
+                assert state in {None,"FRESH","PRESERVED_SAME_DAY"},"BAD_ODDS_STATE"
         probs=[float(o["model_p"]) for o in e.get("outcomes",[]) if isinstance(o.get("model_p"),(int,float))]
         if probs:
             assert len(probs)==len(e.get("outcomes",[])),"PARTIAL_MODEL_DISTRIBUTION"

@@ -272,7 +272,7 @@ def collect_horse(z,errors):
             out.append({
                 'id':f'HORSE-{date.replace("-","")}-{venue}-{rn:02d}',
                 'sport':'HORSE','provider':'KRA','competition':venue+' 경마',
-                'event_date':date,'start_time':'--:--','race_no':rn,
+                'event_date':date,'start_time':'','start_label':date[5:].replace('-','/'),'time_known':False,'race_no':rn,
                 'status':'FINAL' if has_result else 'SCHEDULED',
                 'title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[],
                 'source_url':KRA_RESULTS_URL,'schedule_seed':'KRA_SCORETABLE_OFFICIAL'
@@ -286,7 +286,7 @@ def main():
     z=now(); errors=[]; events=[]; providers=[]
     for fn in (collect_horse,collect_cycle,collect_boat,collect_bull):
         es,ps=fn(z,errors);events.extend(es);providers.extend(ps)
-    events.sort(key=lambda e:(e.get('start_time','99:99'),e.get('sport','')))
+    events.sort(key=lambda e:(e.get('start_time') or '99:99',e.get('sport','')))
     payload={'date':z.strftime('%Y-%m-%d'),'date_display':z.strftime('%Y.%m.%d'),'time':z.strftime('%H:%M:%S'),'generated_at':z.isoformat(),'mode':'GITHUB_4SPORT_OFFICIAL','sample_data':False,'events':events,'providers':providers,'errors':errors[-20:]}
     OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     print(json.dumps({'date':payload['date'],'events':len(events),'by_sport':{s:sum(1 for e in events if e['sport']==s) for s in ('HORSE','CYCLE','BOAT','BULL')},'odds_events':sum(1 for e in events if any(float(o.get('odds',0) or 0)>0 for o in e.get('outcomes',[]))),'errors':len(errors)},ensure_ascii=False))
