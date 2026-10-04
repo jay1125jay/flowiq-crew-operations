@@ -180,10 +180,28 @@ jobs:
           fi
 
       - name: Collect official 4-sport racing data
-        run: python race-sports/tools/racing_static_collector.py
+        shell: bash
+        run: |
+          if ! timeout 75s python race-sports/tools/racing_static_collector.py; then
+            echo 'RACING collector unavailable or timed out; restoring previous same-day snapshot'
+            if [ -f /tmp/race-sports-prev.json ]; then
+              cp /tmp/race-sports-prev.json race-sports/data/today.json
+            else
+              exit 1
+            fi
+          fi
 
       - name: Collect four-sport scoreboard data
-        run: python race-sports/tools/sports_static_collector.py
+        shell: bash
+        run: |
+          if ! timeout 60s python race-sports/tools/sports_static_collector.py; then
+            echo 'SPORTS collector unavailable or timed out; restoring previous same-day snapshot'
+            if [ -f /tmp/race-sports-sports-prev.json ]; then
+              cp /tmp/race-sports-sports-prev.json race-sports/data/sports_today.json
+            else
+              exit 1
+            fi
+          fi
 
       - name: Add Korean SPORTS team names
         run: python race-sports/tools/sports_team_ko.py
@@ -193,8 +211,8 @@ jobs:
           SPORTSGAMEODDS_API_KEY: ${{ secrets.SPORTSGAMEODDS_API_KEY }}
         shell: bash
         run: |
-          if ! python race-sports/tools/sports_odds_enricher.py; then
-            echo 'Multi-book SPORTS odds unavailable; keeping source-labeled ESPN odds when present'
+          if ! timeout 45s python race-sports/tools/sports_odds_enricher.py; then
+            echo 'Multi-book SPORTS odds unavailable or timed out; keeping source-labeled ESPN odds when present'
           fi
 
       - name: Recover last-known-good events on provider failure
