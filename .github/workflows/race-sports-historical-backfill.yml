@@ -14,9 +14,12 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/tools/validate_cycle_boat_models.py'
   schedule:
-    # 07:00 KST every day (= 22:00 UTC on the previous calendar date).
-    # One run starts the chain; self-dispatch continues until caps or 23:00 KST.
+    # Redundant morning anchors: GitHub scheduled Actions can be delayed.
+    # 06:55 / 07:00 / 07:05 KST. The collection-window guard prevents work before 07:00.
+    # Once one run starts, self-dispatch continues until caps or 23:00 KST.
+    - cron: '55 21 * * *'
     - cron: '0 22 * * *'
+    - cron: '5 22 * * *'
 
 permissions:
   contents: write
