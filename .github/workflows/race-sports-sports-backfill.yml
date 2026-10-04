@@ -54,7 +54,17 @@ jobs:
 
       - name: Backfill recent sports history on push
         if: github.event_name == 'push'
-        run: python race-sports/tools/sports_history_backfill.py --max-days 30 --max-seconds 180 --sleep-seconds 0.25
+        env:
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        shell: bash
+        run: |
+          if [[ "$HEAD_COMMIT_MESSAGE" == *"[full-sports-backfill]"* ]]; then
+            echo "SPORTS_BACKFILL_MODE=FULL"
+            python race-sports/tools/sports_history_backfill.py --max-days 300 --max-seconds 3000 --sleep-seconds 0.25
+          else
+            echo "SPORTS_BACKFILL_MODE=RECENT"
+            python race-sports/tools/sports_history_backfill.py --max-days 30 --max-seconds 180 --sleep-seconds 0.25
+          fi
 
       - name: Continue sports history backfill
         if: github.event_name != 'push'
