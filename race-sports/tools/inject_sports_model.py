@@ -13,6 +13,8 @@ MODEL_STATE=ROOT/"data"/"model_state"/"sports_elo_v0.2.validation.json"
 SPORTS={"SOCCER","BASEBALL","BASKETBALL","VOLLEYBALL"}
 MODEL_NAME="sports_elo_v0.2"
 MIN_GAMES_FOR_PREDICTION=50
+MIN_COMPETITION_GAMES=50
+MIN_TEAM_COMPETITION_GAMES=5
 MIN_VALID_ROWS={"SOCCER":200,"BASEBALL":300,"BASKETBALL":200,"VOLLEYBALL":150}
 
 GRID={
@@ -84,6 +86,21 @@ def history_events()->list[dict]:
     for e in rows:
         if e.get("id"):uniq[e["id"]]=e
     return sorted(uniq.values(),key=lambda e:(e.get("start_timestamp",0),e.get("id","")))
+
+def competition_key(e:dict)->str:
+    return str(e.get("competition") or "UNKNOWN").strip() or "UNKNOWN"
+
+def competition_history(rows:list[dict]):
+    counts=defaultdict(int);teams=defaultdict(lambda:defaultdict(int))
+    for e in rows:
+        s=e.get("sport")
+        if s not in SPORTS:continue
+        comp=competition_key(e)
+        counts[(s,comp)]+=1
+        h=str(e.get("home") or "").strip();a=str(e.get("away") or "").strip()
+        if h:teams[(s,comp)][h]+=1
+        if a:teams[(s,comp)][a]+=1
+    return counts,teams
 
 def candidates(sport:str):
     g=GRID[sport]
@@ -191,24 +208,40 @@ def inject():
     p=json.loads(TODAY.read_text(encoding="utf-8"))
     rows=history_events()
     rating,val,params=train(rows)
+    comp_counts,team_counts=competition_history(rows)
     for e in p.get("events",[]):
         s=e.get("sport")
         if s not in SPORTS:continue
         h=e.get("home");a=e.get("away")
         if not h or not a:continue
         games=int(val.get(s,{}).get("games",0))
+        comp=competition_key(e);comp_games=int(comp_counts.get((s,comp),0))
+        home_games=int(team_counts.get((s,comp),{}).get(h,0))
+        away_games=int(team_counts.get((s,comp),{}).get(a,0))
         e["model_source"]=MODEL_NAME
-        e["model_validated"]=bool(val.get(s,{}).get("validated"))
         e["value_enabled"]=False
+        e["model_history_scope"]={
+            "competition":comp,"competition_games":comp_games,
+            "home_team_games":home_games,"away_team_games":away_games,
+            "min_competition_games":MIN_COMPETITION_GAMES,
+            "min_team_games":MIN_TEAM_COMPETITION_GAMES,
+        }
+        league_ready=comp_games>=MIN_COMPETITION_GAMES and home_games>=MIN_TEAM_COMPETITION_GAMES and away_games>=MIN_TEAM_COMPETITION_GAMES
+        e["model_validated"]=bool(val.get(s,{}).get("validated")) and league_ready
         if games<MIN_GAMES_FOR_PREDICTION:
-            e["model_state"]="INSUFFICIENT_HISTORY"
+            state="INSUFFICIENT_HISTORY"
+        elif not league_ready:
+            state="INSUFFICIENT_LEAGUE_HISTORY"
+        else:
+            state="VALIDATED_HOLDOUT" if val.get(s,{}).get("validated") else "PROVISIONAL_ELO_UNVALIDATED"
+        if state in {"INSUFFICIENT_HISTORY","INSUFFICIENT_LEAGUE_HISTORY"}:
+            e["model_state"]=state
             for o in e.get("outcomes",[]):
                 o.pop("model_p",None)
                 o["model_source"]=MODEL_NAME
-                o["model_state"]="INSUFFICIENT_HISTORY"
+                o["model_state"]=state
             continue
         dist=calibrated_probs(s,rating[s][h],rating[s][a],params[s])
-        state="VALIDATED_HOLDOUT" if val.get(s,{}).get("validated") else "PROVISIONAL_ELO_UNVALIDATED"
         e["model_state"]=state
         for o in e.get("outcomes",[]):
             if o.get("key") in dist:
@@ -221,7 +254,17 @@ def inject():
         "model":MODEL_NAME,
         "validation":val,
         "history_events":len(rows),
-        "safety":{"value_enabled":False,"market_odds_required_before_value":True}
+        "competition_history":{
+            f"{sport}::{comp}":count for (sport,comp),count in sorted(comp_counts.items())
+        },
+        "safety":{
+            "value_enabled":False,
+            "market_odds_required_before_value":True,
+            "competition_history_gate":{
+                "min_competition_games":MIN_COMPETITION_GAMES,
+                "min_team_competition_games":MIN_TEAM_COMPETITION_GAMES
+            }
+        }
     }
     MODEL_STATE.write_text(json.dumps(state,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"SPORTS_MODEL_INJECT":"PASS","model":MODEL_NAME,"history_events":len(rows),"validation":val},ensure_ascii=False))
@@ -239,7 +282,12 @@ def self_test():
     q=calibrated_probs("SOCCER",1500,1500,{"k":20.0,"home_adv":50.0,"scale":450.0,"shrink":0.8})
     assert abs(sum(q.values())-1)<1e-9 and "DRAW" in q
     assert p["BASKETBALL"]["shrink"]>=0
-    print(json.dumps({"SPORTS_MODEL_SELF_TEST":"PASS","model":MODEL_NAME},ensure_ascii=False))
+    cc,tc=competition_history([
+        {"sport":"BASEBALL","competition":"KBO","home":"A","away":"B"},
+        {"sport":"BASEBALL","competition":"KBO","home":"B","away":"A"},
+    ])
+    assert cc[("BASEBALL","KBO")]==2 and tc[("BASEBALL","KBO")]["A"]==2
+    print(json.dumps({"SPORTS_MODEL_SELF_TEST":"PASS","model":MODEL_NAME,"league_gate":"PASS"},ensure_ascii=False))
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--self-test",action="store_true");a=ap.parse_args()
