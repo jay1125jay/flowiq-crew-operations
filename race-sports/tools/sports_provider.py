@@ -106,8 +106,16 @@ def _json_request(url:str,method:str="GET",body:dict|None=None,headers:dict|None
             req=urllib.request.Request(url,data=data,headers=h,method=method)
             with urllib.request.urlopen(req,timeout=timeout) as r:
                 raw=r.read()
-                obj=json.loads(raw.decode("utf-8"))
-                return obj
+                txt=raw.decode("utf-8","replace")
+                try:
+                    return json.loads(txt)
+                except json.JSONDecodeError:
+                    # KBO ASP.NET occasionally appends an error document after
+                    # a valid JSON object. Keep only the verified JSON prefix.
+                    cut=txt.find("}<!")
+                    if cut>0:
+                        return json.loads(txt[:cut+1])
+                    raise
         except Exception as exc:
             last=exc
             if i<retries:time.sleep(1+i)
