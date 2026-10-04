@@ -74,6 +74,11 @@ TEAM_KO={
 "United States":"미국","South Korea":"대한민국","Korea Republic":"대한민국","Japan":"일본",
 "China":"중국","Australia":"호주","Saudi Arabia":"사우디아라비아","Qatar":"카타르",
 "United Arab Emirates":"아랍에미리트","Iran":"이란","Iraq":"이라크","Uzbekistan":"우즈베키스탄",
+"Andorra":"안도라","Austria":"오스트리아","Bolivia":"볼리비아","Congo DR":"콩고민주공화국",
+"Denmark":"덴마크","Egypt":"이집트","Gambia":"감비아","Germany":"독일","Ghana":"가나",
+"Greece":"그리스","Israel":"이스라엘","Kosovo":"코소보","Malta":"몰타","Morocco":"모로코",
+"Netherlands":"네덜란드","Norway":"노르웨이","Portugal":"포르투갈","Republic of Ireland":"아일랜드",
+"Serbia":"세르비아","South Africa":"남아프리카공화국","Uganda":"우간다","Wales":"웨일스",
 # Common Champions League clubs
 "Ajax Amsterdam":"아약스","Ajax":"아약스","Benfica":"벤피카","FC Porto":"FC 포르투","Porto":"포르투",
 "PSV Eindhoven":"PSV 에인트호번","Sporting CP":"스포르팅 CP","Celtic":"셀틱","Galatasaray":"갈라타사라이",
