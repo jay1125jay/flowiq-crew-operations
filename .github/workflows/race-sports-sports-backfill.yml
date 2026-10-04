@@ -76,8 +76,7 @@ jobs:
             race-sports/data/sports_history \
             race-sports/data/historical_state/sports_backfill_state.json \
             race-sports/data/historical_state/kovo_pdf_backfill_state.json \
-            race-sports/data/model_state/sports_elo_v0.2.validation.json \
-            race-sports/data/sports_today.json
+            race-sports/data/model_state/sports_elo_v0.2.validation.json
 
       - name: Publish SPORTS backfill conflict-safe
         shell: bash
@@ -95,7 +94,6 @@ jobs:
             git add race-sports/data/historical_state/sports_backfill_state.json
             git add race-sports/data/historical_state/kovo_pdf_backfill_state.json
             git add race-sports/data/model_state/sports_elo_v0.2.validation.json
-            git add race-sports/data/sports_today.json
 
             if git diff --cached --quiet; then
               echo "No SPORTS backfill change"
