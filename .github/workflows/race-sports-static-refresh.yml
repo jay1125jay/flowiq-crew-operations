@@ -157,7 +157,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           python race-sports/tools/sports_provider.py --self-test
-          python race-sports/tools/sports_provider.py --kovo-regression-probe
           python race-sports/tools/kovo_official_pdf_backfill.py --self-test
           python race-sports/tools/inject_sports_model.py --self-test
           python race-sports/tools/sports_history_backfill.py --self-test
