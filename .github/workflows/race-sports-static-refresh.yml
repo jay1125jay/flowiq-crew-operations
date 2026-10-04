@@ -203,8 +203,8 @@ jobs:
       - name: Enrich official KCYCLE AI odds and results
         shell: bash
         run: |
-          if ! python race-sports/tools/kcycle_official_enricher.py; then
-            echo 'KCYCLE enrichment unavailable this cycle; fail-safe snapshot remains publishable'
+          if ! timeout 75s python race-sports/tools/kcycle_official_enricher.py; then
+            echo 'KCYCLE enrichment unavailable or timed out this cycle; fail-safe snapshot remains publishable'
           fi
 
       - name: Guard incomplete KCYCLE distributions
@@ -215,8 +215,8 @@ jobs:
           KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
         shell: bash
         run: |
-          if ! python race-sports/tools/kra_official_enricher.py; then
-            echo 'KRA enrichment unavailable this cycle; fail-safe snapshot remains publishable'
+          if ! timeout 75s python race-sports/tools/kra_official_enricher.py; then
+            echo 'KRA enrichment unavailable or timed out this cycle; fail-safe snapshot remains publishable'
           fi
 
       - name: Inject Horse probabilities
@@ -229,26 +229,30 @@ jobs:
       - name: Build current Bull v1.3 model features
         shell: bash
         run: |
-          if ! python race-sports/tools/bull_model_features_v130.py; then
-            echo 'CPC bull feature source unavailable this cycle; keeping last-known-good event data'
+          if ! timeout 75s python race-sports/tools/bull_model_features_v130.py; then
+            echo 'CPC bull feature source unavailable or timed out this cycle; keeping last-known-good event data'
           fi
 
       - name: Enrich official Bull odds and results
         shell: bash
         run: |
-          if ! python race-sports/tools/bull_official_enricher.py; then
-            echo 'CPC bull odds/results unavailable this cycle; keeping card and prior snapshot'
+          if ! timeout 120s python race-sports/tools/bull_official_enricher.py; then
+            echo 'CPC bull odds/results unavailable or timed out this cycle; keeping card and prior snapshot'
           fi
 
       - name: Capture current official KBOAT pre-race odds
-        run: python race-sports/tools/kboat_live_odds.py
+        shell: bash
+        run: |
+          if ! timeout 75s python race-sports/tools/kboat_live_odds.py; then
+            echo 'KBOAT odds unavailable or timed out this cycle; keeping current snapshot'
+          fi
 
       - name: Inject official KBOAT AI probabilities
         shell: bash
         run: |
           ok=0
           for n in 1 2 3; do
-            if python race-sports/tools/inject_kboat_ai.py; then
+            if timeout 45s python race-sports/tools/inject_kboat_ai.py; then
               ok=1
               break
             fi
