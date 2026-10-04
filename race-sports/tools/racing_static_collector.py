@@ -227,8 +227,8 @@ def collect_bull(z,errors):
         for r in races:
             st=str(r.get('start_text') or '').strip()
             q=re.search(r'(\d{1,2})\s*(?::|시)\s*(\d{1,2})',st)
-            tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}' if q else '--:--'
-            start_label=tm if q else ('발매 마감 후' if '발매 마감 후' in st else (st or '시간 미정'))
+            tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}' if q else ('순차 진행' if '발매 마감 후' in st else '시간 미정')
+            start_label=tm if q else ('순차 진행' if '발매 마감 후' in st else (st or '시간 미정'))
             rn=int(r.get('race_no') or 0)
             red=str((r.get('red') or {}).get('name') or '').strip()
             blue=str((r.get('blue') or {}).get('name') or '').strip()
@@ -238,7 +238,7 @@ def collect_bull(z,errors):
                 'sport':'BULL','provider':'CPC',
                 'competition':f'청도 소싸움 {meta["round"]}회차 {meta["day"]}일차',
                 'event_date':date,'start_time':tm,'start_label':start_label,'start_text_official':st,'race_no':rn,
-                'status':status_for(tm,None,90) if tm!='--:--' else 'SCHEDULED',
+                'status':status_for(tm,None,90) if re.fullmatch(r'\d{1,2}:\d{2}',tm) else 'SCHEDULED',
                 'title':f'{rn:02d}경기','left':red,'right':blue,'left_tag':'홍','right_tag':'청',
                 'market_type':'THREE_WAY',
                 'outcomes':[{'key':'RED','name':'홍','model_p':None},{'key':'DRAW','name':'무','model_p':None},{'key':'BLUE','name':'청','model_p':None}],
