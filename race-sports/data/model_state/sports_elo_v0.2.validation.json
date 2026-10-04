@@ -37,33 +37,15 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
-    "SOCCER": {
-      "games": 4192,
-      "holdout_rows": 1258,
-      "walk_forward_rows": 1258,
-      "accuracy": 0.50159,
-      "log_loss": 1.005807,
-      "brier": 0.200041,
-      "uniform_log_loss": 1.098612,
-      "log_loss_edge": 0.092805,
-      "validated": true,
-      "selected_params": {
-        "k": 32.0,
-        "home_adv": 40.0,
-        "scale": 350.0,
-        "shrink": 1.0
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
     "BASKETBALL": {
-      "games": 2817,
-      "holdout_rows": 846,
-      "walk_forward_rows": 846,
-      "accuracy": 0.689125,
-      "log_loss": 0.595742,
-      "brier": 0.204163,
+      "games": 2795,
+      "holdout_rows": 839,
+      "walk_forward_rows": 839,
+      "accuracy": 0.690107,
+      "log_loss": 0.595146,
+      "brier": 0.203896,
       "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.097405,
+      "log_loss_edge": 0.098001,
       "validated": true,
       "selected_params": {
         "k": 36.0,
@@ -72,11 +54,46 @@
         "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
+    "SOCCER": {
+      "games": 4162,
+      "holdout_rows": 1249,
+      "walk_forward_rows": 1249,
+      "accuracy": 0.504404,
+      "log_loss": 1.003305,
+      "brier": 0.199392,
+      "uniform_log_loss": 1.098612,
+      "log_loss_edge": 0.095308,
+      "validated": true,
+      "selected_params": {
+        "k": 32.0,
+        "home_adv": 40.0,
+        "scale": 350.0,
+        "shrink": 1.0
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 14606,
+  "history_events": 14554,
+  "competition_history": {
+    "BASEBALL::MLB": 6850,
+    "BASKETBALL::NBA": 2795,
+    "SOCCER::Bundesliga": 648,
+    "SOCCER::International Friendly": 5,
+    "SOCCER::LaLiga": 829,
+    "SOCCER::Ligue 1": 657,
+    "SOCCER::Premier League": 810,
+    "SOCCER::Serie A": 810,
+    "SOCCER::UEFA Champions League": 396,
+    "SOCCER::UEFA Nations League": 7,
+    "VOLLEYBALL::KOVO V-League": 747
+  },
   "safety": {
     "value_enabled": false,
-    "market_odds_required_before_value": true
+    "market_odds_required_before_value": true,
+    "competition_history_gate": {
+      "min_competition_games": 50,
+      "min_team_competition_games": 5
+    }
   }
 }
