@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, re, time, urllib.request, http.cookiejar
+import argparse, hashlib, json, math, re, time, urllib.request, http.cookiejar
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date, timezone, timedelta
 from html.parser import HTMLParser
@@ -181,6 +181,69 @@ def _winner_key(sport:str,home:dict|None,away:dict|None,hs,aas):
     if aas>hs:return "AWAY"
     return "DRAW" if sport=="SOCCER" else None
 
+def _american_to_decimal(v):
+    try:
+        if isinstance(v,str):
+            t=v.strip().upper()
+            if t in {"EVEN","EV","PK","PICK"}:return 2.0
+            v=float(t.replace("+",""))
+        else:v=float(v)
+        if not math.isfinite(v) or v==0:return None
+        return round(1.0+v/100.0,4) if v>0 else round(1.0+100.0/abs(v),4)
+    except Exception:return None
+
+def _moneyline_value(x):
+    if x is None:return None
+    if isinstance(x,(int,float,str)):return _american_to_decimal(x)
+    if isinstance(x,dict):
+        for k in ("moneyLine","moneyline","money_line","current","value","close"):
+            if k in x:
+                d=_moneyline_value(x.get(k))
+                if d:return d
+    return None
+
+def _extract_espn_moneyline(container:dict)->tuple[dict,str]:
+    rows=[]
+    for key in ("odds","pickcenter"):
+        v=container.get(key)
+        if isinstance(v,list):rows.extend(x for x in v if isinstance(x,dict))
+        elif isinstance(v,dict):rows.append(v)
+    for row in rows:
+        home=_moneyline_value(row.get("homeTeamOdds") or row.get("homeOdds"))
+        away=_moneyline_value(row.get("awayTeamOdds") or row.get("awayOdds"))
+        draw=_moneyline_value(row.get("drawOdds"))
+        if not (home and away):continue
+        pr=row.get("provider") or {}
+        provider=str(pr.get("name") or pr.get("displayName") or row.get("providerName") or "ESPN listed market")
+        out={"HOME":home,"AWAY":away}
+        if draw:out["DRAW"]=draw
+        return out,provider
+    return {},""
+
+def _apply_espn_odds(out:dict,container:dict)->bool:
+    odds,provider=_extract_espn_moneyline(container)
+    if not odds:return False
+    now=datetime.now(KST).isoformat()
+    applied=0
+    for o in out.get("outcomes",[]):
+        d=odds.get(o.get("key"))
+        if not d:continue
+        o["odds"]=d
+        o["odds_source"]="ESPN_PUBLIC_ODDS"
+        o["odds_provider"]=provider
+        o["odds_capture_mode"]="PRE_GAME_SOURCE_LABELED"
+        o["odds_updated_at"]=now
+        applied+=1
+    if applied>=2:
+        out["odds_source"]="ESPN_PUBLIC_ODDS"
+        out["odds_provider"]=provider
+        out["odds_state"]="SOURCE_LABELED_MARKET"
+        return True
+    return False
+
+def _summary_url(sport_slug:str,league_slug:str,event_id:str)->str:
+    return f"{ESPN_BASE}/{sport_slug}/{league_slug}/summary?event={event_id}"
+
 def parse_event(sport:str,ev:dict,requested_day:str,league_name:str,source_url:str)->dict|None:
     ds=ev.get("date")
     if not ds:return None
@@ -210,35 +273,66 @@ def parse_event(sport:str,ev:dict,requested_day:str,league_name:str,source_url:s
                        "source":"ESPN_PUBLIC","updated_at":datetime.now(KST).isoformat()}
     elif status=="LIVE" and hs is not None and aas is not None:
         out["score"]={"home":hs,"away":aas}
+    _apply_espn_odds(out,comp)
+    _apply_espn_odds(out,ev)
     return out
 
-def _fetch_espn_day(sport:str,day:str)->tuple[list[dict],dict]:
+def _fetch_espn_day(sport:str,day:str,include_odds:bool=False)->tuple[list[dict],dict]:
     jobs=[]
     for sport_slug,league_slug,league_name in LEAGUES[sport]:
         for qd in _query_days(day):
             jobs.append((sport_slug,league_slug,league_name,_league_url(sport_slug,league_slug,qd)))
     all_events=[];sources=[];failures=[];success=0;raw_count=0
     def one(job):
-        _,_,league_name,url=job
+        sport_slug,league_slug,league_name,url=job
         obj=_http_json(url);raw=obj.get("events")
         if not isinstance(raw,list):raise RuntimeError("EVENTS_NOT_LIST")
-        return league_name,url,raw
+        return sport_slug,league_slug,league_name,url,raw
     with ThreadPoolExecutor(max_workers=min(6,len(jobs))) as ex:
         futs={ex.submit(one,j):j for j in jobs}
         for fut in as_completed(futs):
             j=futs[fut]
             try:
-                league_name,url,raw=fut.result();success+=1;raw_count+=len(raw);sources.append(url)
+                sport_slug,league_slug,league_name,url,raw=fut.result()
+                success+=1;raw_count+=len(raw);sources.append(url)
                 for ev in raw:
                     x=parse_event(sport,ev,day,league_name,url)
-                    if x:all_events.append(x)
+                    if x:
+                        x["_espn_sport_slug"]=sport_slug;x["_espn_league_slug"]=league_slug
+                        all_events.append(x)
             except Exception as exc:
                 failures.append({"league":j[2],"error":str(exc)[:250],"url":j[3]})
     if success==0:raise RuntimeError("ALL_LEAGUES_FAILED:"+json.dumps(failures,ensure_ascii=False))
-    uniq={e["id"]:e for e in all_events};events=sorted(uniq.values(),key=lambda e:(e.get("start_timestamp",0),e["id"]))
+    uniq={e["id"]:e for e in all_events}
+    events=sorted(uniq.values(),key=lambda e:(e.get("start_timestamp",0),e["id"]))
+
+    odds_requests=0;odds_success=0
+    if include_odds:
+        targets=[e for e in events if e.get("status") in {"SCHEDULED","LIVE"} and not any(o.get("odds") for o in e.get("outcomes",[]))]
+        def odds_one(e):
+            url=_summary_url(e["_espn_sport_slug"],e["_espn_league_slug"],e["provider_event_id"])
+            return e["id"],url,_http_json(url)
+        if targets:
+            with ThreadPoolExecutor(max_workers=min(6,len(targets))) as ex:
+                futs={ex.submit(odds_one,e):e for e in targets}
+                for fut in as_completed(futs):
+                    odds_requests+=1
+                    try:
+                        eid,url,obj=fut.result()
+                        e=next((x for x in events if x["id"]==eid),None)
+                        if e and _apply_espn_odds(e,obj):
+                            odds_success+=1
+                            e["odds_source_url"]=url
+                    except Exception as exc:
+                        e=futs[fut]
+                        failures.append({"league":e.get("competition"),"error":"ODDS_SUMMARY:"+str(exc)[:200],"url":_summary_url(e["_espn_sport_slug"],e["_espn_league_slug"],e["provider_event_id"])})
+    for e in events:
+        e.pop("_espn_sport_slug",None);e.pop("_espn_league_slug",None)
+    odds_events=sum(1 for e in events if sum(1 for o in e.get("outcomes",[]) if isinstance(o.get("odds"),(int,float)) and float(o.get("odds"))>1)>=2)
     return events,{"sport":sport,"provider":"ESPN_PUBLIC","status":"PASS" if not failures else "PARTIAL",
-                   "requests":len(jobs),"successful_requests":success,"raw_events":raw_count,
-                   "top_tier_events":len(events),"source_urls":sources,"failures":failures}
+                   "requests":len(jobs)+odds_requests,"successful_requests":success+odds_success,"raw_events":raw_count,
+                   "top_tier_events":len(events),"odds_events":odds_events,"odds_summary_requests":odds_requests,
+                   "source_urls":sources,"failures":failures}
 
 class _Rows(HTMLParser):
     def __init__(self):
@@ -459,9 +553,9 @@ def _fetch_kovo_day(day:str)->tuple[list[dict],dict]:
     meta["historical_training_source"]="KOVO_DBBANK_OFFICIAL_ONLY"
     return daum_events,meta
 
-def fetch_sport_day(sport:str,day:str)->tuple[list[dict],dict]:
+def fetch_sport_day(sport:str,day:str,include_odds:bool=False)->tuple[list[dict],dict]:
     if sport=="VOLLEYBALL":return _fetch_kovo_day(day)
-    if sport in LEAGUES:return _fetch_espn_day(sport,day)
+    if sport in LEAGUES:return _fetch_espn_day(sport,day,include_odds=include_odds)
     raise KeyError(sport)
 
 def _fixture(sport:str)->dict:
@@ -487,7 +581,7 @@ def self_test():
 def live_probe(day:str|None=None):
     day=day or datetime.now(KST).date().isoformat();rows={}
     for sport in SPORTS:
-        events,meta=fetch_sport_day(sport,day);rows[sport]=meta
+        events,meta=fetch_sport_day(sport,day,include_odds=True);rows[sport]=meta
     print(json.dumps({"SPORTS_PROVIDER_LIVE_PROBE":"PASS","date":day,"providers":rows},ensure_ascii=False))
 
 def kovo_regression_probe():
