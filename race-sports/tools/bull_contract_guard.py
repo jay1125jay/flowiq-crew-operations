@@ -36,6 +36,13 @@ def check_official_odds_contract():
     late = sample_event("LIVE")
     assert bull.apply_odds(late, odds, "2026-10-03T12:21:00+09:00", "https://official.example/late", capture_mode="LATE_OFFICIAL_RECOVERY")
     assert all(o["odds_capture_mode"] == "LATE_OFFICIAL_RECOVERY" for o in late["outcomes"])
+    assert not bull.apply_odds(
+        sample_event("SCHEDULED"),
+        {"RED": 1.8, "DRAW": 0.0, "BLUE": 2.3},
+        "2026-10-03T12:18:00+09:00",
+        "https://official.example/invalid",
+        capture_mode="PRE_RACE_OFFICIAL",
+    )
 
 
 

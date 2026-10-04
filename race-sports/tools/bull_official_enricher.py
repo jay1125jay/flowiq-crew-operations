@@ -124,6 +124,11 @@ def set_provider(payload, name, status, detail):
 
 def apply_odds(e, odds, observed_at, source_url, capture_mode=None):
     if not odds: return False
+    try:
+        if not all(float(odds.get(k) or 0) > 0 for k in ('RED','DRAW','BLUE')):
+            return False
+    except Exception:
+        return False
     om = {o.get('key'):o for o in e.get('outcomes',[])}
     if not all(k in om for k in ('RED','DRAW','BLUE')): return False
     if capture_mode not in (None, 'PRE_RACE_OFFICIAL', 'LATE_OFFICIAL_RECOVERY'):
