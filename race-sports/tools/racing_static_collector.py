@@ -225,9 +225,10 @@ def collect_bull(z,errors):
             return [],[{'provider':'BULL_CPC','status':'NO_TODAY_CARD','detail':{'latest_card_date':meta.get('date')}}]
         out=[]
         for r in races:
-            st=str(r.get('start_text') or '')
+            st=str(r.get('start_text') or '').strip()
             q=re.search(r'(\d{1,2})\s*(?::|시)\s*(\d{1,2})',st)
             tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}' if q else '--:--'
+            start_label=tm if q else ('발매 마감 후' if '발매 마감 후' in st else (st or '시간 미정'))
             rn=int(r.get('race_no') or 0)
             red=str((r.get('red') or {}).get('name') or '').strip()
             blue=str((r.get('blue') or {}).get('name') or '').strip()
@@ -236,7 +237,7 @@ def collect_bull(z,errors):
                 'id':f'BULL-{date.replace("-","")}-{meta["round"]}-{meta["day"]}-{rn:02d}',
                 'sport':'BULL','provider':'CPC',
                 'competition':f'청도 소싸움 {meta["round"]}회차 {meta["day"]}일차',
-                'event_date':date,'start_time':tm,'race_no':rn,
+                'event_date':date,'start_time':tm,'start_label':start_label,'start_text_official':st,'race_no':rn,
                 'status':status_for(tm,None,90) if tm!='--:--' else 'SCHEDULED',
                 'title':f'{rn:02d}경기','left':red,'right':blue,'left_tag':'홍','right_tag':'청',
                 'market_type':'THREE_WAY',
