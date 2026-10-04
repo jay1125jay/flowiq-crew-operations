@@ -155,12 +155,17 @@ def delta_minutes(e, z):
     except Exception:
         return 9999
 
+def rolling_start(e):
+    s=str(e.get('start_text_official') or '')+' '+str(e.get('start_label') or '')+' '+str(e.get('start_time') or '')
+    return '발매 마감 후' in s or '순차 진행' in s
+
 
 def self_test():
     odds_meta = {'year':2026,'round':33,'day':2,'race':11}
     result_meta = {'year':2026,'round':19,'day':2,'race':2}
     oh, odds, red, blue = parse_final_single(fetch(url_for(ODDS_BASE, odds_meta)))
     rh, result = parse_result(fetch(url_for(RESULT_BASE, result_meta)))
+    assert rolling_start({'start_text_official':'02경기 발매 마감 후','start_time':'순차 진행'})
     ok = bool(oh and oh['year']==2026 and oh['round']==33 and oh['day']==2 and odds and all(odds.get(k,0)>0 for k in ('RED','DRAW','BLUE')) and rh and rh['year']==2026 and rh['round']==19 and rh['day']==2 and result and result.get('winner',{}).get('key') in ('RED','DRAW','BLUE'))
     print(json.dumps({'SELF_TEST':'PASS' if ok else 'FAIL','odds_header':oh,'odds':odds,'odds_bulls':[red,blue],'result_header':rh,'winner':(result or {}).get('winner')},ensure_ascii=False))
     if not ok: raise SystemExit(2)
@@ -175,10 +180,23 @@ def main():
     odds_linked = results_linked = odds_checked = results_checked = 0
     odds_errors=[]; result_errors=[]
 
-    # Final odds are useful only near the race; CPC publishes them after sales close.
-    odds_targets = [e for e in bull if e.get('status')=='SCHEDULED' and -10 <= delta_minutes(e,z) <= 75]
-    # Result polling starts once the scheduled start has arrived. Old finals are carried by snapshot_guard.
-    result_targets = [e for e in bull if e.get('status') in ('LIVE','RESULT_PENDING')]
+    # Fixed-clock races use the time window. Rolling CPC races have no official
+    # HH:MM after race 1, so poll the first unresolved race for its closing odds.
+    fixed_odds = [e for e in bull if e.get('status')=='SCHEDULED' and not rolling_start(e) and -10 <= delta_minutes(e,z) <= 75]
+    rolling_pending = sorted(
+        [e for e in bull if rolling_start(e) and e.get('status')!='FINAL' and not e.get('result')],
+        key=lambda x:int(x.get('race_no') or 999)
+    )
+    odds_targets = fixed_odds + (rolling_pending[:1] if rolling_pending else [])
+
+    # CPC races 2+ are officially published as "발매 마감 후", not a fixed clock.
+    # Poll them in race order and stop at the first not-yet-confirmed result.
+    fixed_results = [e for e in bull if not rolling_start(e) and e.get('status') in ('LIVE','RESULT_PENDING')]
+    rolling_results = sorted(
+        [e for e in bull if rolling_start(e) and e.get('status')!='FINAL' and not e.get('result')],
+        key=lambda x:int(x.get('race_no') or 999)
+    )
+    result_targets = fixed_results + rolling_results
 
     for e in odds_targets:
         m=event_meta(e)
@@ -197,10 +215,18 @@ def main():
         m=event_meta(e)
         if not m: continue
         results_checked += 1
+        is_rolling=rolling_start(e)
         try:
             ru=url_for(RESULT_BASE,m); rh,result=parse_result(fetch(ru,timeout=8,retries=1))
-            if rh and rh['date']==m['date'] and rh['round']==m['round'] and rh['day']==m['day'] and apply_result(e,result,observed_at,ru): results_linked += 1
-        except Exception as x: result_errors.append(f"{e.get('id')}:{type(x).__name__}:{x}"[:220])
+            confirmed=bool(rh and rh['date']==m['date'] and rh['round']==m['round'] and rh['day']==m['day'] and result)
+            if confirmed and apply_result(e,result,observed_at,ru):
+                results_linked += 1
+            elif is_rolling:
+                # Later rolling races cannot be final before this race.
+                break
+        except Exception as x:
+            result_errors.append(f"{e.get('id')}:{type(x).__name__}:{x}"[:220])
+            if is_rolling: break
 
     set_provider(payload,'BULL_LIVE_ODDS_CPC','PASS' if odds_linked else ('NO_TODAY_CARD' if not bull else 'WAITING'),{'market':'단승식','capture':'official final odds after sales close','checked':odds_checked,'linked':odds_linked,'errors':odds_errors[-5:],'source':ODDS_BASE})
     set_provider(payload,'BULL_RESULT_CPC','PASS' if results_linked else ('NO_TODAY_CARD' if not bull else 'WAITING'),{'checked':results_checked,'confirmed':results_linked,'errors':result_errors[-5:],'source':RESULT_BASE})
