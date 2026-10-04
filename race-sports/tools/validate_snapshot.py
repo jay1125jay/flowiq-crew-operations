@@ -1,6 +1,7 @@
 import json
 import math
 import sys
+from datetime import datetime
 from collections import Counter
 from pathlib import Path
 
@@ -8,6 +9,14 @@ from pathlib import Path
 def fail(msg):
     print('VALIDATION_FAIL=' + msg)
     raise SystemExit(2)
+
+
+
+def parse_ts(v):
+    try:
+        return datetime.fromisoformat(str(v).replace('Z', '+00:00'))
+    except Exception:
+        return None
 
 
 def main():
@@ -29,6 +38,7 @@ def main():
     bad_bull = []
     bad_bull_result = []
     bad_bull_odds = []
+    bad_bull_capture = []
     bad_bull_model = []
 
     for e in events:
@@ -75,6 +85,23 @@ def main():
                         except Exception:
                             bad_bull_odds.append((e.get('id'), key))
 
+                result_at = parse_ts(((e.get('result') or {}).get('updated_at')))
+                for o in cpc:
+                    mode = o.get('odds_capture_mode')
+                    if mode not in ('PRE_RACE_OFFICIAL', 'LATE_OFFICIAL_RECOVERY'):
+                        bad_bull_capture.append((e.get('id'), o.get('key'), 'MODE'))
+                    odds_at = parse_ts(o.get('odds_observed_at'))
+                    if mode == 'PRE_RACE_OFFICIAL' and result_at and odds_at and odds_at >= result_at:
+                        bad_bull_capture.append((e.get('id'), o.get('key'), 'PRE_AT_OR_AFTER_RESULT'))
+
+                if result_at:
+                    for h in e.get('odds_history', []) or []:
+                        if h.get('source') != 'CPC_FINAL_SINGLE_AUTO':
+                            continue
+                        hist_at = parse_ts(h.get('observed_at'))
+                        if h.get('capture_mode') == 'PRE_RACE_OFFICIAL' and hist_at and hist_at >= result_at:
+                            bad_bull_capture.append((e.get('id'), 'HISTORY', 'PRE_AT_OR_AFTER_RESULT'))
+
             if populated:
                 sources = {o.get('model_source') for o in outcomes}
                 if sources != {'bull_threeclass_direct_v1.3.0'}:
@@ -98,6 +125,8 @@ def main():
         fail('BULL_RESULT_KEY')
     if bad_bull_odds:
         fail('BULL_THREE_WAY_ODDS')
+    if bad_bull_capture:
+        fail('BULL_CAPTURE_MODE:' + str(bad_bull_capture[:3]))
     if bad_bull_model:
         fail('BULL_MODEL_SOURCE')
 
@@ -116,6 +145,7 @@ def main():
         'post_start_model_history_tolerates_scratches': True,
         'result_publish_not_blocked_by_post_start_model': True,
         'bull_three_way_guard': True,
+        'bull_capture_mode_guard': True,
         'bull_model_source_guard': True,
     }, ensure_ascii=False))
 
