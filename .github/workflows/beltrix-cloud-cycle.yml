@@ -1,0 +1,43 @@
+name: BELTRIX Cloud Cycle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/beltrix-cloud-cycle.yml"
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beltrix-cloud-cycle
+  cancel-in-progress: false
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Run PAPER cycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl -fsS --retry 2 --retry-delay 2 --max-time 60 \
+            -X POST "https://beltrix-futures.floot.app/_api/cycle" \
+            -H "Content-Type: application/json" \
+            --data '{"json":{}}')"
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"ok":true'
+
+      - name: Verify PAPER safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          HEALTH="$(curl -fsS --retry 2 --retry-delay 2 --max-time 30 \
+            "https://beltrix-futures.floot.app/_api/health")"
+          echo "$HEALTH"
+          echo "$HEALTH" | grep -q '"paperOnly":true'
+          echo "$HEALTH" | grep -q '"status":"OK"'
