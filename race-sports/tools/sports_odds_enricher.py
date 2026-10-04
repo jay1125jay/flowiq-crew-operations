@@ -163,8 +163,14 @@ def fetch_for_sport(sport:str,day:str,key:str)->tuple[list[dict],dict]:
 def enrich(path:Path=SNAPSHOT)->dict:
     key=os.getenv("SPORTSGAMEODDS_API_KEY","").strip()
     payload=json.loads(path.read_text(encoding="utf-8"))
+    now=datetime.now(KST).isoformat()
     if not key:
-        result={"status":"KEY_MISSING","events_enriched":0,"outcomes_enriched":0}
+        result={"status":"KEY_MISSING","events_enriched":0,"outcomes_enriched":0,"updated_at":now}
+        payload["odds_provider"]={"provider":"SportsGameOdds",**result}
+        payload["providers"]=[p for p in payload.get("providers",[]) if p.get("provider")!="SPORTS_ODDS_MULTIBOOK"]+[{"provider":"SPORTS_ODDS_MULTIBOOK","sport":"ALL",**result}]
+        tmp=path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding="utf-8")
+        tmp.replace(path)
         STATE.parent.mkdir(parents=True,exist_ok=True)
         STATE.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
         print(json.dumps({"SPORTS_ODDS_ENRICH":"SKIP",**result},ensure_ascii=False))
@@ -181,7 +187,6 @@ def enrich(path:Path=SNAPSHOT)->dict:
             errors.append({"sport":sport,"error":str(exc)[:300]})
 
     events_enriched=0;outcomes_enriched=0
-    now=datetime.now(KST).isoformat()
     for e in payload.get("events",[]):
         sport=e.get("sport")
         if sport not in remote:continue
@@ -201,6 +206,7 @@ def enrich(path:Path=SNAPSHOT)->dict:
             o["odds_capture_mode"]="PRE_GAME_MULTI_BOOK"
             o["odds_updated_at"]=chosen.get("updated_at") or now
             o["bookmaker_odds"]=rows
+            o["odds_data_state"]="FRESH"
             applied+=1
         needed=3 if sport=="SOCCER" else 2
         if applied==needed:
@@ -211,6 +217,7 @@ def enrich(path:Path=SNAPSHOT)->dict:
                 x["bookmaker"]
                 for rows in books.values() for x in rows
             })
+            e["odds_data_state"]="FRESH"
             events_enriched+=1
             outcomes_enriched+=applied
 
@@ -223,6 +230,12 @@ def enrich(path:Path=SNAPSHOT)->dict:
         "errors":errors,
         "updated_at":now,
     }
+    payload["providers"]=[p for p in payload.get("providers",[]) if p.get("provider")!="SPORTS_ODDS_MULTIBOOK"]+[{
+        "provider":"SPORTS_ODDS_MULTIBOOK","sport":"ALL",
+        "status":"PASS" if not errors else "PARTIAL",
+        "events_enriched":events_enriched,"outcomes_enriched":outcomes_enriched,
+        "errors":errors,"updated_at":now,
+    }]
     tmp=path.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding="utf-8")
     tmp.replace(path)

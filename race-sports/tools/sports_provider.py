@@ -184,6 +184,19 @@ def _parse_iso(s:str)->datetime:
     if s.endswith("Z"):s=s[:-1]+"+00:00"
     return datetime.fromisoformat(s).astimezone(KST)
 
+def _clock_fields(day:str,raw,fallback_hour:int=14):
+    tm=str(raw or "").strip()
+    if len(tm)==4 and tm.isdigit():tm=tm[:2]+":"+tm[2:]
+    known=bool(re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d",tm))
+    if known:
+        try:
+            dt=datetime.strptime(day+" "+tm,"%Y-%m-%d %H:%M").replace(tzinfo=KST)
+            return tm,int(dt.timestamp()),tm,True
+        except Exception:
+            pass
+    dt=datetime.fromisoformat(day+f"T{fallback_hour:02d}:00:00+09:00")
+    return "",int(dt.timestamp()),day[5:].replace("-","/"),False
+
 def _competitors(ev:dict):
     comps=ev.get("competitions") or []
     if not comps:return None,None,None
@@ -273,11 +286,13 @@ def _apply_espn_odds(out:dict,container:dict)->bool:
         o["odds_provider"]=provider
         o["odds_capture_mode"]="PRE_GAME_SOURCE_LABELED"
         o["odds_updated_at"]=now
+        o["odds_data_state"]="FRESH"
         applied+=1
     if applied>=2:
         out["odds_source"]="ESPN_PUBLIC_ODDS"
         out["odds_provider"]=provider
         out["odds_state"]="SOURCE_LABELED_MARKET"
+        out["odds_data_state"]="FRESH"
         return True
     return False
 
@@ -302,7 +317,8 @@ def parse_event(sport:str,ev:dict,requested_day:str,league_name:str,source_url:s
     out={
         "id":f"SPORTS-{sport}-{eid}","provider_event_id":str(eid),"domain":"SPORTS","sport":sport,
         "provider":"ESPN_PUBLIC","provider_kind":"PUBLIC_SCORE_FEED","competition":league_name,
-        "event_date":requested_day,"start_time":dt.strftime("%H:%M"),"start_timestamp":int(dt.timestamp()),
+        "event_date":requested_day,"start_time":dt.strftime("%H:%M"),"start_label":dt.strftime("%H:%M"),
+        "start_timestamp":int(dt.timestamp()),"time_known":True,
         "status":status,"title":f"{home} vs {away}","home":home,"away":away,
         "market_type":"THREE_WAY" if sport=="SOCCER" else "TWO_WAY","outcomes":outcomes,
         "tier":"TOP","tier_filter":"CONFIGURED_TOP_TIER_LEAGUE","data_state":"FRESH","source_url":source_url,
@@ -616,17 +632,15 @@ def _fetch_kbo_day(day:str)->tuple[list[dict],dict]:
         gdt=str(r.get("G_DT") or "").strip()
         away=str(r.get("AWAY_NM") or KBO_TEAM_KO.get(str(r.get("AWAY_ID") or ""),"")).strip()
         home=str(r.get("HOME_NM") or KBO_TEAM_KO.get(str(r.get("HOME_ID") or ""),"")).strip()
-        tm=str(r.get("G_TM") or "").strip()
-        if len(tm)==4 and tm.isdigit():tm=tm[:2]+":"+tm[2:]
+        raw_tm=str(r.get("G_TM") or "").strip()
         if not gid or not away or not home:continue
         status=_kbo_status(r)
-        try:dt=datetime.strptime(day+" "+tm,"%Y-%m-%d %H:%M").replace(tzinfo=KST)
-        except Exception:dt=datetime.fromisoformat(day+"T14:00:00+09:00")
+        tm,start_ts,start_label,time_known=_clock_fields(day,raw_tm,14)
         e={
             "id":f"SPORTS-BASEBALL-KBO-{gid}","provider_event_id":gid,"domain":"SPORTS","sport":"BASEBALL",
             "provider":"KBO_OFFICIAL","provider_kind":"OFFICIAL_JSON_API","competition":"KBO",
-            "event_date":day,"start_time":tm or "--:--","start_timestamp":int(dt.timestamp()),
-            "status":status,"title":f"{home} vs {away}","home":home,"away":away,
+            "event_date":day,"start_time":tm,"start_label":start_label,"start_timestamp":start_ts,
+            "time_known":time_known,"status":status,"title":f"{home} vs {away}","home":home,"away":away,
             "market_type":"TWO_WAY","outcomes":[{"key":"HOME","name":home},{"key":"AWAY","name":away}],
             "tier":"TOP","tier_filter":"KBO_FIRST_TEAM","data_state":"FRESH","source_url":"https://www.koreabaseball.com/Schedule/ScoreBoard.aspx",
             "venue":r.get("S_NM"),
@@ -651,16 +665,15 @@ def _fetch_kbl_day(day:str)->tuple[list[dict],dict]:
         home=str(r.get("tnameH") or r.get("tnameFH") or "").strip()
         away=str(r.get("tnameA") or r.get("tnameFA") or "").strip()
         if not home or not away:continue
-        tm=str(r.get("gameStart") or "").strip()
-        if len(tm)==4 and tm.isdigit():tm=tm[:2]+":"+tm[2:]
+        raw_tm=str(r.get("gameStart") or "").strip()
         status="FINAL" if int(r.get("isEnded") or 0)==1 else "LIVE" if int(r.get("isStarted") or 0)==1 else "SCHEDULED"
-        try:dt=datetime.strptime(day+" "+tm,"%Y-%m-%d %H:%M").replace(tzinfo=KST)
-        except Exception:dt=datetime.fromisoformat(day+"T14:00:00+09:00")
+        tm,start_ts,start_label,time_known=_clock_fields(day,raw_tm,14)
         gid=str(r.get("gmkey") or r.get("gameCode") or r.get("gameNo") or hashlib.sha1((home+away+day+tm).encode()).hexdigest()[:12])
         e={
             "id":f"SPORTS-BASKETBALL-KBL-{gid}","provider_event_id":gid,"domain":"SPORTS","sport":"BASKETBALL",
             "provider":"KBL_OFFICIAL","provider_kind":"OFFICIAL_JSON_API","competition":"KBL",
-            "event_date":day,"start_time":tm or "--:--","start_timestamp":int(dt.timestamp()),"status":status,
+            "event_date":day,"start_time":tm,"start_label":start_label,"start_timestamp":start_ts,
+            "time_known":time_known,"status":status,
             "title":f"{home} vs {away}","home":home,"away":away,"market_type":"TWO_WAY",
             "outcomes":[{"key":"HOME","name":home},{"key":"AWAY","name":away}],
             "tier":"TOP","tier_filter":"KBL_SEASON_GRADE_1","data_state":"FRESH","source_url":url,
@@ -689,16 +702,16 @@ def _fetch_kleague1_day(day:str)->tuple[list[dict],dict]:
         if not isinstance(r,dict) or str(r.get("gameDate") or "")!=dotted:continue
         home=str(r.get("homeTeamName") or "").strip();away=str(r.get("awayTeamName") or "").strip()
         if not home or not away:continue
-        tm=str(r.get("gameTime") or "").strip() or "--:--"
+        raw_tm=str(r.get("gameTime") or "").strip()
         code=str(r.get("gameStatus") or ("FE" if r.get("endYn")=="Y" else "NS"))
         status={"FE":"FINAL","NS":"SCHEDULED","LIVE":"LIVE","IN":"LIVE","HT":"LIVE","PP":"POSTPONED","CAN":"CANCELLED"}.get(code,"SCHEDULED")
-        try:dt=datetime.strptime(day+" "+tm,"%Y-%m-%d %H:%M").replace(tzinfo=KST)
-        except Exception:dt=datetime.fromisoformat(day+"T14:00:00+09:00")
+        tm,start_ts,start_label,time_known=_clock_fields(day,raw_tm,14)
         gid=str(r.get("gameId") or hashlib.sha1((home+away+day+tm).encode()).hexdigest()[:12])
         e={
             "id":f"SPORTS-SOCCER-KLEAGUE1-{gid}","provider_event_id":gid,"domain":"SPORTS","sport":"SOCCER",
             "provider":"KLEAGUE_OFFICIAL","provider_kind":"OFFICIAL_JSON_API","competition":"K League 1",
-            "event_date":day,"start_time":tm,"start_timestamp":int(dt.timestamp()),"status":status,
+            "event_date":day,"start_time":tm,"start_label":start_label,"start_timestamp":start_ts,
+            "time_known":time_known,"status":status,
             "title":f"{home} vs {away}","home":home,"away":away,"market_type":"THREE_WAY",
             "outcomes":[{"key":"HOME","name":home},{"key":"DRAW","name":"무승부"},{"key":"AWAY","name":away}],
             "tier":"TOP","tier_filter":"K_LEAGUE_1","data_state":"FRESH","source_url":KLEAGUE_SCHEDULE_URL,
