@@ -1,0 +1,64 @@
+name: raceiq-backfill-bootstrap
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 06:55 / 07:05 / 07:15 KST. If GitHub delays one cron, another can recover.
+    - cron: '55 21 * * *'
+    - cron: '5 22 * * *'
+    - cron: '15 22 * * *'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: raceiq-backfill-bootstrap
+  cancel-in-progress: true
+
+jobs:
+  ensure-started:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ensure today's backfill chain has started
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HHMM=$(TZ=Asia/Seoul date +%H%M)
+          if [ "$HHMM" -lt 0700 ]; then
+            echo "BACKFILL_BOOTSTRAP=WAIT_UNTIL_0700_KST"
+            exit 0
+          fi
+
+          gh run list             --workflow race-sports-historical-backfill.yml             --limit 30             --json databaseId,createdAt,status,event             > /tmp/backfill-runs.json
+
+          if python - <<'PY'
+          import json
+          from datetime import datetime, timezone, timedelta
+          KST=timezone(timedelta(hours=9))
+          today=datetime.now(KST).date()
+          rows=json.load(open('/tmp/backfill-runs.json',encoding='utf-8'))
+          found=[]
+          for r in rows:
+              raw=r.get('createdAt')
+              if not raw:
+                  continue
+              dt=datetime.fromisoformat(raw.replace('Z','+00:00')).astimezone(KST)
+              if dt.date()==today and (dt.hour>7 or (dt.hour==7 and dt.minute>=0)):
+                  found.append((r.get('databaseId'),r.get('status'),dt.isoformat(),r.get('event')))
+          if found:
+              print('BACKFILL_BOOTSTRAP=ALREADY_STARTED',found[:5])
+              raise SystemExit(0)
+          raise SystemExit(1)
+          PY
+          then
+            exit 0
+          fi
+
+          echo "BACKFILL_BOOTSTRAP=DISPATCH"
+          gh workflow run race-sports-historical-backfill.yml --ref main
