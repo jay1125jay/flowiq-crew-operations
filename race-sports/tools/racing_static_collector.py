@@ -2,6 +2,8 @@ INLINE_KBOAT_ODDS_ENABLED = False
 import json,re,html,urllib.request,time
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
+from bull_model_features_v130 import parse_card as parse_bull_card
+from kra_official_enricher import fetch as kra_fetch, parsed as kra_parsed, RESULTS_URL as KRA_RESULTS_URL
 
 KST=timezone(timedelta(hours=9))
 UA='Mozilla/5.0 (RACE SPORTS ANALYTICS GitHub official-readonly)'
@@ -216,30 +218,68 @@ def collect_cycle(z,errors):
 def collect_bull(z,errors):
     url='https://www.cpc.or.kr/cpc/module/game/gameCard/confirmed/index.do?menu_idx=52'; date=z.strftime('%Y-%m-%d')
     try:
-        t=textify(fetch(url)); a=re.search(r'(\d{4})년도\s*(\d+)회차\s*(\d+)일차\s*\((\d{2})월\s*(\d{2})일\)표',t)
-        if not a:return [],[{'provider':'BULL_CPC','status':'FAIL','detail':{'reason':'HEADER_NOT_PARSED'}}]
-        card_date=f'{a.group(1)}-{a.group(4)}-{a.group(5)}'
-        if card_date!=date:return [],[{'provider':'BULL_CPC','status':'NO_TODAY_CARD','detail':{'latest_card_date':card_date}}]
+        raw=fetch(url); meta,races=parse_bull_card(raw)
+        if not meta:
+            return [],[{'provider':'BULL_CPC','status':'FAIL','detail':{'reason':'HEADER_NOT_PARSED'}}]
+        if meta.get('date')!=date:
+            return [],[{'provider':'BULL_CPC','status':'NO_TODAY_CARD','detail':{'latest_card_date':meta.get('date')}}]
         out=[]
-        rx=re.compile(r'(\d{2})경기\s*([갑을병])?\s*\(시작시간:\s*([^)]+)\)[\s\S]*?홍\s+([가-힣A-Za-z0-9_-]+)[\s\S]*?청\s+([가-힣A-Za-z0-9_-]+)')
-        for m in rx.finditer(t):
-            q=re.search(r'(\d{1,2})\s*[:시]\s*(\d{1,2})',m.group(3))
-            if not q:continue
-            tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}'; rn=int(m.group(1))
-            out.append({'id':f'BULL-{date.replace("-","")}-{a.group(2)}-{a.group(3)}-{rn:02d}','sport':'BULL','provider':'CPC','competition':f'청도 소싸움 {a.group(2)}회차 {a.group(3)}일차','event_date':date,'start_time':tm,'race_no':rn,'status':status_for(tm,None,90),'title':f'{rn:02d}경기','left':m.group(4),'right':m.group(5),'left_tag':'홍','right_tag':'청','market_type':'THREE_WAY','outcomes':[{'key':'RED','name':'홍','model_p':None},{'key':'DRAW','name':'무','model_p':None},{'key':'BLUE','name':'청','model_p':None}],'source_url':url})
-        return out,[{'provider':'BULL_CPC','status':'PASS','detail':{'published':len(out),'card_date':card_date}}]
-    except Exception as e:errors.append(f'BULL:{e}');return [],[{'provider':'BULL_CPC','status':'FAIL','detail':{'error':str(e)}}]
+        for r in races:
+            st=str(r.get('start_text') or '')
+            q=re.search(r'(\d{1,2})\s*(?::|시)\s*(\d{1,2})',st)
+            tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}' if q else '--:--'
+            rn=int(r.get('race_no') or 0)
+            red=str((r.get('red') or {}).get('name') or '').strip()
+            blue=str((r.get('blue') or {}).get('name') or '').strip()
+            if not rn or not red or not blue:continue
+            out.append({
+                'id':f'BULL-{date.replace("-","")}-{meta["round"]}-{meta["day"]}-{rn:02d}',
+                'sport':'BULL','provider':'CPC',
+                'competition':f'청도 소싸움 {meta["round"]}회차 {meta["day"]}일차',
+                'event_date':date,'start_time':tm,'race_no':rn,
+                'status':status_for(tm,None,90) if tm!='--:--' else 'SCHEDULED',
+                'title':f'{rn:02d}경기','left':red,'right':blue,'left_tag':'홍','right_tag':'청',
+                'market_type':'THREE_WAY',
+                'outcomes':[{'key':'RED','name':'홍','model_p':None},{'key':'DRAW','name':'무','model_p':None},{'key':'BLUE','name':'청','model_p':None}],
+                'source_url':url
+            })
+        return out,[{'provider':'BULL_CPC','status':'PASS' if out else 'EMPTY','detail':{'published':len(out),'card_date':meta.get('date'),'parser':'BULL_V130_SHARED_CARD_PARSER'}}]
+    except Exception as e:
+        errors.append(f'BULL:{e}')
+        return [],[{'provider':'BULL_CPC','status':'FAIL','detail':{'error':str(e)}}]
 
 def collect_horse(z,errors):
-    url='https://race.kra.co.kr/thisweekrace/ThisWeekDetailInfoList.do?Act=01&Sub=2&meet='; date=z.strftime('%Y-%m-%d'); ds=z.strftime('%Y/%m/%d')
+    date=z.strftime('%Y-%m-%d'); ds=z.strftime('%Y/%m/%d')
     try:
-        t=textify(fetch(url)); out=[]
-        for m in re.finditer(r'(서울|부경|영천|제주)\s+(\d{4}/\d{2}/\d{2})\([^)]*\)\s+(\d{1,2})\s+([^\n]+?)\s+(\d{3,4})\s+(\d{1,2})\s+([^\n]+?)\s+(\d{1,2}:\d{2})',t):
-            if m.group(2)!=ds:continue
-            venue=m.group(1);rn=int(m.group(3));tm=m.group(8)
-            out.append({'id':f'HORSE-{date.replace("-","")}-{venue}-{rn:02d}','sport':'HORSE','provider':'KRA','competition':venue+' 경마','event_date':date,'start_time':tm,'race_no':rn,'status':status_for(tm,None,45),'title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[],'field_size':int(m.group(6)),'distance_m':int(m.group(5)),'source_url':url})
-        return out,[{'provider':'HORSE_KRA','status':'PASS' if out else 'NO_TODAY_CARD','detail':{'published':len(out),'runner_detail':'PENDING_PUBLIC_PAGE_PARSER'}}]
-    except Exception as e:errors.append(f'HORSE:{e}');return [],[{'provider':'HORSE_KRA','status':'FAIL','detail':{'error':str(e)}}]
+        raw=kra_fetch(KRA_RESULTS_URL)
+        p,_=kra_parsed(raw)
+        rows=[]
+        for row in p.rows:
+            if len(row)<3:continue
+            venue=str(row[0]).strip()
+            if venue not in ('서울','부경','부산경남','영천','제주'):continue
+            dm=re.search(r'(\d{4})/(\d{2})/(\d{2})',str(row[1]))
+            if not dm or f'{dm.group(1)}-{dm.group(2)}-{dm.group(3)}'!=date:continue
+            if not re.fullmatch(r'\d{1,2}',str(row[2]).strip()):continue
+            rn=int(str(row[2]).strip())
+            has_result=any(re.search(r'[①-⑳]',str(x)) and re.search(r'\d+(?:\.\d+)?',str(x)) for x in row[3:])
+            rows.append((venue,rn,has_result))
+        uniq={}
+        for venue,rn,has_result in rows:uniq[(venue,rn)]=has_result
+        out=[]
+        for (venue,rn),has_result in sorted(uniq.items(),key=lambda x:(x[0][0],x[0][1])):
+            out.append({
+                'id':f'HORSE-{date.replace("-","")}-{venue}-{rn:02d}',
+                'sport':'HORSE','provider':'KRA','competition':venue+' 경마',
+                'event_date':date,'start_time':'--:--','race_no':rn,
+                'status':'FINAL' if has_result else 'SCHEDULED',
+                'title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[],
+                'source_url':KRA_RESULTS_URL,'schedule_seed':'KRA_SCORETABLE_OFFICIAL'
+            })
+        return out,[{'provider':'HORSE_KRA','status':'PASS' if out else 'NO_TODAY_CARD','detail':{'published':len(out),'schedule_seed':'KRA_SCORETABLE_OFFICIAL','runner_detail':'KRA_ENRICHER_FOLLOWS'}}]
+    except Exception as e:
+        errors.append(f'HORSE:{e}')
+        return [],[{'provider':'HORSE_KRA','status':'FAIL','detail':{'error':str(e)}}]
 
 def main():
     z=now(); errors=[]; events=[]; providers=[]
