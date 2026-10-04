@@ -14,12 +14,9 @@ on:
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/tools/validate_cycle_boat_models.py'
   schedule:
-    # Redundant morning anchors: GitHub scheduled Actions can be delayed.
-    # 06:55 / 07:00 / 07:05 KST. The collection-window guard prevents work before 07:00.
-    # Once one run starts, self-dispatch continues until caps or 23:00 KST.
-    - cron: '55 21 * * *'
+    # Canonical 07:00 KST start. A separate bootstrap watchdog provides
+    # 06:55 / 07:05 / 07:15 recovery without creating duplicate collectors.
     - cron: '0 22 * * *'
-    - cron: '5 22 * * *'
 
 permissions:
   contents: write
