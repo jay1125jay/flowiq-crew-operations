@@ -308,7 +308,7 @@ def _fetch_espn_day(sport:str,day:str,include_odds:bool=False)->tuple[list[dict]
 
     odds_requests=0;odds_success=0
     if include_odds:
-        targets=[e for e in events if e.get("status") in {"SCHEDULED","LIVE"} and not any(o.get("odds") for o in e.get("outcomes",[]))]
+        targets=[e for e in events if not any(o.get("odds") for o in e.get("outcomes",[]))]
         def odds_one(e):
             url=_summary_url(e["_espn_sport_slug"],e["_espn_league_slug"],e["provider_event_id"])
             return e["id"],url,_http_json(url)
