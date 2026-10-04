@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse, json
+import argparse, json, re
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -91,6 +91,12 @@ TEAM_KO={
 def team_ko(name:str)->str:
     return TEAM_KO.get(str(name or "").strip(),"")
 
+DOMESTIC_CODES={"LG","KT","NC","SSG","KIA"}
+
+def needs_translation(name:str)->bool:
+    s=str(name or "").strip()
+    return bool(s) and not re.search(r"[가-힣]",s) and s not in DOMESTIC_CODES
+
 def apply(path:Path):
     p=json.loads(path.read_text(encoding="utf-8"))
     translated=0;missing=set()
@@ -99,10 +105,10 @@ def apply(path:Path):
         hk=team_ko(h);ak=team_ko(a)
         if hk:
             e["home_ko"]=hk;translated+=1
-        elif h and e.get("sport")!="VOLLEYBALL":missing.add(h)
+        elif needs_translation(h) and e.get("sport")!="VOLLEYBALL":missing.add(h)
         if ak:
             e["away_ko"]=ak;translated+=1
-        elif a and e.get("sport")!="VOLLEYBALL":missing.add(a)
+        elif needs_translation(a) and e.get("sport")!="VOLLEYBALL":missing.add(a)
         for o in e.get("outcomes",[]):
             if o.get("key")=="HOME" and hk:o["name_ko"]=hk
             elif o.get("key")=="AWAY" and ak:o["name_ko"]=ak

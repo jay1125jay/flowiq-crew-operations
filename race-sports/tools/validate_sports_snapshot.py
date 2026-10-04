@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, json, math
+import argparse, json, math, re
 from pathlib import Path
 
 ALLOWED={"SOCCER","BASEBALL","BASKETBALL","VOLLEYBALL"}
@@ -18,11 +18,29 @@ def validate(path: Path):
         assert e.get("tier")=="TOP","NON_TOP_TIER"
         assert e.get("status") in STATUSES,"BAD_STATUS"
         assert e.get("home") and e.get("away"),"MISSING_TEAMS"
+        event_date=str(e.get("event_date") or "")
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}",event_date),"BAD_EVENT_DATE"
+        start=str(e.get("start_time") or "").strip()
+        label=str(e.get("start_label") or "").strip()
+        assert start not in {"--:--","시간 미정","TBD"},"TIME_PLACEHOLDER_FORBIDDEN"
+        if start:
+            assert re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d",start),"BAD_START_TIME"
+        else:
+            assert label and label not in {"--:--","시간 미정","TBD"},"MISSING_DATE_FALLBACK"
         keys=[o.get("key") for o in e.get("outcomes",[])]
         if e["sport"]=="SOCCER":
             assert keys==["HOME","DRAW","AWAY"],"SOCCER_OUTCOMES"
         else:
             assert keys==["HOME","AWAY"],"BINARY_OUTCOMES"
+        numeric_odds=[o for o in e.get("outcomes",[]) if isinstance(o.get("odds"),(int,float))]
+        if numeric_odds:
+            assert len(numeric_odds)==len(e.get("outcomes",[])),"PARTIAL_ODDS_DISTRIBUTION"
+            for o in numeric_odds:
+                assert math.isfinite(float(o["odds"])) and float(o["odds"])>1,"BAD_ODDS"
+                assert o.get("odds_source"),"ODDS_SOURCE_MISSING"
+                assert o.get("odds_provider"),"ODDS_PROVIDER_MISSING"
+                assert o.get("odds_capture_mode"),"ODDS_MODE_MISSING"
+                assert o.get("odds_data_state") in {"FRESH","PRESERVED_SAME_DAY"},"ODDS_STATE_MISSING"
         probs=[float(o["model_p"]) for o in e.get("outcomes",[]) if isinstance(o.get("model_p"),(int,float))]
         if probs:
             assert len(probs)==len(e.get("outcomes",[])),"PARTIAL_MODEL_DISTRIBUTION"
