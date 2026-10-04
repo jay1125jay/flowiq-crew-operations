@@ -26,7 +26,7 @@ def collect(day=None):
     providers=[];events=[]
     for sport in SPORTS:
         try:
-            got,meta=fetch_sport_day(sport,day)
+            got,meta=fetch_sport_day(sport,day,include_odds=True)
             events.extend(got)
             providers.append({
                 "provider":f"SPORTS_{sport}_{meta.get('provider','SOURCE')}",
@@ -36,6 +36,8 @@ def collect(day=None):
                 "successful_requests":meta["successful_requests"],
                 "raw_events":meta["raw_events"],
                 "top_tier_events":meta["top_tier_events"],
+                "odds_events":int(meta.get("odds_events",0)),
+                "odds_summary_requests":int(meta.get("odds_summary_requests",0)),
                 "failures":meta["failures"],
             })
         except Exception as exc:
