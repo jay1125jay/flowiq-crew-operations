@@ -30,6 +30,8 @@ on:
       - 'race-sports/tools/validate_snapshot.py'
       - 'race-sports/tools/sports_provider.py'
       - 'race-sports/tools/sports_static_collector.py'
+      - 'race-sports/tools/sports_team_ko.py'
+      - 'race-sports/tools/sports_odds_enricher.py'
       - 'race-sports/tools/inject_sports_model.py'
       - 'race-sports/tools/validate_sports_snapshot.py'
       - 'race-sports/tools/sports_history_backfill.py'
@@ -157,6 +159,8 @@ jobs:
         if: github.event_name == 'push'
         run: |
           python race-sports/tools/sports_provider.py --self-test
+          python race-sports/tools/sports_team_ko.py --self-test
+          python race-sports/tools/sports_odds_enricher.py --self-test
           python race-sports/tools/kovo_official_pdf_backfill.py --self-test
           python race-sports/tools/inject_sports_model.py --self-test
           python race-sports/tools/sports_history_backfill.py --self-test
@@ -180,6 +184,18 @@ jobs:
 
       - name: Collect four-sport scoreboard data
         run: python race-sports/tools/sports_static_collector.py
+
+      - name: Add Korean SPORTS team names
+        run: python race-sports/tools/sports_team_ko.py
+
+      - name: Enrich multi-book SPORTS odds
+        env:
+          SPORTSGAMEODDS_API_KEY: ${{ secrets.SPORTSGAMEODDS_API_KEY }}
+        shell: bash
+        run: |
+          if ! python race-sports/tools/sports_odds_enricher.py; then
+            echo 'Multi-book SPORTS odds unavailable; keeping source-labeled ESPN odds when present'
+          fi
 
       - name: Recover last-known-good events on provider failure
         run: python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
