@@ -62,6 +62,18 @@ TEAM_KO={
 "Lorient":"로리앙","Lyon":"리옹","Marseille":"마르세유","Metz":"메스","Monaco":"모나코","Nantes":"낭트",
 "Nice":"니스","Paris FC":"파리 FC","Paris Saint-Germain":"파리 생제르맹","PSG":"파리 생제르맹",
 "Rennes":"렌","Strasbourg":"스트라스부르","Toulouse":"툴루즈",
+# National teams
+"Argentina":"아르헨티나","Azerbaijan":"아제르바이잔","Belarus":"벨라루스","Bulgaria":"불가리아",
+"Burkina Faso":"부르키나파소","Cameroon":"카메룬","Canada":"캐나다","Comoros":"코모로",
+"Croatia":"크로아티아","Czechia":"체코","England":"잉글랜드","Estonia":"에스토니아",
+"Iceland":"아이슬란드","Ivory Coast":"코트디부아르","Kyrgyz Republic":"키르기스스탄",
+"Lebanon":"레바논","Lithuania":"리투아니아","Luxembourg":"룩셈부르크","Mali":"말리",
+"Mexico":"멕시코","Namibia":"나미비아","North Macedonia":"북마케도니아","Peru":"페루",
+"Russia":"러시아","San Marino":"산마리노","Scotland":"스코틀랜드","Senegal":"세네갈",
+"Slovenia":"슬로베니아","Spain":"스페인","Switzerland":"스위스","Tunisia":"튀니지",
+"United States":"미국","South Korea":"대한민국","Korea Republic":"대한민국","Japan":"일본",
+"China":"중국","Australia":"호주","Saudi Arabia":"사우디아라비아","Qatar":"카타르",
+"United Arab Emirates":"아랍에미리트","Iran":"이란","Iraq":"이라크","Uzbekistan":"우즈베키스탄",
 # Common Champions League clubs
 "Ajax Amsterdam":"아약스","Ajax":"아약스","Benfica":"벤피카","FC Porto":"FC 포르투","Porto":"포르투",
 "PSV Eindhoven":"PSV 에인트호번","Sporting CP":"스포르팅 CP","Celtic":"셀틱","Galatasaray":"갈라타사라이",
