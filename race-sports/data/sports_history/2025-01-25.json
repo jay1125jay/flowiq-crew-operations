@@ -7,7 +7,365 @@
     "BASKETBALL",
     "VOLLEYBALL"
   ],
+  "providers": [
+    {
+      "sport": "VOLLEYBALL",
+      "provider": "KOVO_DBBANK_OFFICIAL",
+      "status": "PASS",
+      "official": true,
+      "source": "OFFICIAL_POSTGAME_REPORT",
+      "events": 2
+    },
+    {
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "status": "PASS",
+      "requests": 12,
+      "successful_requests": 12,
+      "raw_events": 26,
+      "top_tier_events": 11,
+      "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250125",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250125",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20250125",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250125",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250125",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20250125"
+      ],
+      "failures": []
+    },
+    {
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20250125",
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20250124"
+      ],
+      "failures": []
+    },
+    {
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 17,
+      "top_tier_events": 3,
+      "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250124",
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250125"
+      ],
+      "failures": []
+    }
+  ],
   "events": [
+    {
+      "id": "SPORTS-SOCCER-711598",
+      "provider_event_id": "711598",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2025-01-25",
+      "start_time": "04:30",
+      "start_timestamp": 1737747000,
+      "status": "FINAL",
+      "title": "VfL Wolfsburg vs Holstein Kiel",
+      "home": "VfL Wolfsburg",
+      "away": "Holstein Kiel",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "VfL Wolfsburg"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Holstein Kiel"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 2,
+        "winner_key": "DRAW",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.368271+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-706588",
+      "provider_event_id": "706588",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Ligue 1",
+      "event_date": "2025-01-25",
+      "start_time": "04:45",
+      "start_timestamp": 1737747900,
+      "status": "FINAL",
+      "title": "AJ Auxerre vs Saint-Étienne",
+      "home": "AJ Auxerre",
+      "away": "Saint-Étienne",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "AJ Auxerre"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Saint-Étienne"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 1,
+        "winner_key": "DRAW",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.515913+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-712325",
+      "provider_event_id": "712325",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2025-01-25",
+      "start_time": "04:45",
+      "start_timestamp": 1737747900,
+      "status": "FINAL",
+      "title": "Torino vs Cagliari",
+      "home": "Torino",
+      "away": "Cagliari",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Torino"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Cagliari"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 0,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.523592+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-704869",
+      "provider_event_id": "704869",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "LaLiga",
+      "event_date": "2025-01-25",
+      "start_time": "05:00",
+      "start_timestamp": 1737748800,
+      "status": "FINAL",
+      "title": "Las Palmas vs Osasuna",
+      "home": "Las Palmas",
+      "away": "Osasuna",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Las Palmas"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Osasuna"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 1,
+        "winner_key": "DRAW",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.368992+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401705196",
+      "provider_event_id": "401705196",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2025-01-25",
+      "start_time": "09:00",
+      "start_timestamp": 1737763200,
+      "status": "FINAL",
+      "title": "Charlotte Hornets vs Portland Trail Blazers",
+      "home": "Charlotte Hornets",
+      "away": "Portland Trail Blazers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Charlotte Hornets"
+        },
+        {
+          "key": "AWAY",
+          "name": "Portland Trail Blazers"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 97,
+        "away_score": 102,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:25.450682+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401705197",
+      "provider_event_id": "401705197",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2025-01-25",
+      "start_time": "09:00",
+      "start_timestamp": 1737763200,
+      "status": "FINAL",
+      "title": "Philadelphia 76ers vs Cleveland Cavaliers",
+      "home": "Philadelphia 76ers",
+      "away": "Cleveland Cavaliers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Philadelphia 76ers"
+        },
+        {
+          "key": "AWAY",
+          "name": "Cleveland Cavaliers"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 132,
+        "away_score": 129,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:25.450705+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401705198",
+      "provider_event_id": "401705198",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2025-01-25",
+      "start_time": "10:00",
+      "start_timestamp": 1737766800,
+      "status": "FINAL",
+      "title": "Memphis Grizzlies vs New Orleans Pelicans",
+      "home": "Memphis Grizzlies",
+      "away": "New Orleans Pelicans",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Memphis Grizzlies"
+        },
+        {
+          "key": "AWAY",
+          "name": "New Orleans Pelicans"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250124",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 139,
+        "away_score": 126,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:25.450718+09:00"
+      }
+    },
     {
       "id": "SPORTS-VOLLEYBALL-KOVO-021-159",
       "provider_event_id": "021-159",
@@ -89,17 +447,315 @@
         "source": "KOVO_DBBANK_OFFICIAL",
         "updated_at": "2026-10-04T07:05:46.934743+09:00"
       }
-    }
-  ],
-  "providers": [
+    },
     {
-      "sport": "VOLLEYBALL",
-      "provider": "KOVO_DBBANK_OFFICIAL",
-      "status": "PASS",
-      "official": true,
-      "source": "OFFICIAL_POSTGAME_REPORT",
-      "events": 2
+      "id": "SPORTS-SOCCER-704864",
+      "provider_event_id": "704864",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "LaLiga",
+      "event_date": "2025-01-25",
+      "start_time": "22:00",
+      "start_timestamp": 1737810000,
+      "status": "FINAL",
+      "title": "Mallorca vs Real Betis",
+      "home": "Mallorca",
+      "away": "Real Betis",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Mallorca"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Real Betis"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 0,
+        "away_score": 1,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.417859+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-712323",
+      "provider_event_id": "712323",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2025-01-25",
+      "start_time": "23:00",
+      "start_timestamp": 1737813600,
+      "status": "FINAL",
+      "title": "Como vs Atalanta",
+      "home": "Como",
+      "away": "Atalanta",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Como"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Atalanta"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 2,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.523019+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-711594",
+      "provider_event_id": "711594",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2025-01-25",
+      "start_time": "23:30",
+      "start_timestamp": 1737815400,
+      "status": "FINAL",
+      "title": "FC Augsburg vs 1. FC Heidenheim 1846",
+      "home": "FC Augsburg",
+      "away": "1. FC Heidenheim 1846",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "FC Augsburg"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "1. FC Heidenheim 1846"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.383257+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-711596",
+      "provider_event_id": "711596",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2025-01-25",
+      "start_time": "23:30",
+      "start_timestamp": 1737815400,
+      "status": "FINAL",
+      "title": "Borussia Dortmund vs Werder Bremen",
+      "home": "Borussia Dortmund",
+      "away": "Werder Bremen",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Borussia Dortmund"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Werder Bremen"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 2,
+        "winner_key": "DRAW",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.383213+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-711597",
+      "provider_event_id": "711597",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2025-01-25",
+      "start_time": "23:30",
+      "start_timestamp": 1737815400,
+      "status": "FINAL",
+      "title": "Mainz vs VfB Stuttgart",
+      "home": "Mainz",
+      "away": "VfB Stuttgart",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Mainz"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "VfB Stuttgart"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 0,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.383276+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-711599",
+      "provider_event_id": "711599",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2025-01-25",
+      "start_time": "23:30",
+      "start_timestamp": 1737815400,
+      "status": "FINAL",
+      "title": "RB Leipzig vs Bayer Leverkusen",
+      "home": "RB Leipzig",
+      "away": "Bayer Leverkusen",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "RB Leipzig"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Bayer Leverkusen"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 2,
+        "winner_key": "DRAW",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.383291+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-711600",
+      "provider_event_id": "711600",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2025-01-25",
+      "start_time": "23:30",
+      "start_timestamp": 1737815400,
+      "status": "FINAL",
+      "title": "SC Freiburg vs Bayern Munich",
+      "home": "SC Freiburg",
+      "away": "Bayern Munich",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "SC Freiburg"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Bayern Munich"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250125",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 2,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:38:24.383303+09:00"
+      }
     }
   ],
-  "generated_at": "2026-10-04T07:06:04.965558+09:00"
+  "generated_at": "2026-10-04T09:38:25.723038+09:00"
 }

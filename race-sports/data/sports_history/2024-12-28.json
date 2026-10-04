@@ -7,7 +7,477 @@
     "BASKETBALL",
     "VOLLEYBALL"
   ],
+  "providers": [
+    {
+      "sport": "VOLLEYBALL",
+      "provider": "KOVO_DBBANK_OFFICIAL",
+      "status": "PASS",
+      "official": true,
+      "source": "OFFICIAL_POSTGAME_REPORT",
+      "events": 2
+    },
+    {
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "status": "PASS",
+      "requests": 12,
+      "successful_requests": 12,
+      "raw_events": 6,
+      "top_tier_events": 4,
+      "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20241228",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20241228",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20241228",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20241228",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20241228",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20241228"
+      ],
+      "failures": []
+    },
+    {
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20241227",
+        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20241228"
+      ],
+      "failures": []
+    },
+    {
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 17,
+      "top_tier_events": 8,
+      "source_urls": [
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241228",
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227"
+      ],
+      "failures": []
+    }
+  ],
   "events": [
+    {
+      "id": "SPORTS-SOCCER-704450",
+      "provider_event_id": "704450",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Premier League",
+      "event_date": "2024-12-28",
+      "start_time": "04:30",
+      "start_timestamp": 1735327800,
+      "status": "FINAL",
+      "title": "Brighton & Hove Albion vs Brentford",
+      "home": "Brighton & Hove Albion",
+      "away": "Brentford",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Brighton & Hove Albion"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Brentford"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 0,
+        "away_score": 0,
+        "winner_key": "DRAW",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:08.882817+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-704457",
+      "provider_event_id": "704457",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Premier League",
+      "event_date": "2024-12-28",
+      "start_time": "05:15",
+      "start_timestamp": 1735330500,
+      "status": "FINAL",
+      "title": "Arsenal vs Ipswich Town",
+      "home": "Arsenal",
+      "away": "Ipswich Town",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Arsenal"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Ipswich Town"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 0,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:08.882841+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704985",
+      "provider_event_id": "401704985",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "09:00",
+      "start_timestamp": 1735344000,
+      "status": "FINAL",
+      "title": "Orlando Magic vs New York Knicks",
+      "home": "Orlando Magic",
+      "away": "New York Knicks",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Orlando Magic"
+        },
+        {
+          "key": "AWAY",
+          "name": "New York Knicks"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 85,
+        "away_score": 108,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.925934+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704986",
+      "provider_event_id": "401704986",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "09:30",
+      "start_timestamp": 1735345800,
+      "status": "FINAL",
+      "title": "Boston Celtics vs Indiana Pacers",
+      "home": "Boston Celtics",
+      "away": "Indiana Pacers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Boston Celtics"
+        },
+        {
+          "key": "AWAY",
+          "name": "Indiana Pacers"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 142,
+        "away_score": 105,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.925959+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704987",
+      "provider_event_id": "401704987",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "09:30",
+      "start_timestamp": 1735345800,
+      "status": "FINAL",
+      "title": "Brooklyn Nets vs San Antonio Spurs",
+      "home": "Brooklyn Nets",
+      "away": "San Antonio Spurs",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Brooklyn Nets"
+        },
+        {
+          "key": "AWAY",
+          "name": "San Antonio Spurs"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 87,
+        "away_score": 96,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.925974+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704988",
+      "provider_event_id": "401704988",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "10:00",
+      "start_timestamp": 1735347600,
+      "status": "FINAL",
+      "title": "Houston Rockets vs Minnesota Timberwolves",
+      "home": "Houston Rockets",
+      "away": "Minnesota Timberwolves",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Houston Rockets"
+        },
+        {
+          "key": "AWAY",
+          "name": "Minnesota Timberwolves"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 112,
+        "away_score": 113,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.925988+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704989",
+      "provider_event_id": "401704989",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "10:00",
+      "start_timestamp": 1735347600,
+      "status": "FINAL",
+      "title": "New Orleans Pelicans vs Memphis Grizzlies",
+      "home": "New Orleans Pelicans",
+      "away": "Memphis Grizzlies",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "New Orleans Pelicans"
+        },
+        {
+          "key": "AWAY",
+          "name": "Memphis Grizzlies"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 124,
+        "away_score": 132,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.926002+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704990",
+      "provider_event_id": "401704990",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "11:00",
+      "start_timestamp": 1735351200,
+      "status": "FINAL",
+      "title": "Denver Nuggets vs Cleveland Cavaliers",
+      "home": "Denver Nuggets",
+      "away": "Cleveland Cavaliers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Denver Nuggets"
+        },
+        {
+          "key": "AWAY",
+          "name": "Cleveland Cavaliers"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 135,
+        "away_score": 149,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.926016+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704991",
+      "provider_event_id": "401704991",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "11:00",
+      "start_timestamp": 1735351200,
+      "status": "FINAL",
+      "title": "Phoenix Suns vs Dallas Mavericks",
+      "home": "Phoenix Suns",
+      "away": "Dallas Mavericks",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Phoenix Suns"
+        },
+        {
+          "key": "AWAY",
+          "name": "Dallas Mavericks"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 89,
+        "away_score": 98,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.926029+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401704992",
+      "provider_event_id": "401704992",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2024-12-28",
+      "start_time": "12:00",
+      "start_timestamp": 1735354800,
+      "status": "FINAL",
+      "title": "LA Clippers vs Golden State Warriors",
+      "home": "LA Clippers",
+      "away": "Golden State Warriors",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "LA Clippers"
+        },
+        {
+          "key": "AWAY",
+          "name": "Golden State Warriors"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20241227",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 102,
+        "away_score": 92,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:09.926042+09:00"
+      }
+    },
     {
       "id": "SPORTS-VOLLEYBALL-KOVO-021-122",
       "provider_event_id": "021-122",
@@ -89,17 +559,95 @@
         "source": "KOVO_DBBANK_OFFICIAL",
         "updated_at": "2026-10-04T07:05:39.179576+09:00"
       }
-    }
-  ],
-  "providers": [
+    },
     {
-      "sport": "VOLLEYBALL",
-      "provider": "KOVO_DBBANK_OFFICIAL",
-      "status": "PASS",
-      "official": true,
-      "source": "OFFICIAL_POSTGAME_REPORT",
-      "events": 2
+      "id": "SPORTS-SOCCER-712286",
+      "provider_event_id": "712286",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2024-12-28",
+      "start_time": "23:00",
+      "start_timestamp": 1735394400,
+      "status": "FINAL",
+      "title": "Empoli vs Genoa",
+      "home": "Empoli",
+      "away": "Genoa",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Empoli"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Genoa"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20241228",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 2,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:08.876098+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-712291",
+      "provider_event_id": "712291",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2024-12-28",
+      "start_time": "23:00",
+      "start_timestamp": 1735394400,
+      "status": "FINAL",
+      "title": "Parma vs Monza",
+      "home": "Parma",
+      "away": "Monza",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Parma"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "Monza"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20241228",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-04T09:39:08.876123+09:00"
+      }
     }
   ],
-  "generated_at": "2026-10-04T07:06:04.963105+09:00"
+  "generated_at": "2026-10-04T09:39:10.176809+09:00"
 }
