@@ -10,61 +10,151 @@
   "providers": [
     {
       "sport": "SOCCER",
-      "provider": "ESPN_PUBLIC",
+      "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL",
       "status": "PASS",
-      "requests": 12,
-      "successful_requests": 12,
-      "raw_events": 25,
-      "top_tier_events": 16,
+      "requests": 23,
+      "successful_requests": 23,
+      "raw_events": 65,
+      "top_tier_events": 20,
       "odds_events": 0,
       "odds_summary_requests": 0,
-      "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250502",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20250502",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250502",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250502",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250502",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20250502"
-      ],
-      "failures": []
+      "failures": [],
+      "sources": [
+        {
+          "sport": "SOCCER",
+          "provider": "ESPN_PUBLIC",
+          "status": "PASS",
+          "requests": 22,
+          "successful_requests": 22,
+          "raw_events": 26,
+          "top_tier_events": 16,
+          "odds_events": 0,
+          "odds_summary_requests": 0,
+          "source_urls": [
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.asian.cup/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.asian.cup/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.champions/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.cup/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.champions/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.cup/scoreboard?dates=20250502"
+          ],
+          "failures": []
+        },
+        {
+          "sport": "SOCCER",
+          "provider": "KLEAGUE_OFFICIAL",
+          "status": "PASS",
+          "requests": 1,
+          "successful_requests": 1,
+          "raw_events": 39,
+          "top_tier_events": 4,
+          "failures": []
+        }
+      ]
     },
     {
       "sport": "BASEBALL",
-      "provider": "ESPN_PUBLIC",
+      "provider": "ESPN_PUBLIC+KBO_OFFICIAL",
       "status": "PASS",
-      "requests": 2,
+      "requests": 3,
       "successful_requests": 2,
       "raw_events": 30,
       "top_tier_events": 15,
       "odds_events": 0,
       "odds_summary_requests": 0,
-      "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20250502"
+      "failures": [
+        {
+          "error": "JSON_REQUEST_FAILED:https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList:JSONDecodeError('Extra data: line 336 column 2 (char 8444)')"
+        }
       ],
-      "failures": []
+      "sources": [
+        {
+          "sport": "BASEBALL",
+          "provider": "ESPN_PUBLIC",
+          "status": "PASS",
+          "requests": 2,
+          "successful_requests": 2,
+          "raw_events": 30,
+          "top_tier_events": 15,
+          "odds_events": 0,
+          "odds_summary_requests": 0,
+          "source_urls": [
+            "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20250502",
+            "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20250503"
+          ],
+          "failures": []
+        },
+        {
+          "sport": "BASEBALL",
+          "provider": "KBO_OFFICIAL",
+          "status": "FAIL",
+          "requests": 1,
+          "successful_requests": 0,
+          "raw_events": 0,
+          "top_tier_events": 0,
+          "failures": [
+            {
+              "error": "JSON_REQUEST_FAILED:https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList:JSONDecodeError('Extra data: line 336 column 2 (char 8444)')"
+            }
+          ]
+        }
+      ]
     },
     {
       "sport": "BASKETBALL",
-      "provider": "ESPN_PUBLIC",
+      "provider": "ESPN_PUBLIC+KBL_OFFICIAL",
       "status": "PASS",
-      "requests": 2,
-      "successful_requests": 2,
+      "requests": 3,
+      "successful_requests": 3,
       "raw_events": 2,
       "top_tier_events": 1,
       "odds_events": 0,
       "odds_summary_requests": 0,
-      "source_urls": [
-        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250503",
-        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250502"
-      ],
-      "failures": []
+      "failures": [],
+      "sources": [
+        {
+          "sport": "BASKETBALL",
+          "provider": "ESPN_PUBLIC",
+          "status": "PASS",
+          "requests": 2,
+          "successful_requests": 2,
+          "raw_events": 2,
+          "top_tier_events": 1,
+          "odds_events": 0,
+          "odds_summary_requests": 0,
+          "source_urls": [
+            "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250503",
+            "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20250502"
+          ],
+          "failures": []
+        },
+        {
+          "sport": "BASKETBALL",
+          "provider": "KBL_OFFICIAL",
+          "status": "PASS",
+          "requests": 1,
+          "successful_requests": 1,
+          "raw_events": 0,
+          "top_tier_events": 0,
+          "failures": []
+        }
+      ]
     }
   ],
   "events": [
@@ -109,7 +199,7 @@
         "away_score": 0,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.557444+09:00"
+        "updated_at": "2026-10-04T15:23:18.350543+09:00"
       }
     },
     {
@@ -153,7 +243,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.606701+09:00"
+        "updated_at": "2026-10-04T15:23:18.312810+09:00"
       }
     },
     {
@@ -197,7 +287,7 @@
         "away_score": 1,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.592591+09:00"
+        "updated_at": "2026-10-04T15:23:18.301398+09:00"
       }
     },
     {
@@ -241,7 +331,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.555535+09:00"
+        "updated_at": "2026-10-04T15:23:18.256940+09:00"
       }
     },
     {
@@ -285,7 +375,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.515966+09:00"
+        "updated_at": "2026-10-04T15:23:18.275588+09:00"
       }
     },
     {
@@ -325,7 +415,7 @@
         "away_score": 1,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043695+09:00"
+        "updated_at": "2026-10-04T15:23:19.209341+09:00"
       }
     },
     {
@@ -365,7 +455,7 @@
         "away_score": 9,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043726+09:00"
+        "updated_at": "2026-10-04T15:23:19.209376+09:00"
       }
     },
     {
@@ -405,7 +495,7 @@
         "away_score": 2,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043744+09:00"
+        "updated_at": "2026-10-04T15:23:19.209400+09:00"
       }
     },
     {
@@ -445,7 +535,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043760+09:00"
+        "updated_at": "2026-10-04T15:23:19.209419+09:00"
       }
     },
     {
@@ -485,7 +575,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043775+09:00"
+        "updated_at": "2026-10-04T15:23:19.209437+09:00"
       }
     },
     {
@@ -525,7 +615,7 @@
         "away_score": 3,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043789+09:00"
+        "updated_at": "2026-10-04T15:23:19.209456+09:00"
       }
     },
     {
@@ -565,7 +655,7 @@
         "away_score": 1,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043804+09:00"
+        "updated_at": "2026-10-04T15:23:19.209474+09:00"
       }
     },
     {
@@ -605,7 +695,7 @@
         "away_score": 6,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043820+09:00"
+        "updated_at": "2026-10-04T15:23:19.209492+09:00"
       }
     },
     {
@@ -645,7 +735,7 @@
         "away_score": 2,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043835+09:00"
+        "updated_at": "2026-10-04T15:23:19.209510+09:00"
       }
     },
     {
@@ -685,7 +775,7 @@
         "away_score": 3,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043852+09:00"
+        "updated_at": "2026-10-04T15:23:19.209528+09:00"
       }
     },
     {
@@ -725,7 +815,7 @@
         "away_score": 13,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043866+09:00"
+        "updated_at": "2026-10-04T15:23:19.209547+09:00"
       }
     },
     {
@@ -765,7 +855,7 @@
         "away_score": 10,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043881+09:00"
+        "updated_at": "2026-10-04T15:23:19.209564+09:00"
       }
     },
     {
@@ -805,7 +895,7 @@
         "away_score": 9,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043894+09:00"
+        "updated_at": "2026-10-04T15:23:19.209582+09:00"
       }
     },
     {
@@ -845,7 +935,7 @@
         "away_score": 115,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.392755+09:00"
+        "updated_at": "2026-10-04T15:23:22.005187+09:00"
       }
     },
     {
@@ -885,7 +975,7 @@
         "away_score": 9,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043908+09:00"
+        "updated_at": "2026-10-04T15:23:19.209599+09:00"
       }
     },
     {
@@ -925,7 +1015,187 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:41.043922+09:00"
+        "updated_at": "2026-10-04T15:23:19.209616+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-KLEAGUE1-63",
+      "provider_event_id": "63",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "KLEAGUE_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "K League 1",
+      "event_date": "2025-05-03",
+      "start_time": "16:30",
+      "start_timestamp": 1746257400,
+      "status": "FINAL",
+      "title": "대전 vs 안양",
+      "home": "대전",
+      "away": "안양",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "대전"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "안양"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "K_LEAGUE_1",
+      "data_state": "FRESH",
+      "source_url": "https://www.kleague.com/getScheduleList.do",
+      "venue": "대전 월드컵 경기장",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "KLEAGUE_OFFICIAL",
+        "updated_at": "2026-10-04T15:23:18.901608+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-KLEAGUE1-64",
+      "provider_event_id": "64",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "KLEAGUE_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "K League 1",
+      "event_date": "2025-05-03",
+      "start_time": "16:30",
+      "start_timestamp": 1746257400,
+      "status": "FINAL",
+      "title": "대구 vs 제주",
+      "home": "대구",
+      "away": "제주",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "대구"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "제주"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "K_LEAGUE_1",
+      "data_state": "FRESH",
+      "source_url": "https://www.kleague.com/getScheduleList.do",
+      "venue": "대구iM뱅크PARK",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 3,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "KLEAGUE_OFFICIAL",
+        "updated_at": "2026-10-04T15:23:18.901642+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-KLEAGUE1-65",
+      "provider_event_id": "65",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "KLEAGUE_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "K League 1",
+      "event_date": "2025-05-03",
+      "start_time": "19:00",
+      "start_timestamp": 1746266400,
+      "status": "FINAL",
+      "title": "서울 vs 전북",
+      "home": "서울",
+      "away": "전북",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "서울"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "전북"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "K_LEAGUE_1",
+      "data_state": "FRESH",
+      "source_url": "https://www.kleague.com/getScheduleList.do",
+      "venue": "서울 월드컵 경기장",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 0,
+        "away_score": 1,
+        "winner_key": "AWAY",
+        "source": "KLEAGUE_OFFICIAL",
+        "updated_at": "2026-10-04T15:23:18.901662+09:00"
+      }
+    },
+    {
+      "id": "SPORTS-SOCCER-KLEAGUE1-66",
+      "provider_event_id": "66",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "KLEAGUE_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "K League 1",
+      "event_date": "2025-05-03",
+      "start_time": "19:00",
+      "start_timestamp": 1746266400,
+      "status": "FINAL",
+      "title": "강원 vs 수원FC",
+      "home": "강원",
+      "away": "수원FC",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "강원"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부"
+        },
+        {
+          "key": "AWAY",
+          "name": "수원FC"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "K_LEAGUE_1",
+      "data_state": "FRESH",
+      "source_url": "https://www.kleague.com/getScheduleList.do",
+      "venue": "춘천 송암 스포츠타운",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 0,
+        "away_score": 0,
+        "winner_key": "DRAW",
+        "source": "KLEAGUE_OFFICIAL",
+        "updated_at": "2026-10-04T15:23:18.901681+09:00"
       }
     },
     {
@@ -969,7 +1239,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.511370+09:00"
+        "updated_at": "2026-10-04T15:23:18.256182+09:00"
       }
     },
     {
@@ -1013,7 +1283,7 @@
         "away_score": 0,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.513008+09:00"
+        "updated_at": "2026-10-04T15:23:18.289143+09:00"
       }
     },
     {
@@ -1057,7 +1327,7 @@
         "away_score": 1,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.642774+09:00"
+        "updated_at": "2026-10-04T15:23:18.299971+09:00"
       }
     },
     {
@@ -1101,7 +1371,7 @@
         "away_score": 2,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.642746+09:00"
+        "updated_at": "2026-10-04T15:23:18.299891+09:00"
       }
     },
     {
@@ -1145,7 +1415,7 @@
         "away_score": 2,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.523857+09:00"
+        "updated_at": "2026-10-04T15:23:18.284154+09:00"
       }
     },
     {
@@ -1189,7 +1459,7 @@
         "away_score": 1,
         "winner_key": "AWAY",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.523938+09:00"
+        "updated_at": "2026-10-04T15:23:18.284281+09:00"
       }
     },
     {
@@ -1233,7 +1503,7 @@
         "away_score": 3,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.523920+09:00"
+        "updated_at": "2026-10-04T15:23:18.284247+09:00"
       }
     },
     {
@@ -1277,7 +1547,7 @@
         "away_score": 4,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.523902+09:00"
+        "updated_at": "2026-10-04T15:23:18.284206+09:00"
       }
     },
     {
@@ -1321,7 +1591,7 @@
         "away_score": 2,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.511422+09:00"
+        "updated_at": "2026-10-04T15:23:18.256232+09:00"
       }
     },
     {
@@ -1365,7 +1635,7 @@
         "away_score": 0,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.511469+09:00"
+        "updated_at": "2026-10-04T15:23:18.256272+09:00"
       }
     },
     {
@@ -1409,9 +1679,9 @@
         "away_score": 2,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-04T13:18:40.513042+09:00"
+        "updated_at": "2026-10-04T15:23:18.289186+09:00"
       }
     }
   ],
-  "generated_at": "2026-10-04T13:18:41.643174+09:00"
+  "generated_at": "2026-10-04T15:23:23.287347+09:00"
 }
