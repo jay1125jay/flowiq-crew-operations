@@ -9,6 +9,8 @@ KST=timezone(timedelta(hours=9))
 UA='Mozilla/5.0 (RACE SPORTS ANALYTICS GitHub official-readonly)'
 KBOAT_UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 OUT=Path('race-sports/data/today.json')
+KRA_SCHEDULE_URL='https://race.kra.co.kr/thisweekrace/ThisWeekWeight.do'
+KRA_VENUES=('서울','부경','부산경남','영천','제주')
 
 def now(): return datetime.now(KST)
 def fetch(url,timeout=15,headers=None,retries=1):
@@ -249,38 +251,67 @@ def collect_bull(z,errors):
         errors.append(f'BULL:{e}')
         return [],[{'provider':'BULL_CPC','status':'FAIL','detail':{'error':str(e)}}]
 
+def parse_kra_schedule(raw,date):
+    p,_=kra_parsed(raw); schedule={}
+    for row in p.rows:
+        if len(row)<4:continue
+        venue=str(row[0]).strip()
+        if venue not in KRA_VENUES:continue
+        dm=re.search(r'(\d{4})/(\d{2})/(\d{2})',str(row[1]))
+        if not dm or f'{dm.group(1)}-{dm.group(2)}-{dm.group(3)}'!=date:continue
+        if not re.fullmatch(r'\d{1,2}',str(row[2]).strip()):continue
+        tm=str(row[3]).strip()
+        if not re.fullmatch(r'\d{1,2}:\d{2}',tm):continue
+        hh,mm=map(int,tm.split(':'))
+        if not (0<=hh<=23 and 0<=mm<=59):continue
+        schedule[(venue,int(str(row[2]).strip()))]=f'{hh:02d}:{mm:02d}'
+    return schedule
+
 def collect_horse(z,errors):
-    date=z.strftime('%Y-%m-%d'); ds=z.strftime('%Y/%m/%d')
+    date=z.strftime('%Y-%m-%d')
+    schedule={}; result_flags={}; source_errors=[]
+    try:
+        schedule=parse_kra_schedule(kra_fetch(KRA_SCHEDULE_URL),date)
+    except Exception as e:
+        source_errors.append(f'schedule:{type(e).__name__}:{e}')
     try:
         raw=kra_fetch(KRA_RESULTS_URL)
         p,_=kra_parsed(raw)
-        rows=[]
         for row in p.rows:
             if len(row)<3:continue
             venue=str(row[0]).strip()
-            if venue not in ('서울','부경','부산경남','영천','제주'):continue
+            if venue not in KRA_VENUES:continue
             dm=re.search(r'(\d{4})/(\d{2})/(\d{2})',str(row[1]))
             if not dm or f'{dm.group(1)}-{dm.group(2)}-{dm.group(3)}'!=date:continue
             if not re.fullmatch(r'\d{1,2}',str(row[2]).strip()):continue
             rn=int(str(row[2]).strip())
             has_result=any(re.search(r'[①-⑳]',str(x)) and re.search(r'\d+(?:\.\d+)?',str(x)) for x in row[3:])
-            rows.append((venue,rn,has_result))
-        uniq={}
-        for venue,rn,has_result in rows:uniq[(venue,rn)]=has_result
-        out=[]
-        for (venue,rn),has_result in sorted(uniq.items(),key=lambda x:(x[0][0],x[0][1])):
-            out.append({
-                'id':f'HORSE-{date.replace("-","")}-{venue}-{rn:02d}',
-                'sport':'HORSE','provider':'KRA','competition':venue+' 경마',
-                'event_date':date,'start_time':'','start_label':date[5:].replace('-','/'),'time_known':False,'race_no':rn,
-                'status':'FINAL' if has_result else 'SCHEDULED',
-                'title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[],
-                'source_url':KRA_RESULTS_URL,'schedule_seed':'KRA_SCORETABLE_OFFICIAL'
-            })
-        return out,[{'provider':'HORSE_KRA','status':'PASS' if out else 'NO_TODAY_CARD','detail':{'published':len(out),'schedule_seed':'KRA_SCORETABLE_OFFICIAL','runner_detail':'KRA_ENRICHER_FOLLOWS'}}]
+            result_flags[(venue,rn)]=bool(has_result)
     except Exception as e:
-        errors.append(f'HORSE:{e}')
-        return [],[{'provider':'HORSE_KRA','status':'FAIL','detail':{'error':str(e)}}]
+        source_errors.append(f'results:{type(e).__name__}:{e}')
+
+    keys=set(schedule)|set(result_flags)
+    out=[]
+    for venue,rn in sorted(keys,key=lambda x:(x[0],x[1])):
+        tm=schedule.get((venue,rn),'')
+        has_result=result_flags.get((venue,rn),False)
+        out.append({
+            'id':f'HORSE-{date.replace("-","")}-{venue}-{rn:02d}',
+            'sport':'HORSE','provider':'KRA','competition':venue+' 경마',
+            'event_date':date,'start_time':tm,'start_label':tm or date[5:].replace('-','/'),'time_known':bool(tm),'race_no':rn,
+            'status':'FINAL' if has_result else status_for(tm,None,20),
+            'title':f'{rn:02d}경주','market_type':'RUNNERS','outcomes':[],
+            'source_url':KRA_RESULTS_URL,'schedule_source_url':KRA_SCHEDULE_URL,
+            'schedule_seed':'KRA_WEIGHT_OFFICIAL' if tm else 'KRA_SCORETABLE_OFFICIAL'
+        })
+    if source_errors:errors.extend('HORSE '+x for x in source_errors)
+    status='PASS' if out else ('FAIL' if source_errors else 'NO_TODAY_CARD')
+    return out,[{'provider':'HORSE_KRA','status':status,'detail':{
+        'published':len(out),'schedule_linked':sum(1 for e in out if e.get('time_known')),
+        'schedule_seed':'KRA_WEIGHT_OFFICIAL','schedule_source_url':KRA_SCHEDULE_URL,
+        'results_seed':'KRA_SCORETABLE_OFFICIAL','runner_detail':'KRA_ENRICHER_FOLLOWS',
+        'source_errors':source_errors[:3]
+    }}]
 
 def main():
     z=now(); errors=[]; events=[]; providers=[]
