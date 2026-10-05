@@ -2,6 +2,11 @@ name: raceiq-fast-results
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-fast-results.yml'
+      - 'race-sports/.fast-results-trigger'
   schedule:
     - cron: '*/5 * * * *'
 
@@ -75,9 +80,6 @@ jobs:
             timeout 45s python race-sports/tools/bull_official_enricher.py || echo 'FAST_BULL_RESULT_REFRESH=DEGRADED'
           fi
 
-          # KBOAT result status is produced by the official racing collector.
-          # Only invoke it when a non-final BOAT card actually exists, avoiding
-          # the heavy collector on horse-only/cycle-only/bull-only days.
           if [ "$HAS_BOAT" = "1" ]; then
             cp race-sports/data/today.json /tmp/raceiq-pre-kboat.json
             if ! timeout 60s python race-sports/tools/racing_static_collector.py; then
@@ -104,9 +106,8 @@ jobs:
           PY
           )
 
-          # Do not create commits when the result/status payload did not change.
           python - <<'PY'
-          import json, hashlib
+          import json
           from pathlib import Path
 
           def projection(path):
