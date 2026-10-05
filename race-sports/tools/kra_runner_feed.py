@@ -1,5 +1,6 @@
 import time
 from kra_official_enricher import RUNNERS_URL, MEET_CODE, fetch, parse_runners, venue_of
+from kra_final_runner_repair import repair_doc
 
 PROVIDER = 'HORSE_RUNNERS_KRA'
 
@@ -41,6 +42,11 @@ def _merge_outcomes(event, incoming):
 
 
 def enrich_doc(doc):
+    # The generic KRA runner page may expose a stale selected date. Purge that
+    # data first and rebuild completed races from explicit date+meet+race result
+    # detail URLs, which are safe against cross-day runner leakage.
+    repaired, final_count, cleared, repair_errors, repair_status = repair_doc(doc)
+
     today = str(doc.get('date') or '')
     horse = [e for e in doc.get('events', []) if e.get('sport') == 'HORSE']
     venues = []
@@ -115,7 +121,7 @@ def enrich_doc(doc):
     populated = sum(1 for e in horse if len(e.get('outcomes') or []) >= 2)
     coverage_status = 'PASS' if total and populated == total else ('PARTIAL' if populated else ('NO_TODAY_CARD' if not total else 'UNLINKED'))
     prior_detail.update({
-        'status_source': 'VENUE_SPECIFIC_KRA_RUNNER_FEED_STRICT_DATE',
+        'status_source': 'STRICT_DATE_RUNNER_FEED_PLUS_DATE_BOUND_FINAL_DETAIL',
         'linked_before_venue_merge': prior_linked,
         'linked_venue_merge': linked,
         'linked': populated,
@@ -125,6 +131,13 @@ def enrich_doc(doc):
         'venue_sources': source_meta,
         'venue_errors': errors[:4],
         'stale_page_policy': 'REJECT',
+        'final_detail_repair': {
+            'status': repair_status,
+            'repaired': repaired,
+            'final_events': final_count,
+            'stale_outcomes_cleared': cleared,
+            'errors': repair_errors[:3],
+        },
     })
     providers[:] = [p for p in providers if p.get('provider') != PROVIDER]
     providers.append({'provider': PROVIDER, 'status': coverage_status, 'detail': prior_detail})
