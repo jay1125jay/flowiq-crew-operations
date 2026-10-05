@@ -1,3 +1,4 @@
+import math
 import time
 from kra_official_enricher import RUNNERS_URL, MEET_CODE, fetch, parse_runners, venue_of
 
@@ -48,42 +49,58 @@ def enrich_doc(doc):
     errors = []
 
     for venue in venues:
+        venue_events = {
+            (venue, int(e.get('race_no') or 0)): e
+            for e in horse if venue_of(e) == venue
+        }
+        required_signature = max(3, min(len(venue_events), int(math.ceil(len(venue_events) * 0.60)))) if venue_events else 1
         best = {}
         best_meta = None
         for url in _runner_urls(venue):
             try:
-                raw = fetch(url, timeout=10, retries=1)
+                raw = fetch(url, timeout=8, retries=1)
                 page_date, races = parse_runners(raw)
-                matches = 0
-                usable = {}
-                for e in horse:
-                    if venue_of(e) != venue:
-                        continue
-                    key = (venue, int(e.get('race_no') or 0))
+                signature_matches = 0
+                for key, event in venue_events.items():
                     info = races.get(key)
                     if not info or not info.get('outcomes'):
                         continue
                     src_time = info.get('start_time')
-                    dst_time = e.get('start_time')
-                    if src_time and dst_time and src_time != dst_time:
+                    dst_time = event.get('start_time')
+                    if src_time and dst_time and src_time == dst_time:
+                        signature_matches += 1
+
+                # KRA can expose an older selected-option date even while the
+                # rendered venue card is current. A quorum of exact venue/race/
+                # start-time matches against the separately fetched official
+                # schedule proves the card identity; after that, accept the
+                # whole venue card so a single changed start time is not lost.
+                page_trusted = (page_date == today) or (signature_matches >= required_signature)
+                usable = {}
+                for key, event in venue_events.items():
+                    info = races.get(key)
+                    if not info or not info.get('outcomes'):
                         continue
-                    # When KRA's selected date is stale, exact official schedule
-                    # time is the trust signature. This prevents cross-day leakage.
-                    if page_date and page_date != today and not (src_time and dst_time and src_time == dst_time):
-                        continue
-                    usable[key] = info
-                    matches += 1
+                    src_time = info.get('start_time')
+                    dst_time = event.get('start_time')
+                    exact_time = bool(src_time and dst_time and src_time == dst_time)
+                    if page_trusted or exact_time:
+                        usable[key] = info
+
                 meta = {
                     'venue': venue,
                     'url': url,
                     'page_date': page_date,
                     'raw_races': len(races),
-                    'trusted_races': matches,
+                    'trusted_races': len(usable),
+                    'schedule_signature_matches': signature_matches,
+                    'required_signature': required_signature,
+                    'venue_card_trusted': page_trusted,
                 }
-                if matches > len(best):
+                if len(usable) > len(best):
                     best = usable
                     best_meta = meta
-                if matches:
+                if page_trusted and len(usable) >= len(venue_events):
                     break
             except Exception as exc:
                 errors.append(f'{venue}:{type(exc).__name__}:{exc}'[:220])
@@ -104,7 +121,6 @@ def enrich_doc(doc):
         linked_by_venue[venue] = linked_by_venue.get(venue, 0) + 1
 
     total = len(horse)
-    status = 'PASS' if total and linked == total else ('PARTIAL' if linked else ('NO_TODAY_CARD' if not total else 'UNLINKED'))
     providers = doc.setdefault('providers', [])
     prior = next((p for p in providers if p.get('provider') == PROVIDER), None)
     prior_detail = dict((prior or {}).get('detail') or {})
