@@ -13,6 +13,7 @@ VALIDATION = Path("race-sports/models/horse_empirical_bayes_v0.2.validation.json
 KST = timezone(timedelta(hours=9))
 MODEL_SOURCE = "horse_empirical_bayes_v0.2"
 PROVIDER = "HORSE_MODEL"
+# Triggers the watched static pipeline after KRA final-runner identity parser hardening.
 
 SAFE_FIELDS = ("horse_name","jockey","trainer","age","assigned_weight")
 BLOCKED_ODDS_SOURCES = {"KRA_API27_OFFICIAL","KRA_API27_1_OFFICIAL","API27","API27_1"}
