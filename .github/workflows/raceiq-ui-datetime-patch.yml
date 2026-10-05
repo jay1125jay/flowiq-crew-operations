@@ -26,9 +26,20 @@ jobs:
       - name: Verify datetime display contract
         shell: bash
         run: |
-          grep -F 'return `${d} ${t}`.trim();' race-sports/live.html
-          grep -F "return d?`${d} --:--`:'--/-- --:--'" race-sports/live.html
-          grep -F 'grid-template-columns:92px minmax(0,1fr) auto' race-sports/live.html
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('race-sports/live.html').read_text(encoding='utf-8')
+          checks=[
+              'return `${d} ${t}`.trim();',
+              "return d?`${d} --:--`:'--/-- --:--'",
+              'grid-template-columns:92px minmax(0,1fr) auto',
+              '${esc(displayStart(x.e))} · ${esc(x.e.title)} · ${esc(x.o.name)}',
+          ]
+          missing=[x for x in checks if x not in s]
+          if missing:
+              raise SystemExit('DATETIME_VERIFY_FAIL: '+repr(missing))
+          print('DATETIME_VERIFY=PASS')
+          PY
       - name: Commit UI change
         shell: bash
         run: |
