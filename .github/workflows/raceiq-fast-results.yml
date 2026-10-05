@@ -1,0 +1,160 @@
+name: raceiq-fast-results
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raceiq-fast-results
+  cancel-in-progress: true
+
+jobs:
+  refresh-results:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Preserve current snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp race-sports/data/today.json /tmp/raceiq-fast-before.json
+
+      - name: Refresh only active racing results
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HAS_HORSE=$(python - <<'PY'
+          import json
+          d=json.load(open('race-sports/data/today.json',encoding='utf-8'))
+          print('1' if any(e.get('sport')=='HORSE' and e.get('status')!='FINAL' for e in d.get('events',[])) else '0')
+          PY
+          )
+          HAS_CYCLE=$(python - <<'PY'
+          import json
+          d=json.load(open('race-sports/data/today.json',encoding='utf-8'))
+          print('1' if any(e.get('sport')=='CYCLE' and e.get('status')!='FINAL' for e in d.get('events',[])) else '0')
+          PY
+          )
+          HAS_BULL=$(python - <<'PY'
+          import json
+          d=json.load(open('race-sports/data/today.json',encoding='utf-8'))
+          print('1' if any(e.get('sport')=='BULL' and e.get('status')!='FINAL' for e in d.get('events',[])) else '0')
+          PY
+          )
+          HAS_BOAT=$(python - <<'PY'
+          import json
+          d=json.load(open('race-sports/data/today.json',encoding='utf-8'))
+          print('1' if any(e.get('sport')=='BOAT' and e.get('status')!='FINAL' for e in d.get('events',[])) else '0')
+          PY
+          )
+
+          echo "FAST_ACTIVE horse=$HAS_HORSE cycle=$HAS_CYCLE boat=$HAS_BOAT bull=$HAS_BULL"
+
+          if [ "$HAS_HORSE" = "1" ]; then
+            timeout 45s python race-sports/tools/kra_official_enricher.py || echo 'FAST_KRA_RESULT_REFRESH=DEGRADED'
+          fi
+
+          if [ "$HAS_CYCLE" = "1" ]; then
+            timeout 45s python race-sports/tools/kcycle_official_enricher.py || echo 'FAST_KCYCLE_RESULT_REFRESH=DEGRADED'
+          fi
+
+          if [ "$HAS_BULL" = "1" ]; then
+            timeout 45s python race-sports/tools/bull_official_enricher.py || echo 'FAST_BULL_RESULT_REFRESH=DEGRADED'
+          fi
+
+          # KBOAT result status is produced by the official racing collector.
+          # Only invoke it when a non-final BOAT card actually exists, avoiding
+          # the heavy collector on horse-only/cycle-only/bull-only days.
+          if [ "$HAS_BOAT" = "1" ]; then
+            cp race-sports/data/today.json /tmp/raceiq-pre-kboat.json
+            if ! timeout 60s python race-sports/tools/racing_static_collector.py; then
+              echo 'FAST_KBOAT_RESULT_REFRESH=DEGRADED'
+              cp /tmp/raceiq-pre-kboat.json race-sports/data/today.json
+            fi
+          fi
+
+      - name: Validate result snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python race-sports/tools/validate_snapshot.py race-sports/data/today.json
+
+      - name: Publish result changes conflict-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp race-sports/data/today.json /tmp/raceiq-fast-after.json
+          DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('/tmp/raceiq-fast-after.json',encoding='utf-8'))['date'])
+          PY
+          )
+
+          # Do not create commits when the result/status payload did not change.
+          python - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+
+          def projection(path):
+              d=json.loads(Path(path).read_text(encoding='utf-8'))
+              rows=[]
+              for e in d.get('events',[]):
+                  rows.append({
+                      'id':e.get('id'),
+                      'status':e.get('status'),
+                      'result':e.get('result'),
+                      'outcomes':e.get('outcomes'),
+                  })
+              return rows
+
+          a=projection('/tmp/raceiq-fast-before.json')
+          b=projection('/tmp/raceiq-fast-after.json')
+          Path('/tmp/raceiq-fast-changed').write_text('1' if a!=b else '0')
+          print('FAST_RESULT_CHANGED=' + ('1' if a!=b else '0'))
+          PY
+
+          if [ "$(cat /tmp/raceiq-fast-changed)" != "1" ]; then
+            echo 'FAST_RESULT_PUBLISH=NO_CHANGE'
+            exit 0
+          fi
+
+          git config user.name "race-sports-result-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/raceiq-fast-after.json race-sports/data/today.json
+            mkdir -p race-sports/data/history
+            cp /tmp/raceiq-fast-after.json "race-sports/data/history/${DATE}.json"
+            git add race-sports/data/today.json "race-sports/data/history/${DATE}.json"
+
+            if git diff --cached --quiet; then
+              echo 'FAST_RESULT_PUBLISH=NO_DIFF_AFTER_REBASE'
+              exit 0
+            fi
+
+            git commit -m "chore: refresh RACEIQ race results"
+            if git push origin HEAD:main; then
+              echo 'FAST_RESULT_PUBLISH=PASS'
+              exit 0
+            fi
+            echo "FAST_RESULT_PUSH_CONFLICT=$n/5"
+          done
+
+          echo 'FAST_RESULT_PUBLISH=FAIL'
+          exit 1
