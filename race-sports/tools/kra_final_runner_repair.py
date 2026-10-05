@@ -30,6 +30,7 @@ def parse_final_outcomes(raw):
     p, _ = parsed(raw)
     header = None
     out = []
+    seen_numbers = set()
     for row in p.rows:
         norm = [clean(x).replace(' ', '') for x in row]
         if '순위' in norm and '마번' in norm and '마명' in norm and '단승' in norm and '연승' in norm:
@@ -59,8 +60,13 @@ def parse_final_outcomes(raw):
             continue
         n = int(ns)
         name = clean(row[header['horse_name']])
-        if not name or not 1 <= n <= 20:
+        # KRA detail tables contain a second split row per runner with section
+        # positions/times. Rowspan expansion can make that row look like a
+        # runner row; its 'name' cell is numeric/hyphen data. Only accept a
+        # genuine textual horse identity and one row per horse number.
+        if not name or not any(ch.isalpha() for ch in name) or not 1 <= n <= 20 or n in seen_numbers:
             continue
+        seen_numbers.add(n)
         item = {
             'key': f'N{n}',
             'number': n,
