@@ -1,0 +1,114 @@
+name: raceiq-market-edge
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-market-edge.yml'
+      - 'race-sports/tools/market_edge_engine.py'
+      - 'race-sports/tools/market_edge_ui_patch.py'
+      - 'race-sports/data/today.json'
+      - 'race-sports/data/sports_today.json'
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raceiq-market-edge
+  cancel-in-progress: true
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Self-test market edge engine
+        run: python race-sports/tools/market_edge_engine.py --self-test
+
+      - name: Patch committed UI for upset-first decisions
+        run: python race-sports/tools/market_edge_ui_patch.py
+
+      - name: Validate patched UI JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('race-sports/live.html').read_text(encoding='utf-8')
+          for token in ['function marketDecision(e)','UPSET WATCH','MARKET EDGE','UPSET → VALUE','signalBox(e)']:
+              if token not in s:
+                  raise SystemExit('MARKET_EDGE_UI_TOKEN_MISSING:'+token)
+          m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
+          if not m:
+              raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
+          Path('/tmp/raceiq-live.js').write_text(m.group(1),encoding='utf-8')
+          PY
+          node --check /tmp/raceiq-live.js
+
+      - name: Enrich current snapshots with market decisions
+        run: python race-sports/tools/market_edge_engine.py
+
+      - name: Validate snapshots
+        shell: bash
+        run: |
+          python race-sports/tools/validate_snapshot.py race-sports/data/today.json
+          python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+
+      - name: Publish edge decisions conflict-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "raceiq-market-edge-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          cp race-sports/live.html /tmp/raceiq-edge-live.html
+          cp race-sports/data/today.json /tmp/raceiq-edge-today.json
+          cp race-sports/data/sports_today.json /tmp/raceiq-edge-sports.json
+          DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('/tmp/raceiq-edge-today.json',encoding='utf-8')).get('date',''))
+          PY
+          )
+          SPORTS_DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('/tmp/raceiq-edge-sports.json',encoding='utf-8')).get('date',''))
+          PY
+          )
+
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/raceiq-edge-live.html race-sports/live.html
+            cp /tmp/raceiq-edge-today.json race-sports/data/today.json
+            cp /tmp/raceiq-edge-sports.json race-sports/data/sports_today.json
+            mkdir -p race-sports/data/history race-sports/data/sports_history
+            if [ -n "$DATE" ]; then cp /tmp/raceiq-edge-today.json "race-sports/data/history/${DATE}.json"; fi
+            if [ -n "$SPORTS_DATE" ]; then cp /tmp/raceiq-edge-sports.json "race-sports/data/sports_history/${SPORTS_DATE}.json"; fi
+            git add race-sports/live.html race-sports/data/today.json race-sports/data/sports_today.json
+            if [ -n "$DATE" ]; then git add "race-sports/data/history/${DATE}.json"; fi
+            if [ -n "$SPORTS_DATE" ]; then git add "race-sports/data/sports_history/${SPORTS_DATE}.json"; fi
+
+            if git diff --cached --quiet; then
+              echo 'MARKET_EDGE_PUBLISH=NO_CHANGE'
+              exit 0
+            fi
+            git commit -m "feat: apply RACEIQ market edge and upset decisions"
+            if git push origin HEAD:main; then
+              echo 'MARKET_EDGE_PUBLISH=PASS'
+              exit 0
+            fi
+            echo "MARKET_EDGE_PUSH_CONFLICT=$n/5"
+          done
+          echo 'MARKET_EDGE_PUBLISH=FAIL'
+          exit 1
