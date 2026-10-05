@@ -4,6 +4,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from kra_runner_feed import enrich_doc
 
 DATA = Path("race-sports/data/today.json")
 HISTORY = Path("race-sports/data/history")
@@ -202,7 +203,11 @@ def self_test():
 
 def main():
     if "--self-test" in sys.argv:self_test();return
-    doc=json.loads(DATA.read_text(encoding="utf-8"));updated,horse_events,lr,lrc,valid,blocked=apply(doc);DATA.write_text(json.dumps(doc,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+    doc=json.loads(DATA.read_text(encoding="utf-8"))
+    runner_linked,runner_total,runner_status=enrich_doc(doc)
+    updated,horse_events,lr,lrc,valid,blocked=apply(doc)
+    DATA.write_text(json.dumps(doc,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+    print(f"HORSE_RUNNER_COVERAGE={runner_linked}/{runner_total} STATUS={runner_status}")
     print(f"HORSE_MODEL={'PASS' if valid and horse_events else 'PROVISIONAL' if horse_events else 'NO_TODAY_CARD'}");print(f"HORSE_MODEL_ROWS={updated}");print(f"HORSE_HISTORY_LABELED_RUNNERS={lr}");print(f"HORSE_HISTORY_LABELED_RACES={lrc}");print(f"HORSE_MODEL_VALIDATED={str(valid).upper()}");print(f"HORSE_API27_ODDS_BLOCKED={blocked}")
 
 
