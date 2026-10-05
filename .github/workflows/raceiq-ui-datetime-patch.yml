@@ -1,0 +1,46 @@
+name: raceiq-ui-datetime-patch
+
+on:
+  push:
+    paths:
+      - 'race-sports/tools/patch_datetime_display.py'
+      - '.github/workflows/raceiq-ui-datetime-patch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply datetime UI patch
+        run: python race-sports/tools/patch_datetime_display.py
+      - name: Verify datetime display contract
+        shell: bash
+        run: |
+          grep -F 'return `${d} ${t}`.trim();' race-sports/live.html
+          grep -F "return d?`${d} --:--`:'--/-- --:--'" race-sports/live.html
+          grep -F 'grid-template-columns:92px minmax(0,1fr) auto' race-sports/live.html
+      - name: Commit UI change
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- race-sports/live.html; then
+            echo 'UI_DATETIME_PATCH=NO_CHANGE'
+            exit 0
+          fi
+          git config user.name 'raceiq-ui-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add race-sports/live.html
+          git commit -m 'fix: show race date and time together'
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo 'UI_DATETIME_PATCH=PASS'
