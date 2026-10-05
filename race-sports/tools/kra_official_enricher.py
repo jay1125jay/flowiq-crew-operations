@@ -110,11 +110,17 @@ def parsed(raw):
 
 
 def selected_date(p,text):
+    # The KRA page can contain multiple independent date selectors.  Returning
+    # the first selected option can therefore report an older venue date even
+    # while the visible combined card is current. Prefer the latest selected
+    # date and keep the visible-text fallback.
+    dates=[]
     for x in p.selected_options:
         m=re.search(r'(\d{4})[./-](\d{2})[./-](\d{2})',x)
-        if m:return f'{m.group(1)}-{m.group(2)}-{m.group(3)}'
+        if m:dates.append(f'{m.group(1)}-{m.group(2)}-{m.group(3)}');continue
         m=re.search(r'(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일',x)
-        if m:return f'{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}'
+        if m:dates.append(f'{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}')
+    if dates:return max(dates)
     m=re.search(r'기준일자[^\d]*(\d{4})[./-](\d{1,2})[./-](\d{1,2})',text)
     if m:return f'{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}'
     return None
@@ -320,12 +326,26 @@ def main():
     runner_linked=0;result_linked=0;final_odds_linked=0;pre_odds_events=0;pre_odds_runners=0
 
     try:
-        raw=fetch(RUNNERS_URL);page_date,races=parse_runners(raw)
-        if page_date and page_date!=today:races={}
+        cache_url=RUNNERS_URL+('?' if '?' not in RUNNERS_URL else '&')+'_ts='+str(int(time.time()))
+        raw=fetch(cache_url);page_date,races=parse_runners(raw);raw_races=len(races)
+        # If KRA exposes a stale selector date, never blindly accept it.  The
+        # only fallback trust path is a strong exact match against today's
+        # official schedule already stored on the events.
+        schedule_matches=0
+        for e in horse:
+            venue=venue_of(e);info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
+            if not info or not info.get('outcomes'):continue
+            if info.get('start_time') and e.get('start_time') and info['start_time']==e['start_time']:
+                schedule_matches+=1
+        min_matches=max(1,min(3,len(horse)))
+        selector_mismatch=bool(page_date and page_date!=today)
+        schedule_fallback=selector_mismatch and schedule_matches>=min_matches
+        if selector_mismatch and not schedule_fallback:races={}
         for e in horse:
             venue=venue_of(e);info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
             if not info:continue
             if info.get('start_time') and e.get('start_time') and info['start_time']!=e['start_time']:continue
+            if selector_mismatch and schedule_fallback and not (info.get('start_time') and e.get('start_time') and info['start_time']==e['start_time']):continue
             if info.get('outcomes'):
                 old={o.get('key'):o for o in e.get('outcomes',[]) if o.get('key')}
                 for o in info['outcomes']:
@@ -333,7 +353,7 @@ def main():
                     for k in ('model_p','model_source','model_updated_at','odds','odds_source','odds_capture_mode','odds_observed_at','final_rank','final_odds','final_place_odds','final_odds_source'):
                         if q.get(k) is not None:o[k]=q[k]
                 e['outcomes']=info['outcomes'];runner_linked+=1
-        set_provider(payload,'HORSE_RUNNERS_KRA','PASS' if runner_linked else ('NO_TODAY_CARD' if not horse else 'UNLINKED'),{'page_date':page_date,'races_parsed':len(races),'linked':runner_linked,'source_url':RUNNERS_URL})
+        set_provider(payload,'HORSE_RUNNERS_KRA','PASS' if runner_linked else ('NO_TODAY_CARD' if not horse else 'UNLINKED'),{'page_date':page_date,'raw_races_parsed':raw_races,'races_parsed':len(races),'schedule_signature_matches':schedule_matches,'selector_mismatch_fallback':schedule_fallback,'linked':runner_linked,'source_url':RUNNERS_URL})
     except Exception as e:
         set_provider(payload,'HORSE_RUNNERS_KRA','FETCH_RETRY',{'error':f'{type(e).__name__}:{e}'[:220],'source_url':RUNNERS_URL})
 
