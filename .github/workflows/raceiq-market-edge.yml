@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/raceiq-market-edge.yml'
       - 'race-sports/tools/market_edge_engine.py'
+      - 'race-sports/tools/market_edge_guard.py'
       - 'race-sports/tools/market_edge_ui_patch.py'
       - 'race-sports/data/today.json'
       - 'race-sports/data/sports_today.json'
@@ -33,8 +34,56 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Self-test market edge engine
-        run: python race-sports/tools/market_edge_engine.py --self-test
+      - name: Self-test market edge engine and freshness guard
+        shell: bash
+        run: |
+          python race-sports/tools/market_edge_engine.py --self-test
+          python race-sports/tools/market_edge_guard.py --self-test
+
+      - name: Refresh SPORTS source when snapshot is older than 20 minutes
+        env:
+          SPORTSGAMEODDS_API_KEY: ${{ secrets.SPORTSGAMEODDS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEEDS_REFRESH=$(python - <<'PY'
+          import json
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+          p=Path('race-sports/data/sports_today.json')
+          need=True
+          if p.exists():
+              try:
+                  d=json.loads(p.read_text(encoding='utf-8'))
+                  t=datetime.fromisoformat(str(d.get('generated_at') or '').replace('Z','+00:00'))
+                  if t.tzinfo is None:
+                      t=t.replace(tzinfo=timezone(timedelta(hours=9)))
+                  age=(datetime.now(timezone.utc)-t.astimezone(timezone.utc)).total_seconds()/60
+                  need=age>20
+                  print(f'SPORTS_SNAPSHOT_AGE_MIN={age:.1f}')
+              except Exception as exc:
+                  print(f'SPORTS_SNAPSHOT_AGE_ERROR={type(exc).__name__}:{exc}')
+          print('1' if need else '0')
+          PY
+          )
+          NEEDS_REFRESH=$(printf '%s\n' "$NEEDS_REFRESH" | tail -n 1)
+          echo "SPORTS_EDGE_REFRESH_NEEDED=$NEEDS_REFRESH"
+          if [ "$NEEDS_REFRESH" = "1" ]; then
+            cp race-sports/data/sports_today.json /tmp/raceiq-edge-sports-before.json 2>/dev/null || true
+            if ! timeout 90s python race-sports/tools/sports_static_collector.py; then
+              echo 'SPORTS_EDGE_REFRESH=COLLECTOR_DEGRADED'
+              if [ -f /tmp/raceiq-edge-sports-before.json ]; then
+                cp /tmp/raceiq-edge-sports-before.json race-sports/data/sports_today.json
+              fi
+            else
+              python race-sports/tools/sports_team_ko.py
+              if ! timeout 45s python race-sports/tools/sports_odds_enricher.py; then
+                echo 'SPORTS_EDGE_ODDS=DEGRADED_KEEP_SOURCE_ODDS'
+              fi
+              python race-sports/tools/inject_sports_model.py
+              echo 'SPORTS_EDGE_REFRESH=PASS'
+            fi
+          fi
 
       - name: Patch committed UI for upset-first decisions
         run: python race-sports/tools/market_edge_ui_patch.py
@@ -57,7 +106,10 @@ jobs:
           node --check /tmp/raceiq-live.js
 
       - name: Enrich current snapshots with market decisions
-        run: python race-sports/tools/market_edge_engine.py
+        shell: bash
+        run: |
+          python race-sports/tools/market_edge_engine.py
+          python race-sports/tools/market_edge_guard.py
 
       - name: Validate snapshots
         shell: bash
