@@ -131,15 +131,11 @@ def _fetch_event(event, today):
         return event.get('id'), None, f'{type(exc).__name__}:{exc}'[:180]
 
 
-def main():
-    doc = json.loads(DATA.read_text(encoding='utf-8'))
+def repair_doc(doc):
     today = str(doc.get('date') or '')
     horse = [e for e in doc.get('events', []) if e.get('sport') == 'HORSE']
     final_events = [e for e in horse if e.get('status') == 'FINAL']
 
-    # Remove runner rows supplied through an explicitly stale ChulmaDate page.
-    # A later strict-date venue fetch may repopulate scheduled cards. Final
-    # cards are rebuilt below from date-bound result-detail URLs.
     base = next((p for p in doc.get('providers', []) if p.get('provider') == 'HORSE_RUNNERS_KRA'), {})
     detail = base.get('detail') or {}
     page_date = detail.get('page_date')
@@ -192,9 +188,15 @@ def main():
             'errors': errors[:5],
         },
     })
+    return repaired, len(final_events), cleared, errors, status
+
+
+def main():
+    doc = json.loads(DATA.read_text(encoding='utf-8'))
+    repaired, final_count, cleared, errors, status = repair_doc(doc)
     doc['generated_at'] = datetime.now(KST).isoformat()
     DATA.write_text(json.dumps(doc, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
-    print(json.dumps({'KRA_FINAL_RUNNER_REPAIR': status, 'repaired': repaired, 'final_events': len(final_events), 'cleared': cleared, 'errors': len(errors)}, ensure_ascii=False))
+    print(json.dumps({'KRA_FINAL_RUNNER_REPAIR': status, 'repaired': repaired, 'final_events': final_count, 'cleared': cleared, 'errors': len(errors)}, ensure_ascii=False))
 
 
 if __name__ == '__main__':
