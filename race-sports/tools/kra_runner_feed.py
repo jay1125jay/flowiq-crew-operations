@@ -1,20 +1,25 @@
-import math
 import time
 from kra_official_enricher import RUNNERS_URL, MEET_CODE, fetch, parse_runners, venue_of
 
 PROVIDER = 'HORSE_RUNNERS_KRA'
 
 
-def _runner_urls(venue):
+def _runner_urls(venue, today):
     meet = MEET_CODE.get(venue)
     if not meet:
         return []
     ts = str(int(time.time()))
-    # KRA serves the same runner-card layout by meet. Try the explicit meet
-    # selector first, then the menu-qualified variant used by venue pages.
+    sub = {'서울': '2', '제주': '3', '부경': '4', '부산경남': '4', '영천': '5'}.get(venue, '1')
+    ymd = today.replace('-', '')
+    # Use venue-qualified KRA tabs first. Date-qualified variants are tried
+    # before generic URLs, but a response is accepted only when the page itself
+    # identifies today's date. We never infer date identity from start times.
     return [
+        f'{RUNNERS_URL}?Act=02&Sub={sub}&meet={meet}&rcDate={ymd}&_ts={ts}',
+        f'{RUNNERS_URL}?Act=02&Sub={sub}&meet={meet}&realRcDate={ymd}&_ts={ts}',
+        f'{RUNNERS_URL}?Act=02&Sub={sub}&meet={meet}&searchDate={ymd}&_ts={ts}',
+        f'{RUNNERS_URL}?Act=02&Sub={sub}&meet={meet}&_ts={ts}',
         f'{RUNNERS_URL}?meet={meet}&_ts={ts}',
-        f'{RUNNERS_URL}?Act=02&Sub=1&meet={meet}&_ts={ts}',
     ]
 
 
@@ -53,54 +58,35 @@ def enrich_doc(doc):
             (venue, int(e.get('race_no') or 0)): e
             for e in horse if venue_of(e) == venue
         }
-        required_signature = max(3, min(len(venue_events), int(math.ceil(len(venue_events) * 0.60)))) if venue_events else 1
         best = {}
         best_meta = None
-        for url in _runner_urls(venue):
+        for url in _runner_urls(venue, today):
             try:
                 raw = fetch(url, timeout=8, retries=1)
                 page_date, races = parse_runners(raw)
-                signature_matches = 0
-                for key, event in venue_events.items():
-                    info = races.get(key)
-                    if not info or not info.get('outcomes'):
-                        continue
-                    src_time = info.get('start_time')
-                    dst_time = event.get('start_time')
-                    if src_time and dst_time and src_time == dst_time:
-                        signature_matches += 1
-
-                # KRA can expose an older selected-option date even while the
-                # rendered venue card is current. A quorum of exact venue/race/
-                # start-time matches against the separately fetched official
-                # schedule proves the card identity; after that, accept the
-                # whole venue card so a single changed start time is not lost.
-                page_trusted = (page_date == today) or (signature_matches >= required_signature)
                 usable = {}
-                for key, event in venue_events.items():
-                    info = races.get(key)
-                    if not info or not info.get('outcomes'):
-                        continue
-                    src_time = info.get('start_time')
-                    dst_time = event.get('start_time')
-                    exact_time = bool(src_time and dst_time and src_time == dst_time)
-                    if page_trusted or exact_time:
+                if page_date == today:
+                    for key, event in venue_events.items():
+                        info = races.get(key)
+                        if not info or not info.get('outcomes'):
+                            continue
+                        src_time = info.get('start_time')
+                        dst_time = event.get('start_time')
+                        if src_time and dst_time and src_time != dst_time:
+                            continue
                         usable[key] = info
-
                 meta = {
                     'venue': venue,
                     'url': url,
                     'page_date': page_date,
                     'raw_races': len(races),
                     'trusted_races': len(usable),
-                    'schedule_signature_matches': signature_matches,
-                    'required_signature': required_signature,
-                    'venue_card_trusted': page_trusted,
+                    'date_verified': page_date == today,
                 }
                 if len(usable) > len(best):
                     best = usable
                     best_meta = meta
-                if page_trusted and len(usable) >= len(venue_events):
+                if page_date == today and len(usable) >= len(venue_events):
                     break
             except Exception as exc:
                 errors.append(f'{venue}:{type(exc).__name__}:{exc}'[:220])
@@ -126,12 +112,10 @@ def enrich_doc(doc):
     prior_detail = dict((prior or {}).get('detail') or {})
     prior_linked = int(prior_detail.get('linked') or 0)
 
-    # Existing KRA enrichment may already have linked one venue. Count actual
-    # populated cards after this merge so provider state reflects real coverage.
     populated = sum(1 for e in horse if len(e.get('outcomes') or []) >= 2)
     coverage_status = 'PASS' if total and populated == total else ('PARTIAL' if populated else ('NO_TODAY_CARD' if not total else 'UNLINKED'))
     prior_detail.update({
-        'status_source': 'VENUE_SPECIFIC_KRA_RUNNER_FEED',
+        'status_source': 'VENUE_SPECIFIC_KRA_RUNNER_FEED_STRICT_DATE',
         'linked_before_venue_merge': prior_linked,
         'linked_venue_merge': linked,
         'linked': populated,
@@ -140,6 +124,7 @@ def enrich_doc(doc):
         'linked_by_venue': linked_by_venue,
         'venue_sources': source_meta,
         'venue_errors': errors[:4],
+        'stale_page_policy': 'REJECT',
     })
     providers[:] = [p for p in providers if p.get('provider') != PROVIDER]
     providers.append({'provider': PROVIDER, 'status': coverage_status, 'detail': prior_detail})
