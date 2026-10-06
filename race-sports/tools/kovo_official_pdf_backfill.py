@@ -25,7 +25,9 @@ BASE="https://dbbank.kovo.co.kr/upload/gamereport"
 GPART="201"
 SEED_SEASONS=("022","021")
 MAX_GAME_DEFAULT=260
-REVISION="KOVO_PDF_V2_PADDED_AND_UNPADDED"
+REVISION="KOVO_PDF_V3_ARCHIVE_BOUNDARY"
+MIN_OFFICIAL_PDF_SEASON="015"
+
 
 def report_urls(season:str,game_no:int)->list[str]:
     # KOVO DB BANK has used both zero-padded and legacy unpadded game numbers.
@@ -40,9 +42,11 @@ def report_urls(season:str,game_no:int)->list[str]:
         if url not in out:out.append(url)
     return out
 
+
 def report_url(season:str,game_no:int)->str:
     # Keep compatibility with callers that expect the modern padded URL.
     return report_urls(season,game_no)[0]
+
 
 def fetch_pdf(url:str,timeout:int=15,retries:int=1)->bytes|None:
     last=None
@@ -66,8 +70,10 @@ def fetch_pdf(url:str,timeout:int=15,retries:int=1)->bytes|None:
         if i<retries:time.sleep(.4*(i+1))
     return None
 
+
 def norm(s:str)->str:
     return " ".join(str(s or "").replace("\xa0"," ").split())
+
 
 def parse_pdf(raw:bytes,season:str,game_no:int,url:str)->dict|None:
     if PdfReader is None:
@@ -150,6 +156,7 @@ def parse_pdf(raw:bytes,season:str,game_no:int,url:str)->dict|None:
         },
     }
 
+
 def fetch_one(season:str,n:int):
     for url in report_urls(season,n):
         raw=fetch_pdf(url)
@@ -158,7 +165,21 @@ def fetch_one(season:str,n:int):
         if event:return n,event
     return n,None
 
+
 def scan_season(season:str,max_game:int,workers:int=6)->tuple[list[dict],dict]:
+    # The official DB BANK post-game PDF archive is verifiably populated from
+    # season code 015 onward. Code 014 returns zero documents across both known
+    # filename conventions, so treat it as an archive boundary rather than a
+    # collector failure and do not waste hundreds of requests every run.
+    if season < MIN_OFFICIAL_PDF_SEASON:
+        return [],{
+            "season":season,
+            "scanned":0,
+            "parsed_events":0,
+            "legacy_unpadded_events":0,
+            "status":"UNAVAILABLE_OFFICIAL_PDF",
+            "reason":f"KOVO_DBBANK_PDF_ARCHIVE_STARTS_AT_{MIN_OFFICIAL_PDF_SEASON}",
+        }
     rows=[]
     with ThreadPoolExecutor(max_workers=max(1,min(workers,8))) as ex:
         futs={ex.submit(fetch_one,season,n):n for n in range(1,max_game+1)}
@@ -177,6 +198,7 @@ def scan_season(season:str,max_game:int,workers:int=6)->tuple[list[dict],dict]:
         "legacy_unpadded_events":legacy_count,
         "status":"PASS" if rows else "FAIL",
     }
+
 
 def merge_events(events:list[dict])->dict:
     HIST.mkdir(parents=True,exist_ok=True)
@@ -215,29 +237,31 @@ def merge_events(events:list[dict])->dict:
             p.write_text(new,encoding="utf-8");changed_files+=1
     return {"changed_files":changed_files,"added":added,"replaced":replaced}
 
+
 def load_state():
     if STATE.exists():
         try:return json.loads(STATE.read_text(encoding="utf-8"))
         except Exception:pass
     return {"completed_seed_seasons":[],"last_run":None}
 
+
 def save_state(s):
     STATE.parent.mkdir(parents=True,exist_ok=True)
     STATE.write_text(json.dumps(s,ensure_ascii=False,indent=2),encoding="utf-8")
 
+
 def backfill(seasons:list[str],max_game:int,workers:int,force:bool=False):
     state=load_state()
-    # Previous revisions could mark a season complete even though legacy
-    # unpadded game numbers 1-99 were never checked. Invalidate once.
-    if state.get("revision")!=REVISION:
+    # V3 changes only archive-boundary semantics. Preserve already validated
+    # V2 completed seasons so we do not rescan thousands of official PDFs.
+    if state.get("revision") not in {REVISION,"KOVO_PDF_V2_PADDED_AND_UNPADDED"}:
         state["completed_seed_seasons"]=[]
-        state["revision"]=REVISION
         state["revision_reset_at"]=datetime.now(KST).isoformat()
+    state["revision"]=REVISION
     all_events=[];reports=[]
     done=set(state.get("completed_seed_seasons") or [])
     selected=[s for s in seasons if force or s not in done]
     if not selected:
-        state["revision"]=REVISION
         save_state(state)
         print(json.dumps({"KOVO_PDF_BACKFILL":"PASS","revision":REVISION,"skipped_completed":seasons,"events":0,"merge":{"changed_files":0,"added":0,"replaced":0}},ensure_ascii=False))
         return
@@ -245,18 +269,24 @@ def backfill(seasons:list[str],max_game:int,workers:int,force:bool=False):
         events,meta=scan_season(season,max_game,workers)
         reports.append(meta);all_events.extend(events)
     merge=merge_events(all_events)
+    accepted={"PASS","UNAVAILABLE_OFFICIAL_PDF"}
+    unavailable=[]
     for meta in reports:
-        if meta["status"]=="PASS":done.add(meta["season"])
+        if meta["status"] in accepted:done.add(meta["season"])
+        if meta["status"]=="UNAVAILABLE_OFFICIAL_PDF":unavailable.append(meta["season"])
     state["completed_seed_seasons"]=sorted(done,reverse=True)
+    state["unavailable_official_pdf_seasons"]=sorted(set((state.get("unavailable_official_pdf_seasons") or [])+unavailable),reverse=True)
+    state["official_pdf_min_season"]=MIN_OFFICIAL_PDF_SEASON
     state["revision"]=REVISION
     state["last_run"]=datetime.now(KST).isoformat()
     state["last_reports"]=reports
     state["last_merge"]=merge
     save_state(state)
     print(json.dumps({
-        "KOVO_PDF_BACKFILL":"PASS" if all(x["status"]=="PASS" for x in reports) else "PARTIAL",
+        "KOVO_PDF_BACKFILL":"PASS" if all(x["status"] in accepted for x in reports) else "PARTIAL",
         "revision":REVISION,"reports":reports,"events":len(all_events),"merge":merge
     },ensure_ascii=False))
+
 
 def self_test():
     modern_url=report_url("022",237)
@@ -279,12 +309,18 @@ def self_test():
     assert legacy and legacy["event_date"]=="2018-11-05",legacy
     assert legacy["home"]=="현대캐피탈" and legacy["away"]=="KB손해보험",legacy
     assert legacy["result"]["home_score"]==3 and legacy["result"]["away_score"]==0,legacy
+
+    unavailable,meta=scan_season("014",260,1)
+    assert unavailable==[] and meta["status"]=="UNAVAILABLE_OFFICIAL_PDF",meta
+    assert meta["scanned"]==0,meta
     print(json.dumps({
         "KOVO_PDF_SELF_TEST":"PASS",
         "modern_event":e["id"],
         "legacy_event":legacy["id"],
+        "archive_boundary":meta,
         "revision":REVISION
     },ensure_ascii=False))
+
 
 def main():
     ap=argparse.ArgumentParser()
