@@ -17,10 +17,11 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: race-sports-sports-backfill
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   backfill:
@@ -45,8 +46,24 @@ jobs:
           python race-sports/tools/sports_history_backfill.py --self-test
           python race-sports/tools/inject_sports_model.py --self-test
 
+      - name: Capture checkpoint before collection
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_ENV"
+          import json
+          from pathlib import Path
+          p=Path('race-sports/data/historical_state/sports_backfill_state.json')
+          if p.exists():
+              try:s=json.loads(p.read_text(encoding='utf-8'))
+              except Exception:s={}
+          else:s={}
+          print('SPORTS_CURSOR_BEFORE='+str(s.get('cursor_date') or '9999-12-31'))
+          print('SPORTS_REVISION_BEFORE='+str(s.get('revision') or ''))
+          print('SPORTS_TARGET_BEFORE='+str(s.get('target_start_date') or '2022-01-01'))
+          PY
+
       - name: Seed official KOVO history
-        run: python race-sports/tools/kovo_official_pdf_backfill.py --seasons 022,021 --max-game 260 --workers 6
+        run: python race-sports/tools/kovo_official_pdf_backfill.py --seasons 022,021,020,019,018,017,016,015,014 --max-game 260 --workers 6
 
       - name: Live provider probe
         if: github.event_name == 'push'
@@ -103,8 +120,9 @@ jobs:
             cp race-sports/data/historical_state/sports_backfill_state.json /tmp/origin-sports-state.json 2>/dev/null || true
             tar -xzf /tmp/raceiq-sports-backfill.tgz
 
-            # Checkpoint progress is monotonic: an older concurrent checkout may
-            # add history files, but it may never move cursor/counters backwards.
+            # Checkpoint progress is monotonic, but target expansion is allowed.
+            # A completed checkpoint for a shallower target must never block a
+            # newer revision that intentionally extends history further back.
             python - <<'PY'
           import json
           from pathlib import Path
@@ -120,8 +138,25 @@ jobs:
           def cursor(s):
               return str(s.get('cursor_date') or '9999-12-31')
 
-          # Earlier cursor date means deeper historical progress.
-          if latest.get('complete') and not candidate.get('complete'):
+          def target(s):
+              explicit=s.get('target_start_date')
+              if explicit:
+                  return str(explicit)
+              rev=str(s.get('revision') or '')
+              if rev.startswith('SPORTS_BACKFILL_V3'):
+                  return '2022-01-01'
+              return '9999-12-31'
+
+          ct,lt=target(candidate),target(latest)
+          same_target=(ct==lt)
+
+          if ct < lt:
+              chosen=dict(candidate)
+              reason='TARGET_EXPANDED'
+          elif lt < ct:
+              chosen=dict(latest)
+              reason='BLOCKED_TARGET_REGRESSION'
+          elif latest.get('complete') and not candidate.get('complete'):
               chosen=dict(latest)
               reason='LATEST_COMPLETE'
           elif cursor(latest) < cursor(candidate):
@@ -133,15 +168,22 @@ jobs:
 
           chosen['calls_total']=max(int(latest.get('calls_total',0)), int(candidate.get('calls_total',0)))
           chosen['days_saved']=max(int(latest.get('days_saved',0)), int(candidate.get('days_saved',0)))
-          chosen['complete']=bool(latest.get('complete',False) or candidate.get('complete',False))
-          chosen['revision']=candidate.get('revision') or latest.get('revision')
+          if same_target:
+              chosen['complete']=bool(latest.get('complete',False) or candidate.get('complete',False))
+          else:
+              chosen['complete']=bool(chosen.get('complete',False))
+          chosen['target_start_date']=target(chosen)
+          chosen['revision']=chosen.get('revision') or candidate.get('revision') or latest.get('revision')
           current.write_text(json.dumps(chosen,ensure_ascii=False,indent=2),encoding='utf-8')
           print(json.dumps({
               'SPORTS_CHECKPOINT_GUARD':'PASS',
               'reason':reason,
+              'origin_target':lt,
+              'candidate_target':ct,
               'origin_cursor':cursor(latest),
               'candidate_cursor':cursor(candidate),
               'published_cursor':cursor(chosen),
+              'complete':chosen['complete'],
               'days_saved':chosen['days_saved'],
               'calls_total':chosen['calls_total'],
           },ensure_ascii=False))
@@ -154,16 +196,49 @@ jobs:
 
             if git diff --cached --quiet; then
               echo "No SPORTS backfill change"
-              exit 0
+              break
             fi
 
             git commit -m "chore: advance RACEIQ sports history backfill"
             if git push origin HEAD:main; then
               echo "SPORTS_BACKFILL_PUBLISH=PASS"
-              exit 0
+              break
             fi
             echo "Push conflict; replaying generated SPORTS output ($n/5)"
+            if [ "$n" = "5" ]; then
+              echo "SPORTS_BACKFILL_PUBLISH=FAIL"
+              exit 1
+            fi
           done
 
-          echo "SPORTS_BACKFILL_PUBLISH=FAIL"
-          exit 1
+      - name: Continue deep backfill chain when progress remains
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+          python - <<'PY' > /tmp/sports-continue.env
+          import json
+          import os
+          from pathlib import Path
+
+          p=Path('race-sports/data/historical_state/sports_backfill_state.json')
+          s=json.loads(p.read_text(encoding='utf-8'))
+          before=os.environ.get('SPORTS_CURSOR_BEFORE','9999-12-31')
+          after=str(s.get('cursor_date') or '9999-12-31')
+          complete=bool(s.get('complete',False))
+          target=str(s.get('target_start_date') or '2022-01-01')
+          progressed=after < before
+          should=(not complete) and progressed and after >= target
+          print('SPORTS_CONTINUE='+('1' if should else '0'))
+          print('SPORTS_CURSOR_AFTER='+after)
+          print('SPORTS_TARGET='+target)
+          print('SPORTS_COMPLETE='+('1' if complete else '0'))
+          print('SPORTS_PROGRESSED='+('1' if progressed else '0'))
+          PY
+          cat /tmp/sports-continue.env
+          source /tmp/sports-continue.env
+          if [ "$SPORTS_CONTINUE" = "1" ]; then
+            gh workflow run race-sports-sports-backfill.yml --ref main
+          fi
