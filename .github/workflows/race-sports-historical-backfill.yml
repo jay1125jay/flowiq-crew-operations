@@ -9,6 +9,7 @@ on:
       - 'race-sports/tools/historical_backfill.py'
       - 'race-sports/tools/historical_backfill_hardening.py'
       - 'race-sports/tools/historical_cycle_result_fallback.py'
+      - 'race-sports/tools/historical_retry_repair.py'
       - 'race-sports/tools/historical_backfill_runner.py'
       - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/validate_horse_model.py'
@@ -60,6 +61,7 @@ jobs:
           python race-sports/tools/historical_backfill.py --self-test
           python race-sports/tools/historical_backfill_hardening.py --self-test
           python race-sports/tools/historical_cycle_result_fallback.py --self-test
+          python race-sports/tools/historical_retry_repair.py
 
       - name: Quality gate before collection
         run: python race-sports/tools/backfill_quality_guard.py
