@@ -140,9 +140,90 @@ jobs:
           for n in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
-            cp /tmp/raceiq-fast-after.json race-sports/data/today.json
+
+            # Apply only fields changed by the fast result refresh onto the
+            # newest main snapshot. Never replace the whole file with the
+            # checkout-time copy because that can roll back newer odds/model data.
+            python - <<'PY'
+          import json
+          from copy import deepcopy
+          from pathlib import Path
+
+          before=json.loads(Path('/tmp/raceiq-fast-before.json').read_text(encoding='utf-8'))
+          after=json.loads(Path('/tmp/raceiq-fast-after.json').read_text(encoding='utf-8'))
+          target_path=Path('race-sports/data/today.json')
+          latest=json.loads(target_path.read_text(encoding='utf-8'))
+
+          before_events={e.get('id'):e for e in before.get('events',[]) if e.get('id')}
+          after_events={e.get('id'):e for e in after.get('events',[]) if e.get('id')}
+          latest_events={e.get('id'):e for e in latest.get('events',[]) if e.get('id')}
+
+          def outcome_key(o):
+              if o.get('key') is not None:return ('key',str(o.get('key')))
+              if o.get('number') is not None:return ('number',str(o.get('number')))
+              return ('name',str(o.get('name') or ''))
+
+          touched=0
+          for eid,a in after_events.items():
+              b=before_events.get(eid)
+              if b is None:
+                  if eid not in latest_events:
+                      latest.setdefault('events',[]).append(deepcopy(a))
+                      latest_events[eid]=latest['events'][-1]
+                      touched+=1
+                  continue
+              t=latest_events.get(eid)
+              if t is None:
+                  latest.setdefault('events',[]).append(deepcopy(a))
+                  latest_events[eid]=latest['events'][-1]
+                  touched+=1
+                  continue
+
+              for field in ('status','result'):
+                  if a.get(field)!=b.get(field):
+                      t[field]=deepcopy(a.get(field))
+                      touched+=1
+
+              b_out={outcome_key(o):o for o in (b.get('outcomes') or [])}
+              t_out={outcome_key(o):o for o in (t.get('outcomes') or [])}
+              for ao in (a.get('outcomes') or []):
+                  key=outcome_key(ao)
+                  bo=b_out.get(key,{})
+                  to=t_out.get(key)
+                  if to is None:
+                      t.setdefault('outcomes',[]).append(deepcopy(ao))
+                      t_out[key]=t['outcomes'][-1]
+                      touched+=1
+                      continue
+                  for k,v in ao.items():
+                      if bo.get(k)!=v:
+                          to[k]=deepcopy(v)
+                          touched+=1
+
+          before_providers={p.get('provider'):p for p in before.get('providers',[]) if p.get('provider')}
+          after_providers={p.get('provider'):p for p in after.get('providers',[]) if p.get('provider')}
+          latest_providers={p.get('provider'):p for p in latest.get('providers',[]) if p.get('provider')}
+          for name,a in after_providers.items():
+              b=before_providers.get(name)
+              if b is None:
+                  if name not in latest_providers:
+                      latest.setdefault('providers',[]).append(deepcopy(a));touched+=1
+                  continue
+              t=latest_providers.get(name)
+              if t is None:
+                  latest.setdefault('providers',[]).append(deepcopy(a));touched+=1
+                  continue
+              for k,v in a.items():
+                  if b.get(k)!=v:
+                      t[k]=deepcopy(v);touched+=1
+
+          target_path.write_text(json.dumps(latest,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(f'FAST_RESULT_DELTA_MERGE=PASS touched={touched}')
+          PY
+
+            python race-sports/tools/validate_snapshot.py race-sports/data/today.json
             mkdir -p race-sports/data/history
-            cp /tmp/raceiq-fast-after.json "race-sports/data/history/${DATE}.json"
+            cp race-sports/data/today.json "race-sports/data/history/${DATE}.json"
             git add race-sports/data/today.json "race-sports/data/history/${DATE}.json"
 
             if git diff --cached --quiet; then
