@@ -115,6 +115,12 @@ def apply(event, vals, observed_at, mode):
             o['odds_observed_at'] = observed_at
 
 
+def set_provider(payload, status, detail):
+    providers = [p for p in payload.get('providers', []) if p.get('provider') != 'BOAT_LIVE_ODDS_KBOAT']
+    providers.append({'provider': 'BOAT_LIVE_ODDS_KBOAT', 'status': status, 'detail': detail})
+    payload['providers'] = providers
+
+
 def main():
     payload = json.loads(DATA.read_text(encoding='utf-8'))
     now = datetime.now(KST)
@@ -124,6 +130,22 @@ def main():
         restore_capture_provenance(event)
 
     payload['errors'] = [x for x in payload.get('errors', []) if not str(x).startswith('BOAT odds ')]
+
+    # No BOAT card means there is nothing to join. Do not hit the live odds
+    # endpoint just to discover that fact; it creates false FETCH_RETRY states
+    # and wastes ~20 seconds on official-site network retries.
+    if not events:
+        detail = {
+            'market': '단승식',
+            'source': 'KBOAT_FINAL',
+            'capture': 'CURRENT_PUBLISHED_RACE_ONLY',
+            'active_pre_race_odds_events': 0,
+            'reason': 'NO_TODAY_BOAT_EVENT',
+        }
+        set_provider(payload, 'NO_TODAY_CARD', detail)
+        DATA.write_text(json.dumps(payload, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+        print(json.dumps({'status': 'NO_TODAY_CARD', **detail}, ensure_ascii=False))
+        return
 
     status = 'WAITING'
     detail = {'market': '단승식', 'source': 'KBOAT_FINAL', 'capture': 'CURRENT_PUBLISHED_RACE_ONLY'}
@@ -135,8 +157,6 @@ def main():
         detail['context'] = ctx
         if ctx and vals:
             y, tms, day, race = ctx
-            # The daily feed contains only one KBOAT venue/day, so race_no is the
-            # most robust join key. Meeting/day are retained below for audit only.
             target = next((e for e in events if int(e.get('race_no') or 0) == race), None)
             detail['published_race'] = race
             detail['single_odds'] = vals
@@ -182,9 +202,7 @@ def main():
             active_odds += 1
     detail['active_pre_race_odds_events'] = active_odds
 
-    providers = [p for p in payload.get('providers', []) if p.get('provider') != 'BOAT_LIVE_ODDS_KBOAT']
-    providers.append({'provider': 'BOAT_LIVE_ODDS_KBOAT', 'status': status, 'detail': detail})
-    payload['providers'] = providers
+    set_provider(payload, status, detail)
     DATA.write_text(json.dumps(payload, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     print(json.dumps({'status': status, **detail}, ensure_ascii=False))
 
