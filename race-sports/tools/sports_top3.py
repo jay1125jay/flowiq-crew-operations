@@ -12,7 +12,11 @@ SNAPSHOT = ROOT / "data" / "sports_today.json"
 LOCK_FILE = ROOT / "data" / "model_state" / "sports_top3_lock.json"
 KST = timezone(timedelta(hours=9))
 SPORTS = ("SOCCER", "BASEBALL", "BASKETBALL", "VOLLEYBALL")
-VERSION = "SPORTS_TOP3_V1_DAILY_LOCK"
+VERSION = "SPORTS_TOP3_V2_EDGE_GATED_DAILY_LOCK"
+VALUE_EDGE_MIN = 0.03
+VALUE_EV_MIN = 0.05
+UPSET_EDGE_MIN = 0.05
+UPSET_EV_MIN = 0.08
 
 
 def _f(v, default=None):
@@ -103,6 +107,47 @@ def _market_rows(e: dict) -> dict[str, dict]:
     return out
 
 
+def _qualifying_market_pick(e: dict, rows: list, market: dict[str, dict]):
+    if not market:
+        return None
+    model_map = {k: p for k, p, _ in rows}
+    usable = {k: v for k, v in market.items() if k in model_map and _f(v.get("market_p")) is not None}
+    if len(usable) < 2:
+        return None
+    favorite = max(usable, key=lambda k: _f(usable[k].get("market_p"), 0.0))
+
+    decision = e.get("market_decision") if isinstance(e.get("market_decision"), dict) else {}
+    primary = decision.get("primary_pick") if isinstance(decision.get("primary_pick"), dict) else None
+    ordered_keys = []
+    if primary and str(primary.get("key")) in usable:
+        ordered_keys.append(str(primary["key"]))
+    ordered_keys.extend(k for k in model_map if k not in ordered_keys)
+
+    qualified = []
+    for key in ordered_keys:
+        mr = usable.get(key) or {}
+        edge = _f(mr.get("edge"))
+        ev = _f(mr.get("ev"))
+        if edge is None or ev is None:
+            continue
+        is_upset = key != favorite
+        if is_upset and edge >= UPSET_EDGE_MIN and ev >= UPSET_EV_MIN:
+            kind = "UPSET"
+            priority = 2
+        elif edge >= VALUE_EDGE_MIN and ev >= VALUE_EV_MIN:
+            kind = "VALUE"
+            priority = 1
+        else:
+            continue
+        qualified.append((priority, edge, ev, model_map[key], key, kind))
+
+    if not qualified:
+        return None
+    qualified.sort(reverse=True)
+    _, _, _, _, key, kind = qualified[0]
+    return key, kind
+
+
 def _candidate(e: dict):
     if e.get("sport") not in SPORTS:
         return None
@@ -115,22 +160,25 @@ def _candidate(e: dict):
         return None
 
     market = _market_rows(e)
-    decision = e.get("market_decision") if isinstance(e.get("market_decision"), dict) else {}
-    primary = decision.get("primary_pick") if isinstance(decision.get("primary_pick"), dict) else None
-
-    pick_key = rows[0][0]
-    basis = "AI_CONFIDENCE"
-    if primary and str(primary.get("key")) in {x[0] for x in rows}:
-        pick_key = str(primary["key"])
+    market_pick = _qualifying_market_pick(e, rows, market)
+    if market:
+        if not market_pick:
+            return None
+        pick_key, selection_type = market_pick
         basis = "MARKET_EDGE"
+    else:
+        pick_key = rows[0][0]
+        selection_type = "AI_ONLY"
+        basis = "AI_ONLY_NO_ODDS"
 
     model_map = {k: p for k, p, _ in rows}
     model_p = model_map[pick_key]
-    second = max((p for k, p, _ in rows if k != pick_key), default=0.0)
     n = len(rows)
     baseline = 1.0 / n
     prob_strength = _clamp((model_p - baseline) / max(1e-9, 1.0 - baseline))
-    margin_strength = _clamp((model_p - second) / 0.30)
+    ai_top_p = rows[0][1]
+    ai_second_p = rows[1][1]
+    separation_strength = _clamp((ai_top_p - ai_second_p) / 0.25)
 
     scope = e.get("model_history_scope") or {}
     comp_games = int(scope.get("competition_games") or 0)
@@ -149,14 +197,12 @@ def _candidate(e: dict):
     if ev is not None:
         market_strength += 0.4 * _clamp(max(ev, 0.0) / 0.15)
 
-    score = 100.0 * (
-        0.50 * prob_strength
-        + 0.20 * margin_strength
-        + 0.20 * history_strength
-        + 0.10 * market_strength
-    )
-    if basis == "MARKET_EDGE" and edge is not None and edge > 0:
-        score += min(5.0, edge * 25.0)
+    if basis == "MARKET_EDGE":
+        score = 100.0 * (0.35 * prob_strength + 0.20 * history_strength + 0.45 * market_strength)
+        if selection_type == "UPSET":
+            score += 4.0
+    else:
+        score = 100.0 * (0.55 * prob_strength + 0.20 * separation_strength + 0.25 * history_strength)
 
     confidence = "HIGH" if score >= 70 else "MEDIUM" if score >= 52 else "WATCH"
     return {
@@ -175,6 +221,7 @@ def _candidate(e: dict):
         "pick_key": pick_key,
         "pick_name": _pick_name(e, pick_key),
         "pick_basis": basis,
+        "selection_type": selection_type,
         "model_p": round(model_p, 8),
         "odds": round(odds, 6) if odds is not None else None,
         "market_p": round(market_p, 8) if market_p is not None else None,
@@ -217,8 +264,7 @@ def build(snapshot: dict, lock: dict | None = None, now: datetime | None = None)
     now_iso = now.isoformat(timespec="seconds")
 
     for sport in SPORTS:
-        existing = [dict(x) for x in by_sport.get(sport, []) if x.get("event_id")]
-        existing = existing[:3]
+        existing = [dict(x) for x in by_sport.get(sport, []) if x.get("event_id")][:3]
         used = {x["event_id"] for x in existing}
         candidates = []
         for e in snapshot.get("events", []):
@@ -237,7 +283,7 @@ def build(snapshot: dict, lock: dict | None = None, now: datetime | None = None)
         by_sport[sport] = existing
 
     lock["updated_at"] = now_iso
-    lock["policy"] = "MAX_3_PER_SPORT; KST_DATE_LOCK; SCHEDULED_FRESH_VALIDATED_ONLY; MARKET_EDGE_PICK_WHEN_AVAILABLE; NO_FORCED_FILL"
+    lock["policy"] = "MAX_3_PER_SPORT; KST_DATE_LOCK; SCHEDULED_FRESH_VALIDATED_ONLY; ODDS_PRESENT_REQUIRES_VALUE_OR_UPSET_EDGE; NO_ODDS_ALLOWS_AI_ONLY; NO_FORCED_FILL"
 
     public = {
         "version": VERSION,
@@ -245,6 +291,12 @@ def build(snapshot: dict, lock: dict | None = None, now: datetime | None = None)
         "generated_at": now_iso,
         "selection_state": "LOCKED_FOR_KST_DATE",
         "policy": lock["policy"],
+        "thresholds": {
+            "value_edge_min": VALUE_EDGE_MIN,
+            "value_ev_min": VALUE_EV_MIN,
+            "upset_edge_min": UPSET_EDGE_MIN,
+            "upset_ev_min": UPSET_EV_MIN,
+        },
         "by_sport": {},
         "counts": {},
     }
@@ -297,7 +349,15 @@ def self_test():
     public2, lock2 = build(snap, lock, now + timedelta(minutes=30))
     assert [x["event_id"] for x in public2["by_sport"]["BASKETBALL"]] == locked_ids
     assert lock2["date"] == "2026-10-07"
-    print(json.dumps({"SPORTS_TOP3_SELF_TEST": "PASS", "locked": locked_ids}, ensure_ascii=False))
+
+    bad = dict(events[0])
+    bad["id"] = "BAD"
+    bad["outcomes"] = [
+        {"key": "HOME", "name": "H", "model_p": 0.55, "odds": 1.05, "odds_data_state": "FRESH"},
+        {"key": "AWAY", "name": "A", "model_p": 0.45, "odds": 8.0, "odds_data_state": "FRESH"},
+    ]
+    assert _candidate(bad) is None or _candidate(bad)["pick_key"] != "HOME"
+    print(json.dumps({"SPORTS_TOP3_SELF_TEST": "PASS", "locked": locked_ids, "edge_gate": "PASS"}, ensure_ascii=False))
 
 
 def main():
