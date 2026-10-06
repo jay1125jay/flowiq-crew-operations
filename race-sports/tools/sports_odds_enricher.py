@@ -7,6 +7,7 @@ import math
 import os
 import re
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -90,9 +91,16 @@ def _request(params:dict,key:str)->dict:
             "User-Agent":"RACEIQ/1.0",
         },
     )
-    with urllib.request.urlopen(req,timeout=25) as r:
-        if r.status!=200:raise RuntimeError(f"HTTP_{r.status}")
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req,timeout=25) as r:
+            if r.status!=200:raise RuntimeError(f"HTTP_{r.status}")
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        try:
+            body=exc.read().decode("utf-8","replace")[:1200]
+        except Exception:
+            body=""
+        raise RuntimeError(f"HTTP_{exc.code}: {body or exc.reason}") from exc
 
 def _market_books(event:dict,sport:str)->dict:
     odds=event.get("odds") or {}
@@ -184,7 +192,7 @@ def enrich(path:Path=SNAPSHOT)->dict:
             remote[sport]=rows;meta.append(m)
         except Exception as exc:
             remote[sport]=[]
-            errors.append({"sport":sport,"error":str(exc)[:300]})
+            errors.append({"sport":sport,"error":str(exc)[:1200]})
 
     events_enriched=0;outcomes_enriched=0
     for e in payload.get("events",[]):
@@ -213,10 +221,7 @@ def enrich(path:Path=SNAPSHOT)->dict:
             e["odds_source"]="SPORTSGAMEODDS"
             e["odds_state"]="MULTI_BOOK_SOURCE_LABELED"
             e["odds_event_id"]=rem.get("eventID")
-            e["odds_books"]=sorted({
-                x["bookmaker"]
-                for rows in books.values() for x in rows
-            })
+            e["odds_books"]=sorted({x["bookmaker"] for rows in books.values() for x in rows})
             e["odds_data_state"]="FRESH"
             events_enriched+=1
             outcomes_enriched+=applied
@@ -260,18 +265,8 @@ def self_test():
         },
         "status":{"startsAt":"2026-10-03T20:00:00Z"},
         "odds":{
-            "points-home-game-ml-home":{
-                "byBookmaker":{
-                    "draftkings":{"odds":"-150","available":True,"lastUpdatedAt":"2026-10-03T12:00:00Z"},
-                    "pinnacle":{"odds":"-145","available":True,"lastUpdatedAt":"2026-10-03T12:00:01Z"},
-                }
-            },
-            "points-away-game-ml-away":{
-                "byBookmaker":{
-                    "draftkings":{"odds":"+130","available":True,"lastUpdatedAt":"2026-10-03T12:00:00Z"},
-                    "pinnacle":{"odds":"+135","available":True,"lastUpdatedAt":"2026-10-03T12:00:01Z"},
-                }
-            },
+            "points-home-game-ml-home":{"byBookmaker":{"draftkings":{"odds":"-150","available":True,"lastUpdatedAt":"2026-10-03T12:00:00Z"},"pinnacle":{"odds":"-145","available":True,"lastUpdatedAt":"2026-10-03T12:00:01Z"}}},
+            "points-away-game-ml-away":{"byBookmaker":{"draftkings":{"odds":"+130","available":True,"lastUpdatedAt":"2026-10-03T12:00:00Z"},"pinnacle":{"odds":"+135","available":True,"lastUpdatedAt":"2026-10-03T12:00:01Z"}}},
         }
     }
     b=_market_books(fixture,"BASEBALL")
@@ -280,13 +275,7 @@ def self_test():
     assert abs(b["AWAY"][0]["odds"]-2.35)<1e-9
     local={"home":"Los Angeles Dodgers","away":"Atlanta Braves","start_timestamp":int(datetime(2026,10,3,20,tzinfo=timezone.utc).timestamp())}
     assert _match(local,fixture)
-    soccer={
-        "odds":{
-            "points-home-reg-ml3way-home":{"byBookmaker":{"bet365":{"odds":"+120","available":True}}},
-            "points-all-reg-ml3way-draw":{"byBookmaker":{"bet365":{"odds":"+250","available":True}}},
-            "points-away-reg-ml3way-away":{"byBookmaker":{"bet365":{"odds":"+220","available":True}}},
-        }
-    }
+    soccer={"odds":{"points-home-reg-ml3way-home":{"byBookmaker":{"bet365":{"odds":"+120","available":True}}},"points-all-reg-ml3way-draw":{"byBookmaker":{"bet365":{"odds":"+250","available":True}}},"points-away-reg-ml3way-away":{"byBookmaker":{"bet365":{"odds":"+220","available":True}}}}}
     sb=_market_books(soccer,"SOCCER")
     assert set(sb)=={"HOME","DRAW","AWAY"}
     print(json.dumps({"SPORTS_ODDS_PROVIDER_SELF_TEST":"PASS"},ensure_ascii=False))
