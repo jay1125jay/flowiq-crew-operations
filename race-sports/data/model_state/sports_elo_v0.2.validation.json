@@ -1,56 +1,38 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
+    "BASEBALL": {
+      "games": 13683,
+      "holdout_rows": 4105,
+      "walk_forward_rows": 4105,
+      "accuracy": 0.553715,
+      "log_loss": 0.684739,
+      "brier": 0.245839,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.008408,
+      "validated": true,
+      "selected_params": {
+        "k": 4.0,
+        "home_adv": 30.0,
+        "scale": 450.0,
+        "shrink": 0.8
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "SOCCER": {
-      "games": 7495,
-      "holdout_rows": 2249,
-      "walk_forward_rows": 2249,
-      "accuracy": 0.522454,
-      "log_loss": 0.996008,
-      "brier": 0.197744,
+      "games": 9491,
+      "holdout_rows": 2848,
+      "walk_forward_rows": 2848,
+      "accuracy": 0.527037,
+      "log_loss": 0.993355,
+      "brier": 0.197322,
       "uniform_log_loss": 1.098612,
-      "log_loss_edge": 0.102605,
+      "log_loss_edge": 0.105257,
       "validated": true,
       "selected_params": {
         "k": 32.0,
         "home_adv": 60.0,
         "scale": 350.0,
-        "shrink": 1.0
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "BASEBALL": {
-      "games": 11058,
-      "holdout_rows": 3318,
-      "walk_forward_rows": 3318,
-      "accuracy": 0.556058,
-      "log_loss": 0.684915,
-      "brier": 0.245915,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.008232,
-      "validated": true,
-      "selected_params": {
-        "k": 4.0,
-        "home_adv": 30.0,
-        "scale": 350.0,
-        "shrink": 0.8
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "BASKETBALL": {
-      "games": 4802,
-      "holdout_rows": 1441,
-      "walk_forward_rows": 1441,
-      "accuracy": 0.664122,
-      "log_loss": 0.624897,
-      "brier": 0.217092,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.068251,
-      "validated": true,
-      "selected_params": {
-        "k": 20.0,
-        "home_adv": 30.0,
-        "scale": 430.0,
         "shrink": 1.0
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
@@ -72,26 +54,44 @@
         "shrink": 0.65
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
+    "BASKETBALL": {
+      "games": 6500,
+      "holdout_rows": 1950,
+      "walk_forward_rows": 1950,
+      "accuracy": 0.658462,
+      "log_loss": 0.616664,
+      "brier": 0.213658,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.076483,
+      "validated": true,
+      "selected_params": {
+        "k": 28.0,
+        "home_adv": 50.0,
+        "scale": 360.0,
+        "shrink": 0.8
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 24102,
+  "history_events": 30421,
   "competition_history": {
-    "BASEBALL::KBO": 1332,
-    "BASEBALL::MLB": 9726,
-    "BASKETBALL::KBL": 612,
-    "BASKETBALL::NBA": 4190,
+    "BASEBALL::KBO": 1865,
+    "BASEBALL::MLB": 11818,
+    "BASKETBALL::KBL": 919,
+    "BASKETBALL::NBA": 5581,
     "SOCCER::AFC Asian Cup": 51,
-    "SOCCER::AFC Champions League Elite": 262,
-    "SOCCER::AFC Champions League Two": 237,
-    "SOCCER::Bundesliga": 954,
-    "SOCCER::International Friendly": 486,
+    "SOCCER::AFC Champions League Elite": 271,
+    "SOCCER::AFC Champions League Two": 240,
+    "SOCCER::Bundesliga": 1197,
+    "SOCCER::International Friendly": 838,
     "SOCCER::K League 1": 228,
-    "SOCCER::LaLiga": 1209,
-    "SOCCER::Ligue 1": 963,
-    "SOCCER::Premier League": 1190,
-    "SOCCER::Serie A": 1190,
-    "SOCCER::UEFA Champions League": 521,
-    "SOCCER::UEFA Nations League": 204,
+    "SOCCER::LaLiga": 1524,
+    "SOCCER::Ligue 1": 1263,
+    "SOCCER::Premier League": 1503,
+    "SOCCER::Serie A": 1501,
+    "SOCCER::UEFA Champions League": 614,
+    "SOCCER::UEFA Nations League": 261,
     "VOLLEYBALL::KOVO V-League": 747
   },
   "safety": {
