@@ -88,7 +88,7 @@ jobs:
             race-sports/data/historical_state/kovo_pdf_backfill_state.json \
             race-sports/data/model_state/sports_elo_v0.2.validation.json
 
-      - name: Publish SPORTS backfill conflict-safe
+      - name: Publish SPORTS backfill conflict-safe and monotonic
         shell: bash
         run: |
           set -euo pipefail
@@ -98,7 +98,54 @@ jobs:
           for n in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
+
+            # Preserve the newest checkpoint before replaying this run's output.
+            cp race-sports/data/historical_state/sports_backfill_state.json /tmp/origin-sports-state.json 2>/dev/null || true
             tar -xzf /tmp/raceiq-sports-backfill.tgz
+
+            # Checkpoint progress is monotonic: an older concurrent checkout may
+            # add history files, but it may never move cursor/counters backwards.
+            python - <<'PY'
+          import json
+          from pathlib import Path
+
+          current=Path('race-sports/data/historical_state/sports_backfill_state.json')
+          origin=Path('/tmp/origin-sports-state.json')
+          if not current.exists() or not origin.exists():
+              raise SystemExit(0)
+
+          candidate=json.loads(current.read_text(encoding='utf-8'))
+          latest=json.loads(origin.read_text(encoding='utf-8'))
+
+          def cursor(s):
+              return str(s.get('cursor_date') or '9999-12-31')
+
+          # Earlier cursor date means deeper historical progress.
+          if latest.get('complete') and not candidate.get('complete'):
+              chosen=dict(latest)
+              reason='LATEST_COMPLETE'
+          elif cursor(latest) < cursor(candidate):
+              chosen=dict(latest)
+              reason='BLOCKED_CURSOR_REGRESSION'
+          else:
+              chosen=dict(candidate)
+              reason='CANDIDATE_AT_LEAST_AS_DEEP'
+
+          chosen['calls_total']=max(int(latest.get('calls_total',0)), int(candidate.get('calls_total',0)))
+          chosen['days_saved']=max(int(latest.get('days_saved',0)), int(candidate.get('days_saved',0)))
+          chosen['complete']=bool(latest.get('complete',False) or candidate.get('complete',False))
+          chosen['revision']=candidate.get('revision') or latest.get('revision')
+          current.write_text(json.dumps(chosen,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps({
+              'SPORTS_CHECKPOINT_GUARD':'PASS',
+              'reason':reason,
+              'origin_cursor':cursor(latest),
+              'candidate_cursor':cursor(candidate),
+              'published_cursor':cursor(chosen),
+              'days_saved':chosen['days_saved'],
+              'calls_total':chosen['calls_total'],
+          },ensure_ascii=False))
+          PY
 
             git add race-sports/data/sports_history
             git add race-sports/data/historical_state/sports_backfill_state.json
