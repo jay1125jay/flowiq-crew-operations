@@ -104,8 +104,12 @@ jobs:
           git config user.name "race-sports-backfill-bot"
           git config user.email "actions@users.noreply.github.com"
 
+          # IMPORTANT: publish only RACING-owned state. SPORTS/KOVO checkpoints
+          # belong to race-sports-sports-backfill and must never be replayed here.
           tar -czf /tmp/race-sports-backfill-output.tgz \
-            race-sports/data/historical_state \
+            race-sports/data/historical_state/backfill_quality_report.json \
+            race-sports/data/historical_state/backfill_report.json \
+            race-sports/data/historical_state/backfill_state.json \
             race-sports/data/backfill \
             race-sports/models/horse_empirical_bayes_v0.2.validation.json \
             race-sports/models/cycle_empirical_bayes_v0.2.validation.json \
@@ -116,7 +120,9 @@ jobs:
             git reset --hard origin/main
             tar -xzf /tmp/race-sports-backfill-output.tgz
 
-            git add race-sports/data/historical_state
+            git add race-sports/data/historical_state/backfill_quality_report.json
+            git add race-sports/data/historical_state/backfill_report.json
+            git add race-sports/data/historical_state/backfill_state.json
             git add race-sports/data/backfill
             git add race-sports/models/horse_empirical_bayes_v0.2.validation.json
             git add race-sports/models/cycle_empirical_bayes_v0.2.validation.json
