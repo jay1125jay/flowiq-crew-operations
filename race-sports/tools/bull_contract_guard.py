@@ -45,7 +45,6 @@ def check_official_odds_contract():
     )
 
 
-
 def check_capture_mode_repair_contract():
     event = sample_event("SCHEDULED")
     odds = {"RED": 1.8, "DRAW": 8.5, "BLUE": 2.3}
@@ -115,10 +114,13 @@ def check_ui_contract():
     assert "PRE_RACE_OFFICIAL" in pre_body, "PRE_RACE_OFFICIAL_MODE_MISSING"
     assert "LATE_OFFICIAL_RECOVERY" not in pre_body, "LATE_ODDS_MUST_NOT_ENTER_VALUE"
 
+    # Guard behavior, not mutable Korean copy. Final events must remain visible,
+    # official results must render, and AI-vs-actual comparison UI must exist.
     required = [
         "e.sport==='BULL'&&e.result.winner",
         "e.status==='FINAL'?'공식 결과':'공식 출전표'",
-        "e.status==='FINAL'?'종료 · AI 예측/실제 결과 비교 · 추천 비활성'",
+        "aiCompare",
+        "aiActual",
         "a.length?a.map(card).join('')",
     ]
     for token in required:
