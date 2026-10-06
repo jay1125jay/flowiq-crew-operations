@@ -1,21 +1,21 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
-    "BASKETBALL": {
-      "games": 13771,
-      "holdout_rows": 4132,
-      "walk_forward_rows": 4132,
-      "accuracy": 0.649322,
-      "log_loss": 0.625788,
-      "brier": 0.2181,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.067359,
+    "SOCCER": {
+      "games": 21156,
+      "holdout_rows": 6347,
+      "walk_forward_rows": 6347,
+      "accuracy": 0.525288,
+      "log_loss": 0.989118,
+      "brier": 0.196545,
+      "uniform_log_loss": 1.098612,
+      "log_loss_edge": 0.109495,
       "validated": true,
       "selected_params": {
-        "k": 28.0,
-        "home_adv": 50.0,
-        "scale": 430.0,
-        "shrink": 0.8
+        "k": 32.0,
+        "home_adv": 60.0,
+        "scale": 350.0,
+        "shrink": 1.0
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
@@ -37,6 +37,24 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
+    "BASKETBALL": {
+      "games": 13771,
+      "holdout_rows": 4132,
+      "walk_forward_rows": 4132,
+      "accuracy": 0.649322,
+      "log_loss": 0.625788,
+      "brier": 0.2181,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.067359,
+      "validated": true,
+      "selected_params": {
+        "k": 28.0,
+        "home_adv": 50.0,
+        "scale": 430.0,
+        "shrink": 0.8
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "VOLLEYBALL": {
       "games": 1856,
       "holdout_rows": 557,
@@ -52,24 +70,6 @@
         "home_adv": 20.0,
         "scale": 320.0,
         "shrink": 0.8
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "SOCCER": {
-      "games": 21156,
-      "holdout_rows": 6347,
-      "walk_forward_rows": 6347,
-      "accuracy": 0.525288,
-      "log_loss": 0.989118,
-      "brier": 0.196545,
-      "uniform_log_loss": 1.098612,
-      "log_loss_edge": 0.109495,
-      "validated": true,
-      "selected_params": {
-        "k": 32.0,
-        "home_adv": 60.0,
-        "scale": 350.0,
-        "shrink": 1.0
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
