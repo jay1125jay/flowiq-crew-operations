@@ -19,12 +19,30 @@ STATE = ROOT / "data" / "model_state" / "sports_odds_provider_state.json"
 KST = timezone(timedelta(hours=9))
 BASE = "https://api.sportsgameodds.com/v2/events"
 
-SPORT_IDS = {
-    "SOCCER": "SOCCER",
-    "BASEBALL": "BASEBALL",
-    "BASKETBALL": "BASKETBALL",
-    "VOLLEYBALL": "VOLLEYBALL",
+SPORTS = ("SOCCER", "BASEBALL", "BASKETBALL", "VOLLEYBALL")
+
+# SportsGameOdds Amateur currently requires leagueID/eventID queries and exposes
+# only a small league set. Query only leagues that both exist in our local
+# snapshot and are available on the free plan. Unsupported domestic leagues are
+# a normal skip, not a provider failure.
+AMATEUR_COMPETITION_TO_LEAGUE = {
+    "SOCCER": {
+        "UEFA Champions League": "UEFA_CHAMPIONS_LEAGUE",
+        "Champions League": "UEFA_CHAMPIONS_LEAGUE",
+        "MLS": "MLS",
+        "Major League Soccer": "MLS",
+    },
+    "BASEBALL": {
+        "MLB": "MLB",
+    },
+    "BASKETBALL": {
+        "NBA": "NBA",
+        "NCAAB": "NCAAB",
+        "College Basketball": "NCAAB",
+    },
+    "VOLLEYBALL": {},
 }
+
 ODD_IDS = {
     "SOCCER": {
         "HOME": "points-home-reg-ml3way-home",
@@ -44,10 +62,14 @@ ODD_IDS = {
         "AWAY": "points-away-game-ml-away",
     },
 }
+
+# Amateur books first. Paid-only books remain in the preference list so a plan
+# upgrade needs no code change.
 PREFERRED_BOOKS = [
-    "bet365", "pinnacle", "draftkings", "fanduel", "betmgm", "caesars",
-    "espnbet", "bovada", "unibet", "williamhill",
+    "draftkings", "fanduel", "betmgm", "caesars", "espnbet", "bovada",
+    "unibet", "pointsbet", "williamhill", "bet365", "pinnacle",
 ]
+PRE_STATUSES = {"SCHEDULED", "UPCOMING", "PRE"}
 
 
 def norm(s: str) -> str:
@@ -171,14 +193,35 @@ def _match(local: dict, remote: dict) -> bool:
         return True
 
 
-def fetch_for_sport(sport: str, day: str, key: str) -> tuple[list[dict], dict]:
+def _target_leagues(payload: dict, sport: str) -> tuple[list[str], list[str], list[str]]:
+    mapping = AMATEUR_COMPETITION_TO_LEAGUE.get(sport, {})
+    competitions = sorted({
+        str(e.get("competition") or "").strip()
+        for e in payload.get("events", [])
+        if e.get("sport") == sport and e.get("status") in PRE_STATUSES and str(e.get("competition") or "").strip()
+    })
+    league_ids = sorted({mapping[c] for c in competitions if c in mapping})
+    unsupported = [c for c in competitions if c not in mapping]
+    return league_ids, competitions, unsupported
+
+
+def fetch_for_sport(sport: str, day: str, key: str, league_ids: list[str]) -> tuple[list[dict], dict]:
+    if not league_ids:
+        return [], {
+            "sport": sport,
+            "status": "SKIP",
+            "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+            "events": 0,
+            "league_ids": [],
+            "query_mode": "AMATEUR_LEAGUE_AWARE",
+        }
+
     d = datetime.fromisoformat(day).replace(tzinfo=KST)
     after = d.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    before = (d + timedelta(days=2)).astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    before = (d + timedelta(days=1)).astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     params = {
-        "sportID": SPORT_IDS[sport],
+        "leagueID": ",".join(league_ids),
         "oddsAvailable": "true",
-        "started": "false",
         "startsAfter": after,
         "startsBefore": before,
         "oddID": ",".join(ODD_IDS[sport].values()),
@@ -194,61 +237,96 @@ def fetch_for_sport(sport: str, day: str, key: str) -> tuple[list[dict], dict]:
         raise RuntimeError("SPORTSGAMEODDS_DATA_NOT_LIST")
     return rows, {
         "sport": sport,
+        "status": "PASS",
         "events": len(rows),
         "next_cursor": obj.get("nextCursor"),
+        "league_ids": league_ids,
         "bookmaker_filter": bookmaker_filter or "PLAN_ACCESSIBLE_BOOKMAKERS",
-        "query_mode": "CURRENT_PRE_GAME_MAIN_MONEYLINE_ONLY",
+        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
     }
+
+
+def _write(path: Path, payload: dict, result: dict) -> None:
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(path)
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def enrich(path: Path = SNAPSHOT) -> dict:
     key = os.getenv("SPORTSGAMEODDS_API_KEY", "").strip()
     payload = json.loads(path.read_text(encoding="utf-8"))
     now = datetime.now(KST).isoformat()
+
     if not key:
         result = {"status": "KEY_MISSING", "events_enriched": 0, "outcomes_enriched": 0, "updated_at": now}
         payload["odds_provider"] = {"provider": "SportsGameOdds", **result}
-        payload["providers"] = [p for p in payload.get("providers", []) if p.get("provider") != "SPORTS_ODDS_MULTIBOOK"] + [{"provider": "SPORTS_ODDS_MULTIBOOK", "sport": "ALL", **result}]
-        tmp = path.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-        tmp.replace(path)
-        STATE.parent.mkdir(parents=True, exist_ok=True)
-        STATE.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        payload["providers"] = [p for p in payload.get("providers", []) if p.get("provider") != "SPORTS_ODDS_MULTIBOOK"] + [
+            {"provider": "SPORTS_ODDS_MULTIBOOK", "sport": "ALL", **result}
+        ]
+        _write(path, payload, result)
         print(json.dumps({"SPORTS_ODDS_ENRICH": "SKIP", **result}, ensure_ascii=False))
         return result
 
     day = str(payload.get("date"))
-    remote = {}
+    remote: dict[str, list[dict]] = {}
     meta = []
     errors = []
-    for sport in SPORT_IDS:
+
+    for sport in SPORTS:
+        league_ids, competitions, unsupported = _target_leagues(payload, sport)
+        if not league_ids:
+            remote[sport] = []
+            meta.append({
+                "sport": sport,
+                "status": "SKIP",
+                "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+                "local_scheduled_competitions": competitions,
+                "unsupported_on_amateur": unsupported,
+                "league_ids": [],
+                "events": 0,
+            })
+            continue
         try:
-            rows, m = fetch_for_sport(sport, day, key)
+            rows, m = fetch_for_sport(sport, day, key, league_ids)
+            m["local_scheduled_competitions"] = competitions
+            m["unsupported_on_amateur"] = unsupported
             remote[sport] = rows
             meta.append(m)
         except Exception as exc:
             remote[sport] = []
-            errors.append({"sport": sport, "error": str(exc)[:1200]})
+            errors.append({
+                "sport": sport,
+                "league_ids": league_ids,
+                "error": str(exc)[:1200],
+            })
 
     events_enriched = 0
     outcomes_enriched = 0
     for e in payload.get("events", []):
         sport = e.get("sport")
-        if sport not in remote or e.get("status") not in {"SCHEDULED", "UPCOMING", "PRE"}:
+        if sport not in remote or e.get("status") not in PRE_STATUSES:
             continue
         rem = next((x for x in remote[sport] if _match(e, x)), None)
         if not rem:
             continue
         books = _market_books(rem, sport)
-        if len(books) < 2:
+        needed = 3 if sport == "SOCCER" else 2
+        if len(books) < needed:
             continue
-        applied = 0
+
+        staged = []
         for o in e.get("outcomes", []):
             side = o.get("key")
             rows = books.get(side) or []
             chosen = _choose(rows)
-            if not chosen:
-                continue
+            if chosen:
+                staged.append((o, rows, chosen))
+        if len(staged) != needed:
+            continue
+
+        for o, rows, chosen in staged:
             o["odds"] = chosen["odds"]
             o["odds_source"] = "SPORTSGAMEODDS"
             o["odds_provider"] = chosen["bookmaker"]
@@ -256,50 +334,50 @@ def enrich(path: Path = SNAPSHOT) -> dict:
             o["odds_updated_at"] = chosen.get("updated_at") or now
             o["bookmaker_odds"] = rows
             o["odds_data_state"] = "FRESH"
-            applied += 1
-        needed = 3 if sport == "SOCCER" else 2
-        if applied == needed:
-            e["odds_source"] = "SPORTSGAMEODDS"
-            e["odds_state"] = "MULTI_BOOK_SOURCE_LABELED"
-            e["odds_event_id"] = rem.get("eventID")
-            e["odds_books"] = sorted({x["bookmaker"] for rows in books.values() for x in rows})
-            e["odds_data_state"] = "FRESH"
-            events_enriched += 1
-            outcomes_enriched += applied
+
+        e["odds_source"] = "SPORTSGAMEODDS"
+        e["odds_state"] = "MULTI_BOOK_SOURCE_LABELED"
+        e["odds_event_id"] = rem.get("eventID")
+        e["odds_league_id"] = rem.get("leagueID")
+        e["odds_books"] = sorted({x["bookmaker"] for rows in books.values() for x in rows})
+        e["odds_data_state"] = "FRESH"
+        events_enriched += 1
+        outcomes_enriched += needed
 
     status = "PASS" if not errors else "PARTIAL"
-    payload["odds_provider"] = {
-        "provider": "SportsGameOdds",
-        "status": status,
-        "events_enriched": events_enriched,
-        "outcomes_enriched": outcomes_enriched,
-        "meta": meta,
-        "errors": errors,
-        "updated_at": now,
-    }
-    payload["providers"] = [p for p in payload.get("providers", []) if p.get("provider") != "SPORTS_ODDS_MULTIBOOK"] + [{
+    provider_row = {
         "provider": "SPORTS_ODDS_MULTIBOOK",
         "sport": "ALL",
         "status": status,
-        "events_enriched": events_enriched,
-        "outcomes_enriched": outcomes_enriched,
-        "errors": errors,
-        "updated_at": now,
-    }]
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    tmp.replace(path)
-
-    result = {
-        "status": status,
+        "plan_mode": "AMATEUR_LEAGUE_AWARE",
         "events_enriched": events_enriched,
         "outcomes_enriched": outcomes_enriched,
         "meta": meta,
         "errors": errors,
         "updated_at": now,
     }
-    STATE.parent.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    payload["odds_provider"] = {
+        "provider": "SportsGameOdds",
+        "status": status,
+        "plan_mode": "AMATEUR_LEAGUE_AWARE",
+        "events_enriched": events_enriched,
+        "outcomes_enriched": outcomes_enriched,
+        "meta": meta,
+        "errors": errors,
+        "updated_at": now,
+    }
+    payload["providers"] = [p for p in payload.get("providers", []) if p.get("provider") != "SPORTS_ODDS_MULTIBOOK"] + [provider_row]
+
+    result = {
+        "status": status,
+        "plan_mode": "AMATEUR_LEAGUE_AWARE",
+        "events_enriched": events_enriched,
+        "outcomes_enriched": outcomes_enriched,
+        "meta": meta,
+        "errors": errors,
+        "updated_at": now,
+    }
+    _write(path, payload, result)
     print(json.dumps({"SPORTS_ODDS_ENRICH": status, **result}, ensure_ascii=False))
     return result
 
@@ -312,24 +390,48 @@ def self_test():
         },
         "status": {"startsAt": "2026-10-03T20:00:00Z"},
         "odds": {
-            "points-home-game-ml-home": {"byBookmaker": {"draftkings": {"odds": "-150", "available": True}, "pinnacle": {"odds": "-145", "available": True}}},
-            "points-away-game-ml-away": {"byBookmaker": {"draftkings": {"odds": "+130", "available": True}, "pinnacle": {"odds": "+135", "available": True}}},
+            "points-home-game-ml-home": {"byBookmaker": {
+                "draftkings": {"odds": "-150", "available": True},
+                "fanduel": {"odds": "-145", "available": True},
+            }},
+            "points-away-game-ml-away": {"byBookmaker": {
+                "draftkings": {"odds": "+130", "available": True},
+                "fanduel": {"odds": "+135", "available": True},
+            }},
         },
     }
     b = _market_books(fixture, "BASEBALL")
-    assert b["HOME"][0]["bookmaker"] == "pinnacle"
-    assert abs(b["HOME"][0]["odds"] - 1.6897) < 1e-4
-    assert abs(b["AWAY"][0]["odds"] - 2.35) < 1e-9
-    local = {"home": "Los Angeles Dodgers", "away": "Atlanta Braves", "start_timestamp": int(datetime(2026, 10, 3, 20, tzinfo=timezone.utc).timestamp())}
+    assert b["HOME"][0]["bookmaker"] == "draftkings"
+    assert abs(b["HOME"][0]["odds"] - 1.6667) < 1e-4
+    assert abs(b["AWAY"][0]["odds"] - 2.3) < 1e-9
+    local = {
+        "home": "Los Angeles Dodgers",
+        "away": "Atlanta Braves",
+        "start_timestamp": int(datetime(2026, 10, 3, 20, tzinfo=timezone.utc).timestamp()),
+    }
     assert _match(local, fixture)
+
     soccer = {"odds": {
-        "points-home-reg-ml3way-home": {"byBookmaker": {"bet365": {"odds": "+120", "available": True}}},
-        "points-all-reg-ml3way-draw": {"byBookmaker": {"bet365": {"odds": "+250", "available": True}}},
-        "points-away-reg-ml3way-away": {"byBookmaker": {"bet365": {"odds": "+220", "available": True}}},
+        "points-home-reg-ml3way-home": {"byBookmaker": {"draftkings": {"odds": "+120", "available": True}}},
+        "points-all-reg-ml3way-draw": {"byBookmaker": {"draftkings": {"odds": "+250", "available": True}}},
+        "points-away-reg-ml3way-away": {"byBookmaker": {"draftkings": {"odds": "+220", "available": True}}},
     }}
-    sb = _market_books(soccer, "SOCCER")
-    assert set(sb) == {"HOME", "DRAW", "AWAY"}
-    print(json.dumps({"SPORTS_ODDS_PROVIDER_SELF_TEST": "PASS"}, ensure_ascii=False))
+    assert set(_market_books(soccer, "SOCCER")) == {"HOME", "DRAW", "AWAY"}
+
+    payload = {"events": [
+        {"sport": "BASEBALL", "status": "SCHEDULED", "competition": "MLB"},
+        {"sport": "BASEBALL", "status": "SCHEDULED", "competition": "KBO"},
+        {"sport": "BASKETBALL", "status": "SCHEDULED", "competition": "NBA"},
+        {"sport": "VOLLEYBALL", "status": "SCHEDULED", "competition": "KOVO V-League"},
+    ]}
+    ids, comps, unsupported = _target_leagues(payload, "BASEBALL")
+    assert ids == ["MLB"] and "KBO" in unsupported and "MLB" in comps
+    ids, _, unsupported = _target_leagues(payload, "BASKETBALL")
+    assert ids == ["NBA"] and not unsupported
+    ids, _, unsupported = _target_leagues(payload, "VOLLEYBALL")
+    assert ids == [] and unsupported == ["KOVO V-League"]
+
+    print(json.dumps({"SPORTS_ODDS_PROVIDER_SELF_TEST": "PASS", "plan_mode": "AMATEUR_LEAGUE_AWARE"}, ensure_ascii=False))
 
 
 def main():
