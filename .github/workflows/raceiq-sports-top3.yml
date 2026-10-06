@@ -1,0 +1,101 @@
+name: raceiq-sports-top3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-sports-top3.yml'
+      - 'race-sports/tools/sports_top3.py'
+      - 'race-sports/tools/sports_top3_ui_patch.py'
+  workflow_run:
+    workflows:
+      - race-sports-static-refresh
+      - raceiq-market-edge
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raceiq-sports-top3
+  cancel-in-progress: false
+
+jobs:
+  publish-top3:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Self-test TOP 3 selector and UI patch
+        run: |
+          python race-sports/tools/sports_top3.py --self-test
+          python race-sports/tools/sports_top3_ui_patch.py --self-test
+
+      - name: Build and publish TOP 3 conflict-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "raceiq-top3-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            python race-sports/tools/sports_top3_ui_patch.py --check
+            python race-sports/tools/sports_top3.py
+            python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+
+            DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('race-sports/data/sports_today.json',encoding='utf-8'))['date'])
+          PY
+            )
+            mkdir -p race-sports/data/sports_history race-sports/data/model_state
+            cp race-sports/data/sports_today.json "race-sports/data/sports_history/${DATE}.json"
+
+            python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('race-sports/live.html').read_text(encoding='utf-8')
+          m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
+          if not m:
+              raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
+          Path('/tmp/raceiq-live-top3.js').write_text(m.group(1),encoding='utf-8')
+          for token in ['SPORTS_TOP3_UI_V1','id="refreshBtn"','function renderTop3Board()']:
+              if token not in s:
+                  raise SystemExit('TOP3_UI_TOKEN_MISSING:'+token)
+          print('TOP3_UI_GUARD=PASS')
+          PY
+            node --check /tmp/raceiq-live-top3.js
+
+            git add race-sports/live.html
+            git add race-sports/data/sports_today.json
+            git add "race-sports/data/sports_history/${DATE}.json"
+            git add race-sports/data/model_state/sports_top3_lock.json
+
+            if git diff --cached --quiet; then
+              echo "SPORTS_TOP3_PUBLISH=NO_CHANGE"
+              exit 0
+            fi
+
+            git commit -m "feat: publish locked SPORTS top 3"
+            if git push origin HEAD:main; then
+              echo "SPORTS_TOP3_PUBLISH=PASS"
+              exit 0
+            fi
+
+            echo "SPORTS_TOP3_PUSH_CONFLICT=$n/5"
+          done
+
+          echo "SPORTS_TOP3_PUBLISH=FAIL"
+          exit 1
