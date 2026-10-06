@@ -6,9 +6,11 @@ from datetime import datetime, timezone, timedelta
 import historical_backfill as hb
 import historical_backfill_hardening as hardening
 import historical_cycle_result_fallback as cycle_result_fallback
+import historical_retry_repair as retry_repair
 
 hardening.install(hb)
 cycle_result_fallback.install(hb)
+retry_repair.install(hb)
 
 KST=timezone(timedelta(hours=9))
 
@@ -33,6 +35,7 @@ def main():
     seen={s:hb.existing_ids(s) for s in ('horse','cycle','boat','bull')}
     stats={
         'horse_records':0,'horse_dates':0,
+        'horse_retry_attempted':0,'horse_retry_recovered':0,
         'cycle_records':0,'cycle_dates':0,
         'boat_records':0,'boat_dates':0,
         'bull_records':0,'bull_cards':0,
@@ -100,11 +103,12 @@ def main():
         'checkpoints':state['checkpoints'],
         'new':stats,
         'records_total':{s:len(seen[s]) for s in seen},
+        'retry_metrics':state.get('retry_metrics',{}),
         'quota_policy':'daily hard caps; use remaining quota opportunistically; KCYCLE/KBOAT start 50/50 then reallocate unused shared quota',
         'runtime_policy':({'horse':0.20,'cycle_until':0.65,'boat_until':0.78,'bull_until':1.0,'mode':'CYCLE_CATCHUP_UNTIL_100'} if cycle_backlog else {'horse':0.35,'cycle_until':0.525,'boat_until':0.70,'bull_until':1.0,'mode':'BALANCED'}),
         'runtime_seconds':total,
         'hardening':{
-            'horse':'STRICT_RENDERED_RACE_AND_ROW_QUALITY_BEFORE_PERSIST',
+            'horse':'STRICT_RENDERED_RACE_AND_ROW_QUALITY_BEFORE_PERSIST_PLUS_RETRY_QUEUE_REPLAY',
             'cycle':'DATE_SAFE_RESULT_URL_FALLBACK_AND_NON_MEETING_ADVANCE',
         },
     }
