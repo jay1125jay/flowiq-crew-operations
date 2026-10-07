@@ -11,6 +11,7 @@ def validate(path: Path):
     assert p.get("domain")=="SPORTS","BAD_DOMAIN"
     assert set(p.get("enabled_sports",[]))==ALLOWED,"BAD_ENABLED_SPORTS"
     ids=set()
+    stale=[]
     for e in p.get("events",[]):
         assert e.get("id") not in ids,"DUPLICATE_ID:"+str(e.get("id"))
         ids.add(e.get("id"))
@@ -18,6 +19,8 @@ def validate(path: Path):
         assert e.get("tier")=="TOP","NON_TOP_TIER"
         assert e.get("status") in STATUSES,"BAD_STATUS"
         assert e.get("home") and e.get("away"),"MISSING_TEAMS"
+        if e.get("stale") or e.get("data_state")=="STALE_LAST_KNOWN_GOOD":
+            stale.append(e.get("id"))
         event_date=str(e.get("event_date") or "")
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}",event_date),"BAD_EVENT_DATE"
         start=str(e.get("start_time") or "").strip()
@@ -52,7 +55,28 @@ def validate(path: Path):
             assert "home_score" in r and "away_score" in r,"FINAL_SCORE_MISSING"
         assert e.get("provider"),"PROVIDER_MISSING"
         assert e.get("source_url"),"SOURCE_URL_MISSING"
-    print(json.dumps({"SPORTS_SNAPSHOT_VALIDATION":"PASS","events":len(p.get("events",[]))},ensure_ascii=False))
+
+    assert not stale,"STALE_EVENTS_FORBIDDEN:"+str(stale[:5])
+    hard=[(x.get("provider"),x.get("status")) for x in p.get("providers",[]) if x.get("status") in {"FAIL","ERROR","STALE_RECOVERED","RECOVERED"}]
+    assert not hard,"HARD_PROVIDER_STATE:"+str(hard[:5])
+
+    top3=p.get("sports_top3")
+    if isinstance(top3,dict):
+        assert top3.get("date")==p.get("date"),"TOP3_DATE_MISMATCH"
+        seen=set()
+        by_sport=top3.get("by_sport") or {}
+        for sport in ALLOWED:
+            rows=by_sport.get(sport) or []
+            assert len(rows)<=3,"TOP3_TOO_MANY:"+sport
+            for row in rows:
+                eid=row.get("event_id")
+                assert eid in ids,"TOP3_EVENT_MISSING:"+str(eid)
+                assert eid not in seen,"TOP3_DUPLICATE_EVENT:"+str(eid)
+                seen.add(eid)
+                event=next(e for e in p.get("events",[]) if e.get("id")==eid)
+                assert not event.get("stale"),"TOP3_STALE_EVENT:"+str(eid)
+
+    print(json.dumps({"SPORTS_SNAPSHOT_VALIDATION":"PASS","events":len(p.get("events",[])),"stale_events":0,"top3_present":isinstance(top3,dict)},ensure_ascii=False))
 
 def main():
     ap=argparse.ArgumentParser()
