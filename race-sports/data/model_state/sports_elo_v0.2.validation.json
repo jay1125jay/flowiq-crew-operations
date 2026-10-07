@@ -1,6 +1,24 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
+    "BASEBALL": {
+      "games": 29697,
+      "holdout_rows": 8910,
+      "walk_forward_rows": 8910,
+      "accuracy": 0.554545,
+      "log_loss": 0.683767,
+      "brier": 0.245358,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.009381,
+      "validated": true,
+      "selected_params": {
+        "k": 8.0,
+        "home_adv": 30.0,
+        "scale": 350.0,
+        "shrink": 0.6
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "SOCCER": {
       "games": 21174,
       "holdout_rows": 6353,
@@ -20,14 +38,14 @@
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
     "BASKETBALL": {
-      "games": 13774,
+      "games": 13775,
       "holdout_rows": 4133,
       "walk_forward_rows": 4133,
       "accuracy": 0.648681,
-      "log_loss": 0.626496,
-      "brier": 0.218401,
+      "log_loss": 0.626458,
+      "brier": 0.218385,
       "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.066651,
+      "log_loss_edge": 0.066689,
       "validated": true,
       "selected_params": {
         "k": 28.0,
@@ -54,32 +72,14 @@
         "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "BASEBALL": {
-      "games": 29697,
-      "holdout_rows": 8910,
-      "walk_forward_rows": 8910,
-      "accuracy": 0.554545,
-      "log_loss": 0.683767,
-      "brier": 0.245358,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.009381,
-      "validated": true,
-      "selected_params": {
-        "k": 8.0,
-        "home_adv": 30.0,
-        "scale": 350.0,
-        "shrink": 0.6
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 66501,
+  "history_events": 66502,
   "competition_history": {
     "BASEBALL::KBO": 5517,
     "BASEBALL::MLB": 24180,
     "BASKETBALL::KBL": 2180,
-    "BASKETBALL::NBA": 11594,
+    "BASKETBALL::NBA": 11595,
     "SOCCER::AFC Asian Cup": 102,
     "SOCCER::AFC Champions League Elite": 881,
     "SOCCER::AFC Champions League Two": 342,
