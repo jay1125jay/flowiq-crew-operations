@@ -6,10 +6,8 @@ on:
     paths:
       - '.github/workflows/race-sports-static-refresh.yml'
       - 'race-sports/live.html'
-      - 'race-sports/models/**'
-      - 'race-sports/data/backfill/**'
-      - 'race-sports/data/historical_state/**'
       - 'race-sports/tools/racing_static_collector.py'
+      - 'race-sports/tools/racing_static_collector_core.py'
       - 'race-sports/tools/kboat_live_odds.py'
       - 'race-sports/tools/inject_kboat_ai.py'
       - 'race-sports/tools/inject_horse_model.py'
@@ -24,7 +22,6 @@ on:
       - 'race-sports/tools/bull_official_enricher.py'
       - 'race-sports/tools/bull_contract_guard.py'
       - 'race-sports/tools/inject_bull_model.py'
-      - 'race-sports/tools/backfill_quality_guard.py'
       - 'race-sports/tools/ui_multisport_patch.py'
       - 'race-sports/tools/snapshot_guard.py'
       - 'race-sports/tools/validate_snapshot.py'
@@ -34,8 +31,7 @@ on:
       - 'race-sports/tools/sports_odds_enricher.py'
       - 'race-sports/tools/inject_sports_model.py'
       - 'race-sports/tools/validate_sports_snapshot.py'
-      - 'race-sports/tools/sports_history_backfill.py'
-      - 'race-sports/tools/kovo_official_pdf_backfill.py'
+      - 'race-sports/tools/sports_snapshot_finalize.py'
   workflow_dispatch:
   schedule:
     - cron: '2,32 * * * *'
@@ -45,7 +41,7 @@ permissions:
 
 concurrency:
   group: race-sports-static-refresh
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   refresh:
@@ -87,7 +83,7 @@ jobs:
           PY
           node --check /tmp/race-sports-live.js
 
-      - name: Exercise last-known-good recovery
+      - name: Exercise fail-closed snapshot guard
         shell: bash
         run: |
           cp race-sports/data/today.json /tmp/guard-prev.json
@@ -95,9 +91,8 @@ jobs:
           import json
           from pathlib import Path
           p=json.loads(Path('/tmp/guard-prev.json').read_text(encoding='utf-8'))
-          if p.get('events'):
-              p['events']=[]
-              p['providers']=[]
+          p['events']=[]
+          p['providers']=[{'provider':'SELF_TEST_CURRENT_SOURCE','status':'PASS','detail':{}}]
           Path('/tmp/guard-current.json').write_text(json.dumps(p,ensure_ascii=False),encoding='utf-8')
           PY
           python race-sports/tools/snapshot_guard.py /tmp/guard-current.json /tmp/guard-prev.json
@@ -106,10 +101,12 @@ jobs:
           from pathlib import Path
           prev=json.loads(Path('/tmp/guard-prev.json').read_text(encoding='utf-8'))
           cur=json.loads(Path('/tmp/guard-current.json').read_text(encoding='utf-8'))
-          if prev.get('events'):
-              assert len(cur.get('events',[]))==len(prev.get('events',[])), (len(cur.get('events',[])),len(prev.get('events',[])))
-              assert all(e.get('stale') for e in cur.get('events',[]))
-          print('SNAPSHOT_GUARD_TEST=PASS')
+          assert cur.get('events') == [], 'PREVIOUS_ONLY_EVENT_RESURRECTED'
+          guard=next(x for x in cur.get('providers',[]) if x.get('provider')=='SNAPSHOT_GUARD')
+          assert guard.get('status')=='PASS', guard
+          assert guard.get('detail',{}).get('recovered')==0, guard
+          assert guard.get('detail',{}).get('suppressed_previous_only_events')==len(prev.get('events',[])), guard
+          print('SNAPSHOT_GUARD_FAIL_CLOSED_TEST=PASS')
           PY
 
       - name: Test CPC v1.3 bull feature adapter
@@ -161,6 +158,7 @@ jobs:
           python race-sports/tools/kovo_official_pdf_backfill.py --self-test
           python race-sports/tools/inject_sports_model.py --self-test
           python race-sports/tools/sports_history_backfill.py --self-test
+          python race-sports/tools/sports_snapshot_finalize.py --self-test
 
       - name: Probe live four-sport provider
         if: github.event_name == 'push'
@@ -179,25 +177,19 @@ jobs:
       - name: Collect official 4-sport racing data
         shell: bash
         run: |
+          set -euo pipefail
           if ! timeout 75s python race-sports/tools/racing_static_collector.py; then
-            echo 'RACING collector unavailable or timed out; restoring previous same-day snapshot'
-            if [ -f /tmp/race-sports-prev.json ]; then
-              cp /tmp/race-sports-prev.json race-sports/data/today.json
-            else
-              exit 1
-            fi
+            echo 'RACING_COLLECT=FAIL_CLOSED'
+            exit 1
           fi
 
       - name: Collect four-sport scoreboard data
         shell: bash
         run: |
+          set -euo pipefail
           if ! timeout 60s python race-sports/tools/sports_static_collector.py; then
-            echo 'SPORTS collector unavailable or timed out; restoring previous same-day snapshot'
-            if [ -f /tmp/race-sports-sports-prev.json ]; then
-              cp /tmp/race-sports-sports-prev.json race-sports/data/sports_today.json
-            else
-              exit 1
-            fi
+            echo 'SPORTS_COLLECT=FAIL_CLOSED'
+            exit 1
           fi
 
       - name: Add Korean SPORTS team names
@@ -212,14 +204,14 @@ jobs:
             echo 'Multi-book SPORTS odds unavailable or timed out; keeping source-labeled ESPN odds when present'
           fi
 
-      - name: Recover last-known-good events on provider failure
+      - name: Suppress previous-only racing events
         run: python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-sports-prev.json
 
       - name: Enrich official KCYCLE AI odds and results
         shell: bash
         run: |
           if ! timeout 75s python race-sports/tools/kcycle_official_enricher.py; then
-            echo 'KCYCLE enrichment unavailable or timed out this cycle; fail-safe snapshot remains publishable'
+            echo 'KCYCLE enrichment unavailable or timed out this cycle; publish validator will decide'
           fi
 
       - name: Guard incomplete KCYCLE distributions
@@ -231,35 +223,35 @@ jobs:
         shell: bash
         run: |
           if ! timeout 75s python race-sports/tools/kra_official_enricher.py; then
-            echo 'KRA enrichment unavailable or timed out this cycle; fail-safe snapshot remains publishable'
+            echo 'KRA enrichment unavailable or timed out this cycle; publish validator will decide'
           fi
 
       - name: Inject Horse probabilities
         shell: bash
         run: |
           if ! python race-sports/tools/inject_horse_model.py; then
-            echo 'Horse probability engine unavailable this cycle; keeping official KRA card publishable'
+            echo 'Horse probability engine unavailable this cycle; publish validator will decide'
           fi
 
       - name: Build current Bull v1.3 model features
         shell: bash
         run: |
           if ! timeout 75s python race-sports/tools/bull_model_features_v130.py; then
-            echo 'CPC bull feature source unavailable or timed out this cycle; keeping last-known-good event data'
+            echo 'CPC bull feature source unavailable or timed out this cycle; publish validator will decide'
           fi
 
       - name: Enrich official Bull odds and results
         shell: bash
         run: |
           if ! timeout 120s python race-sports/tools/bull_official_enricher.py; then
-            echo 'CPC bull odds/results unavailable or timed out this cycle; keeping card and prior snapshot'
+            echo 'CPC bull odds/results unavailable or timed out this cycle; publish validator will decide'
           fi
 
       - name: Capture current official KBOAT pre-race odds
         shell: bash
         run: |
           if ! timeout 75s python race-sports/tools/kboat_live_odds.py; then
-            echo 'KBOAT odds unavailable or timed out this cycle; keeping current snapshot'
+            echo 'KBOAT odds unavailable or timed out this cycle; publish validator will decide'
           fi
 
       - name: Inject official KBOAT AI probabilities
@@ -275,14 +267,14 @@ jobs:
             sleep 3
           done
           if [ "$ok" -ne 1 ]; then
-            echo "KBOAT AI unavailable this cycle; preserving last-known-good model fields"
+            echo "KBOAT AI unavailable this cycle; own model and publish validator will decide"
           fi
 
       - name: Inject Cycle and Boat own AI probabilities
         shell: bash
         run: |
           if ! python race-sports/tools/inject_cycle_boat_own_models.py; then
-            echo 'Cycle/Boat own AI unavailable this cycle; official card remains publishable'
+            echo 'Cycle/Boat own AI unavailable this cycle; publish validator will decide'
           fi
 
       - name: Inject validated Bull RED DRAW BLUE model
@@ -292,7 +284,7 @@ jobs:
         shell: bash
         run: |
           if ! python race-sports/tools/inject_sports_model.py; then
-            echo 'SPORTS model unavailable this cycle; source-labeled scoreboard remains publishable'
+            echo 'SPORTS model unavailable this cycle; publish validator will decide'
           fi
 
       - name: Validate SPORTS snapshot
