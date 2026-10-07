@@ -1,0 +1,96 @@
+name: raceiq-normalize-check
+
+on:
+  push:
+    branches: [raceiq-normalize-20261007]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: raceiq-normalize-20261007
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Syntax and self tests
+        run: |
+          python -m py_compile \
+            race-sports/tools/snapshot_guard.py \
+            race-sports/tools/sports_static_collector.py \
+            race-sports/tools/validate_snapshot.py \
+            race-sports/tools/validate_sports_snapshot.py \
+            race-sports/tools/sports_snapshot_finalize.py
+          python race-sports/tools/sports_snapshot_finalize.py --self-test
+          python race-sports/tools/sports_top3.py --self-test
+          python race-sports/tools/inject_cycle_boat_own_models.py --self-test
+
+      - name: Preserve branch baselines
+        run: |
+          cp race-sports/data/today.json /tmp/race-prev.json
+          cp race-sports/data/sports_today.json /tmp/sports-prev.json
+
+      - name: Rebuild current racing snapshot
+        env:
+          KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 75s python race-sports/tools/racing_static_collector.py
+          python race-sports/tools/snapshot_guard.py race-sports/data/today.json /tmp/race-prev.json
+          timeout 75s python race-sports/tools/kcycle_official_enricher.py || true
+          python race-sports/tools/cycle_model_distribution_guard.py
+          timeout 75s python race-sports/tools/kra_official_enricher.py || true
+          python race-sports/tools/inject_horse_model.py || true
+          timeout 75s python race-sports/tools/inject_kboat_ai.py || true
+          python race-sports/tools/inject_cycle_boat_own_models.py
+          python race-sports/tools/inject_bull_model.py
+          python race-sports/tools/validate_snapshot.py race-sports/data/today.json
+
+      - name: Assert no phantom racing events
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('race-sports/data/today.json',encoding='utf-8'))
+          boat=[e for e in p.get('events',[]) if e.get('sport')=='BOAT']
+          keys=[(e.get('event_date'),e.get('race_no')) for e in boat]
+          assert len(keys)==len(set(keys)), 'BOAT_LOGICAL_DUPLICATE'
+          assert not any(e.get('stale') or e.get('data_state')=='STALE_LAST_KNOWN_GOOD' for e in p.get('events',[])), 'STALE_EVENT'
+          guard=next((x for x in p.get('providers',[]) if x.get('provider')=='SNAPSHOT_GUARD'),{})
+          assert guard.get('status')=='PASS', guard
+          print('RACING_NORMALIZATION_ASSERT=PASS', {'events':len(p.get('events',[])),'boat':len(boat),'guard':guard.get('status')})
+          PY
+
+      - name: Rebuild current sports snapshot
+        env:
+          SPORTSGAMEODDS_API_KEY: ${{ secrets.SPORTSGAMEODDS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 60s python race-sports/tools/sports_static_collector.py
+          python race-sports/tools/sports_team_ko.py
+          timeout 45s python race-sports/tools/sports_odds_enricher.py || true
+          python race-sports/tools/inject_sports_model.py
+          python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+          python race-sports/tools/sports_top3.py
+          python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+
+      - name: Assert sports final contract
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('race-sports/data/sports_today.json',encoding='utf-8'))
+          assert not any(e.get('stale') or e.get('data_state')=='STALE_LAST_KNOWN_GOOD' for e in p.get('events',[])), 'STALE_SPORTS_EVENT'
+          mb=next((x for x in p.get('providers',[]) if x.get('provider')=='SPORTS_ODDS_MULTIBOOK'),{})
+          assert mb.get('status') in {'PASS','NO_ELIGIBLE_LEAGUE','NO_MATCH','PARTIAL','KEY_MISSING'}, mb
+          assert isinstance(p.get('sports_top3'),dict), 'TOP3_MISSING'
+          print('SPORTS_NORMALIZATION_ASSERT=PASS', {'events':len(p.get('events',[])),'multibook':mb.get('status'),'top3':p['sports_top3'].get('counts')})
+          PY
