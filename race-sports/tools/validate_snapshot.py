@@ -6,6 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
+OWN_MODEL_SOURCES = {'boat_hybrid_bayes_v0.2', 'cycle_hybrid_bayes_v0.2'}
 
 
 def fail(msg):
@@ -29,6 +30,38 @@ def event_start_ts(payload, event):
         return None
 
 
+def clear_superseded_model_stale(payload):
+    """Official KBOAT/KCYCLE AI may be incomplete after scratches.
+
+    If the validated own model has already replaced it with a complete current
+    distribution, the old official-source stale marker is no longer relevant.
+    Clear only that superseded marker; never renormalize or fabricate values.
+    """
+    changed = 0
+    for e in payload.get('events') or []:
+        if not e.get('model_stale'):
+            continue
+        outcomes = e.get('outcomes') or []
+        if not outcomes or e.get('model_validated') is not True:
+            continue
+        sources = {o.get('model_source') for o in outcomes if o.get('model_p') is not None}
+        if len(sources) != 1 or next(iter(sources), None) not in OWN_MODEL_SOURCES:
+            continue
+        try:
+            vals = [float(o['model_p']) for o in outcomes]
+        except Exception:
+            continue
+        if len(vals) != len(outcomes) or not all(math.isfinite(v) and 0 <= v <= 1 for v in vals):
+            continue
+        if abs(sum(vals) - 1.0) > 0.03:
+            continue
+        e.pop('model_stale', None)
+        e.pop('model_stale_reason', None)
+        e['model_freshness'] = 'OWN_VALIDATED_MODEL_SUPERSEDES_INCOMPLETE_OFFICIAL_AI'
+        changed += 1
+    return changed
+
+
 def main():
     path = Path(sys.argv[1] if len(sys.argv) > 1 else 'race-sports/data/today.json')
     try:
@@ -36,13 +69,15 @@ def main():
     except Exception as e:
         fail('JSON:' + str(e))
 
+    cleared = clear_superseded_model_stale(p)
+    if cleared:
+        path.write_text(json.dumps(p, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+
     events = p.get('events') or []
     ids = [e.get('id') for e in events if e.get('id')]
     if len(ids) != len(set(ids)):
         fail('DUPLICATE_EVENT_ID')
 
-    # KBOAT has one race number per actual race date. Different meeting-day IDs
-    # for the same date/race number are phantom duplicates, even when IDs differ.
     boat_keys = []
     for e in events:
         if e.get('sport') == 'BOAT':
@@ -191,6 +226,7 @@ def main():
         'by_sport': dict(sports),
         'stale_events': 0,
         'guard': (guard or {}).get('status'),
+        'superseded_model_stale_cleared': cleared,
         'boat_logical_duplicate_guard': True,
         'past_scheduled_guard': True,
         'active_model_probability_guard': True,
