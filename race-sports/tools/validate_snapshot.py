@@ -1,5 +1,6 @@
 import json
 import math
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 from collections import Counter
@@ -7,6 +8,7 @@ from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
 OWN_MODEL_SOURCES = {'boat_hybrid_bayes_v0.2', 'cycle_hybrid_bayes_v0.2'}
+KBOAT_DAY_BY_WEEKDAY = {2: 1, 3: 2}  # Wed=1, Thu=2
 
 
 def fail(msg):
@@ -31,12 +33,7 @@ def event_start_ts(payload, event):
 
 
 def clear_superseded_model_stale(payload):
-    """Official KBOAT/KCYCLE AI may be incomplete after scratches.
-
-    If the validated own model has already replaced it with a complete current
-    distribution, the old official-source stale marker is no longer relevant.
-    Clear only that superseded marker; never renormalize or fabricate values.
-    """
+    """Clear an obsolete official-AI stale marker only after a complete validated own model replaced it."""
     changed = 0
     for e in payload.get('events') or []:
         if not e.get('model_stale'):
@@ -60,6 +57,42 @@ def clear_superseded_model_stale(payload):
         e['model_freshness'] = 'OWN_VALIDATED_MODEL_SUPERSEDES_INCOMPLETE_OFFICIAL_AI'
         changed += 1
     return changed
+
+
+def validate_kboat_calendar(payload, events, generated):
+    bad_day = []
+    stale_result = []
+    for e in events:
+        if e.get('sport') != 'BOAT':
+            continue
+        try:
+            d = datetime.fromisoformat(str(e.get('event_date'))).date()
+        except Exception:
+            bad_day.append((e.get('id'), 'BAD_DATE'))
+            continue
+        expected = KBOAT_DAY_BY_WEEKDAY.get(d.weekday())
+        m = re.match(r'^BOAT-\d{8}-\d+-(\d+)-\d+$', str(e.get('id') or ''))
+        id_day = int(m.group(1)) if m else None
+        comp = str(e.get('competition') or '')
+        if expected is None or id_day != expected or f'{expected}일차' not in comp:
+            bad_day.append((e.get('id'), f'weekday={d.weekday()}', f'expected={expected}', f'id_day={id_day}', comp))
+
+        if generated is not None and e.get('status') == 'RESULT_PENDING':
+            start_at = event_start_ts(payload, e)
+            if start_at and generated - start_at > timedelta(minutes=75):
+                stale_result.append((e.get('id'), e.get('start_time')))
+
+    if bad_day:
+        fail('KBOAT_MEETING_DAY_MISMATCH:' + str(bad_day[:5]))
+    if stale_result:
+        fail('KBOAT_RESULT_PENDING_TOO_OLD:' + str(stale_result[:5]))
+
+    provider = next((x for x in payload.get('providers', []) if x.get('provider') == 'BOAT_KBOAT'), None)
+    if provider and provider.get('status') == 'PASS':
+        expected = KBOAT_DAY_BY_WEEKDAY.get(datetime.fromisoformat(str(payload.get('date'))).date().weekday())
+        detail_day = (provider.get('detail') or {}).get('day')
+        if expected is not None and detail_day != expected:
+            fail(f'KBOAT_PROVIDER_DAY_MISMATCH:expected={expected}:detail={detail_day}')
 
 
 def main():
@@ -104,6 +137,8 @@ def main():
                 impossible.append((e.get('id'), e.get('start_time')))
         if impossible:
             fail('PAST_EVENT_STILL_SCHEDULED:' + str(impossible[:5]))
+
+    validate_kboat_calendar(p, events, generated)
 
     bad_odds = []
     bad_model = []
@@ -228,6 +263,8 @@ def main():
         'guard': (guard or {}).get('status'),
         'superseded_model_stale_cleared': cleared,
         'boat_logical_duplicate_guard': True,
+        'boat_calendar_guard': True,
+        'boat_result_freshness_guard': True,
         'past_scheduled_guard': True,
         'active_model_probability_guard': True,
         'model_state_guard': True,
