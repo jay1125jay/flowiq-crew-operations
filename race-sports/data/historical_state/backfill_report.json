@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T19:59:50+09:00",
+  "generated_at": "2026-10-07T10:41:45+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -7,14 +7,14 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 2500,
-    "ksports": 2500,
-    "bull": 3225
+    "horse": 199,
+    "ksports": 148,
+    "bull": 0
   },
   "usage_before_run": {
-    "horse": 2500,
-    "ksports": 2500,
-    "bull": 3225
+    "horse": 0,
+    "ksports": 0,
+    "bull": 0
   },
   "checkpoints": {
     "horse": {
@@ -26,13 +26,14 @@
     "cycle": {
       "cursor_mode": "DETAIL_ROUTE_V3",
       "year": 2023,
-      "meeting": 41,
-      "day": 2,
+      "meeting": 39,
+      "day": 3,
       "complete": false
     },
     "boat": {
       "cursor_date": "2023-10-08",
-      "complete": false
+      "complete": false,
+      "resume_day": 2
     },
     "bull": {
       "year": 2010,
@@ -44,23 +45,43 @@
   "new": {
     "horse_records": 0,
     "horse_dates": 0,
-    "horse_retry_attempted": 0,
-    "horse_retry_recovered": 0,
-    "cycle_records": 0,
-    "cycle_dates": 0,
+    "horse_retry_attempted": 157,
+    "horse_retry_recovered": 98,
+    "cycle_records": 64,
+    "cycle_dates": 5,
     "boat_records": 0,
     "boat_dates": 0,
     "bull_records": 0,
     "bull_cards": 0,
-    "errors": []
+    "errors": [
+      "CYCLE CYCLE-20231021-광명-01 DETAIL_SUMMARY_MISMATCH URL=https://www.kcycle.or.kr/race/result/general/2023/41/2/001/01",
+      "CYCLE CYCLE-20231021-광명-14 DETAIL_SUMMARY_MISMATCH URL=https://www.kcycle.or.kr/race/result/general/2023/41/2/001/14",
+      "CYCLE CYCLE-20231021-창원-03 DETAIL_SUMMARY_MISMATCH URL=https://www.kcycle.or.kr/race/result/general/2023/41/2/002/03",
+      "CYCLE 2023-10-21 DETAIL_ROUTE summary=19 ok=16 fail=3 added=16",
+      "CYCLE CYCLE-20231020-광명-01 DETAIL_SUMMARY_MISMATCH URL=https://www.kcycle.or.kr/race/result/general/2023/41/1/001/01",
+      "CYCLE CYCLE-20231020-창원-03 DETAIL RuntimeError:TIME_BUDGET_EXHAUSTED",
+      "CYCLE 2023-10-20 DETAIL_ROUTE summary=19 ok=16 fail=2 added=16",
+      "BOAT 2023-10-08 card d2 URLError:<urlopen error timed out>",
+      "CYCLE 2023-10-15 DETAIL_ROUTE summary=19 ok=19 fail=0 added=19",
+      "CYCLE 2023-10-14 DETAIL_ROUTE summary=19 ok=10 fail=0 added=10",
+      "BOAT 2023-10-08 card d2 URLError:<urlopen error timed out>",
+      "CYCLE CYCLE-20231013-광명-04 DETAIL RuntimeError:TIME_BUDGET_EXHAUSTED",
+      "CYCLE 2023-10-13 DETAIL_ROUTE summary=19 ok=3 fail=1 added=3"
+    ]
   },
   "records_total": {
-    "horse": 4668,
-    "cycle": 5268,
+    "horse": 4766,
+    "cycle": 5332,
     "boat": 4601,
     "bull": 14322
   },
-  "retry_metrics": {},
+  "retry_metrics": {
+    "horse": {
+      "attempted_this_run": 157,
+      "recovered_this_run": 98,
+      "remaining": 713
+    }
+  },
   "quota_policy": "daily hard caps; use remaining quota opportunistically; KCYCLE/KBOAT start 50/50 then reallocate unused shared quota",
   "runtime_policy": {
     "horse": 0.35,
@@ -79,11 +100,11 @@
     "rejected_total": 0,
     "by_sport": {
       "horse": {
-        "kept": 4668,
+        "kept": 4766,
         "rejected": 0
       },
       "cycle": {
-        "kept": 5268,
+        "kept": 5332,
         "rejected": 0
       },
       "boat": {
