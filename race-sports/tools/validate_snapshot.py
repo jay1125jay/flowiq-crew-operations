@@ -1,15 +1,17 @@
 import json
 import math
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from collections import Counter
 from pathlib import Path
+
+KST = timezone(timedelta(hours=9))
+OWN_MODEL_SOURCES = {'boat_hybrid_bayes_v0.2', 'cycle_hybrid_bayes_v0.2'}
 
 
 def fail(msg):
     print('VALIDATION_FAIL=' + msg)
     raise SystemExit(2)
-
 
 
 def parse_ts(v):
@@ -19,6 +21,47 @@ def parse_ts(v):
         return None
 
 
+def event_start_ts(payload, event):
+    date = str(event.get('event_date') or payload.get('date') or '')
+    start = str(event.get('start_time') or '')
+    try:
+        return datetime.fromisoformat(f'{date}T{start}:00').replace(tzinfo=KST)
+    except Exception:
+        return None
+
+
+def clear_superseded_model_stale(payload):
+    """Official KBOAT/KCYCLE AI may be incomplete after scratches.
+
+    If the validated own model has already replaced it with a complete current
+    distribution, the old official-source stale marker is no longer relevant.
+    Clear only that superseded marker; never renormalize or fabricate values.
+    """
+    changed = 0
+    for e in payload.get('events') or []:
+        if not e.get('model_stale'):
+            continue
+        outcomes = e.get('outcomes') or []
+        if not outcomes or e.get('model_validated') is not True:
+            continue
+        sources = {o.get('model_source') for o in outcomes if o.get('model_p') is not None}
+        if len(sources) != 1 or next(iter(sources), None) not in OWN_MODEL_SOURCES:
+            continue
+        try:
+            vals = [float(o['model_p']) for o in outcomes]
+        except Exception:
+            continue
+        if len(vals) != len(outcomes) or not all(math.isfinite(v) and 0 <= v <= 1 for v in vals):
+            continue
+        if abs(sum(vals) - 1.0) > 0.03:
+            continue
+        e.pop('model_stale', None)
+        e.pop('model_stale_reason', None)
+        e['model_freshness'] = 'OWN_VALIDATED_MODEL_SUPERSEDES_INCOMPLETE_OFFICIAL_AI'
+        changed += 1
+    return changed
+
+
 def main():
     path = Path(sys.argv[1] if len(sys.argv) > 1 else 'race-sports/data/today.json')
     try:
@@ -26,15 +69,45 @@ def main():
     except Exception as e:
         fail('JSON:' + str(e))
 
+    cleared = clear_superseded_model_stale(p)
+    if cleared:
+        path.write_text(json.dumps(p, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+
     events = p.get('events') or []
     ids = [e.get('id') for e in events if e.get('id')]
     if len(ids) != len(set(ids)):
         fail('DUPLICATE_EVENT_ID')
 
+    boat_keys = []
+    for e in events:
+        if e.get('sport') == 'BOAT':
+            boat_keys.append((e.get('event_date'), e.get('race_no')))
+    if len(boat_keys) != len(set(boat_keys)):
+        fail('BOAT_LOGICAL_DUPLICATE_DATE_RACE')
+
     sports = Counter(e.get('sport') for e in events)
-    stale = sum(1 for e in events if e.get('stale'))
+    stale_events = [e.get('id') for e in events if e.get('stale') or e.get('data_state') == 'STALE_LAST_KNOWN_GOOD']
+    if stale_events:
+        fail('STALE_EVENTS_FORBIDDEN:' + str(stale_events[:5]))
+
+    generated = parse_ts(p.get('generated_at'))
+    if generated is not None:
+        if generated.tzinfo is None:
+            generated = generated.replace(tzinfo=KST)
+        generated = generated.astimezone(KST)
+        impossible = []
+        for e in events:
+            if e.get('status') != 'SCHEDULED':
+                continue
+            start_at = event_start_ts(p, e)
+            if start_at and generated - start_at > timedelta(minutes=5):
+                impossible.append((e.get('id'), e.get('start_time')))
+        if impossible:
+            fail('PAST_EVENT_STILL_SCHEDULED:' + str(impossible[:5]))
+
     bad_odds = []
     bad_model = []
+    bad_model_state = []
     bad_bull = []
     bad_bull_result = []
     bad_bull_odds = []
@@ -50,10 +123,6 @@ def main():
                 vals = [float(v) for v in populated]
                 if not all(math.isfinite(v) and 0.0 <= v <= 1.0 for v in vals):
                     bad_model.append((e.get('id'), 'MODEL_RANGE'))
-                # Full probability distributions are required only while
-                # probabilities can affect a pre-race decision. Post-start
-                # RESULT_PENDING/FINAL data must never be blocked from publish
-                # by a stale/scratch-affected model distribution.
                 needs_full_distribution = e.get('sport') == 'BULL' or e.get('status') == 'SCHEDULED'
                 if needs_full_distribution:
                     if len(populated) != len(outcomes):
@@ -62,6 +131,11 @@ def main():
                         bad_model.append((e.get('id'), f'MODEL_SUM:{sum(vals):.6f}'))
             except Exception:
                 bad_model.append((e.get('id'), 'MODEL_PARSE'))
+
+        if e.get('model_stale') and e.get('value_enabled'):
+            bad_model_state.append((e.get('id'), 'STALE_MODEL_VALUE_ENABLED'))
+        if e.get('model_incomplete') and e.get('value_enabled'):
+            bad_model_state.append((e.get('id'), 'INCOMPLETE_MODEL_VALUE_ENABLED'))
 
         if e.get('sport') == 'BULL':
             keys = [o.get('key') for o in outcomes]
@@ -119,6 +193,8 @@ def main():
         fail('NON_POSITIVE_ODDS')
     if bad_model:
         fail('MODEL_PROBABILITY:' + str(bad_model[:3]))
+    if bad_model_state:
+        fail('MODEL_STATE:' + str(bad_model_state[:3]))
     if bad_bull:
         fail('BULL_OUTCOME_ORDER')
     if bad_bull_result:
@@ -130,18 +206,31 @@ def main():
     if bad_bull_model:
         fail('BULL_MODEL_SOURCE')
 
+    hard_provider_states = {'FAIL', 'ERROR', 'STALE_RECOVERED', 'RECOVERED'}
+    bad_providers = [
+        (x.get('provider'), x.get('status'))
+        for x in p.get('providers', [])
+        if x.get('status') in hard_provider_states
+    ]
+    if bad_providers:
+        fail('HARD_PROVIDER_STATE:' + str(bad_providers[:5]))
+
     guard = next((x for x in p.get('providers', []) if x.get('provider') == 'SNAPSHOT_GUARD'), None)
-    if stale and not guard:
-        fail('STALE_WITHOUT_GUARD')
+    if guard and guard.get('status') not in {'PASS', 'NO_BASELINE'}:
+        fail('SNAPSHOT_GUARD_NOT_CLEAN:' + str(guard.get('status')))
 
     print(json.dumps({
         'VALIDATION': 'PASS',
         'date': p.get('date'),
         'events': len(events),
         'by_sport': dict(sports),
-        'stale_events': stale,
+        'stale_events': 0,
         'guard': (guard or {}).get('status'),
+        'superseded_model_stale_cleared': cleared,
+        'boat_logical_duplicate_guard': True,
+        'past_scheduled_guard': True,
         'active_model_probability_guard': True,
+        'model_state_guard': True,
         'post_start_model_history_tolerates_scratches': True,
         'result_publish_not_blocked_by_post_start_model': True,
         'bull_three_way_guard': True,

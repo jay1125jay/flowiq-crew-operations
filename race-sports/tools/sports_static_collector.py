@@ -13,11 +13,6 @@ def load_prev():
     try:return json.loads(OUT.read_text(encoding="utf-8"))
     except Exception:return None
 
-def stale_copy(e,reason):
-    x=json.loads(json.dumps(e,ensure_ascii=False))
-    x["stale"]=True;x["data_state"]="STALE_LAST_KNOWN_GOOD";x["stale_reason"]=reason
-    return x
-
 ODDS_FIELDS=("odds","odds_source","odds_provider","odds_capture_mode","odds_updated_at","bookmaker_odds")
 
 def valid_odds(o):
@@ -50,15 +45,13 @@ def merge_same_day_odds(events,prev):
 def collect(day=None):
     now=datetime.now(KST);day=day or now.date().isoformat()
     prev=load_prev();prev=prev if prev and prev.get("date")==day else None
-    old={}
-    for e in (prev or {}).get("events",[]):old.setdefault(e.get("sport"),[]).append(e)
     providers=[];events=[]
+    hard_failures=[]
     for sport in SPORTS:
         try:
             got,meta=fetch_sport_day(sport,day,include_odds=True)
-            if prev and meta.get("status")=="PARTIAL":
-                got_ids={e.get("id") for e in got}
-                got.extend(stale_copy(e,"PROVIDER_PARTIAL_MISSING_EVENT") for e in old.get(sport,[]) if e.get("id") not in got_ids)
+            # Current source is authoritative. Never re-insert events that the
+            # current collector did not return; that creates phantom/stale games.
             events.extend(got)
             providers.append({
                 "provider":f"SPORTS_{sport}_{meta.get('provider','SOURCE')}",
@@ -73,9 +66,15 @@ def collect(day=None):
                 "failures":meta["failures"],
             })
         except Exception as exc:
-            recovered=[stale_copy(e,"PROVIDER_FETCH_FAILED") for e in old.get(sport,[])]
-            events.extend(recovered)
-            providers.append({"provider":f"SPORTS_{sport}_SOURCE","sport":sport,"status":"FAIL","error":str(exc)[:500],"recovered_events":len(recovered)})
+            hard_failures.append({"sport":sport,"error":str(exc)[:500]})
+            providers.append({
+                "provider":f"SPORTS_{sport}_SOURCE",
+                "sport":sport,
+                "status":"FAIL",
+                "error":str(exc)[:500],
+                "recovered_events":0,
+                "policy":"FAIL_CLOSED_NO_STALE_EVENT_RECOVERY",
+            })
     uniq={e.get("id"):e for e in events if e.get("id")}
     events=merge_same_day_odds(list(uniq.values()),prev)
     events.sort(key=lambda e:(e.get("start_timestamp",0),e.get("sport",""),e.get("id","")))
@@ -83,7 +82,17 @@ def collect(day=None):
         "date":day,"time":now.strftime("%H:%M:%S"),"generated_at":now.isoformat(),
         "domain":"SPORTS","source_contract":"CONFIGURED_TOP_TIER_SOURCE_LABELED",
         "enabled_sports":list(SPORTS),"providers":providers,"events":events,
+        "integrity":{
+            "policy":"CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
+            "hard_failures":hard_failures,
+            "stale_events":0,
+        },
     }
+    # Keep the previously locked board visible during a same-day refresh. The
+    # dedicated TOP3 job refreshes status/evaluation after this snapshot lands.
+    if prev and isinstance(prev.get("sports_top3"),dict):
+        payload["sports_top3"]=json.loads(json.dumps(prev["sports_top3"],ensure_ascii=False))
+        payload["sports_top3"]["snapshot_preserved_at"]=now.isoformat()
     OUT.parent.mkdir(parents=True,exist_ok=True)
     tmp=OUT.with_suffix(".json.tmp");tmp.write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding="utf-8");tmp.replace(OUT)
     return payload
@@ -91,5 +100,5 @@ def collect(day=None):
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--date");a=ap.parse_args()
     p=collect(a.date)
-    print(json.dumps({"SPORTS_COLLECT":"PASS","date":p["date"],"events":len(p["events"]),"by_sport":{s:sum(1 for e in p["events"] if e.get("sport")==s) for s in SPORTS},"providers":p["providers"]},ensure_ascii=False))
+    print(json.dumps({"SPORTS_COLLECT":"PASS" if not p.get("integrity",{}).get("hard_failures") else "FAIL_CLOSED","date":p["date"],"events":len(p["events"]),"by_sport":{s:sum(1 for e in p["events"] if e.get("sport")==s) for s in SPORTS},"providers":p["providers"]},ensure_ascii=False))
 if __name__=="__main__":main()
