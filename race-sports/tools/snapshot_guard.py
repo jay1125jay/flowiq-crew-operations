@@ -69,7 +69,7 @@ def merge_hist(old_hist, new_hist):
 
 
 def merge_event(old: dict, new: dict):
-    """Merge durable fields only when the current collector still publishes the same event."""
+    """Preserve durable fields only when the current official collector still publishes the same event."""
     out = deepcopy(new)
     if old.get('result') and not out.get('result'):
         out['result'] = deepcopy(old['result'])
@@ -89,17 +89,6 @@ def merge_event(old: dict, new: dict):
         out.pop(k, None)
     out['data_state'] = 'FRESH'
     return out
-
-
-def stale_copy(event: dict, current: dict, previous: dict, reason: str):
-    """Compatibility helper used only by the workflow's synthetic guard self-test."""
-    e = deepcopy(event)
-    e['stale'] = True
-    e['data_state'] = 'STALE_LAST_KNOWN_GOOD'
-    e['stale_reason'] = reason
-    e['stale_since'] = current.get('generated_at')
-    e['last_good_generated_at'] = previous.get('generated_at')
-    return e
 
 
 def main():
@@ -144,22 +133,12 @@ def main():
         if sport in suppressed_by_sport:
             suppressed_by_sport[sport] += 1
 
-    # The old workflow contains a synthetic self-test with an empty provider list.
-    # Preserve that isolated test contract, but never use this behavior for a real
-    # production snapshot. Production collectors always emit provider rows.
-    synthetic_test_mode = not current.get('providers') and not current.get('events')
-    recovered_total = 0
-    if synthetic_test_mode:
-        for old in prev_map.values():
-            merged.append(stale_copy(old, current, previous, 'SYNTHETIC_GUARD_SELF_TEST'))
-        recovered_total = len(prev_map)
-
     providers.append({
         'provider': 'SNAPSHOT_GUARD',
-        'status': 'TEST_RECOVERED' if synthetic_test_mode and recovered_total else 'PASS',
+        'status': 'PASS',
         'detail': {
-            'recovered': recovered_total,
-            'suppressed_previous_only_events': 0 if synthetic_test_mode else len(previous_only),
+            'recovered': 0,
+            'suppressed_previous_only_events': len(previous_only),
             'suppressed_by_sport': suppressed_by_sport,
             'last_good_source': source_ref,
             'policy': 'CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY',
@@ -171,17 +150,17 @@ def main():
     current['providers'] = providers
     current['integrity'] = {
         'policy': 'CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY',
-        'recovered_events': recovered_total,
-        'suppressed_previous_only_events': 0 if synthetic_test_mode else len(previous_only),
+        'recovered_events': 0,
+        'suppressed_previous_only_events': len(previous_only),
         'source_ref': source_ref,
-        'stale_events': sum(1 for e in merged if e.get('stale')),
+        'stale_events': 0,
     }
     current_path.write_text(json.dumps(current, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     print(json.dumps({
-        'status': 'TEST_RECOVERED' if synthetic_test_mode and recovered_total else 'PASS',
+        'status': 'PASS',
         'events': len(merged),
-        'recovered': recovered_total,
-        'suppressed_previous_only_events': 0 if synthetic_test_mode else len(previous_only),
+        'recovered': 0,
+        'suppressed_previous_only_events': len(previous_only),
         'suppressed_by_sport': suppressed_by_sport,
         'source_ref': source_ref,
     }, ensure_ascii=False))
