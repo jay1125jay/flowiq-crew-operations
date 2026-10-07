@@ -2,12 +2,17 @@
 from __future__ import annotations
 import argparse, json, math, re
 from pathlib import Path
+from sports_snapshot_finalize import normalize_multibook
 
 ALLOWED={"SOCCER","BASEBALL","BASKETBALL","VOLLEYBALL"}
 STATUSES={"SCHEDULED","LIVE","FINAL","POSTPONED","CANCELLED","SUSPENDED"}
 
 def validate(path: Path):
     p=json.loads(path.read_text(encoding="utf-8"))
+    multibook_status=normalize_multibook(p)
+    p.setdefault("integrity",{})["sports_multibook_status"]=multibook_status
+    path.write_text(json.dumps(p,ensure_ascii=False,indent=2),encoding="utf-8")
+
     assert p.get("domain")=="SPORTS","BAD_DOMAIN"
     assert set(p.get("enabled_sports",[]))==ALLOWED,"BAD_ENABLED_SPORTS"
     ids=set()
@@ -76,7 +81,7 @@ def validate(path: Path):
                 event=next(e for e in p.get("events",[]) if e.get("id")==eid)
                 assert not event.get("stale"),"TOP3_STALE_EVENT:"+str(eid)
 
-    print(json.dumps({"SPORTS_SNAPSHOT_VALIDATION":"PASS","events":len(p.get("events",[])),"stale_events":0,"top3_present":isinstance(top3,dict)},ensure_ascii=False))
+    print(json.dumps({"SPORTS_SNAPSHOT_VALIDATION":"PASS","events":len(p.get("events",[])),"stale_events":0,"top3_present":isinstance(top3,dict),"multibook_status":multibook_status},ensure_ascii=False))
 
 def main():
     ap=argparse.ArgumentParser()
