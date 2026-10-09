@@ -1,21 +1,21 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
-    "SOCCER": {
-      "games": 21175,
-      "holdout_rows": 6353,
-      "walk_forward_rows": 6353,
-      "accuracy": 0.525736,
-      "log_loss": 0.988512,
-      "brier": 0.196405,
-      "uniform_log_loss": 1.098612,
-      "log_loss_edge": 0.1101,
+    "BASKETBALL": {
+      "games": 13776,
+      "holdout_rows": 4133,
+      "walk_forward_rows": 4133,
+      "accuracy": 0.648681,
+      "log_loss": 0.626484,
+      "brier": 0.218397,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.066663,
       "validated": true,
       "selected_params": {
-        "k": 32.0,
-        "home_adv": 60.0,
-        "scale": 350.0,
-        "shrink": 1.0
+        "k": 28.0,
+        "home_adv": 50.0,
+        "scale": 430.0,
+        "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
@@ -37,6 +37,24 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
+    "SOCCER": {
+      "games": 21178,
+      "holdout_rows": 6354,
+      "walk_forward_rows": 6354,
+      "accuracy": 0.525653,
+      "log_loss": 0.988669,
+      "brier": 0.196445,
+      "uniform_log_loss": 1.098612,
+      "log_loss_edge": 0.109943,
+      "validated": true,
+      "selected_params": {
+        "k": 32.0,
+        "home_adv": 60.0,
+        "scale": 350.0,
+        "shrink": 1.0
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "BASEBALL": {
       "games": 29698,
       "holdout_rows": 8910,
@@ -54,27 +72,9 @@
         "shrink": 0.6
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "BASKETBALL": {
-      "games": 13776,
-      "holdout_rows": 4133,
-      "walk_forward_rows": 4133,
-      "accuracy": 0.648681,
-      "log_loss": 0.626484,
-      "brier": 0.218397,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.066663,
-      "validated": true,
-      "selected_params": {
-        "k": 28.0,
-        "home_adv": 50.0,
-        "scale": 430.0,
-        "shrink": 0.8
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 66505,
+  "history_events": 66508,
   "competition_history": {
     "BASEBALL::KBO": 5517,
     "BASEBALL::MLB": 24181,
@@ -83,11 +83,11 @@
     "SOCCER::AFC Asian Cup": 102,
     "SOCCER::AFC Champions League Elite": 881,
     "SOCCER::AFC Champions League Two": 342,
-    "SOCCER::Bundesliga": 2637,
+    "SOCCER::Bundesliga": 2638,
     "SOCCER::International Friendly": 2129,
     "SOCCER::K League 1": 228,
-    "SOCCER::LaLiga": 3315,
-    "SOCCER::Ligue 1": 2960,
+    "SOCCER::LaLiga": 3316,
+    "SOCCER::Ligue 1": 2961,
     "SOCCER::Premier League": 3262,
     "SOCCER::Serie A": 3283,
     "SOCCER::UEFA Champions League": 1351,
