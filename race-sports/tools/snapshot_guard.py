@@ -42,14 +42,13 @@ def git_history_candidates(path: str, limit: int = 80):
 
 def find_last_good(current: dict, current_path: Path, previous_path: Path | None):
     date = current.get('date')
-    candidates = []
     if previous_path and previous_path.exists():
         p = load_json(previous_path)
-        if p:
-            candidates.append(('WORKTREE_BACKUP', p))
-    for item in candidates:
-        if item[1].get('date') == date and item[1].get('events'):
-            return item
+        # An empty same-day snapshot is still a valid baseline. Requiring at least
+        # one event made the guard self-test fail on legitimate no-card days and
+        # blocked the entire refresh pipeline before collection could start.
+        if isinstance(p, dict) and p.get('date') == date and isinstance(p.get('events', []), list):
+            return 'WORKTREE_BACKUP', p
     for sha, payload in git_history_candidates(str(current_path)):
         if payload.get('date') == date and payload.get('events'):
             return sha, payload
@@ -102,7 +101,7 @@ def main():
 
     source_ref, previous = find_last_good(current, current_path, previous_path)
     providers = [deepcopy(p) for p in current.get('providers', []) if p.get('provider') != 'SNAPSHOT_GUARD']
-    if not previous:
+    if previous is None:
         providers.append({
             'provider': 'SNAPSHOT_GUARD',
             'status': 'NO_BASELINE',
