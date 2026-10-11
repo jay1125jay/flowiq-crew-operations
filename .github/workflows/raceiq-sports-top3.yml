@@ -10,6 +10,7 @@ on:
       - 'race-sports/tools/sports_top3_precision_guard.py'
       - 'race-sports/tools/sports_top3_performance.py'
       - 'race-sports/tools/sports_top3_ui_patch.py'
+      - 'race-sports/tools/sports_top3_performance_ui_patch.py'
   workflow_run:
     workflows:
       - race-sports-static-refresh
@@ -43,6 +44,7 @@ jobs:
           python race-sports/tools/sports_top3_precision_guard.py --self-test
           python race-sports/tools/sports_top3_performance.py --self-test
           python race-sports/tools/sports_top3_ui_patch.py --self-test
+          python race-sports/tools/sports_top3_performance_ui_patch.py --self-test
 
       - name: Build and publish TOP 3 conflict-safe
         shell: bash
@@ -56,6 +58,7 @@ jobs:
             git reset --hard origin/main
 
             python race-sports/tools/sports_top3_ui_patch.py --check
+            python race-sports/tools/sports_top3_performance_ui_patch.py --check
             python race-sports/tools/sports_top3.py
             python race-sports/tools/sports_top3_precision_guard.py
             python race-sports/tools/sports_top3_performance.py
@@ -77,7 +80,7 @@ jobs:
           if not m:
               raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
           Path('/tmp/raceiq-live-top3.js').write_text(m.group(1),encoding='utf-8')
-          for token in ['SPORTS_TOP3_UI_V1','id="refreshBtn"','function renderTop3Board()']:
+          for token in ['SPORTS_TOP3_UI_V1','SPORTS_TOP3_PERFORMANCE_UI_V1','id="refreshBtn"','function renderTop3Board()','function renderTop3Performance()']:
               if token not in s:
                   raise SystemExit('TOP3_UI_TOKEN_MISSING:'+token)
           print('TOP3_UI_GUARD=PASS')
@@ -95,7 +98,7 @@ jobs:
               exit 0
             fi
 
-            git commit -m "feat: publish high-precision SPORTS top 3 performance"
+            git commit -m "feat: publish high-precision SPORTS top 3 performance dashboard"
             if git push origin HEAD:main; then
               echo "SPORTS_TOP3_PUBLISH=PASS"
               exit 0
