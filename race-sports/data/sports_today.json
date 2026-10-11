@@ -1608,11 +1608,11 @@
     "sports_multibook_status": "PASS"
   },
   "sports_top3": {
-    "version": "SPORTS_TOP3_V3_HIGH_PRECISION",
+    "version": "SPORTS_TOP3_V4_PERFORMANCE_CIRCUIT",
     "date": "2026-10-12",
-    "generated_at": "2026-10-12T06:59:11+09:00",
-    "selection_state": "HIGH_PRECISION_ABSTENTION",
-    "policy": "MAX_3_PER_SPORT; MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; SPORT_SPECIFIC_PROBABILITY_AND_MARGIN_GATES; MIN_HISTORY; NO_FORCED_FILL; VALUE_AND_UPSET_EXCLUDED_FROM_HIT_RATE_BOARD",
+    "generated_at": "2026-10-12T08:43:14+09:00",
+    "selection_state": "HIGH_PRECISION_WITH_PERFORMANCE_CIRCUIT",
+    "policy": "MAX_3_PER_SPORT; MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; SPORT_SPECIFIC_PROBABILITY_AND_MARGIN_GATES; MIN_HISTORY; NO_FORCED_FILL; VALUE_AND_UPSET_EXCLUDED_FROM_HIT_RATE_BOARD; PERFORMANCE_CIRCUIT_BLOCKS_ONLY_NEW_PICKS; EXISTING_LOCKED_PICKS_RETAINED_THROUGH_RESULT",
     "thresholds": {
       "value_edge_min": 0.03,
       "value_ev_min": 0.05,
@@ -1663,7 +1663,51 @@
             "margin": 0.46203697,
             "min_top_p": 0.7,
             "min_margin": 0.2
-          }
+          },
+          "performance_safety_state": "NO_CIRCUIT"
+        },
+        {
+          "event_id": "SPORTS-BASKETBALL-401908941",
+          "sport": "BASKETBALL",
+          "competition": "NBA",
+          "event_date": "2026-10-12",
+          "start_time": "10:00",
+          "start_label": "10:00",
+          "start_timestamp": 1791766800,
+          "title": "Denver Nuggets vs Chicago Bulls",
+          "home": "Denver Nuggets",
+          "away": "Chicago Bulls",
+          "home_ko": "덴버 너기츠",
+          "away_ko": "시카고 불스",
+          "pick_key": "HOME",
+          "pick_name": "덴버 너기츠",
+          "pick_basis": "MODEL_HIGH_CONFIDENCE",
+          "selection_type": "HIT_RATE",
+          "model_p": 0.79560733,
+          "odds": 1.3774,
+          "market_p": 0.69576357,
+          "edge": 0.09984376,
+          "ev": 0.09586954,
+          "odds_provider": "DraftKings",
+          "history": {
+            "competition_games": 11605,
+            "home_team_games": 822,
+            "away_team_games": 724
+          },
+          "selection_score": 79.155,
+          "confidence": "HIGH_PRECISION",
+          "status": "SCHEDULED",
+          "locked_at": "2026-10-12T08:43:14+09:00",
+          "rank": 2,
+          "current_state": "FRESH",
+          "result": null,
+          "precision_gate": {
+            "top_p": 0.79560733,
+            "margin": 0.59121467,
+            "min_top_p": 0.7,
+            "min_margin": 0.2
+          },
+          "performance_safety_state": "NO_CIRCUIT"
         }
       ],
       "VOLLEYBALL": []
@@ -1671,7 +1715,7 @@
     "counts": {
       "SOCCER": 0,
       "BASEBALL": 0,
-      "BASKETBALL": 1,
+      "BASKETBALL": 2,
       "VOLLEYBALL": 0
     },
     "precision_thresholds": {
@@ -1690,19 +1734,40 @@
       "min_competition_games": 100,
       "min_team_games_each": 10
     },
-    "rejected_count": 5,
+    "performance_safety": {
+      "version": null,
+      "generated_at": null,
+      "by_sport": {
+        "SOCCER": {
+          "state": "NO_CIRCUIT",
+          "allow_new_picks": 3
+        },
+        "BASEBALL": {
+          "state": "NO_CIRCUIT",
+          "allow_new_picks": 3
+        },
+        "BASKETBALL": {
+          "state": "NO_CIRCUIT",
+          "allow_new_picks": 3
+        },
+        "VOLLEYBALL": {
+          "state": "NO_CIRCUIT",
+          "allow_new_picks": 3
+        }
+      }
+    },
+    "rejected_count": 4,
     "rejected_reason_counts": {
-      "TOP_PROBABILITY_BELOW_PRECISION_GATE": 4,
-      "NOT_MODEL_TOP_PICK": 1
+      "TOP_PROBABILITY_BELOW_PRECISION_GATE": 4
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V2_PUBLIC_SUMMARY",
-      "updated_at": "2026-10-12T06:59:11+09:00",
+      "updated_at": "2026-10-12T08:43:15+09:00",
       "summary": {
         "overall": {
-          "picks": 1,
+          "picks": 2,
           "evaluated": 0,
-          "pending": 1,
+          "pending": 2,
           "hits": 0,
           "misses": 0,
           "hit_rate": null
@@ -1725,9 +1790,9 @@
             "hit_rate": null
           },
           "BASKETBALL": {
-            "picks": 1,
+            "picks": 2,
             "evaluated": 0,
-            "pending": 1,
+            "pending": 2,
             "hits": 0,
             "misses": 0,
             "hit_rate": null
@@ -1766,6 +1831,16 @@
       },
       "recent": [
         {
+          "event_id": "SPORTS-BASKETBALL-401908941",
+          "date": "2026-10-12",
+          "sport": "BASKETBALL",
+          "competition": "NBA",
+          "title": "Denver Nuggets vs Chicago Bulls",
+          "pick_key": "HOME",
+          "pick_name": "덴버 너기츠",
+          "model_p": 0.79560733
+        },
+        {
           "event_id": "SPORTS-BASKETBALL-401901821",
           "date": "2026-10-12",
           "sport": "BASKETBALL",
@@ -1780,8 +1855,7 @@
         "min_evaluated_per_sport": 30,
         "target_hit_rate": 0.7
       }
-    },
-    "snapshot_preserved_at": "2026-10-12T07:26:24.607131+09:00"
+    }
   },
   "team_name_localization": {
     "language": "ko",
