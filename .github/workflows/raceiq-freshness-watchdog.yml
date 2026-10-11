@@ -1,0 +1,82 @@
+name: raceiq-freshness-watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: raceiq-freshness-watchdog
+  cancel-in-progress: true
+
+jobs:
+  freshness-watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check published snapshot freshness
+        id: health
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          KST = timezone(timedelta(hours=9))
+          now = datetime.now(KST)
+          max_age_minutes = 45
+          files = [
+              Path('race-sports/data/today.json'),
+              Path('race-sports/data/sports_today.json'),
+          ]
+          reasons=[]
+          ages={}
+          for p in files:
+              if not p.exists():
+                  reasons.append(f'{p.name}:MISSING')
+                  continue
+              try:
+                  obj=json.loads(p.read_text(encoding='utf-8'))
+              except Exception as e:
+                  reasons.append(f'{p.name}:INVALID_JSON:{type(e).__name__}')
+                  continue
+              if obj.get('date') != now.date().isoformat():
+                  reasons.append(f"{p.name}:WRONG_DATE:{obj.get('date')}")
+              raw=obj.get('generated_at')
+              try:
+                  dt=datetime.fromisoformat(str(raw))
+                  if dt.tzinfo is None:
+                      dt=dt.replace(tzinfo=KST)
+                  age=(now-dt.astimezone(KST)).total_seconds()/60
+                  ages[p.name]=round(age,1)
+                  if age > max_age_minutes:
+                      reasons.append(f'{p.name}:STALE:{age:.1f}m')
+              except Exception:
+                  reasons.append(f'{p.name}:BAD_GENERATED_AT:{raw}')
+
+          stale=bool(reasons)
+          print(json.dumps({'RACEIQ_FRESHNESS_WATCHDOG':'STALE' if stale else 'PASS','ages_minutes':ages,'reasons':reasons},ensure_ascii=False))
+          out=os.environ['GITHUB_OUTPUT']
+          with open(out,'a',encoding='utf-8') as f:
+              f.write(f"stale={'true' if stale else 'false'}\n")
+          PY
+
+      - name: Trigger full refresh when stale
+        if: steps.health.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run race-sports-static-refresh.yml --ref main
+          echo 'RACEIQ_REFRESH_DISPATCHED=YES'
+
+      - name: Healthy snapshot
+        if: steps.health.outputs.stale != 'true'
+        run: echo 'RACEIQ_REFRESH_DISPATCHED=NO; SNAPSHOT_FRESH=YES'
