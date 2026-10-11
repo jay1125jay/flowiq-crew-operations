@@ -1610,7 +1610,7 @@
   "sports_top3": {
     "version": "SPORTS_TOP3_V4_PERFORMANCE_CIRCUIT",
     "date": "2026-10-12",
-    "generated_at": "2026-10-12T08:43:14+09:00",
+    "generated_at": "2026-10-12T08:43:29+09:00",
     "selection_state": "HIGH_PRECISION_WITH_PERFORMANCE_CIRCUIT",
     "policy": "MAX_3_PER_SPORT; MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; SPORT_SPECIFIC_PROBABILITY_AND_MARGIN_GATES; MIN_HISTORY; NO_FORCED_FILL; VALUE_AND_UPSET_EXCLUDED_FROM_HIT_RATE_BOARD; PERFORMANCE_CIRCUIT_BLOCKS_ONLY_NEW_PICKS; EXISTING_LOCKED_PICKS_RETAINED_THROUGH_RESULT",
     "thresholds": {
@@ -1664,7 +1664,7 @@
             "min_top_p": 0.7,
             "min_margin": 0.2
           },
-          "performance_safety_state": "NO_CIRCUIT"
+          "performance_safety_state": "LEARNING"
         },
         {
           "event_id": "SPORTS-BASKETBALL-401908941",
@@ -1707,7 +1707,7 @@
             "min_top_p": 0.7,
             "min_margin": 0.2
           },
-          "performance_safety_state": "NO_CIRCUIT"
+          "performance_safety_state": "LEARNING"
         }
       ],
       "VOLLEYBALL": []
@@ -1735,24 +1735,68 @@
       "min_team_games_each": 10
     },
     "performance_safety": {
-      "version": null,
-      "generated_at": null,
+      "version": "SPORTS_TOP3_CIRCUIT_V1",
+      "generated_at": "2026-10-12T08:43:29+09:00",
       "by_sport": {
         "SOCCER": {
-          "state": "NO_CIRCUIT",
-          "allow_new_picks": 3
+          "state": "LEARNING",
+          "allow_new_picks": 3,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "hit_rate": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null,
+          "recent_n": 0,
+          "recent_hit_rate": null,
+          "evidence": [],
+          "latest_evaluated_at": null,
+          "cooldown_hours": 24
         },
         "BASEBALL": {
-          "state": "NO_CIRCUIT",
-          "allow_new_picks": 3
+          "state": "LEARNING",
+          "allow_new_picks": 3,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "hit_rate": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null,
+          "recent_n": 0,
+          "recent_hit_rate": null,
+          "evidence": [],
+          "latest_evaluated_at": null,
+          "cooldown_hours": 24
         },
         "BASKETBALL": {
-          "state": "NO_CIRCUIT",
-          "allow_new_picks": 3
+          "state": "LEARNING",
+          "allow_new_picks": 3,
+          "evaluated": 0,
+          "pending": 2,
+          "hits": 0,
+          "hit_rate": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null,
+          "recent_n": 0,
+          "recent_hit_rate": null,
+          "evidence": [],
+          "latest_evaluated_at": null,
+          "cooldown_hours": 24
         },
         "VOLLEYBALL": {
-          "state": "NO_CIRCUIT",
-          "allow_new_picks": 3
+          "state": "LEARNING",
+          "allow_new_picks": 3,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "hit_rate": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null,
+          "recent_n": 0,
+          "recent_hit_rate": null,
+          "evidence": [],
+          "latest_evaluated_at": null,
+          "cooldown_hours": 24
         }
       }
     },
@@ -1762,7 +1806,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V2_PUBLIC_SUMMARY",
-      "updated_at": "2026-10-12T08:43:15+09:00",
+      "updated_at": "2026-10-12T08:43:29+09:00",
       "summary": {
         "overall": {
           "picks": 2,
