@@ -83,3 +83,5 @@ jobs:
       - name: Healthy snapshot
         if: steps.health.outputs.stale != 'true'
         run: echo 'RACEIQ_REFRESH_DISPATCHED=NO; SNAPSHOT_FRESH=YES'
+
+# Manual file changes also trigger this watchdog so date rollover can be recovered immediately.
