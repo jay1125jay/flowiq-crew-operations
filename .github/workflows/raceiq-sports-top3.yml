@@ -8,6 +8,7 @@ on:
       - '.github/workflows/raceiq-sports-top3.yml'
       - 'race-sports/tools/sports_top3.py'
       - 'race-sports/tools/sports_top3_precision_guard.py'
+      - 'race-sports/tools/sports_top3_circuit_breaker.py'
       - 'race-sports/tools/sports_top3_performance.py'
       - 'race-sports/tools/sports_top3_ui_patch.py'
       - 'race-sports/tools/sports_top3_performance_ui_patch.py'
@@ -38,10 +39,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Self-test TOP 3 selector, precision, performance and UI
+      - name: Self-test TOP 3 selector, precision, circuit, performance and UI
         run: |
           python race-sports/tools/sports_top3.py --self-test
           python race-sports/tools/sports_top3_precision_guard.py --self-test
+          python race-sports/tools/sports_top3_circuit_breaker.py --self-test
           python race-sports/tools/sports_top3_performance.py --self-test
           python race-sports/tools/sports_top3_ui_patch.py --self-test
           python race-sports/tools/sports_top3_performance_ui_patch.py --self-test
@@ -59,8 +61,14 @@ jobs:
 
             python race-sports/tools/sports_top3_ui_patch.py --check
             python race-sports/tools/sports_top3_performance_ui_patch.py --check
+
+            # First settle any FINAL result already visible in the current snapshot.
+            # Then compute a performance circuit BEFORE selecting any new picks.
+            python race-sports/tools/sports_top3_performance.py
+            python race-sports/tools/sports_top3_circuit_breaker.py
             python race-sports/tools/sports_top3.py
             python race-sports/tools/sports_top3_precision_guard.py
+            # Re-publish the performance block after the selector rebuilt sports_top3.
             python race-sports/tools/sports_top3_performance.py
             python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
 
@@ -92,13 +100,14 @@ jobs:
             git add "race-sports/data/sports_history/${DATE}.json"
             git add race-sports/data/model_state/sports_top3_lock.json
             git add race-sports/data/model_state/sports_top3_performance.json
+            git add race-sports/data/model_state/sports_top3_circuit.json
 
             if git diff --cached --quiet; then
               echo "SPORTS_TOP3_PUBLISH=NO_CHANGE"
               exit 0
             fi
 
-            git commit -m "feat: publish high-precision SPORTS top 3 performance dashboard"
+            git commit -m "feat: publish circuit-protected SPORTS top 3"
             if git push origin HEAD:main; then
               echo "SPORTS_TOP3_PUBLISH=PASS"
               exit 0
