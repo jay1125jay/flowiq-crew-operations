@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/raceiq-sports-top3.yml'
       - 'race-sports/tools/sports_top3.py'
+      - 'race-sports/tools/sports_top3_precision_guard.py'
       - 'race-sports/tools/sports_top3_ui_patch.py'
   workflow_run:
     workflows:
@@ -35,9 +36,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Self-test TOP 3 selector and UI patch
+      - name: Self-test TOP 3 selector, precision guard and UI patch
         run: |
           python race-sports/tools/sports_top3.py --self-test
+          python race-sports/tools/sports_top3_precision_guard.py --self-test
           python race-sports/tools/sports_top3_ui_patch.py --self-test
 
       - name: Build and publish TOP 3 conflict-safe
@@ -53,6 +55,7 @@ jobs:
 
             python race-sports/tools/sports_top3_ui_patch.py --check
             python race-sports/tools/sports_top3.py
+            python race-sports/tools/sports_top3_precision_guard.py
             python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
 
             DATE=$(python - <<'PY'
@@ -88,7 +91,7 @@ jobs:
               exit 0
             fi
 
-            git commit -m "feat: publish locked SPORTS top 3"
+            git commit -m "feat: publish high-precision SPORTS top 3"
             if git push origin HEAD:main; then
               echo "SPORTS_TOP3_PUBLISH=PASS"
               exit 0
