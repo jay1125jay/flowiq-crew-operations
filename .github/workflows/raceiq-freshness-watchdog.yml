@@ -1,6 +1,10 @@
 name: raceiq-freshness-watchdog
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-freshness-watchdog.yml'
   workflow_dispatch:
   schedule:
     - cron: '7,22,37,52 * * * *'
@@ -63,8 +67,7 @@ jobs:
 
           stale=bool(reasons)
           print(json.dumps({'RACEIQ_FRESHNESS_WATCHDOG':'STALE' if stale else 'PASS','ages_minutes':ages,'reasons':reasons},ensure_ascii=False))
-          out=os.environ['GITHUB_OUTPUT']
-          with open(out,'a',encoding='utf-8') as f:
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f:
               f.write(f"stale={'true' if stale else 'false'}\n")
           PY
 
