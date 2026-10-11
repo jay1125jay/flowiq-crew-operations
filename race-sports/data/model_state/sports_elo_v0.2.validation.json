@@ -1,6 +1,24 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
+    "BASKETBALL": {
+      "games": 13786,
+      "holdout_rows": 4136,
+      "walk_forward_rows": 4136,
+      "accuracy": 0.648453,
+      "log_loss": 0.626853,
+      "brier": 0.218556,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.066294,
+      "validated": true,
+      "selected_params": {
+        "k": 28.0,
+        "home_adv": 50.0,
+        "scale": 430.0,
+        "shrink": 0.8
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "BASEBALL": {
       "games": 29700,
       "holdout_rows": 8910,
@@ -37,24 +55,6 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
-    "BASKETBALL": {
-      "games": 13785,
-      "holdout_rows": 4136,
-      "walk_forward_rows": 4136,
-      "accuracy": 0.648453,
-      "log_loss": 0.626789,
-      "brier": 0.218527,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.066358,
-      "validated": true,
-      "selected_params": {
-        "k": 28.0,
-        "home_adv": 50.0,
-        "scale": 430.0,
-        "shrink": 0.8
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
     "VOLLEYBALL": {
       "games": 1856,
       "holdout_rows": 557,
@@ -74,12 +74,12 @@
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 66530,
+  "history_events": 66531,
   "competition_history": {
     "BASEBALL::KBO": 5518,
     "BASEBALL::MLB": 24182,
     "BASKETBALL::KBL": 2182,
-    "BASKETBALL::NBA": 11603,
+    "BASKETBALL::NBA": 11604,
     "SOCCER::AFC Asian Cup": 102,
     "SOCCER::AFC Champions League Elite": 881,
     "SOCCER::AFC Champions League Two": 342,
