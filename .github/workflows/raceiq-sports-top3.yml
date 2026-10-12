@@ -9,6 +9,7 @@ on:
       - 'race-sports/tools/sports_top3.py'
       - 'race-sports/tools/sports_top3_precision_guard.py'
       - 'race-sports/tools/sports_top3_circuit_breaker.py'
+      - 'race-sports/tools/sports_top3_candidate_ledger.py'
       - 'race-sports/tools/sports_top3_calibration.py'
       - 'race-sports/tools/sports_top3_performance.py'
       - 'race-sports/tools/sports_top3_ui_patch.py'
@@ -38,11 +39,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Self-test TOP 3 selector, precision, circuit, calibration, performance and UI
+      - name: Self-test TOP 3 selector, precision, circuit, candidate OOS, calibration, performance and UI
         run: |
           python race-sports/tools/sports_top3.py --self-test
           python race-sports/tools/sports_top3_precision_guard.py --self-test
           python race-sports/tools/sports_top3_circuit_breaker.py --self-test
+          python race-sports/tools/sports_top3_candidate_ledger.py --self-test
           python race-sports/tools/sports_top3_calibration.py --self-test
           python race-sports/tools/sports_top3_performance.py --self-test
           python race-sports/tools/sports_top3_ui_patch.py --self-test
@@ -58,10 +60,13 @@ jobs:
             git reset --hard origin/main
             python race-sports/tools/sports_top3_ui_patch.py --check
             python race-sports/tools/sports_top3_performance_ui_patch.py --check
-            # Resolve results first. Both safety layers therefore use only information
-            # that existed after the locked pick's event completed (true live OOS ledger).
+            # Capture ALL eligible pre-event candidates before precision/market selection.
+            # Their first prediction is immutable; FINAL results are attached only later.
+            python race-sports/tools/sports_top3_candidate_ledger.py
+            # Selected-pick ledger remains separate for the live circuit breaker/UI record.
             python race-sports/tools/sports_top3_performance.py
             python race-sports/tools/sports_top3_circuit_breaker.py
+            # Threshold calibration uses the unbiased candidate pool, not TOP3 winners only.
             python race-sports/tools/sports_top3_calibration.py
             python race-sports/tools/sports_top3.py
             python race-sports/tools/sports_top3_precision_guard.py
@@ -86,9 +91,9 @@ jobs:
           print('TOP3_UI_GUARD=PASS')
           PY
             node --check /tmp/raceiq-live-top3.js
-            git add race-sports/live.html race-sports/data/sports_today.json "race-sports/data/sports_history/${DATE}.json" race-sports/data/model_state/sports_top3_lock.json race-sports/data/model_state/sports_top3_performance.json race-sports/data/model_state/sports_top3_circuit.json race-sports/data/model_state/sports_top3_calibration.json
+            git add race-sports/live.html race-sports/data/sports_today.json "race-sports/data/sports_history/${DATE}.json" race-sports/data/model_state/sports_top3_lock.json race-sports/data/model_state/sports_top3_performance.json race-sports/data/model_state/sports_top3_circuit.json race-sports/data/model_state/sports_top3_candidate_ledger.json race-sports/data/model_state/sports_top3_calibration.json
             if git diff --cached --quiet; then echo "SPORTS_TOP3_PUBLISH=NO_CHANGE"; exit 0; fi
-            git commit -m "feat: publish OOS-calibrated SPORTS top 3"
+            git commit -m "feat: publish unbiased OOS-calibrated SPORTS top 3"
             if git push origin HEAD:main; then echo "SPORTS_TOP3_PUBLISH=PASS"; exit 0; fi
             echo "SPORTS_TOP3_PUSH_CONFLICT=$n/5"
           done
