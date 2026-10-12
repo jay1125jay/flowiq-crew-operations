@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BTC Flow" />
+  <title>BTC Flow Monitor</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <style>
+    :root{--bg:#0b0f14;--panel:#111821;--line:#243140;--text:#edf3fa;--muted:#8fa1b5;--amber:#f59e0b;--green:#32d583;--red:#ff6b75;--blue:#56a8ff}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+    main{max-width:620px;margin:auto;padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 32px)}
+    header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}.title{font-size:24px;font-weight:800;margin-top:3px}.status{font-size:12px;color:var(--muted);text-align:right}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#69798b;margin-right:6px}.dot.on{background:var(--green);box-shadow:0 0 12px #32d58388}.dot.off{background:var(--red)}
+    .hero,.card,.signal,.history{background:var(--panel);border:1px solid var(--line);border-radius:16px}.hero{padding:18px;margin-bottom:12px}.label{font-size:12px;color:var(--muted)}.price{font-size:38px;font-weight:800;letter-spacing:-.03em;margin:4px 0 14px}.changes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.chip{background:#0d141c;border:1px solid #1f2a37;border-radius:10px;padding:9px;text-align:center}.chip b{display:block;margin-top:3px}.up{color:var(--green)}.down{color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{padding:14px;min-height:126px}.value{font-size:18px;font-weight:800;margin-top:6px}.sub{font-size:12px;color:#b9c5d2;margin-top:7px;line-height:1.45}.help{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45}
+    .signal{margin-top:12px;padding:16px;background:linear-gradient(180deg,#161f2b,#101720)}.signal h2{font-size:18px;margin:0 0 7px}.signal p{margin:0;color:#d7e0ea;line-height:1.55;font-size:14px}.signal .meta{margin-top:9px;color:var(--muted);font-size:12px}.history{margin-top:12px;padding:14px}.history h3{font-size:14px;margin:0 0 8px}.item{padding:10px 0;border-top:1px solid #202b38}.item:first-of-type{border-top:0}.item b{font-size:13px}.item p{font-size:12px;color:#c1ccd8;margin:4px 0 0;line-height:1.45}.time{font-size:11px;color:var(--muted);float:right}.footer{font-size:11px;color:var(--muted);line-height:1.5;margin-top:14px}.refresh{margin-top:10px;width:100%;border:0;border-radius:12px;padding:11px;background:#1b2836;color:white;font-weight:700}
+    @media(min-width:520px){.grid{grid-template-columns:repeat(4,1fr)}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><div class="eyebrow">BTC · FLOW MONITOR</div><div class="title">24시간 변화 감지</div></div>
+    <div class="status"><span id="dot" class="dot"></span><span id="status">서버 확인중</span><br><span id="last">—</span></div>
+  </header>
+
+  <section class="hero">
+    <div class="label">BTC 현재 가격</div>
+    <div id="price" class="price">—</div>
+    <div class="changes">
+      <div class="chip"><span class="label">1분</span><b id="p1">—</b></div>
+      <div class="chip"><span class="label">5분</span><b id="p5">—</b></div>
+      <div class="chip"><span class="label">15분</span><b id="p15">—</b></div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><div class="label">OI · 미결제약정</div><div id="oi" class="value">—</div><div id="oichg" class="sub">5분 — · 15분 —</div><div class="help">선물 포지션이 얼마나 쌓이거나 빠지는지 봅니다.</div></div>
+    <div class="card"><div class="label">Funding · 펀딩비</div><div id="fund" class="value">—</div><div id="fundtxt" class="sub">롱/숏 쏠림 확인</div><div class="help">롱과 숏 중 어느 쪽이 붐비는지 확인합니다.</div></div>
+    <div class="card"><div class="label">현물 거래량</div><div id="vol" class="value">—</div><div id="voltxt" class="sub">최근 평균 대비 —</div><div class="help">실제 BTC 매매 참여가 늘었는지 확인합니다.</div></div>
+    <div class="card"><div class="label">5분 강제청산</div><div id="liq" class="value">—</div><div id="liqtxt" class="sub">롱 — · 숏 —</div><div class="help">급등락이 청산 때문에 커지는지 봅니다.</div></div>
+  </section>
+
+  <section class="signal">
+    <div class="label">현재 시스템 해석</div>
+    <h2 id="state">데이터 수집 중</h2>
+    <p id="summary">가격·OI·Funding·현물 거래량·청산을 함께 봅니다.</p>
+    <div id="meta" class="meta">—</div>
+  </section>
+
+  <section class="history">
+    <h3>최근 감지 이력</h3>
+    <div id="history">아직 감지 이력을 불러오는 중입니다.</div>
+  </section>
+
+  <button class="refresh" onclick="refreshData()">지금 새로고침</button>
+  <div class="footer">서버는 화면을 닫아도 1분마다 계속 감지합니다. 이 화면은 서버 결과만 표시합니다. 자동매매·주문 기능은 없습니다.</div>
+</main>
+<script>
+const BASE='https://jytbmdrtwkkokdddvuti.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dGJtZHJ0d2trb2tkZGR2dXRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3NDYyNDEsImV4cCI6MjEwNzMyMjI0MX0.fkmX6l-yXXfXvfMoJ7fqNRK-u5UayXmYayp6WDolleA';
+const H={apikey:KEY,Authorization:'Bearer '+KEY};
+const $=id=>document.getElementById(id);
+const money=n=>{n=Number(n);if(!Number.isFinite(n))return'—';if(Math.abs(n)>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+n.toFixed(0)};
+const pct=(n,d=2)=>{n=Number(n);return Number.isFinite(n)?(n>=0?'+':'')+n.toFixed(d)+'%':'—'};
+const price=n=>Number.isFinite(Number(n))?'$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+const tone=(el,n)=>{el.className='';n=Number(n);if(!Number.isFinite(n)||n===0)return;el.className=n>0?'up':'down'};
+const stateName=s=>({NEUTRAL:'🟡 뚜렷한 급변 없음',LONG_OVERHEAT:'🟠 롱 과열 가능',LONG_UNWIND:'🔴 롱 정리/청산 가능',NEW_SHORTS:'🟠 신규 숏 유입 가능',SHORT_SQUEEZE_OR_SPOT:'🟢 숏 청산 또는 현물 주도 가능',HEALTHY_RALLY:'🟢 현물 동반 상승 가능'})[s]||s||'데이터 수집 중';
+async function get(path){const r=await fetch(BASE+'/rest/v1/'+path,{headers:H,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+async function refreshData(){
+ try{
+  const [sr,dr]=await Promise.all([get('market_snapshots?select=*&order=captured_at.desc&limit=1'),get('market_detections?select=*&order=detected_at.desc&limit=12')]);
+  const s=sr[0];if(!s)throw new Error('스냅샷 없음');
+  const age=(Date.now()-new Date(s.captured_at).getTime())/60000;$('dot').className='dot '+(age<3?'on':'');$('status').textContent=age<3?'서버 작동중':'갱신 지연';$('last').textContent=new Date(s.captured_at).toLocaleTimeString('ko-KR');
+  $('price').textContent=price(s.price);$('p1').textContent=pct(s.price_change_1m);tone($('p1'),s.price_change_1m);$('p5').textContent=pct(s.price_change_5m);tone($('p5'),s.price_change_5m);$('p15').textContent=pct(s.price_change_15m);tone($('p15'),s.price_change_15m);
+  const oi=Number(s.open_interest_btc),pr=Number(s.price);$('oi').textContent=Number.isFinite(oi)&&Number.isFinite(pr)?money(oi*pr):'—';$('oichg').textContent='5분 '+pct(s.oi_change_5m)+' · 15분 '+pct(s.oi_change_15m);
+  const f=Number(s.funding_rate);$('fund').textContent=Number.isFinite(f)?pct(f*100,4):'—';$('fundtxt').textContent=!Number.isFinite(f)?'데이터 대기중':Math.abs(f)<0.0001?'중립권':f>0?'롱 우세 · 과열 체크':'숏 우세 · 과열 체크';
+  $('vol').textContent=money(s.spot_quote_volume_1m);const vr=Number(s.spot_volume_ratio);$('voltxt').textContent=Number.isFinite(vr)?'최근 평균 대비 '+vr.toFixed(2)+'배':'최근 평균 대비 —';
+  const ll=Number(s.long_liq_usd_5m||0),sl=Number(s.short_liq_usd_5m||0);$('liq').textContent=money(ll+sl);$('liqtxt').textContent='롱 '+money(ll)+' · 숏 '+money(sl);
+  $('state').textContent=stateName(s.market_state);$('summary').textContent=s.summary||'현재 구조를 해석하는 중입니다.';const sig=Array.isArray(s.signals)?s.signals:[];$('meta').textContent='근거 '+Number(s.confidence||0)+'/5'+(sig.length?' · '+sig.join(' · '):'');
+  $('history').innerHTML=dr.length?dr.map(d=>'<div class="item"><span class="time">'+new Date(d.detected_at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</span><b>'+d.title+'</b><p>'+d.message+'</p></div>').join(''):'<div class="sub">아직 의미 있는 상태 변화가 없습니다.</div>';
+ }catch(e){$('dot').className='dot off';$('status').textContent='데이터 오류';$('summary').textContent='서버 데이터를 불러오지 못했습니다. 잠시 후 다시 시도하세요.';$('meta').textContent=String(e.message||e)}
+}
+refreshData();setInterval(refreshData,15000);
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
