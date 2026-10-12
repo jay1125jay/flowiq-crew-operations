@@ -1,4 +1,4 @@
-const CACHE='btc-flow-shell-v1';
+const CACHE='btc-flow-shell-v2';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
@@ -8,5 +8,5 @@ self.addEventListener('activate',event=>{
 });
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
-  event.respondWith(fetch(event.request).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
+  event.respondWith(fetch(event.request,{cache:'no-store'}).then(r=>r).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
 });
