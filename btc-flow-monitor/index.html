@@ -15,9 +15,10 @@
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
     main{max-width:620px;margin:auto;padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 32px)}
     header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}.title{font-size:24px;font-weight:800;margin-top:3px}.status{font-size:12px;color:var(--muted);text-align:right}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#69798b;margin-right:6px}.dot.on{background:var(--green);box-shadow:0 0 12px #32d58388}.dot.off{background:var(--red)}
-    .hero,.card,.signal,.history,.notice{background:var(--panel);border:1px solid var(--line);border-radius:16px}.hero{padding:18px;margin-bottom:12px}.label{font-size:12px;color:var(--muted)}.price{font-size:38px;font-weight:800;letter-spacing:-.03em;margin:4px 0 14px}.changes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.chip{background:#0d141c;border:1px solid #1f2a37;border-radius:10px;padding:9px;text-align:center}.chip b{display:block;margin-top:3px}.up{color:var(--green)}.down{color:var(--red)}
+    .hero,.card,.signal,.history,.notice,.calc{background:var(--panel);border:1px solid var(--line);border-radius:16px}.hero{padding:18px;margin-bottom:12px}.label{font-size:12px;color:var(--muted)}.price{font-size:38px;font-weight:800;letter-spacing:-.03em;margin:4px 0 14px}.changes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.chip{background:#0d141c;border:1px solid #1f2a37;border-radius:10px;padding:9px;text-align:center}.chip b{display:block;margin-top:3px}.up{color:var(--green)}.down{color:var(--red)}
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{padding:14px;min-height:126px}.value{font-size:18px;font-weight:800;margin-top:6px}.sub{font-size:12px;color:#b9c5d2;margin-top:7px;line-height:1.45}.help{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45}
     .signal{margin-top:12px;padding:16px;background:linear-gradient(180deg,#161f2b,#101720)}.signal h2{font-size:18px;margin:0 0 7px}.signal p{margin:0;color:#d7e0ea;line-height:1.55;font-size:14px}.signal .meta{margin-top:9px;color:var(--muted);font-size:12px}.history{margin-top:12px;padding:14px}.history h3{font-size:14px;margin:0 0 8px}.item{padding:10px 0;border-top:1px solid #202b38}.item:first-of-type{border-top:0}.item b{font-size:13px}.item p{font-size:12px;color:#c1ccd8;margin:4px 0 0;line-height:1.45}.time{font-size:11px;color:var(--muted);float:right}.footer{font-size:11px;color:var(--muted);line-height:1.5;margin-top:14px}.refresh{margin-top:10px;width:100%;border:0;border-radius:12px;padding:11px;background:#1b2836;color:white;font-weight:700}.notice{margin-bottom:12px;padding:11px 13px;font-size:12px;color:#cbd5e1;line-height:1.5}.notice b{color:var(--green)}
+    .calc{margin-top:12px;padding:16px}.calc h3{margin:0 0 4px;font-size:18px}.calc-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:13px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field label{display:block;font-size:11px;color:var(--muted);margin:0 0 5px}.field input,.field select{width:100%;background:#0b1219;color:var(--text);border:1px solid #263445;border-radius:10px;padding:11px 10px;font-size:14px;outline:none}.field input:focus,.field select:focus{border-color:#506985}.span2{grid-column:1/-1}.quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.quick button{border:1px solid #2b3a4c;background:#101924;color:#dbe5f0;border-radius:999px;padding:7px 10px;font-size:11px}.calc-result{margin-top:13px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.res{background:#0d141c;border:1px solid #202c3a;border-radius:11px;padding:10px}.res .rlabel{font-size:10px;color:var(--muted)}.res .rvalue{margin-top:4px;font-size:16px;font-weight:800}.res.main{grid-column:1/-1;padding:13px}.res.main .rvalue{font-size:24px}.calc-note{margin-top:10px;font-size:11px;color:var(--muted);line-height:1.55}.divider{height:1px;background:#202c39;margin:13px 0}
     @media(min-width:520px){.grid{grid-template-columns:repeat(4,1fr)}}
   </style>
 </head>
@@ -54,6 +55,38 @@
     <div id="meta" class="meta">—</div>
   </section>
 
+  <section class="calc" id="feeCalc">
+    <h3>💰 익절 · 수수료 계산기</h3>
+    <div class="calc-desc">증거금과 레버리지를 넣으면 <b>포지션 전체 금액</b> 기준으로 진입/청산 수수료, Funding(펀딩비), 최종 순이익까지 계산합니다.</div>
+    <div class="calc-grid">
+      <div class="field"><label>방향</label><select id="cSide"><option value="long">LONG · 롱</option><option value="short">SHORT · 숏</option></select></div>
+      <div class="field"><label>레버리지</label><input id="cLev" type="number" inputmode="decimal" min="1" step="1" value="10"></div>
+      <div class="field"><label>증거금 (USDT)</label><input id="cMargin" type="number" inputmode="decimal" min="0" step="1" value="100"></div>
+      <div class="field"><label>진입가</label><input id="cEntry" type="number" inputmode="decimal" min="0" step="0.1" placeholder="현재가 자동"></div>
+      <div class="field"><label>익절/종료가</label><input id="cExit" type="number" inputmode="decimal" min="0" step="0.1" placeholder="예: 84500"></div>
+      <div class="field"><label>Funding 적용 횟수</label><input id="cFundCount" type="number" inputmode="numeric" min="0" step="1" value="0"></div>
+      <div class="field"><label>진입 수수료율 (%)</label><input id="cEntryFee" type="number" inputmode="decimal" min="0" step="0.001" value="0.05"></div>
+      <div class="field"><label>청산 수수료율 (%)</label><input id="cExitFee" type="number" inputmode="decimal" min="0" step="0.001" value="0.05"></div>
+      <div class="field span2"><label>Funding Rate (%) · 현재값 자동 반영</label><input id="cFunding" type="number" inputmode="decimal" step="0.0001" value="0"></div>
+    </div>
+    <div class="quick">
+      <button type="button" onclick="setFeePreset(0.02,0.02)">지정가 예시 0.02%</button>
+      <button type="button" onclick="setFeePreset(0.05,0.05)">시장가 예시 0.05%</button>
+      <button type="button" onclick="useCurrentPrice()">현재가를 진입가로</button>
+    </div>
+    <div class="divider"></div>
+    <div class="calc-result">
+      <div class="res"><div class="rlabel">포지션 금액</div><div id="rNotional" class="rvalue">—</div></div>
+      <div class="res"><div class="rlabel">가격 손익 · 수수료 전</div><div id="rGross" class="rvalue">—</div></div>
+      <div class="res"><div class="rlabel">진입 수수료</div><div id="rEntryFee" class="rvalue">—</div></div>
+      <div class="res"><div class="rlabel">청산 수수료</div><div id="rExitFee" class="rvalue">—</div></div>
+      <div class="res"><div class="rlabel">Funding 손익</div><div id="rFunding" class="rvalue">—</div></div>
+      <div class="res"><div class="rlabel">손익분기 종료가</div><div id="rBreakEven" class="rvalue">—</div></div>
+      <div class="res main"><div class="rlabel">최종 순이익 · 수수료/Funding 반영</div><div id="rNet" class="rvalue">—</div><div id="rRoi" class="sub">증거금 대비 —</div></div>
+    </div>
+    <div id="calcExplain" class="calc-note">진입가와 종료가를 입력하면 자동 계산됩니다. 수수료율은 거래소/VIP 등급에 따라 다르므로 실제 적용값으로 수정하세요.</div>
+  </section>
+
   <section class="history">
     <h3>최근 알림 이력</h3>
     <div id="history">ntfy 알림 이력을 불러오는 중입니다.</div>
@@ -65,6 +98,7 @@
 <script>
 const $=id=>document.getElementById(id);
 const NTFY_TOPIC='btc-flow-6rmtZ6rlCXWIeez3ZJiZVHS';
+let CURRENT_PRICE=null, CURRENT_FUNDING=null;
 const URLS={
  klines:'https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=32',
  oi:'https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT',
@@ -73,9 +107,9 @@ const URLS={
  liq:'https://api.coinboss.com/api/liquidations?symbol=BTCUSDT&limit=1000',
  ntfy:'https://ntfy.sh/'+NTFY_TOPIC+'/json?poll=1&since=24h'
 };
-const money=n=>{n=Number(n);if(!Number.isFinite(n))return'—';if(Math.abs(n)>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+n.toFixed(0)};
+const money=n=>{n=Number(n);if(!Number.isFinite(n))return'—';if(Math.abs(n)>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(Math.abs(n)>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+n.toFixed(2)};
 const pct=(n,d=2)=>{n=Number(n);return Number.isFinite(n)?(n>=0?'+':'')+n.toFixed(d)+'%':'—'};
-const pfmt=n=>Number.isFinite(Number(n))?'$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+const pfmt=n=>Number.isFinite(Number(n))?'$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:2}):'—';
 const tone=(el,n)=>{el.className='';n=Number(n);if(!Number.isFinite(n)||n===0)return;el.className=n>0?'up':'down'};
 const chg=(a,b)=>{a=Number(a);b=Number(b);return Number.isFinite(a)&&Number.isFinite(b)&&b!==0?(a/b-1)*100:null};
 async function json(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
@@ -97,14 +131,32 @@ async function loadHistory(){
   $('history').innerHTML=arr.length?arr.map(d=>'<div class="item"><span class="time">'+new Date(Number(d.time)*1000).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</span><b>'+(d.title||'BTC Flow 알림')+'</b><p>'+String(d.message||'')+'</p></div>').join(''):'<div class="sub">최근 24시간 알림이 없습니다.</div>';
  }catch(e){$('history').innerHTML='<div class="sub">최근 알림은 ntfy 앱에서 확인할 수 있습니다.</div>'}
 }
+function setFeePreset(a,b){$('cEntryFee').value=a;$('cExitFee').value=b;calcTrade()}
+function useCurrentPrice(){if(Number.isFinite(CURRENT_PRICE)){$('cEntry').value=CURRENT_PRICE.toFixed(2);calcTrade()}}
+function calcTrade(){
+ const side=$('cSide').value,lev=Number($('cLev').value),margin=Number($('cMargin').value),entry=Number($('cEntry').value),exit=Number($('cExit').value);
+ const efr=Number($('cEntryFee').value)/100,xfr=Number($('cExitFee').value)/100,fr=Number($('cFunding').value)/100,fc=Math.max(0,Number($('cFundCount').value)||0);
+ if(!(lev>0&&margin>0&&entry>0&&exit>0&&efr>=0&&xfr>=0)){$('rNotional').textContent='—';$('rGross').textContent='—';$('rEntryFee').textContent='—';$('rExitFee').textContent='—';$('rFunding').textContent='—';$('rBreakEven').textContent='—';$('rNet').textContent='—';$('rRoi').textContent='증거금 대비 —';return}
+ const notional=margin*lev,qty=notional/entry,exitNotional=qty*exit;
+ const gross=side==='long'?qty*(exit-entry):qty*(entry-exit);
+ const entryFee=notional*efr,exitFee=exitNotional*xfr;
+ const fundingPnl=(side==='long'?-1:1)*notional*fr*fc;
+ const net=gross-entryFee-exitFee+fundingPnl,roi=net/margin*100;
+ let be=null;if(side==='long'&&1-xfr>0)be=(qty*entry+entryFee-fundingPnl)/(qty*(1-xfr));if(side==='short')be=(qty*entry-entryFee+fundingPnl)/(qty*(1+xfr));
+ $('rNotional').textContent=money(notional);$('rGross').textContent=money(gross);$('rEntryFee').textContent='-'+money(entryFee).replace('$',' $');$('rExitFee').textContent='-'+money(exitFee).replace('$',' $');$('rFunding').textContent=(fundingPnl>=0?'+':'')+money(fundingPnl);$('rBreakEven').textContent=pfmt(be);$('rNet').textContent=(net>=0?'+':'')+money(net);$('rRoi').textContent='증거금 대비 '+pct(roi,2);
+ tone($('rGross'),gross);tone($('rFunding'),fundingPnl);tone($('rNet'),net);tone($('rRoi'),roi);
+ $('calcExplain').textContent='수량 약 '+qty.toFixed(6)+' BTC · 왕복 거래수수료 '+money(entryFee+exitFee)+' · Funding '+fc+'회 추정 반영. Funding은 실제 결제 시점의 포지션 가치/Rate에 따라 달라질 수 있습니다.';
+}
+['cSide','cLev','cMargin','cEntry','cExit','cFundCount','cEntryFee','cExitFee','cFunding'].forEach(id=>$(id).addEventListener('input',calcTrade));
 async function refreshData(){
  $('status').textContent='데이터 연결중';$('dot').className='dot';
  try{
   const [k,o,f]=await Promise.all([json(URLS.klines),json(URLS.oi),json(URLS.funding)]);
-  const idx=k.length-1,cur=Number(k[idx][4]);
+  const idx=k.length-1,cur=Number(k[idx][4]);CURRENT_PRICE=cur;
   const p1=chg(cur,Number(k[idx-1][4])),p5=chg(cur,Number(k[idx-5][4])),p15=chg(cur,Number(k[idx-15][4]));
   const closed=idx-1,vol1=Number(k[closed][7]);let sum=0,count=0;for(let i=Math.max(0,closed-19);i<=closed;i++){sum+=Number(k[i][7]);count++}const avg=count?sum/count:null,vr=avg?vol1/avg:null;
-  const oi=Number(o.openInterest),fund=Number(f.lastFundingRate);
+  const oi=Number(o.openInterest),fund=Number(f.lastFundingRate);CURRENT_FUNDING=fund;
+  if(!$('cEntry').value)$('cEntry').value=cur.toFixed(2);$('cFunding').value=(fund*100).toFixed(5);
   let oi5=null,oi15=null;try{const oh=await json(URLS.oih);oi5=chg(oi,closestOI(oh,5*60*1000));oi15=chg(oi,closestOI(oh,15*60*1000))}catch(e){}
   let ll=0,sl=0,liqOk=false;try{const lr=await json(URLS.liq);const cut=Date.now()-5*60*1000;for(const x of (lr.data||[])){if(Number(x.timestamp)<cut)continue;const v=Number(x.value_usd||0);if(String(x.side).toUpperCase()==='LONG')ll+=v;else if(String(x.side).toUpperCase()==='SHORT')sl+=v}liqOk=true}catch(e){}
   $('price').textContent=pfmt(cur);$('p1').textContent=pct(p1);tone($('p1'),p1);$('p5').textContent=pct(p5);tone($('p5'),p5);$('p15').textContent=pct(p15);tone($('p15'),p15);
@@ -113,7 +165,7 @@ async function refreshData(){
   $('vol').textContent=money(vol1);$('voltxt').textContent=Number.isFinite(vr)?'최근 평균 대비 '+vr.toFixed(2)+'배':'최근 평균 대비 —';
   $('liq').textContent=liqOk?money(ll+sl):'확인중';$('liqtxt').textContent=liqOk?'롱 '+money(ll)+' · 숏 '+money(sl):'백그라운드 서버에서 계속 감시중';
   const s=interpret(Number(p5||0),Number(oi5||0),fund,Number(vr||0),ll,sl);$('state').textContent=s.title;$('summary').textContent=s.summary;$('meta').textContent='근거 '+s.confidence+'/5'+(s.signals.length?' · '+s.signals.join(' · '):'');
-  $('dot').className='dot on';$('status').textContent='실시간 데이터 연결됨';$('last').textContent=new Date().toLocaleTimeString('ko-KR');
+  $('dot').className='dot on';$('status').textContent='실시간 데이터 연결됨';$('last').textContent=new Date().toLocaleTimeString('ko-KR');calcTrade();
  }catch(e){$('dot').className='dot off';$('status').textContent='데이터 연결 오류';$('summary').textContent='공개 시장 데이터를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도하세요.';$('meta').textContent=String(e.message||e)}
  loadHistory();
 }
