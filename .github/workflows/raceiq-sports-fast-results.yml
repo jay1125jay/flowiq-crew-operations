@@ -1,0 +1,137 @@
+name: raceiq-sports-fast-results
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-sports-fast-results.yml'
+      - 'race-sports/tools/sports_fast_results.py'
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raceiq-sports-fast-results
+  cancel-in-progress: true
+
+jobs:
+  refresh-sports-results:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Self-test result-only updater
+        run: python race-sports/tools/sports_fast_results.py --self-test
+
+      - name: Probe current sports results
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp race-sports/data/sports_today.json /tmp/sports-fast-before.json
+          timeout 120s python race-sports/tools/sports_fast_results.py
+          cp race-sports/data/sports_today.json /tmp/sports-fast-after.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          def projection(path):
+              d=json.loads(Path(path).read_text(encoding='utf-8'))
+              return {str(e.get('id')):{k:e.get(k) for k in ('status','score','result')} for e in d.get('events',[]) if e.get('id')}
+          changed=projection('/tmp/sports-fast-before.json') != projection('/tmp/sports-fast-after.json')
+          Path('/tmp/sports-fast-changed').write_text('1' if changed else '0')
+          print('SPORTS_FAST_RESULT_CHANGED=' + ('1' if changed else '0'))
+          PY
+
+      - name: Publish result delta and evaluation conflict-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(cat /tmp/sports-fast-changed)" != "1" ]; then
+            echo 'SPORTS_FAST_RESULT_PUBLISH=NO_CHANGE'
+            exit 0
+          fi
+
+          git config user.name "raceiq-sports-result-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            python - <<'PY'
+          import json
+          from copy import deepcopy
+          from pathlib import Path
+
+          before=json.loads(Path('/tmp/sports-fast-before.json').read_text(encoding='utf-8'))
+          after=json.loads(Path('/tmp/sports-fast-after.json').read_text(encoding='utf-8'))
+          target_path=Path('race-sports/data/sports_today.json')
+          latest=json.loads(target_path.read_text(encoding='utf-8'))
+          bmap={str(e.get('id')):e for e in before.get('events',[]) if e.get('id')}
+          amap={str(e.get('id')):e for e in after.get('events',[]) if e.get('id')}
+          lmap={str(e.get('id')):e for e in latest.get('events',[]) if e.get('id')}
+          touched=0
+          for eid,a in amap.items():
+              b=bmap.get(eid)
+              t=lmap.get(eid)
+              if b is None or t is None:
+                  continue
+              for field in ('status','score','result'):
+                  if a.get(field)==b.get(field):
+                      continue
+                  if field in a:
+                      t[field]=deepcopy(a[field])
+                  else:
+                      t.pop(field,None)
+                  touched+=1
+          latest['fast_results']=deepcopy(after.get('fast_results') or {})
+          target_path.write_text(json.dumps(latest,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(f'SPORTS_FAST_RESULT_DELTA_MERGE=PASS touched={touched}')
+          PY
+
+            # Resolve both unbiased OOS candidates and selected TOP3 picks from
+            # the newly merged FINAL results, then republish public diagnostics.
+            python race-sports/tools/sports_top3_candidate_ledger.py
+            python race-sports/tools/sports_top3_performance.py
+            python race-sports/tools/sports_top3_probability_report.py
+            python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
+
+            DATE=$(python - <<'PY'
+          import json
+          print(json.load(open('race-sports/data/sports_today.json',encoding='utf-8'))['date'])
+          PY
+            )
+            mkdir -p race-sports/data/sports_history race-sports/data/model_state
+            cp race-sports/data/sports_today.json "race-sports/data/sports_history/${DATE}.json"
+
+            git add \
+              race-sports/data/sports_today.json \
+              "race-sports/data/sports_history/${DATE}.json" \
+              race-sports/data/model_state/sports_top3_candidate_ledger.json \
+              race-sports/data/model_state/sports_top3_performance.json \
+              race-sports/data/model_state/sports_top3_probability_report.json
+
+            if git diff --cached --quiet; then
+              echo 'SPORTS_FAST_RESULT_PUBLISH=NO_DIFF_AFTER_REBASE'
+              exit 0
+            fi
+
+            git commit -m "chore: refresh RACEIQ sports results"
+            if git push origin HEAD:main; then
+              echo 'SPORTS_FAST_RESULT_PUBLISH=PASS'
+              exit 0
+            fi
+            echo "SPORTS_FAST_RESULT_PUSH_CONFLICT=$n/5"
+          done
+
+          echo 'SPORTS_FAST_RESULT_PUBLISH=FAIL'
+          exit 1
