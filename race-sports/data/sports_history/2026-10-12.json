@@ -1483,7 +1483,7 @@
   "sports_top3": {
     "version": "SPORTS_TOP3_V4_PERFORMANCE_CIRCUIT",
     "date": "2026-10-12",
-    "generated_at": "2026-10-12T08:55:40+09:00",
+    "generated_at": "2026-10-12T11:33:11+09:00",
     "selection_state": "HIGH_PRECISION_WITH_PERFORMANCE_CIRCUIT",
     "policy": "MAX_3_PER_SPORT; MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; SPORT_SPECIFIC_PROBABILITY_AND_MARGIN_GATES; MIN_HISTORY; NO_FORCED_FILL; VALUE_AND_UPSET_EXCLUDED_FROM_HIT_RATE_BOARD; PERFORMANCE_CIRCUIT_BLOCKS_ONLY_NEW_PICKS; EXISTING_LOCKED_PICKS_RETAINED_THROUGH_RESULT",
     "thresholds": {
@@ -1526,14 +1526,26 @@
           },
           "selection_score": 79.632,
           "confidence": "HIGH_PRECISION",
-          "status": "LIVE",
+          "status": "FINAL",
           "locked_at": "2026-10-12T00:35:18+09:00",
           "rank": 1,
           "current_state": "FRESH",
-          "result": null,
+          "result": {
+            "official": false,
+            "status": "CONFIRMED",
+            "home_score": 105,
+            "away_score": 90,
+            "winner_key": "HOME",
+            "source": "ESPN_PUBLIC",
+            "updated_at": "2026-10-12T11:04:14.433737+09:00"
+          },
+          "evaluation": {
+            "winner_key": "HOME",
+            "hit": true
+          },
           "precision_gate": {
-            "top_p": 0.73101849,
-            "margin": 0.46203697,
+            "top_p": 0.73930671,
+            "margin": 0.47861341,
             "min_top_p": 0.7,
             "min_margin": 0.2
           },
@@ -1569,7 +1581,7 @@
           },
           "selection_score": 79.155,
           "confidence": "HIGH_PRECISION",
-          "status": "SCHEDULED",
+          "status": "LIVE",
           "locked_at": "2026-10-12T08:43:14+09:00",
           "rank": 2,
           "current_state": "FRESH",
@@ -1609,7 +1621,7 @@
     },
     "performance_safety": {
       "version": "SPORTS_TOP3_CIRCUIT_V1",
-      "generated_at": "2026-10-12T08:55:40+09:00",
+      "generated_at": "2026-10-12T11:33:11+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "LEARNING",
@@ -1644,16 +1656,16 @@
         "BASKETBALL": {
           "state": "LEARNING",
           "allow_new_picks": 3,
-          "evaluated": 0,
-          "pending": 2,
-          "hits": 0,
-          "hit_rate": null,
-          "wilson95_lower": null,
-          "wilson95_upper": null,
-          "recent_n": 0,
-          "recent_hit_rate": null,
+          "evaluated": 1,
+          "pending": 1,
+          "hits": 1,
+          "hit_rate": 1.0,
+          "wilson95_lower": 0.206543,
+          "wilson95_upper": 1.0,
+          "recent_n": 1,
+          "recent_hit_rate": 1.0,
           "evidence": [],
-          "latest_evaluated_at": null,
+          "latest_evaluated_at": "2026-10-12T11:33:11+09:00",
           "cooldown_hours": 24
         },
         "VOLLEYBALL": {
@@ -1678,16 +1690,16 @@
       "TOP_PROBABILITY_BELOW_PRECISION_GATE": 4
     },
     "performance": {
-      "version": "SPORTS_TOP3_PERFORMANCE_V2_PUBLIC_SUMMARY",
-      "updated_at": "2026-10-12T08:55:40+09:00",
+      "version": "SPORTS_TOP3_PERFORMANCE_V3_HISTORY_CARRYOVER",
+      "updated_at": "2026-10-12T11:33:11+09:00",
       "summary": {
         "overall": {
           "picks": 2,
-          "evaluated": 0,
-          "pending": 2,
-          "hits": 0,
+          "evaluated": 1,
+          "pending": 1,
+          "hits": 1,
           "misses": 0,
-          "hit_rate": null
+          "hit_rate": 1.0
         },
         "by_sport": {
           "SOCCER": {
@@ -1708,11 +1720,11 @@
           },
           "BASKETBALL": {
             "picks": 2,
-            "evaluated": 0,
-            "pending": 2,
-            "hits": 0,
+            "evaluated": 1,
+            "pending": 1,
+            "hits": 1,
             "misses": 0,
-            "hit_rate": null
+            "hit_rate": 1.0
           },
           "VOLLEYBALL": {
             "picks": 0,
@@ -1737,7 +1749,7 @@
         },
         "BASKETBALL": {
           "state": "HOLD_SAMPLE",
-          "evaluated": 0,
+          "evaluated": 1,
           "required": 30
         },
         "VOLLEYBALL": {
@@ -1755,7 +1767,8 @@
           "title": "Denver Nuggets vs Chicago Bulls",
           "pick_key": "HOME",
           "pick_name": "덴버 너기츠",
-          "model_p": 0.79560733
+          "model_p": 0.79560733,
+          "resolution_state": "PENDING_RESULT"
         },
         {
           "event_id": "SPORTS-BASKETBALL-401901821",
@@ -1765,15 +1778,29 @@
           "title": "Charlotte Hornets vs Milwaukee Bucks",
           "pick_key": "HOME",
           "pick_name": "샬럿 호네츠",
-          "model_p": 0.73101849
+          "model_p": 0.73101849,
+          "resolution_state": "RESOLVED_BOARD",
+          "evaluation": {
+            "winner_key": "HOME",
+            "hit": true,
+            "evaluated_at": "2026-10-12T11:33:11+09:00",
+            "source": "LOCKED_BOARD",
+            "source_snapshot_date": "2026-10-12"
+          }
         }
       ],
+      "carryover": {
+        "resolved_from_history": 0,
+        "conflicts": 0,
+        "pending_within_window": 1,
+        "unresolved_after_window": 0,
+        "window_days": 3
+      },
       "sample_rule": {
         "min_evaluated_per_sport": 30,
         "target_hit_rate": 0.7
       }
-    },
-    "snapshot_preserved_at": "2026-10-12T11:04:10.849303+09:00"
+    }
   },
   "team_name_localization": {
     "language": "ko",

@@ -17,7 +17,25 @@
         "min_margin": 0.2
       },
       "locked_at": "2026-10-12T00:35:18+09:00",
-      "recorded_at": "2026-10-12T00:35:18+09:00"
+      "recorded_at": "2026-10-12T00:35:18+09:00",
+      "provider": "ESPN_PUBLIC",
+      "provider_event_id": "401901821",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261011",
+      "event_date": "2026-10-12",
+      "start_time": "08:00",
+      "start_timestamp": 1791759600,
+      "home": "Charlotte Hornets",
+      "away": "Milwaukee Bucks",
+      "home_ko": "샬럿 호네츠",
+      "away_ko": "밀워키 벅스",
+      "evaluation": {
+        "winner_key": "HOME",
+        "hit": true,
+        "evaluated_at": "2026-10-12T11:33:11+09:00",
+        "source": "LOCKED_BOARD",
+        "source_snapshot_date": "2026-10-12"
+      },
+      "resolution_state": "RESOLVED_BOARD"
     },
     "SPORTS-BASKETBALL-401908941": {
       "event_id": "SPORTS-BASKETBALL-401908941",
@@ -36,19 +54,30 @@
         "min_margin": 0.2
       },
       "locked_at": "2026-10-12T08:43:14+09:00",
-      "recorded_at": "2026-10-12T08:43:15+09:00"
+      "recorded_at": "2026-10-12T08:43:15+09:00",
+      "provider": "ESPN_PUBLIC",
+      "provider_event_id": "401908941",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261011",
+      "event_date": "2026-10-12",
+      "start_time": "10:00",
+      "start_timestamp": 1791766800,
+      "home": "Denver Nuggets",
+      "away": "Chicago Bulls",
+      "home_ko": "덴버 너기츠",
+      "away_ko": "시카고 불스",
+      "resolution_state": "PENDING_RESULT"
     }
   },
-  "version": "SPORTS_TOP3_PERFORMANCE_V2_PUBLIC_SUMMARY",
-  "updated_at": "2026-10-12T08:55:40+09:00",
+  "version": "SPORTS_TOP3_PERFORMANCE_V3_HISTORY_CARRYOVER",
+  "updated_at": "2026-10-12T11:33:11+09:00",
   "summary": {
     "overall": {
       "picks": 2,
-      "evaluated": 0,
-      "pending": 2,
-      "hits": 0,
+      "evaluated": 1,
+      "pending": 1,
+      "hits": 1,
       "misses": 0,
-      "hit_rate": null
+      "hit_rate": 1.0
     },
     "by_sport": {
       "SOCCER": {
@@ -69,11 +98,11 @@
       },
       "BASKETBALL": {
         "picks": 2,
-        "evaluated": 0,
-        "pending": 2,
-        "hits": 0,
+        "evaluated": 1,
+        "pending": 1,
+        "hits": 1,
         "misses": 0,
-        "hit_rate": null
+        "hit_rate": 1.0
       },
       "VOLLEYBALL": {
         "picks": 0,
@@ -98,7 +127,7 @@
     },
     "BASKETBALL": {
       "state": "HOLD_SAMPLE",
-      "evaluated": 0,
+      "evaluated": 1,
       "required": 30
     },
     "VOLLEYBALL": {
@@ -107,5 +136,12 @@
       "required": 30
     }
   },
-  "policy": "APPEND_ONLY_PICK_LEDGER; FINAL_RESULTS_UPDATE_HIT_MISS; THRESHOLD_ADVICE_REQUIRES_30_EVALUATED; ADVISORY_ONLY_NO_AUTOMATIC_GATE_MUTATION"
+  "policy": "APPEND_ONLY_PICK_LEDGER; CURRENT_AND_SPORTS_HISTORY_FINAL_RESULTS_RESOLVE_PENDING; HISTORY_WINDOW_3_DAYS; CONFLICT_FAIL_CLOSED; NEVER_COUNT_UNRESOLVED_AS_MISS; THRESHOLD_ADVICE_REQUIRES_30_EVALUATED",
+  "carryover": {
+    "resolved_from_history": 0,
+    "conflicts": 0,
+    "pending_within_window": 1,
+    "unresolved_after_window": 0,
+    "window_days": 3
+  }
 }
