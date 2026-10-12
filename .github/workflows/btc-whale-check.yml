@@ -1,0 +1,56 @@
+name: BTC Whale Tracker Check
+
+on:
+  push:
+    branches:
+      - feat/btc-whale-tracker-20261012
+    paths:
+      - 'btc-flow-monitor/whale.html'
+      - 'btc-flow-monitor/manifest.webmanifest'
+      - 'btc-flow-monitor/sw.js'
+      - '.github/workflows/btc-whale-check.yml'
+  pull_request:
+    paths:
+      - 'btc-flow-monitor/whale.html'
+      - 'btc-flow-monitor/manifest.webmanifest'
+      - 'btc-flow-monitor/sw.js'
+
+jobs:
+  static-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate HTML and extract JavaScript
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import re
+          p=Path('btc-flow-monitor/whale.html')
+          text=p.read_text(encoding='utf-8')
+          class P(HTMLParser): pass
+          P().feed(text)
+          scripts=re.findall(r'<script>([\s\S]*?)</script>', text, re.I)
+          assert len(scripts)==1, f'expected 1 inline script, got {len(scripts)}'
+          Path('/tmp/whale.js').write_text(scripts[0], encoding='utf-8')
+          assert 'api.hyperliquid.xyz/info' in text
+          assert '실제 주문' in text
+          print('HTML_PARSE=PASS')
+          PY
+      - name: JavaScript syntax
+        run: node --check /tmp/whale.js
+      - name: Manifest JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('btc-flow-monitor/manifest.webmanifest','utf8')); console.log('MANIFEST=PASS')"
+      - name: Safety guardrails
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          t=Path('btc-flow-monitor/whale.html').read_text(encoding='utf-8').lower()
+          forbidden=['/exchange','private key','secret key','withdraw','createorder','placeorder']
+          hits=[x for x in forbidden if x in t]
+          assert not hits, f'forbidden live-trading markers: {hits}'
+          print('NO_LIVE_ORDER_CODE=PASS')
+          PY
