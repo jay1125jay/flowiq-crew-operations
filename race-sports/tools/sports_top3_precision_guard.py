@@ -4,13 +4,12 @@ import argparse,json,math
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 SNAPSHOT=ROOT/'data'/'sports_today.json';LOCK_FILE=ROOT/'data'/'model_state'/'sports_top3_lock.json';CIRCUIT_FILE=ROOT/'data'/'model_state'/'sports_top3_circuit.json';CALIB_FILE=ROOT/'data'/'model_state'/'sports_top3_calibration.json'
-SPORTS=('SOCCER','BASEBALL','BASKETBALL','VOLLEYBALL');VERSION='SPORTS_TOP3_V5_OOS_CALIBRATED'
+SPORTS=('SOCCER','BASEBALL','BASKETBALL','VOLLEYBALL');VERSION='SPORTS_TOP3_V6_UNBIASED_OOS_CALIBRATED'
 BASE_P={'SOCCER':.58,'BASEBALL':.62,'BASKETBALL':.70,'VOLLEYBALL':.70};BASE_M={'SOCCER':.12,'BASEBALL':.15,'BASKETBALL':.20,'VOLLEYBALL':.20};MIN_COMP_GAMES=100;MIN_TEAM_GAMES=10
 
 def _f(v,d=None):
  try:x=float(v);return x if math.isfinite(x) else d
  except:return d
-
 def _model_rows(e):
  r=[]
  for o in e.get('outcomes',[]) or []:
@@ -20,12 +19,9 @@ def _model_rows(e):
 def _history_ok(e):
  h=e.get('model_history_scope') or {};return int(h.get('competition_games') or 0)>=MIN_COMP_GAMES and min(int(h.get('home_team_games') or 0),int(h.get('away_team_games') or 0))>=MIN_TEAM_GAMES
 def _thresholds(calib,sport,row):
- p,m=BASE_P[sport],BASE_M[sport];src='BASE_HEURISTIC_FLOOR';state='NO_CALIBRATION'
- c=((calib or {}).get('by_sport') or {}).get(sport) or {};state=str(c.get('state') or state)
- generated=str((calib or {}).get('generated_at') or '');locked=str(row.get('locked_at') or '')
- # A pick locked before this calibration snapshot is grandfathered. New picks use calibrated gates.
+ p,m=BASE_P[sport],BASE_M[sport];src='BASE_HEURISTIC_FLOOR';state='NO_CALIBRATION';c=((calib or {}).get('by_sport') or {}).get(sport) or {};state=str(c.get('state') or state);generated=str((calib or {}).get('generated_at') or '');locked=str(row.get('locked_at') or '')
  if generated and locked and locked>=generated and state in {'CALIBRATED_TIGHTENED','CALIBRATED_KEEP_BASE'}:
-  p=max(p,_f(c.get('effective_min_top_p'),p));m=max(m,_f(c.get('effective_min_margin'),m));src='LIVE_LOCKED_OOS_CALIBRATION'
+  p=max(p,_f(c.get('effective_min_top_p'),p));m=max(m,_f(c.get('effective_min_margin'),m));src='UNBIASED_PRE_EVENT_CANDIDATE_OOS_CALIBRATION'
  return p,m,src,state
 def qualify(entry,event,min_p,min_m):
  if not event:return False,'EVENT_NOT_IN_CURRENT_SNAPSHOT',None
@@ -45,14 +41,13 @@ def _safety(c,s):return dict(((c or {}).get('by_sport') or {}).get(s) or {'state
 def _is_new(row,obj):
  g=str((obj or {}).get('generated_at') or '');l=str(row.get('locked_at') or '');return bool(g and l and l>=g)
 def apply(snapshot,lock,circuit=None,calib=None):
- board=snapshot.get('sports_top3');
+ board=snapshot.get('sports_top3')
  if not isinstance(board,dict):raise SystemExit('SPORTS_TOP3_MISSING')
  events={str(e.get('id')):e for e in snapshot.get('events',[]) if e.get('id')};lock=lock if isinstance(lock,dict) else None;rejected=[];counts={};spub={};cpub={}
  for sport in SPORTS:
   source=list((board.get('by_sport') or {}).get(sport) or []);kept=[];ids=set();new_kept=0;safety=_safety(circuit,sport);spub[sport]=safety;limit=int(safety.get('allow_new_picks',3) or 0)
   for row in source:
-   eid=str(row.get('event_id') or '');minp,minm,tsrc,cstate=_thresholds(calib,sport,row);cpub[sport]={'state':cstate,'effective_min_top_p':minp,'effective_min_margin':minm,'source':tsrc}
-   ok,reason,met=qualify(row,events.get(eid),minp,minm)
+   eid=str(row.get('event_id') or '');minp,minm,tsrc,cstate=_thresholds(calib,sport,row);cpub[sport]={'state':cstate,'effective_min_top_p':minp,'effective_min_margin':minm,'source':tsrc};ok,reason,met=qualify(row,events.get(eid),minp,minm)
    if not ok:rejected.append({'event_id':eid,'sport':sport,'reason':reason,'metrics':met});continue
    isnew=_is_new(row,circuit)
    if isnew and new_kept>=limit:rejected.append({'event_id':eid,'sport':sport,'reason':'PERFORMANCE_CIRCUIT_BREAKER','metrics':{'state':safety.get('state'),'allow_new_picks':limit}});continue
@@ -62,12 +57,11 @@ def apply(snapshot,lock,circuit=None,calib=None):
   if lock is not None:
    lb=lock.setdefault('by_sport',{});lb[sport]=[x for x in (lb.get(sport) or []) if str(x.get('event_id') or '') in ids]
    for i,x in enumerate(lb[sport],1):x['rank']=i
- board['version']=VERSION;board['selection_state']='HIGH_PRECISION_WITH_PERFORMANCE_CIRCUIT_AND_OOS_CALIBRATION';board['policy']='MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; BASE_GATES_ARE_FLOORS; OOS_CALIBRATION_CAN_TIGHTEN_NEW_PICKS_ONLY; EXISTING_LOCKED_PICKS_GRANDFATHERED; CIRCUIT_BREAKER; NO_FORCED_FILL'
- board['precision_thresholds']={'base_min_top_p':BASE_P,'base_min_margin':BASE_M,'min_competition_games':MIN_COMP_GAMES,'min_team_games_each':MIN_TEAM_GAMES,'calibration':cpub};board['performance_safety']={'version':(circuit or {}).get('version'),'generated_at':(circuit or {}).get('generated_at'),'by_sport':spub};board['calibration']={'version':(calib or {}).get('version'),'generated_at':(calib or {}).get('generated_at'),'by_sport':cpub};board['counts']=counts;board['rejected_count']=len(rejected);board['rejected_reason_counts']={}
+ board['version']=VERSION;board['selection_state']='HIGH_PRECISION_WITH_CIRCUIT_AND_UNBIASED_OOS_CALIBRATION';board['policy']='MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; BASE_GATES_ARE_FLOORS; UNBIASED_PRE_EVENT_OOS_POOL_CAN_TIGHTEN_NEW_PICKS_ONLY; EXISTING_LOCKED_PICKS_GRANDFATHERED; CIRCUIT_BREAKER; NO_FORCED_FILL';board['precision_thresholds']={'base_min_top_p':BASE_P,'base_min_margin':BASE_M,'min_competition_games':MIN_COMP_GAMES,'min_team_games_each':MIN_TEAM_GAMES,'calibration':cpub};board['performance_safety']={'version':(circuit or {}).get('version'),'generated_at':(circuit or {}).get('generated_at'),'by_sport':spub};board['calibration']={'version':(calib or {}).get('version'),'generated_at':(calib or {}).get('generated_at'),'by_sport':cpub};board['counts']=counts;board['rejected_count']=len(rejected);board['rejected_reason_counts']={}
  for r in rejected:board['rejected_reason_counts'][r['reason']]=board['rejected_reason_counts'].get(r['reason'],0)+1
  return snapshot,lock,rejected
 def run(snapshot_path=SNAPSHOT,lock_path=LOCK_FILE,circuit_path=CIRCUIT_FILE,calib_path=CALIB_FILE):
- snapshot=json.loads(Path(snapshot_path).read_text(encoding='utf-8'));lock=json.loads(Path(lock_path).read_text(encoding='utf-8')) if Path(lock_path).exists() else None;circuit=json.loads(Path(circuit_path).read_text(encoding='utf-8')) if Path(circuit_path).exists() else None;calib=json.loads(Path(calib_path).read_text(encoding='utf-8')) if Path(calib_path).exists() else None;snapshot,lock,rej=apply(snapshot,lock,circuit,calib);Path(snapshot_path).write_text(json.dumps(snapshot,ensure_ascii=False,indent=2),encoding='utf-8');
+ snapshot=json.loads(Path(snapshot_path).read_text(encoding='utf-8'));lock=json.loads(Path(lock_path).read_text(encoding='utf-8')) if Path(lock_path).exists() else None;circuit=json.loads(Path(circuit_path).read_text(encoding='utf-8')) if Path(circuit_path).exists() else None;calib=json.loads(Path(calib_path).read_text(encoding='utf-8')) if Path(calib_path).exists() else None;snapshot,lock,rej=apply(snapshot,lock,circuit,calib);Path(snapshot_path).write_text(json.dumps(snapshot,ensure_ascii=False,indent=2),encoding='utf-8')
  if lock is not None:Path(lock_path).write_text(json.dumps(lock,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps({'SPORTS_TOP3_PRECISION_GUARD':'PASS','version':VERSION,'counts':snapshot['sports_top3']['counts'],'rejected':len(rej)},ensure_ascii=False))
 def self_test():
