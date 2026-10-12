@@ -1,0 +1,39 @@
+{
+  "version": "SPORTS_TOP3_CALIBRATION_V1_OOS_TIGHTEN_ONLY",
+  "generated_at": "2026-10-12T11:36:11+09:00",
+  "by_sport": {
+    "SOCCER": {
+      "state": "HOLD_SAMPLE",
+      "evaluated": 0,
+      "required": 30,
+      "effective_min_top_p": 0.58,
+      "effective_min_margin": 0.12,
+      "source": "BASE_HEURISTIC_FLOOR"
+    },
+    "BASEBALL": {
+      "state": "HOLD_SAMPLE",
+      "evaluated": 0,
+      "required": 30,
+      "effective_min_top_p": 0.62,
+      "effective_min_margin": 0.15,
+      "source": "BASE_HEURISTIC_FLOOR"
+    },
+    "BASKETBALL": {
+      "state": "HOLD_SAMPLE",
+      "evaluated": 1,
+      "required": 30,
+      "effective_min_top_p": 0.7,
+      "effective_min_margin": 0.2,
+      "source": "BASE_HEURISTIC_FLOOR"
+    },
+    "VOLLEYBALL": {
+      "state": "HOLD_SAMPLE",
+      "evaluated": 0,
+      "required": 30,
+      "effective_min_top_p": 0.7,
+      "effective_min_margin": 0.2,
+      "source": "BASE_HEURISTIC_FLOOR"
+    }
+  },
+  "policy": "TRUE_OOS_SOURCE=LOCKED_LIVE_PICKS_RESOLVED_AFTER_EVENT; MIN_30_EVALUATED; MIN_20_SELECTED; MIN_35PCT_COVERAGE; OPTIMIZE_WILSON95_LOWER; REQUIRE_2PCT_LOWER_BOUND_GAIN_TO_TIGHTEN; NEVER_RELAX_BELOW_BASE; NO_FUTURE_RESULT_LEAKAGE"
+}
