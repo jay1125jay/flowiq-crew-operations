@@ -1493,7 +1493,7 @@
   "sports_top3": {
     "version": "SPORTS_TOP3_V6_UNBIASED_OOS_CALIBRATED",
     "date": "2026-10-12",
-    "generated_at": "2026-10-12T12:05:45+09:00",
+    "generated_at": "2026-10-12T13:04:59+09:00",
     "selection_state": "HIGH_PRECISION_WITH_CIRCUIT_AND_UNBIASED_OOS_CALIBRATION",
     "policy": "MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; BASE_GATES_ARE_FLOORS; UNBIASED_PRE_EVENT_OOS_POOL_CAN_TIGHTEN_NEW_PICKS_ONLY; EXISTING_LOCKED_PICKS_GRANDFATHERED; CIRCUIT_BREAKER; NO_FORCED_FILL",
     "thresholds": {
@@ -1547,7 +1547,7 @@
             "away_score": 90,
             "winner_key": "HOME",
             "source": "ESPN_PUBLIC",
-            "updated_at": "2026-10-12T11:43:19.349920+09:00"
+            "updated_at": "2026-10-12T13:01:21.258350+09:00"
           },
           "evaluation": {
             "winner_key": "HOME",
@@ -1592,11 +1592,23 @@
           },
           "selection_score": 79.155,
           "confidence": "HIGH_PRECISION",
-          "status": "LIVE",
+          "status": "FINAL",
           "locked_at": "2026-10-12T08:43:14+09:00",
           "rank": 2,
           "current_state": "FRESH",
-          "result": null,
+          "result": {
+            "official": false,
+            "status": "CONFIRMED",
+            "home_score": 133,
+            "away_score": 128,
+            "winner_key": "HOME",
+            "source": "ESPN_PUBLIC",
+            "updated_at": "2026-10-12T13:01:21.258370+09:00"
+          },
+          "evaluation": {
+            "winner_key": "HOME",
+            "hit": true
+          },
           "precision_gate": {
             "top_p": 0.79560733,
             "margin": 0.59121467,
@@ -1659,7 +1671,7 @@
     },
     "performance_safety": {
       "version": "SPORTS_TOP3_CIRCUIT_V1",
-      "generated_at": "2026-10-12T12:05:45+09:00",
+      "generated_at": "2026-10-12T13:04:59+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "LEARNING",
@@ -1694,16 +1706,16 @@
         "BASKETBALL": {
           "state": "LEARNING",
           "allow_new_picks": 3,
-          "evaluated": 1,
-          "pending": 1,
-          "hits": 1,
+          "evaluated": 2,
+          "pending": 0,
+          "hits": 2,
           "hit_rate": 1.0,
-          "wilson95_lower": 0.206543,
+          "wilson95_lower": 0.342372,
           "wilson95_upper": 1.0,
-          "recent_n": 1,
+          "recent_n": 2,
           "recent_hit_rate": 1.0,
           "evidence": [],
-          "latest_evaluated_at": "2026-10-12T12:05:45+09:00",
+          "latest_evaluated_at": "2026-10-12T13:04:59+09:00",
           "cooldown_hours": 24
         },
         "VOLLEYBALL": {
@@ -1725,7 +1737,7 @@
     },
     "calibration": {
       "version": "SPORTS_TOP3_CALIBRATION_V2_UNBIASED_OOS_POOL",
-      "generated_at": "2026-10-12T12:05:45+09:00",
+      "generated_at": "2026-10-12T13:04:59+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "HOLD_SAMPLE",
@@ -1759,13 +1771,13 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V3_HISTORY_CARRYOVER",
-      "updated_at": "2026-10-12T12:05:45+09:00",
+      "updated_at": "2026-10-12T13:04:59+09:00",
       "summary": {
         "overall": {
           "picks": 2,
-          "evaluated": 1,
-          "pending": 1,
-          "hits": 1,
+          "evaluated": 2,
+          "pending": 0,
+          "hits": 2,
           "misses": 0,
           "hit_rate": 1.0
         },
@@ -1788,9 +1800,9 @@
           },
           "BASKETBALL": {
             "picks": 2,
-            "evaluated": 1,
-            "pending": 1,
-            "hits": 1,
+            "evaluated": 2,
+            "pending": 0,
+            "hits": 2,
             "misses": 0,
             "hit_rate": 1.0
           },
@@ -1817,7 +1829,7 @@
         },
         "BASKETBALL": {
           "state": "HOLD_SAMPLE",
-          "evaluated": 1,
+          "evaluated": 2,
           "required": 30
         },
         "VOLLEYBALL": {
@@ -1836,7 +1848,14 @@
           "pick_key": "HOME",
           "pick_name": "덴버 너기츠",
           "model_p": 0.79560733,
-          "resolution_state": "PENDING_RESULT"
+          "resolution_state": "RESOLVED_BOARD",
+          "evaluation": {
+            "winner_key": "HOME",
+            "hit": true,
+            "evaluated_at": "2026-10-12T13:04:59+09:00",
+            "source": "LOCKED_BOARD",
+            "source_snapshot_date": "2026-10-12"
+          }
         },
         {
           "event_id": "SPORTS-BASKETBALL-401901821",
@@ -1851,7 +1870,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-10-12T12:05:45+09:00",
+            "evaluated_at": "2026-10-12T13:04:59+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-12"
           }
@@ -1860,7 +1879,7 @@
       "carryover": {
         "resolved_from_history": 0,
         "conflicts": 0,
-        "pending_within_window": 1,
+        "pending_within_window": 0,
         "unresolved_after_window": 0,
         "window_days": 3
       },
@@ -1869,7 +1888,517 @@
         "target_hit_rate": 0.7
       }
     },
-    "snapshot_preserved_at": "2026-10-12T13:01:17.006976+09:00"
+    "oos_probability_report": {
+      "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
+      "generated_at": "2026-10-12T13:05:00+09:00",
+      "overall": {
+        "observed": 4,
+        "evaluated": 0,
+        "pending": 4,
+        "hits": 0,
+        "misses": 0,
+        "hit_rate": null,
+        "mean_model_p": null,
+        "calibration_gap": null,
+        "wilson95_lower": null,
+        "wilson95_upper": null
+      },
+      "bins": {
+        "UNDER_50": {
+          "observed": 0,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        },
+        "50_55": {
+          "observed": 3,
+          "evaluated": 0,
+          "pending": 3,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        },
+        "55_60": {
+          "observed": 1,
+          "evaluated": 0,
+          "pending": 1,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        },
+        "60_65": {
+          "observed": 0,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        },
+        "65_70": {
+          "observed": 0,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        },
+        "70_75": {
+          "observed": 0,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        },
+        "75_PLUS": {
+          "observed": 0,
+          "evaluated": 0,
+          "pending": 0,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate": null,
+          "mean_model_p": null,
+          "calibration_gap": null,
+          "wilson95_lower": null,
+          "wilson95_upper": null
+        }
+      },
+      "by_sport": {
+        "SOCCER": {
+          "overall": {
+            "observed": 0,
+            "evaluated": 0,
+            "pending": 0,
+            "hits": 0,
+            "misses": 0,
+            "hit_rate": null,
+            "mean_model_p": null,
+            "calibration_gap": null,
+            "wilson95_lower": null,
+            "wilson95_upper": null
+          },
+          "bins": {
+            "UNDER_50": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "50_55": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "55_60": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "60_65": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "65_70": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "70_75": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "75_PLUS": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            }
+          }
+        },
+        "BASEBALL": {
+          "overall": {
+            "observed": 3,
+            "evaluated": 0,
+            "pending": 3,
+            "hits": 0,
+            "misses": 0,
+            "hit_rate": null,
+            "mean_model_p": null,
+            "calibration_gap": null,
+            "wilson95_lower": null,
+            "wilson95_upper": null
+          },
+          "bins": {
+            "UNDER_50": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "50_55": {
+              "observed": 3,
+              "evaluated": 0,
+              "pending": 3,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "55_60": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "60_65": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "65_70": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "70_75": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "75_PLUS": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            }
+          }
+        },
+        "BASKETBALL": {
+          "overall": {
+            "observed": 1,
+            "evaluated": 0,
+            "pending": 1,
+            "hits": 0,
+            "misses": 0,
+            "hit_rate": null,
+            "mean_model_p": null,
+            "calibration_gap": null,
+            "wilson95_lower": null,
+            "wilson95_upper": null
+          },
+          "bins": {
+            "UNDER_50": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "50_55": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "55_60": {
+              "observed": 1,
+              "evaluated": 0,
+              "pending": 1,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "60_65": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "65_70": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "70_75": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "75_PLUS": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            }
+          }
+        },
+        "VOLLEYBALL": {
+          "overall": {
+            "observed": 0,
+            "evaluated": 0,
+            "pending": 0,
+            "hits": 0,
+            "misses": 0,
+            "hit_rate": null,
+            "mean_model_p": null,
+            "calibration_gap": null,
+            "wilson95_lower": null,
+            "wilson95_upper": null
+          },
+          "bins": {
+            "UNDER_50": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "50_55": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "55_60": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "60_65": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "65_70": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "70_75": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            },
+            "75_PLUS": {
+              "observed": 0,
+              "evaluated": 0,
+              "pending": 0,
+              "hits": 0,
+              "misses": 0,
+              "hit_rate": null,
+              "mean_model_p": null,
+              "calibration_gap": null,
+              "wilson95_lower": null,
+              "wilson95_upper": null
+            }
+          }
+        }
+      },
+      "interpretation": {
+        "primary_precision_metric": "wilson95_lower",
+        "calibration_gap": "hit_rate_minus_mean_model_probability",
+        "minimum_evaluated_for_directional_read": 30,
+        "state": "HOLD_SAMPLE"
+      },
+      "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
+    }
   },
   "team_name_localization": {
     "language": "ko",
