@@ -11,9 +11,11 @@ on:
       - 'race-sports/tools/sports_top3_circuit_breaker.py'
       - 'race-sports/tools/sports_top3_candidate_ledger.py'
       - 'race-sports/tools/sports_top3_calibration.py'
+      - 'race-sports/tools/sports_top3_probability_report.py'
       - 'race-sports/tools/sports_top3_performance.py'
       - 'race-sports/tools/sports_top3_ui_patch.py'
       - 'race-sports/tools/sports_top3_performance_ui_patch.py'
+      - 'race-sports/tools/sports_top3_probability_ui_patch.py'
   workflow_run:
     workflows:
       - race-sports-static-refresh
@@ -39,16 +41,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Self-test TOP 3 selector, precision, circuit, candidate OOS, calibration, performance and UI
+      - name: Self-test TOP 3 selector, precision, circuit, candidate OOS, calibration, probability report, performance and UI
         run: |
           python race-sports/tools/sports_top3.py --self-test
           python race-sports/tools/sports_top3_precision_guard.py --self-test
           python race-sports/tools/sports_top3_circuit_breaker.py --self-test
           python race-sports/tools/sports_top3_candidate_ledger.py --self-test
           python race-sports/tools/sports_top3_calibration.py --self-test
+          python race-sports/tools/sports_top3_probability_report.py --self-test
           python race-sports/tools/sports_top3_performance.py --self-test
           python race-sports/tools/sports_top3_ui_patch.py --self-test
           python race-sports/tools/sports_top3_performance_ui_patch.py --self-test
+          python race-sports/tools/sports_top3_probability_ui_patch.py --self-test
       - name: Build and publish TOP 3 conflict-safe
         shell: bash
         run: |
@@ -60,6 +64,7 @@ jobs:
             git reset --hard origin/main
             python race-sports/tools/sports_top3_ui_patch.py --check
             python race-sports/tools/sports_top3_performance_ui_patch.py --check
+            python race-sports/tools/sports_top3_probability_ui_patch.py --check
             # Capture ALL eligible pre-event candidates before precision/market selection.
             # Their first prediction is immutable; FINAL results are attached only later.
             python race-sports/tools/sports_top3_candidate_ledger.py
@@ -71,6 +76,8 @@ jobs:
             python race-sports/tools/sports_top3.py
             python race-sports/tools/sports_top3_precision_guard.py
             python race-sports/tools/sports_top3_performance.py
+            # Publish probability-bin OOS diagnostics only after the final TOP3 object exists.
+            python race-sports/tools/sports_top3_probability_report.py
             python race-sports/tools/validate_sports_snapshot.py race-sports/data/sports_today.json
             DATE=$(python - <<'PY'
           import json
@@ -86,14 +93,14 @@ jobs:
           m=re.search(r'<script>([\s\S]*?)</script>',s,re.I)
           if not m: raise SystemExit('LIVE_SCRIPT_NOT_FOUND')
           Path('/tmp/raceiq-live-top3.js').write_text(m.group(1),encoding='utf-8')
-          for token in ['SPORTS_TOP3_UI_V1','SPORTS_TOP3_PERFORMANCE_UI_V1','id="refreshBtn"','function renderTop3Board()','function renderTop3Performance()']:
+          for token in ['SPORTS_TOP3_UI_V1','SPORTS_TOP3_PERFORMANCE_UI_V1','SPORTS_TOP3_PROBABILITY_UI_V1','id="refreshBtn"','function renderTop3Board()','function renderTop3Performance()','function renderOosProbabilityReport()']:
               if token not in s: raise SystemExit('TOP3_UI_TOKEN_MISSING:'+token)
           print('TOP3_UI_GUARD=PASS')
           PY
             node --check /tmp/raceiq-live-top3.js
-            git add race-sports/live.html race-sports/data/sports_today.json "race-sports/data/sports_history/${DATE}.json" race-sports/data/model_state/sports_top3_lock.json race-sports/data/model_state/sports_top3_performance.json race-sports/data/model_state/sports_top3_circuit.json race-sports/data/model_state/sports_top3_candidate_ledger.json race-sports/data/model_state/sports_top3_calibration.json
+            git add race-sports/live.html race-sports/data/sports_today.json "race-sports/data/sports_history/${DATE}.json" race-sports/data/model_state/sports_top3_lock.json race-sports/data/model_state/sports_top3_performance.json race-sports/data/model_state/sports_top3_circuit.json race-sports/data/model_state/sports_top3_candidate_ledger.json race-sports/data/model_state/sports_top3_calibration.json race-sports/data/model_state/sports_top3_probability_report.json
             if git diff --cached --quiet; then echo "SPORTS_TOP3_PUBLISH=NO_CHANGE"; exit 0; fi
-            git commit -m "feat: publish unbiased OOS-calibrated SPORTS top 3"
+            git commit -m "feat: publish OOS probability-bin SPORTS top 3 report"
             if git push origin HEAD:main; then echo "SPORTS_TOP3_PUBLISH=PASS"; exit 0; fi
             echo "SPORTS_TOP3_PUSH_CONFLICT=$n/5"
           done
