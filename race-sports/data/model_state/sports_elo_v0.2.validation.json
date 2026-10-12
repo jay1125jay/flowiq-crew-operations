@@ -1,6 +1,24 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
+    "BASEBALL": {
+      "games": 29702,
+      "holdout_rows": 8911,
+      "walk_forward_rows": 8911,
+      "accuracy": 0.554147,
+      "log_loss": 0.683808,
+      "brier": 0.245379,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.009339,
+      "validated": true,
+      "selected_params": {
+        "k": 8.0,
+        "home_adv": 30.0,
+        "scale": 350.0,
+        "shrink": 0.6
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "BASKETBALL": {
       "games": 13790,
       "holdout_rows": 4137,
@@ -15,24 +33,6 @@
         "k": 28.0,
         "home_adv": 50.0,
         "scale": 430.0,
-        "shrink": 0.8
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "VOLLEYBALL": {
-      "games": 1856,
-      "holdout_rows": 557,
-      "walk_forward_rows": 557,
-      "accuracy": 0.644524,
-      "log_loss": 0.638831,
-      "brier": 0.223622,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.054316,
-      "validated": true,
-      "selected_params": {
-        "k": 36.0,
-        "home_adv": 20.0,
-        "scale": 320.0,
         "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
@@ -55,21 +55,21 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
-    "BASEBALL": {
-      "games": 29702,
-      "holdout_rows": 8911,
-      "walk_forward_rows": 8911,
-      "accuracy": 0.554147,
-      "log_loss": 0.683808,
-      "brier": 0.245379,
+    "VOLLEYBALL": {
+      "games": 1856,
+      "holdout_rows": 557,
+      "walk_forward_rows": 557,
+      "accuracy": 0.644524,
+      "log_loss": 0.638831,
+      "brier": 0.223622,
       "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.009339,
+      "log_loss_edge": 0.054316,
       "validated": true,
       "selected_params": {
-        "k": 8.0,
-        "home_adv": 30.0,
-        "scale": 350.0,
-        "shrink": 0.6
+        "k": 36.0,
+        "home_adv": 20.0,
+        "scale": 320.0,
+        "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
