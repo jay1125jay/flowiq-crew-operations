@@ -1,6 +1,6 @@
 {
-  "version": "HORSE_WIN_QUINELLA_COMPARE_V1_WALK_FORWARD",
-  "generated_at": "2026-10-14T21:28:29+09:00",
+  "version": "HORSE_WIN_QUINELLA_COMPARE_V2_SAME_SAMPLE_ROI",
+  "generated_at": "2026-10-14T22:03:20+09:00",
   "model_source": "horse_empirical_bayes_v0.2",
   "method": "SAME_CHRONOLOGICAL_WALK_FORWARD_MODEL; FIRST_30PCT_WARMUP; NO_POSTRACE_FIELDS_IN_PREDICTION",
   "input_races": 8815,
@@ -23,14 +23,35 @@
     "definition": "MODEL_TOP2_PAIR_EQUALS_OFFICIAL_1ST_AND_2ND; ORDER_IGNORED",
     "tested": 6171,
     "hits": 504,
-    "hit_rate": 0.08167234,
-    "paper_roi": null,
-    "roi_state": "UNAVAILABLE_NO_HISTORICAL_QUINELLA_PAYOUT_IN_CURRENT_BACKFILL"
+    "hit_rate": 0.08167234
+  },
+  "fair_same_sample_roi": {
+    "state": "BLOCKED_UNTIL_QUINELLA_PAYOUT_HISTORY_IS_AVAILABLE",
+    "sample_races": 0,
+    "stake_per_race_krw_each_strategy": 100000,
+    "win": {
+      "hits": 0,
+      "hit_rate": null,
+      "total_staked_krw": 0,
+      "total_return_krw": 0,
+      "net_profit_krw": null,
+      "roi": null
+    },
+    "quinella": {
+      "hits": 0,
+      "hit_rate": null,
+      "total_staked_krw": 0,
+      "total_return_krw": 0,
+      "net_profit_krw": null,
+      "roi": null
+    },
+    "winner_by_roi": null,
+    "warning": "OFFICIAL FINAL TOTE SETTLEMENT ODDS; THIS IS SETTLEMENT-REFERENCE BACKTEST, NOT PRE-RACE PRICE-LOCKED EXECUTION"
   },
   "comparison": {
     "easier_by_observed_hit_rate": "WIN",
     "hit_rate_gap_percentage_points_win_minus_quinella": 14.9571,
     "fair_profit_comparison_state": "BLOCKED_UNTIL_QUINELLA_PAYOUT_HISTORY_IS_AVAILABLE"
   },
-  "policy": "HIT_RATE_COMPARE_ONLY_FOR_WIN_VS_QUINELLA; DO_NOT_INVENT_QUINELLA_PAYOUT; PROFIT_COMPARISON_REQUIRES_OFFICIAL_QUINELLA_PAYOUT_HISTORY"
+  "policy": "HIT_RATE_USES_FULL_WALK_FORWARD; ROI_COMPARE_USES_EXACT_SAME_RACES_WITH_OFFICIAL_KRA_FINAL_TOTE_ODDS; NO_SYNTHETIC_ODDS"
 }
