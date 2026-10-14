@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/raceiq-horse-bet-compare.yml'
       - 'race-sports/tools/horse_win_quinella_compare.py'
+      - 'race-sports/tools/horse_win_confidence_roi.py'
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/data/backfill/horse/**'
 
@@ -20,7 +21,7 @@ concurrency:
 jobs:
   compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,20 +31,24 @@ jobs:
           python-version: '3.12'
       - name: Compare win and quinella walk-forward hit rates
         run: python race-sports/tools/horse_win_quinella_compare.py
+      - name: Find and validate win confidence ROI threshold
+        run: python race-sports/tools/horse_win_confidence_roi.py
       - name: Publish comparison conflict-safe
         shell: bash
         run: |
           set -euo pipefail
           cp race-sports/models/horse_win_quinella_compare.json /tmp/horse-win-quinella.json
+          cp race-sports/models/horse_win_confidence_roi.json /tmp/horse-win-confidence-roi.json
           git config user.name "raceiq-horse-compare-bot"
           git config user.email "actions@users.noreply.github.com"
           for n in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/horse-win-quinella.json race-sports/models/horse_win_quinella_compare.json
-            git add race-sports/models/horse_win_quinella_compare.json
+            cp /tmp/horse-win-confidence-roi.json race-sports/models/horse_win_confidence_roi.json
+            git add race-sports/models/horse_win_quinella_compare.json race-sports/models/horse_win_confidence_roi.json
             if git diff --cached --quiet; then echo 'HORSE_BET_COMPARE_PUBLISH=NO_CHANGE'; exit 0; fi
-            git commit -m "data: publish horse win vs quinella comparison"
+            git commit -m "data: publish horse win ROI threshold research"
             if git push origin HEAD:main; then echo 'HORSE_BET_COMPARE_PUBLISH=PASS'; exit 0; fi
             echo "HORSE_BET_COMPARE_PUSH_CONFLICT=$n/5"
           done
