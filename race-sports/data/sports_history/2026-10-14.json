@@ -1826,7 +1826,7 @@
       "source_url": "https://www.koreabaseball.com/Schedule/ScoreBoard.aspx",
       "venue": "잠실",
       "score": {
-        "home": 0,
+        "home": 2,
         "away": 0
       },
       "model_source": "sports_elo_v0.2",
@@ -1855,7 +1855,7 @@
       "start_label": "19:00",
       "start_timestamp": 1791972000,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "대구 한국가스공사 vs 수원 KT",
       "home": "대구 한국가스공사",
       "away": "수원 KT",
@@ -1892,7 +1892,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 45,
+        "away": 45
+      }
     },
     {
       "id": "SPORTS-SOCCER-401912623",
@@ -1907,7 +1911,7 @@
       "start_label": "19:00",
       "start_timestamp": 1791972000,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Kashiwa Reysol vs Port FC",
       "home": "Kashiwa Reysol",
       "away": "Port FC",
@@ -1974,7 +1978,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 5,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401912645",
@@ -1989,7 +1997,7 @@
       "start_label": "19:00",
       "start_timestamp": 1791972000,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Vissel Kobe vs Jeonbuk Motors",
       "home": "Vissel Kobe",
       "away": "Jeonbuk Motors",
@@ -2056,7 +2064,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 1,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-KBL-S49G07N1",
@@ -2476,7 +2488,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-14T17:01:11+09:00",
+      "updated_at": "2026-10-14T20:13:43+09:00",
       "summary": {
         "overall": {
           "picks": 6,
@@ -2644,7 +2656,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-10-14T17:01:11+09:00",
+            "evaluated_at": "2026-10-14T20:13:43+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-14"
           },
@@ -2656,7 +2668,7 @@
             "hit": true,
             "return_krw": 132260,
             "profit_krw": 32260,
-            "settled_at": "2026-10-14T17:01:11+09:00"
+            "settled_at": "2026-10-14T20:13:43+09:00"
           }
         },
         {
@@ -2790,7 +2802,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-14T17:01:11+09:00",
+      "generated_at": "2026-10-14T20:13:43+09:00",
       "overall": {
         "observed": 32,
         "evaluated": 23,
@@ -3382,5 +3394,39 @@
     "errors": [],
     "updated_at": "2026-10-14T18:48:48.608829+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-14T20:13:35+09:00",
+    "polled_sports": [
+      "SOCCER",
+      "BASEBALL",
+      "BASKETBALL"
+    ],
+    "field_changes": 7,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 4,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "PASS",
+        "matched": 1,
+        "field_changes": 1,
+        "provider": "ESPN_PUBLIC+KBO_OFFICIAL"
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 2,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
