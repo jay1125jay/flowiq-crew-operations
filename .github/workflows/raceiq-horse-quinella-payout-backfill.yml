@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      HORSE_QUINELLA_MAX_NEW: ${{ github.event_name == 'schedule' && '2500' || '500' }}
+      HORSE_QUINELLA_MAX_NEW: ${{ github.event_name == 'schedule' && '2500' || '100' }}
       HORSE_QUINELLA_WORKERS: '8'
     steps:
       - uses: actions/checkout@v4
