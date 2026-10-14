@@ -1,0 +1,18 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0f14"><title>BTC 고래 PAPER 추종</title><style>*{box-sizing:border-box}body{background:#0b0f14;color:#edf3fb;font:15px system-ui,-apple-system,sans-serif;margin:0}main{max-width:760px;margin:auto;padding:24px 15px}h1{font-size:24px}a{color:#71c4ff}.sub{color:#9db0c4}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{background:#17212d;border:1px solid #26384a;border-radius:13px;padding:16px;margin:12px 0}.value{font-size:25px;font-weight:700;margin-top:8px}.warn{color:#ffc677}button{padding:10px 18px;border:0;border-radius:9px;background:#288dce;color:white;font-weight:700}table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:9px 4px;border-bottom:1px solid #2a3a49;text-align:left}small{color:#a7bacb}</style></head><body><main><h1>🐋 BTC 고래 PAPER 추종</h1><p class="sub">무료 GitHub 테스트 · 가상매매 전용 · 실거래 불가</p><p><a href="./">BTC 메인</a> · <a href="./whale-intelligence.html">기존 고래 화면</a></p><button onclick="load()">데이터 새로고침</button><p id="status" class="warn">조회 중…</p><div class="grid"><div class="card"><small>가상 평가자산</small><div class="value" id="equity">—</div></div><div class="card"><small>실현 순손익</small><div class="value" id="pnl">—</div></div><div class="card"><small>진행 중 포지션</small><div class="value" id="open">—</div></div><div class="card"><small>종료 거래</small><div class="value" id="closed">—</div></div></div><div class="card"><h3>고래 실력 선별</h3><p id="ranking">아직 선별 데이터가 없습니다.</p><div id="wallets"></div></div><div class="card"><h3>진행 중 PAPER 포지션</h3><div id="positions">—</div></div><p class="sub">고래의 실제 체결가와 복제 체결가는 다를 수 있습니다. 평가자산은 추정치이며 수익을 보장하지 않습니다.</p><small id="stamp"></small></main><script>
+const $=id=>document.getElementById(id),money=n=>Number.isFinite(Number(n))?'$'+Number(n).toFixed(2):'—';
+async function get(file){const r=await fetch('./data/'+file+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+async function load(){
+$('status').textContent='조회 중…';
+const [paper,rank]=await Promise.allSettled([get('whale-paper-state.json'),get('whale-ranking.json')]);
+if(paper.status==='fulfilled'){
+const s=paper.value;$('equity').textContent=money(s.estimated_equity_usd);$('pnl').textContent=money(s.realized_net_pnl_usd);$('open').textContent=s.open_positions??'—';$('closed').textContent=s.closed_trade_count??'—';$('stamp').textContent='PAPER 갱신: '+(s.updated_at||'—');
+$('positions').innerHTML='';const ps=Object.entries(s.positions||{});if(!ps.length)$('positions').textContent='열린 포지션 없음';for(const [addr,p] of ps){const el=document.createElement('p');el.textContent=addr.slice(0,10)+'… '+p.side+' · 진입 '+money(p.entry_price);$('positions').append(el)}
+$('status').textContent=s.status==='OK'?'PAPER 상태 정상':'PAPER 대기: '+s.status;
+}else{$('status').textContent='PAPER 데이터 미생성 / GitHub Actions 실행 확인 필요';}
+if(rank.status==='fulfilled'){
+const r=rank.value;$('ranking').textContent='평가 지갑 '+(r.watchlist_count??0)+'개 · '+(r.updated_at||'—');$('wallets').innerHTML='';
+for(const w of (r.ranked_wallets||[])){const p=document.createElement('p');p.textContent=w.address.slice(0,12)+'… | 점수 '+w.skill_score+' | 종료 '+w.btc_closes_90d+'건 | '+(w.eligible_for_paper_observation?'관찰 대상':'보류');$('wallets').append(p)}
+}else{$('ranking').textContent='고래 선별 결과 미생성 / GitHub Actions 확인 필요'}
+}
+load();setInterval(()=>{if(!document.hidden)load()},300000);
+</script></body></html>
