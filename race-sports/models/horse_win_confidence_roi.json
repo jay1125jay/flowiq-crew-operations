@@ -1,0 +1,81 @@
+{
+  "version": "HORSE_WIN_CONFIDENCE_ROI_V1_CHRONOLOGICAL_OOS",
+  "generated_at": "2026-10-14T22:17:55+09:00",
+  "model_source": "horse_empirical_bayes_v0.2",
+  "input_races": 8815,
+  "warmup_races": 2644,
+  "odds_eligible_walk_forward_races": 6170,
+  "split": {
+    "method": "CHRONOLOGICAL_60PCT_DISCOVERY_40PCT_UNTOUCHED_HOLDOUT",
+    "discovery_races": 3702,
+    "holdout_races": 2468
+  },
+  "stake_per_selected_race_krw": 100000,
+  "min_discovery_bets": 150,
+  "min_holdout_bets": 75,
+  "rules": [
+    {
+      "name": "LOWEST_PROBABILITY_THRESHOLD_WITH_NONNEGATIVE_DISCOVERY_ROI",
+      "state": "NO_DISCOVERY_RULE"
+    },
+    {
+      "name": "BEST_DISCOVERY_ROI_PROBABILITY_ONLY",
+      "state": "OOS_FAIL_NOT_PROFITABLE",
+      "top_p_min": 0.179,
+      "margin_min": 0.0,
+      "discovery": {
+        "bets": 936,
+        "hits": 308,
+        "hit_rate": 0.32905983,
+        "total_staked_krw": 93600000,
+        "total_return_krw": 81830000,
+        "net_profit_krw": -11770000,
+        "roi": -0.12574786,
+        "coverage": 0.2528363
+      },
+      "holdout": {
+        "bets": 571,
+        "hits": 175,
+        "hit_rate": 0.30647986,
+        "total_staked_krw": 57100000,
+        "total_return_krw": 44620000,
+        "net_profit_krw": -12480000,
+        "roi": -0.21856392,
+        "coverage": 0.23136143
+      }
+    },
+    {
+      "name": "BROADEST_NONNEGATIVE_DISCOVERY_ROI_PROBABILITY_PLUS_MARGIN",
+      "state": "NO_DISCOVERY_RULE"
+    },
+    {
+      "name": "BEST_DISCOVERY_ROI_PROBABILITY_PLUS_MARGIN",
+      "state": "OOS_FAIL_NOT_PROFITABLE",
+      "top_p_min": 0.179,
+      "margin_min": 0.05,
+      "discovery": {
+        "bets": 431,
+        "hits": 160,
+        "hit_rate": 0.3712297,
+        "total_staked_krw": 43100000,
+        "total_return_krw": 38410000,
+        "net_profit_krw": -4690000,
+        "roi": -0.10881671,
+        "coverage": 0.11642355
+      },
+      "holdout": {
+        "bets": 259,
+        "hits": 90,
+        "hit_rate": 0.34749035,
+        "total_staked_krw": 25900000,
+        "total_return_krw": 21210000,
+        "net_profit_krw": -4690000,
+        "roi": -0.18108108,
+        "coverage": 0.10494327
+      }
+    }
+  ],
+  "conclusion": "NO_OOS_PROFITABLE_THRESHOLD_FOUND",
+  "policy": "SELECTION_USES_PRE_RACE_MODEL_TOP_P_AND_MARGIN_ONLY; THRESHOLDS_CHOSEN_ON_EARLIER_DISCOVERY_PERIOD; PROFITABILITY_VERIFIED_ON_LATER_UNTOUCHED_HOLDOUT; OFFICIAL_FINAL_TOTE_ODDS_USED_ONLY_FOR SETTLEMENT; NO_POSTRACE_FIELD_IN_SELECTION; DO_NOT_PROMOTE DISCOVERY_ONLY PROFIT",
+  "warning": "FINAL_TOTE_ODDS_ARE SETTLEMENT REFERENCE, NOT PRE-RACE LOCKED EXECUTION PRICES. POSITIVE HISTORICAL OOS ROI DOES NOT GUARANTEE FUTURE PROFIT."
+}
