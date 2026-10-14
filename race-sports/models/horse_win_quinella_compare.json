@@ -1,0 +1,36 @@
+{
+  "version": "HORSE_WIN_QUINELLA_COMPARE_V1_WALK_FORWARD",
+  "generated_at": "2026-10-14T21:28:29+09:00",
+  "model_source": "horse_empirical_bayes_v0.2",
+  "method": "SAME_CHRONOLOGICAL_WALK_FORWARD_MODEL; FIRST_30PCT_WARMUP; NO_POSTRACE_FIELDS_IN_PREDICTION",
+  "input_races": 8815,
+  "warmup_races": 2644,
+  "win": {
+    "definition": "MODEL_TOP1_EQUALS_OFFICIAL_1ST",
+    "tested": 6171,
+    "hits": 1427,
+    "hit_rate": 0.23124291,
+    "paper_100k_at_official_final_win_odds": {
+      "odds_available_races": 6170,
+      "total_staked_krw": 617000000,
+      "total_return_krw": 494190000,
+      "net_profit_krw": -122810000,
+      "roi": -0.19904376,
+      "warning": "USES_OFFICIAL_FINAL_TOTE_WIN_ODDS; NOT PRE-RACE_LOCKED_ODDS"
+    }
+  },
+  "quinella": {
+    "definition": "MODEL_TOP2_PAIR_EQUALS_OFFICIAL_1ST_AND_2ND; ORDER_IGNORED",
+    "tested": 6171,
+    "hits": 504,
+    "hit_rate": 0.08167234,
+    "paper_roi": null,
+    "roi_state": "UNAVAILABLE_NO_HISTORICAL_QUINELLA_PAYOUT_IN_CURRENT_BACKFILL"
+  },
+  "comparison": {
+    "easier_by_observed_hit_rate": "WIN",
+    "hit_rate_gap_percentage_points_win_minus_quinella": 14.9571,
+    "fair_profit_comparison_state": "BLOCKED_UNTIL_QUINELLA_PAYOUT_HISTORY_IS_AVAILABLE"
+  },
+  "policy": "HIT_RATE_COMPARE_ONLY_FOR_WIN_VS_QUINELLA; DO_NOT_INVENT_QUINELLA_PAYOUT; PROFIT_COMPARISON_REQUIRES_OFFICIAL_QUINELLA_PAYOUT_HISTORY"
+}
