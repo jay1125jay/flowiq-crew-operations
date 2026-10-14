@@ -1,0 +1,31 @@
+name: BTC whale copy PAPER simulation
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: btc-whale-paper-follow
+  cancel-in-progress: false
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run wallet copy simulation (no real orders)
+        run: python btc-flow-monitor/scripts/whale_paper_follow.py
+      - name: Persist PAPER state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add btc-flow-monitor/data/whale-paper-state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: update whale copy PAPER state"
+            git pull --rebase
+            git push
+          fi
