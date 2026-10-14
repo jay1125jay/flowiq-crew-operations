@@ -1,0 +1,32 @@
+name: BTC public PAPER snapshot
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: btc-public-paper-snapshot
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch public market snapshot (no orders)
+        run: python btc-flow-monitor/scripts/public_market_snapshot.py
+      - name: Publish validated snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add btc-flow-monitor/data/public-market.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: refresh public BTC PAPER snapshot"
+            git push
+          fi
