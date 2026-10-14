@@ -1,0 +1,54 @@
+name: raceiq-horse-quinella-payout-backfill
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 12 * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/raceiq-horse-quinella-payout-backfill.yml'
+      - 'race-sports/tools/horse_quinella_payout_backfill.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: raceiq-horse-quinella-payout-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill-and-compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect official KRA quinella payouts
+        run: python race-sports/tools/horse_quinella_payout_backfill.py
+      - name: Compare win vs quinella on identical payout sample
+        run: python race-sports/tools/horse_win_quinella_compare.py
+      - name: Publish payout history and comparison conflict-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp race-sports/data/model_state/horse_quinella_payouts.json /tmp/horse-quinella-payouts.json
+          cp race-sports/models/horse_win_quinella_compare.json /tmp/horse-win-quinella.json
+          git config user.name "raceiq-horse-payout-bot"
+          git config user.email "actions@users.noreply.github.com"
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/horse-quinella-payouts.json race-sports/data/model_state/horse_quinella_payouts.json
+            cp /tmp/horse-win-quinella.json race-sports/models/horse_win_quinella_compare.json
+            git add race-sports/data/model_state/horse_quinella_payouts.json race-sports/models/horse_win_quinella_compare.json
+            if git diff --cached --quiet; then echo 'HORSE_QUINELLA_PAYOUT_PUBLISH=NO_CHANGE'; exit 0; fi
+            git commit -m "data: publish official horse quinella payout comparison"
+            if git push origin HEAD:main; then echo 'HORSE_QUINELLA_PAYOUT_PUBLISH=PASS'; exit 0; fi
+            echo "HORSE_QUINELLA_PAYOUT_PUSH_CONFLICT=$n/5"
+          done
+          echo 'HORSE_QUINELLA_PAYOUT_PUBLISH=FAIL'; exit 1
