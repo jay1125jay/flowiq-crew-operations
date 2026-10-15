@@ -311,11 +311,20 @@
       "start_timestamp": 1792058400,
       "home": "서울 삼성",
       "away": "창원 LG",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_FROM_HISTORY",
       "virtual_bet": {
         "state": "EXCLUDED_NO_LOCKED_ODDS",
         "stake_krw": 100000
-      }
+      },
+      "evaluation": {
+        "winner_key": "HOME",
+        "hit": false,
+        "evaluated_at": "2026-10-16T00:20:34+09:00",
+        "source": "SPORTS_HISTORY_CARRYOVER",
+        "source_snapshot_date": "2026-10-15"
+      },
+      "final_home_score": 93,
+      "final_away_score": 86
     },
     "SPORTS-BASKETBALL-401898404": {
       "event_id": "SPORTS-BASKETBALL-401898404",
@@ -369,23 +378,63 @@
       },
       "final_home_score": 144,
       "final_away_score": 128
+    },
+    "SPORTS-BASKETBALL-401908945": {
+      "event_id": "SPORTS-BASKETBALL-401908945",
+      "date": "2026-10-16",
+      "sport": "BASKETBALL",
+      "competition": "NBA",
+      "title": "New York Knicks vs Toronto Raptors",
+      "pick_key": "HOME",
+      "pick_name": "뉴욕 닉스",
+      "model_p": 0.71530362,
+      "selection_score": 61.834,
+      "precision_gate": {
+        "top_p": 0.71530362,
+        "margin": 0.43060723,
+        "min_top_p": 0.7,
+        "min_margin": 0.2,
+        "threshold_source": "BASE_HEURISTIC_FLOOR"
+      },
+      "locked_at": "2026-10-16T00:20:34+09:00",
+      "recorded_at": "2026-10-16T00:20:34+09:00",
+      "locked_odds": 1.4878,
+      "locked_odds_provider": "DraftKings",
+      "odds_locked_at": "2026-10-16T00:20:34+09:00",
+      "provider": "ESPN_PUBLIC",
+      "provider_event_id": "401908945",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261015",
+      "event_date": "2026-10-16",
+      "start_time": "08:30",
+      "start_timestamp": 1792107000,
+      "home": "New York Knicks",
+      "away": "Toronto Raptors",
+      "home_ko": "뉴욕 닉스",
+      "away_ko": "토론토 랩터스",
+      "resolution_state": "PENDING_RESULT",
+      "virtual_bet": {
+        "state": "PENDING_RESULT",
+        "stake_krw": 100000,
+        "locked_decimal_odds": 1.4878,
+        "odds_provider": "DraftKings"
+      }
     }
   },
   "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-  "updated_at": "2026-10-15T20:54:51+09:00",
+  "updated_at": "2026-10-16T00:20:34+09:00",
   "summary": {
     "overall": {
-      "picks": 8,
-      "evaluated": 7,
+      "picks": 9,
+      "evaluated": 8,
       "pending": 1,
       "hits": 5,
-      "misses": 2,
-      "hit_rate": 0.714286,
+      "misses": 3,
+      "hit_rate": 0.625,
       "paper_roi": {
         "stake_per_pick_krw": 100000,
-        "odds_locked_picks": 5,
+        "odds_locked_picks": 6,
         "settled": 5,
-        "pending": 0,
+        "pending": 1,
         "excluded_no_locked_odds": 3,
         "total_staked_krw": 500000,
         "total_return_krw": 479580,
@@ -433,17 +482,17 @@
         }
       },
       "BASKETBALL": {
-        "picks": 7,
-        "evaluated": 6,
+        "picks": 8,
+        "evaluated": 7,
         "pending": 1,
         "hits": 4,
-        "misses": 2,
-        "hit_rate": 0.666667,
+        "misses": 3,
+        "hit_rate": 0.571429,
         "paper_roi": {
           "stake_per_pick_krw": 100000,
-          "odds_locked_picks": 4,
+          "odds_locked_picks": 5,
           "settled": 4,
-          "pending": 0,
+          "pending": 1,
           "excluded_no_locked_odds": 3,
           "total_staked_krw": 400000,
           "total_return_krw": 284340,
@@ -485,7 +534,7 @@
     },
     "BASKETBALL": {
       "state": "HOLD_SAMPLE",
-      "evaluated": 6,
+      "evaluated": 7,
       "required": 30
     },
     "VOLLEYBALL": {
