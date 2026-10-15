@@ -19,13 +19,13 @@ jobs:
           python-version: '3.12'
       - name: Screen tracked public BTC whale wallets
         run: python btc-flow-monitor/scripts/whale_ranker.py
-      - name: Publish ranking snapshot
+      - name: Publish ranking and forward observations
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add btc-flow-monitor/data/whale-ranking.json
+          git add btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json
           if ! git diff --cached --quiet; then
-            git commit -m "data: update BTC whale skill ranking"
+            git commit -m "data: update BTC whale forward observations"
             git pull --rebase
             git push
           fi
