@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'btc-flow-monitor/data/whale-ranking.json'
 permissions:
   contents: write
 concurrency:
