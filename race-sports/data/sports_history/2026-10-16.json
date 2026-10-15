@@ -1,0 +1,784 @@
+{
+  "date": "2026-10-16",
+  "time": "00:08:48",
+  "generated_at": "2026-10-16T00:08:48.555677+09:00",
+  "domain": "SPORTS",
+  "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
+  "enabled_sports": [
+    "SOCCER",
+    "BASEBALL",
+    "BASKETBALL",
+    "VOLLEYBALL"
+  ],
+  "providers": [
+    {
+      "provider": "SPORTS_SOCCER_ESPN_PUBLIC+KLEAGUE_OFFICIAL",
+      "sport": "SOCCER",
+      "status": "PASS",
+      "requests": 23,
+      "successful_requests": 23,
+      "raw_events": 28,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASEBALL_ESPN_PUBLIC+KBO_OFFICIAL",
+      "sport": "BASEBALL",
+      "status": "PASS",
+      "requests": 5,
+      "successful_requests": 5,
+      "raw_events": 4,
+      "top_tier_events": 2,
+      "odds_events": 2,
+      "odds_summary_requests": 2,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASKETBALL_ESPN_PUBLIC+KBL_OFFICIAL",
+      "sport": "BASKETBALL",
+      "status": "PASS",
+      "requests": 5,
+      "successful_requests": 5,
+      "raw_events": 15,
+      "top_tier_events": 3,
+      "odds_events": 2,
+      "odds_summary_requests": 2,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_VOLLEYBALL_DAUM_SPORTS_PUBLIC_FALLBACK",
+      "sport": "VOLLEYBALL",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_ODDS_MULTIBOOK",
+      "sport": "ALL",
+      "status": "PASS",
+      "plan_mode": "AMATEUR_LEAGUE_AWARE",
+      "events_enriched": 2,
+      "outcomes_enriched": 4,
+      "meta": [
+        {
+          "sport": "SOCCER",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASEBALL",
+          "status": "PASS",
+          "events": 2,
+          "next_cursor": null,
+          "league_ids": [
+            "MLB"
+          ],
+          "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+          "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+          "local_scheduled_competitions": [
+            "MLB"
+          ],
+          "unsupported_on_amateur": []
+        },
+        {
+          "sport": "BASKETBALL",
+          "status": "PASS",
+          "events": 0,
+          "next_cursor": null,
+          "league_ids": [
+            "NBA"
+          ],
+          "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+          "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+          "local_scheduled_competitions": [
+            "KBL",
+            "NBA"
+          ],
+          "unsupported_on_amateur": [
+            "KBL"
+          ]
+        },
+        {
+          "sport": "VOLLEYBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        }
+      ],
+      "errors": [],
+      "updated_at": "2026-10-16T00:08:58.722976+09:00",
+      "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+    }
+  ],
+  "events": [
+    {
+      "id": "SPORTS-BASEBALL-401908025",
+      "provider_event_id": "401908025",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-10-16",
+      "start_time": "02:00",
+      "start_label": "02:00",
+      "start_timestamp": 1792083600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Cleveland Guardians vs Tampa Bay Rays",
+      "home": "Cleveland Guardians",
+      "away": "Tampa Bay Rays",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Cleveland Guardians",
+          "odds": 1.7692,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-15T15:03:39.808Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "클리블랜드 가디언스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.7692,
+              "american_odds": "-130",
+              "updated_at": "2026-10-15T15:03:39.808Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34826925?outcomes=0ML86731210_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.7692,
+              "american_odds": "-130",
+              "updated_at": "2026-10-15T15:04:15.564Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.191631334&selectionId=41541473"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.7692,
+              "american_odds": "-130",
+              "updated_at": "2026-10-15T15:04:22.839Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20008161?options=20008161-1566663282-2318976492"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.7692,
+              "american_odds": "-130",
+              "updated_at": "2026-10-15T15:05:36.962Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=56650929-6b8f-31ac-8c79-db913439ab0b"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.7692,
+              "american_odds": "-130",
+              "updated_at": "2026-10-15T15:05:50.462Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=93007972-8e91-4a66-9602-22e2f0376f8f&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.8,
+              "american_odds": "-125",
+              "updated_at": "2026-10-15T15:05:50.462Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.48385166636226784,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Tampa Bay Rays",
+          "odds": 2.08,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-15T15:03:39.808Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "탬파베이 레이스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 2.08,
+              "american_odds": "+108",
+              "updated_at": "2026-10-15T15:03:39.808Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34826925?outcomes=0ML86731210_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 2.1,
+              "american_odds": "+110",
+              "updated_at": "2026-10-15T15:04:15.564Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.191631334&selectionId=29162"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 2.1,
+              "american_odds": "+110",
+              "updated_at": "2026-10-15T15:04:22.839Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20008161?options=20008161-1566663282-2318976491"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 2.11,
+              "american_odds": "+111",
+              "updated_at": "2026-10-15T15:05:36.962Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=4d08226b-0c4f-391e-a055-29b0fae28366"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 2.1,
+              "american_odds": "+110",
+              "updated_at": "2026-10-15T15:05:50.462Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=cc267b88-269c-4682-a3de-9c24ad563d5a&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 2.05,
+              "american_odds": "+105",
+              "updated_at": "2026-10-15T15:05:50.462Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.5161483336377322,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20261015",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event=401908025",
+      "home_ko": "클리블랜드 가디언스",
+      "away_ko": "탬파베이 레이스",
+      "odds_event_id": "AkFuNblWdWsPHNz0dz81",
+      "odds_league_id": "MLB",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "MLB",
+        "competition_games": 24187,
+        "home_team_games": 971,
+        "away_team_games": 1626,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401908945",
+      "provider_event_id": "401908945",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-16",
+      "start_time": "08:30",
+      "start_label": "08:30",
+      "start_timestamp": 1792107000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "New York Knicks vs Toronto Raptors",
+      "home": "New York Knicks",
+      "away": "Toronto Raptors",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "New York Knicks",
+          "odds": 1.4878,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-16T00:08:52.466302+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "뉴욕 닉스",
+          "model_p": 0.7153036153592928,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Toronto Raptors",
+          "odds": 2.7,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-16T00:08:52.466302+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "토론토 랩터스",
+          "model_p": 0.28469638464070723,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261015",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401908945",
+      "home_ko": "뉴욕 닉스",
+      "away_ko": "토론토 랩터스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11625,
+        "home_team_games": 781,
+        "away_team_games": 783,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASEBALL-401908033",
+      "provider_event_id": "401908033",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "MLB",
+      "event_date": "2026-10-16",
+      "start_time": "09:00",
+      "start_label": "09:00",
+      "start_timestamp": 1792108800,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Los Angeles Dodgers vs Milwaukee Brewers",
+      "home": "Los Angeles Dodgers",
+      "away": "Milwaukee Brewers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Los Angeles Dodgers",
+          "odds": 1.6369,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-15T15:03:39.808Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "LA 다저스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.6369,
+              "american_odds": "-157",
+              "updated_at": "2026-10-15T15:03:39.808Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34832090?outcomes=0ML86746557_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.641,
+              "american_odds": "-156",
+              "updated_at": "2026-10-15T15:04:21.955Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616388626&selectionId=29171"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.6452,
+              "american_odds": "-155",
+              "updated_at": "2026-10-15T15:04:22.839Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20001298?options=20001298-1565745383-2316536270"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.6289,
+              "american_odds": "-159",
+              "updated_at": "2026-10-15T15:03:38.955Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=276b0184-e987-31d9-a6ce-b4b896d2218a"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.6897,
+              "american_odds": "-145",
+              "updated_at": "2026-10-15T15:04:29.455Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=8ce90bc5-5d99-416b-947e-29832f6b0786&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.6452,
+              "american_odds": "-155",
+              "updated_at": "2026-10-15T15:02:58.455Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.6579,
+              "american_odds": "-152",
+              "updated_at": "2026-10-15T15:04:29.955Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.6289,
+              "american_odds": "-159",
+              "updated_at": "2026-10-15T15:04:12.955Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.6173,
+              "american_odds": "-162",
+              "updated_at": "2026-10-15T15:04:21.955Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.4917942202677409,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Milwaukee Brewers",
+          "odds": 2.3,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-15T15:03:39.808Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "밀워키 브루어스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 2.3,
+              "american_odds": "+130",
+              "updated_at": "2026-10-15T15:03:39.808Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34832090?outcomes=0ML86746557_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 2.32,
+              "american_odds": "+132",
+              "updated_at": "2026-10-15T15:04:21.955Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.616388626&selectionId=29172"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 2.3,
+              "american_odds": "+130",
+              "updated_at": "2026-10-15T15:04:22.839Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20001298?options=20001298-1565745383-2316536269"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 2.35,
+              "american_odds": "+135",
+              "updated_at": "2026-10-15T15:03:38.955Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=d6e98a17-6055-3e83-98d8-58caf4e84ba1"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 2.25,
+              "american_odds": "+125",
+              "updated_at": "2026-10-15T15:04:29.455Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=fadfe52c-6dff-4fd5-9aaf-c6ff33b480da&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 2.3,
+              "american_odds": "+130",
+              "updated_at": "2026-10-15T15:02:58.455Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 2.25,
+              "american_odds": "+125",
+              "updated_at": "2026-10-15T15:04:29.955Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 2.35,
+              "american_odds": "+135",
+              "updated_at": "2026-10-15T15:04:12.955Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 2.3,
+              "american_odds": "+130",
+              "updated_at": "2026-10-15T15:04:21.955Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.5082057797322591,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=20261015",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event=401908033",
+      "home_ko": "LA 다저스",
+      "away_ko": "밀워키 브루어스",
+      "odds_event_id": "Smlj0GhN9tPA4eJREzZL",
+      "odds_league_id": "MLB",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "MLB",
+        "competition_games": 24187,
+        "home_team_games": 1673,
+        "away_team_games": 1636,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401908622",
+      "provider_event_id": "401908622",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-16",
+      "start_time": "09:30",
+      "start_label": "09:30",
+      "start_timestamp": 1792110600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Houston Rockets vs Oklahoma City Thunder",
+      "home": "Houston Rockets",
+      "away": "Oklahoma City Thunder",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Houston Rockets",
+          "odds": 2.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-16T00:08:52.467382+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "휴스턴 로키츠",
+          "model_p": 0.3692771531842999,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Oklahoma City Thunder",
+          "odds": 1.5556,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-16T00:08:52.467382+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "오클라호마시티 선더",
+          "model_p": 0.6307228468157001,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261015",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401908622",
+      "home_ko": "휴스턴 로키츠",
+      "away_ko": "오클라호마시티 선더",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11625,
+        "home_team_games": 774,
+        "away_team_games": 791,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-KBL-S49G01N22",
+      "provider_event_id": "S49G01N22",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "KBL_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "KBL",
+      "event_date": "2026-10-16",
+      "start_time": "19:00",
+      "start_label": "19:00",
+      "start_timestamp": 1792144800,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "고양 소노 vs 울산 현대모비스",
+      "home": "고양 소노",
+      "away": "울산 현대모비스",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "고양 소노",
+          "model_p": 0.4173460020672099,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "울산 현대모비스",
+          "model_p": 0.58265399793279,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "KBL_SEASON_GRADE_1",
+      "data_state": "FRESH",
+      "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261016&toDate=20261016&tcodeList=all&seasonGrade=1",
+      "venue": "고양소노아레나",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "KBL",
+        "competition_games": 2187,
+        "home_team_games": 114,
+        "away_team_games": 250,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    }
+  ],
+  "integrity": {
+    "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
+    "hard_failures": [],
+    "stale_events": 0,
+    "sports_multibook_status": "PASS"
+  },
+  "team_name_localization": {
+    "language": "ko",
+    "translated_fields": 8,
+    "missing_team_names": []
+  },
+  "odds_provider": {
+    "provider": "SportsGameOdds",
+    "status": "PASS",
+    "plan_mode": "AMATEUR_LEAGUE_AWARE",
+    "events_enriched": 2,
+    "outcomes_enriched": 4,
+    "meta": [
+      {
+        "sport": "SOCCER",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "PASS",
+        "events": 2,
+        "next_cursor": null,
+        "league_ids": [
+          "MLB"
+        ],
+        "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+        "local_scheduled_competitions": [
+          "MLB"
+        ],
+        "unsupported_on_amateur": []
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "events": 0,
+        "next_cursor": null,
+        "league_ids": [
+          "NBA"
+        ],
+        "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+        "local_scheduled_competitions": [
+          "KBL",
+          "NBA"
+        ],
+        "unsupported_on_amateur": [
+          "KBL"
+        ]
+      },
+      {
+        "sport": "VOLLEYBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      }
+    ],
+    "errors": [],
+    "updated_at": "2026-10-16T00:08:58.722976+09:00",
+    "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  }
+}
