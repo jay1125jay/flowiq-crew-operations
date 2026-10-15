@@ -72,7 +72,7 @@ def main():
             net=gross-exit_fee-old["entry_fee"]
             state["cash_usd"]+=gross-exit_fee
             state["realized_net_pnl_usd"]+=net
-            state["closed_trades"].append({"wallet":addr,"side":old["side"],"entry_at":old["entry_at"],"exit_at":now.isoformat(),"entry_price":old["entry_price"],"exit_price":exit_px,"net_pnl_usd":round(net,4),"verified_at_exit":addr in verified,"reason":"WHALE_DIRECTION_CHANGED"})
+            state["closed_trades"].append({"wallet":addr,"side":old["side"],"entry_at":old["entry_at"],"exit_at":now.isoformat(),"entry_price":old["entry_price"],"exit_price":exit_px,"quantity_btc":old["quantity"],"entry_fee_usd":round(old["entry_fee"],6),"exit_fee_usd":round(exit_fee,6),"total_fee_usd":round(old["entry_fee"]+exit_fee,6),"gross_pnl_usd":round(gross,6),"net_pnl_usd":round(net,4),"verified_at_exit":addr in verified,"reason":"WHALE_DIRECTION_CHANGED"})
             events.append({"wallet":addr,"action":"CLOSE","net_pnl_usd":round(net,4)})
         if observed!="FLAT" and len(state["positions"])<MAX_POSITIONS:
             entry=execution(price,observed,True);qty=MAX_NOTIONAL/entry;fee=MAX_NOTIONAL*FEE_BPS/10000
