@@ -48,6 +48,6 @@ jobs:
           git add btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
           if ! git diff --cached --quiet; then
             git commit -m "data: update whale screening and copy PAPER state"
-            git pull --rebase
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
