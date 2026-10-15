@@ -28,5 +28,6 @@ jobs:
           git add btc-flow-monitor/data/public-market.json
           if ! git diff --cached --quiet; then
             git commit -m "data: refresh public BTC PAPER snapshot"
+            git pull --rebase
             git push
           fi
