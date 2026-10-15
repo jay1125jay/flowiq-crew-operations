@@ -1,18 +1,10 @@
-name: BTC whale copy PAPER simulation
+name: BTC whale copy PAPER simulation (manual fallback)
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/5 * * * *'
-  push:
-    branches: [main]
-    paths:
-      - 'btc-flow-monitor/data/whale-ranking.json'
-      - 'btc-flow-monitor/scripts/whale_paper_follow.py'
-      - '.github/workflows/btc-whale-paper-follow.yml'
 permissions:
   contents: write
 concurrency:
-  group: btc-whale-paper-follow
+  group: btc-whale-paper-follow-manual
   cancel-in-progress: false
 jobs:
   simulate:
