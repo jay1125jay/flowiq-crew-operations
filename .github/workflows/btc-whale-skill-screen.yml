@@ -3,6 +3,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '17 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'btc-flow-monitor/scripts/whale_ranker.py'
+      - 'btc-flow-monitor/data/whale-watchlist.json'
+      - '.github/workflows/btc-whale-skill-screen.yml'
 permissions:
   contents: write
 concurrency:
