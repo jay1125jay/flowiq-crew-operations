@@ -19,9 +19,10 @@ FEE_BPS=5.0
 SLIP_BPS=3.0
 MAX_RANK_AGE_HOURS=3
 MAX_POSITIONS=3
+LEVERAGE_TESTS=tuple(range(1,11))
 
 def api(payload):
-    req=urllib.request.Request(API,data=json.dumps(payload).encode(),headers={"Content-Type":"application/json","User-Agent":"BTC-Flow-Paper-Research/1.1"},method="POST")
+    req=urllib.request.Request(API,data=json.dumps(payload).encode(),headers={"Content-Type":"application/json","User-Agent":"BTC-Flow-Paper-Research/1.2"},method="POST")
     with urllib.request.urlopen(req,timeout=25) as res:return json.load(res)
 
 def direction(state):
@@ -36,11 +37,28 @@ def execution(price,side,opening):
     buy=(side=="LONG")==opening
     return price*(1+(SLIP_BPS/10000)*(1 if buy else -1))
 
+def leverage_snapshot(state):
+    """Compare 1x..10x from the same forward PAPER trades; never places orders."""
+    realized=float(state.get("realized_net_pnl_usd",0.0))
+    unrealized=float(state.get("unrealized_pnl_usd",0.0))
+    out={}
+    for lev in LEVERAGE_TESTS:
+        rp=realized*lev; up=unrealized*lev
+        out[f"{lev}x"]={
+            "leverage":lev,
+            "starting_equity_usd":START_EQUITY,
+            "realized_net_pnl_usd":round(rp,4),
+            "unrealized_pnl_usd":round(up,4),
+            "estimated_equity_usd":round(START_EQUITY+rp+up,4),
+            "paper_only":True
+        }
+    return out
+
 def main():
     now=dt.datetime.now(dt.timezone.utc)
     DATA.mkdir(parents=True,exist_ok=True)
-    state=json.loads(STATE.read_text()) if STATE.exists() else {"schema_version":2,"paper_only":True,"starting_equity_usd":START_EQUITY,"cash_usd":START_EQUITY,"realized_net_pnl_usd":0.0,"wallets":{},"positions":{},"closed_trades":[]}
-    state["schema_version"]=2
+    state=json.loads(STATE.read_text()) if STATE.exists() else {"schema_version":3,"paper_only":True,"starting_equity_usd":START_EQUITY,"cash_usd":START_EQUITY,"realized_net_pnl_usd":0.0,"wallets":{},"positions":{},"closed_trades":[]}
+    state["schema_version"]=3
     rank=json.loads(RANK.read_text()) if RANK.exists() else None
     reason="RANKING_MISSING"; selected=[]; verified=set()
     if rank and rank.get("status")=="OK" and not rank.get("errors"):
@@ -84,7 +102,9 @@ def main():
     state["open_positions"]=len(state["positions"]);state["closed_trade_count"]=len(state["closed_trades"]);state["events_latest"]=events
     state["unrealized_pnl_usd"]=round(sum((execution(price,p["side"],False)-p["entry_price"])*p["quantity"]*(1 if p["side"]=="LONG" else -1)-abs(execution(price,p["side"],False)*p["quantity"])*FEE_BPS/10000 for p in state["positions"].values()),4)
     state["estimated_equity_usd"]=round(state["cash_usd"]+state["unrealized_pnl_usd"],4)
+    state["leverage_test_mode"]="PARALLEL_1X_TO_10X_PAPER_ONLY"
+    state["leverage_tests"]=leverage_snapshot(state)
     STATE.write_text(json.dumps(state,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print("PAPER",reason,"candidates",len(selected),"verified",len(verified),"events",len(events))
+    print("PAPER",reason,"candidates",len(selected),"verified",len(verified),"events",len(events),"leverage_tests","1x-10x")
 
 if __name__=="__main__":main()
