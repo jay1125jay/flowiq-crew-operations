@@ -19,6 +19,7 @@ on:
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
       - 'race-sports/tools/kra_final_runner_repair.py'
+      - 'race-sports/tools/kra_runner_feed.py'
       - 'race-sports/tools/test_racing_refresh.py'
       - 'race-sports/tools/kra_odds_endpoint_guard.py'
       - 'race-sports/tools/bull_model_features_v130.py'
@@ -129,7 +130,6 @@ jobs:
         run: python race-sports/tools/bull_contract_guard.py
 
       - name: Guard KRA odds endpoints
-        if: github.event_name == 'push'
         run: python race-sports/tools/kra_odds_endpoint_guard.py
 
       - name: Test KCYCLE official parser safety

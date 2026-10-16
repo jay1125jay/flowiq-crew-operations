@@ -1,10 +1,13 @@
 """Regression checks for source isolation, bounded failure, and horse identity."""
 import time
+from pathlib import Path
 import unittest
 from datetime import datetime
 from unittest.mock import patch
 import racing_static_collector as collector
-from kra_final_runner_repair import _preserve_pre_race
+from kra_final_runner_repair import _preserve_pre_race, repair_doc
+import inject_horse_model as horse_model
+from snapshot_guard import merge_event
 
 
 def fake_boat(z, errors):
@@ -45,6 +48,29 @@ class RefreshTests(unittest.TestCase):
         old = [{'key':'N1', 'horse_name':'현재말', 'odds':3.0}]
         row = _preserve_pre_race(old, [{'key':'N1', 'horse_name':'현재말'}])[0]
         self.assertEqual(row['odds'], 3.0)
+
+    def test_verified_final_survives_tomorrow_selector_without_refetch(self):
+        event = {'id':'H1','event_date':'2026-10-16','sport':'HORSE','status':'FINAL',
+                 'outcomes':[{'key':'N1','horse_name':'가'},{'key':'N2','horse_name':'나'}],
+                 'final_runner_identity':{'date':'2026-10-16','event_id':'H1','source':'KRA_SCORETABLE_DETAIL_OFFICIAL'}}
+        doc = {'date':'2026-10-16','events':[event], 'providers':[{'provider':'HORSE_RUNNERS_KRA','detail':{'page_date':'2026-10-17'}}]}
+        with patch('kra_final_runner_repair._fetch_event') as fetch:
+            repaired, total, cleared, errors, status = repair_doc(doc)
+        fetch.assert_not_called()
+        self.assertEqual((repaired, total, cleared, status), (1,1,0,'PASS'))
+        fresh = {'id':'H1','event_date':'2026-10-16','sport':'HORSE','status':'FINAL','outcomes':[]}
+        self.assertEqual(len(merge_event(event, fresh)['outcomes']), 2)
+
+    def test_horse_live_model_excludes_today_and_future(self):
+        def race(date):
+            return {'id':date,'event_date':date,'outcomes':[
+                {'horse_name':date,'won':True}, {'horse_name':'loser','won':False}]}
+        with patch.object(horse_model,'iter_backfill',return_value=iter([
+                race('2026-10-15'),race('2026-10-16'),race('2026-10-17')])), \
+                patch.object(horse_model,'HISTORY',Path('/nonexistent-raceiq-test')):
+            stats, base, rows, races = horse_model.build_stats(cutoff='2026-10-16')
+        self.assertEqual((rows,races), (2,1))
+        self.assertNotIn('2026-10-16',stats['horse'])
 
 
 if __name__ == '__main__':

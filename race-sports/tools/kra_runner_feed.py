@@ -34,6 +34,8 @@ def _merge_outcomes(event, incoming):
     )
     for o in incoming:
         q = old.get(o.get('key'), {})
+        if not o.get('horse_name') or q.get('horse_name') != o.get('horse_name'):
+            q = {}
         for k in preserve:
             if q.get(k) is not None:
                 o[k] = q[k]
@@ -51,6 +53,8 @@ def enrich_doc(doc):
     horse = [e for e in doc.get('events', []) if e.get('sport') == 'HORSE']
     venues = []
     for e in horse:
+        if e.get('status') == 'FINAL':
+            continue
         v = venue_of(e)
         if v and v not in venues:
             venues.append(v)
@@ -62,7 +66,7 @@ def enrich_doc(doc):
     for venue in venues:
         venue_events = {
             (venue, int(e.get('race_no') or 0)): e
-            for e in horse if venue_of(e) == venue
+            for e in horse if venue_of(e) == venue and e.get('status') != 'FINAL'
         }
         best = {}
         best_meta = None
@@ -103,6 +107,8 @@ def enrich_doc(doc):
     linked = 0
     linked_by_venue = {}
     for e in horse:
+        if e.get('status') == 'FINAL':
+            continue
         venue = venue_of(e)
         key = (venue, int(e.get('race_no') or 0)) if venue else None
         info = accepted.get(key)

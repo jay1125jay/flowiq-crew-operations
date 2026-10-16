@@ -83,10 +83,11 @@ def win_label(e,o):
     return None
 
 
-def build_stats():
+def build_stats(cutoff=None):
     stats={"horse":defaultdict(lambda:[0,0]),"jockey":defaultdict(lambda:[0,0]),"trainer":defaultdict(lambda:[0,0])}
     total=0;wins=0;races=0;backfill_ids=set()
     for e in iter_backfill() or []:
+        if cutoff and (not e.get("event_date") or e["event_date"] >= cutoff):continue
         if e.get("id"):backfill_ids.add(e.get("id"))
         outs=list(e.get("outcomes") or [])
         labels=[win_label(e,o) for o in outs]
@@ -102,6 +103,7 @@ def build_stats():
             try:d=json.loads(p.read_text(encoding="utf-8"))
             except Exception:continue
             for e in d.get("events") or []:
+                if cutoff and (not (e.get("event_date") or d.get("date")) or (e.get("event_date") or d.get("date")) >= cutoff):continue
                 if e.get("sport")!="HORSE" or e.get("status")!="FINAL":continue
                 if e.get("id") and e.get("id") in backfill_ids:continue
                 labeled=False
@@ -178,7 +180,7 @@ def validation_state():
 
 
 def apply(doc):
-    blocked=sanitize_kra_odds(doc);stats,base,labeled_runners,labeled_races=build_stats();valid,vr=validation_state();updated=0;horse_events=0
+    blocked=sanitize_kra_odds(doc);stats,base,labeled_runners,labeled_races=build_stats(cutoff=doc.get("date") or datetime.now(KST).date().isoformat());valid,vr=validation_state();updated=0;horse_events=0
     for e in doc.get("events") or []:
         if e.get("sport")!="HORSE":continue
         horse_events+=1
@@ -189,7 +191,7 @@ def apply(doc):
             o["model_p"]=round(float(p),8);o["model_source"]=MODEL_SOURCE;o["model_updated_at"]=now_text();o["model_state"]="VALIDATED_WALK_FORWARD" if valid else "PROVISIONAL_UNVALIDATED";o["model_validated"]=valid;updated+=1
         e["model_source"]=MODEL_SOURCE;e["model_state"]="VALIDATED_WALK_FORWARD" if valid else "PROVISIONAL_UNVALIDATED";e["model_validated"]=valid;e["value_enabled"]=bool(valid)
     providers=doc.setdefault("providers",[]);providers[:]=[x for x in providers if x.get("provider")!=PROVIDER]
-    providers.append({"provider":PROVIDER,"status":("PASS" if valid and horse_events else "PROVISIONAL" if horse_events else "NO_TODAY_CARD"),"rows":updated,"model_source":MODEL_SOURCE,"model_validated":valid,"model_state":"VALIDATED_WALK_FORWARD" if valid else "PROVISIONAL_UNVALIDATED","value_enabled":bool(valid),"history_labeled_runners":labeled_runners,"history_labeled_races":labeled_races,"validation":vr,"blocked_non_odds_api27":blocked,"updated_at":datetime.now(KST).isoformat(timespec="seconds")})
+    providers.append({"provider":PROVIDER,"status":("PASS" if valid and horse_events else "PROVISIONAL" if horse_events else "NO_TODAY_CARD"),"rows":updated,"model_source":MODEL_SOURCE,"model_validated":valid,"model_state":"VALIDATED_WALK_FORWARD" if valid else "PROVISIONAL_UNVALIDATED","value_enabled":bool(valid),"history_labeled_runners":labeled_runners,"history_labeled_races":labeled_races,"training_cutoff_exclusive":doc.get("date"),"same_day_results_excluded":True,"validation":vr,"blocked_non_odds_api27":blocked,"updated_at":datetime.now(KST).isoformat(timespec="seconds")})
     return updated,horse_events,labeled_runners,labeled_races,valid,blocked
 
 

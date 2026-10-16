@@ -73,10 +73,17 @@ def merge_event(old: dict, new: dict):
     if old.get('result') and not out.get('result'):
         out['result'] = deepcopy(old['result'])
         out['status'] = 'FINAL'
+    if out.get('sport') == 'HORSE':
+        from kra_final_runner_repair import verified_final
+        if old.get('id') == out.get('id') and verified_final(old, out.get('event_date')) and not out.get('outcomes'):
+            out['outcomes'] = deepcopy(old['outcomes'])
+            out['final_runner_identity'] = deepcopy(old['final_runner_identity'])
     old_outcomes = {o.get('key'): o for o in old.get('outcomes', []) if o.get('key')}
     for o in out.get('outcomes', []):
         prev = old_outcomes.get(o.get('key'))
         if not prev:
+            continue
+        if out.get('sport') == 'HORSE' and (not o.get('horse_name') or o.get('horse_name') != prev.get('horse_name')):
             continue
         for k in DYNAMIC_OUTCOME_KEYS:
             if o.get(k) is None and prev.get(k) is not None:

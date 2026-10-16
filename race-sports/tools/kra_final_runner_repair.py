@@ -134,9 +134,22 @@ def _fetch_event(event, today):
         rows = parse_final_outcomes(fetch(url, timeout=10, retries=2))
         if len(rows) < 2:
             return event.get('id'), None, 'DETAIL_EMPTY'
+        expected = {(int(x['rank']), int(x['number'])) for x in (event.get('result') or {}).get('top3', []) if x.get('rank') and x.get('number')}
+        actual = {(int(x['final_rank']), int(x['number'])) for x in rows}
+        if expected and not expected.issubset(actual):
+            return event.get('id'), None, 'DETAIL_RESULT_IDENTITY_MISMATCH'
         return event.get('id'), rows, None
     except Exception as exc:
         return event.get('id'), None, f'{type(exc).__name__}:{exc}'[:180]
+
+
+def verified_final(event, today):
+    marker = event.get('final_runner_identity') or {}
+    return bool(event.get('status') == 'FINAL'
+                and marker.get('date') == today
+                and marker.get('event_id') == event.get('id')
+                and marker.get('source') == 'KRA_SCORETABLE_DETAIL_OFFICIAL'
+                and len(event.get('outcomes') or []) >= 2)
 
 
 def repair_doc(doc):
@@ -151,16 +164,17 @@ def repair_doc(doc):
     cleared = 0
     if stale_runner_page:
         for e in horse:
-            if e.get('outcomes'):
+            if e.get('outcomes') and not verified_final(e, today):
                 e['outcomes'] = []
                 cleared += 1
 
     by_id = {e.get('id'): e for e in final_events if e.get('id')}
-    repaired = 0
+    repaired = sum(verified_final(e, today) for e in final_events)
+    pending = [e for e in final_events if not verified_final(e, today)]
     errors = []
-    if final_events:
+    if pending:
         with ThreadPoolExecutor(max_workers=6) as pool:
-            futures = [pool.submit(_fetch_event, e, today) for e in final_events]
+            futures = [pool.submit(_fetch_event, e, today) for e in pending]
             for fut in as_completed(futures):
                 event_id, rows, err = fut.result()
                 e = by_id.get(event_id)
@@ -169,6 +183,7 @@ def repair_doc(doc):
                 if rows:
                     e['outcomes'] = _preserve_pre_race(e.get('outcomes') or [], rows)
                     repaired += 1
+                    e['final_runner_identity'] = {'date':today,'event_id':e.get('id'),'source':'KRA_SCORETABLE_DETAIL_OFFICIAL'}
                     result = e.get('result') or {}
                     top3 = []
                     for o in sorted(rows, key=lambda x: int(x.get('final_rank') or 999))[:3]:

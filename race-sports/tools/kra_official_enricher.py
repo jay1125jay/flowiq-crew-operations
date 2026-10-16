@@ -19,7 +19,7 @@ RESULTS_URL = 'https://race.kra.co.kr/thisweekrace/ThisWeekScoretableDailyScoret
 DETAIL_URL = 'https://race.kra.co.kr/raceScore/ScoretableDetailList.do?Act=04&Sub=1&meet={meet}&realRcDate={date}&realRcNo={race_no}'
 KRA_PRE_ODDS_ENDPOINTS = (
     ('KRA_API301_OFFICIAL', 'https://apis.data.go.kr/B551015/API301/Dividend_rate_total'),
-    ('KRA_API27_OFFICIAL', 'https://apis.data.go.kr/B551015/API27_1/winPredictionRateInfo_1'),
+    ('KRA_API28_OFFICIAL', 'https://apis.data.go.kr/B551015/API28_1/Dividend_rate'),
 )
 VENUES = ('서울', '부경', '부산경남', '영천', '제주')
 MEET_CODE = {'서울': '1', '제주': '2', '부경': '3', '부산경남': '3', '영천': '4'}
