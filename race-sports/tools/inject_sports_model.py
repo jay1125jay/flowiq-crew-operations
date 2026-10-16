@@ -204,9 +204,15 @@ def train(rows:list[dict]):
         ratings[s]=fit_all(sr,s,param);validation[s]=val
     return ratings,validation,params
 
+def history_before_snapshot(rows, snapshot_date):
+    # No same-day result can influence any forecast displayed for this date.
+    if not snapshot_date:
+        raise ValueError("MISSING_SNAPSHOT_DATE")
+    return [e for e in rows if e.get("event_date") and str(e["event_date"]) < snapshot_date]
+
 def inject():
     p=json.loads(TODAY.read_text(encoding="utf-8"))
-    rows=history_events()
+    rows=history_before_snapshot(history_events(), str(p.get("date") or ""))
     rating,val,params=train(rows)
     comp_counts,team_counts=competition_history(rows)
     for e in p.get("events",[]):
@@ -254,6 +260,8 @@ def inject():
         "model":MODEL_NAME,
         "validation":val,
         "history_events":len(rows),
+        "training_cutoff_exclusive":p.get("date"),
+        "same_day_results_excluded":True,
         "competition_history":{
             f"{sport}::{comp}":count for (sport,comp),count in sorted(comp_counts.items())
         },
@@ -270,6 +278,11 @@ def inject():
     print(json.dumps({"SPORTS_MODEL_INJECT":"PASS","model":MODEL_NAME,"history_events":len(rows),"validation":val},ensure_ascii=False))
 
 def self_test():
+    assert [e["id"] for e in history_before_snapshot([
+        {"id":"past","event_date":"2026-10-15"},
+        {"id":"same","event_date":"2026-10-16"},
+        {"id":"future","event_date":"2026-10-17"},
+        {"id":"unknown"}], "2026-10-16")] == ["past"]
     rows=[];ts=1
     for i in range(900):
         home="A" if i%2==0 else "B";away="B" if i%2==0 else "A"
