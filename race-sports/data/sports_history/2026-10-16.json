@@ -451,7 +451,7 @@
       "start_label": "19:00",
       "start_timestamp": 1792144800,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "고양 소노 vs 울산 현대모비스",
       "home": "고양 소노",
       "away": "울산 현대모비스",
@@ -488,7 +488,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 55,
+        "away": 46
+      }
     }
   ],
   "integrity": {
@@ -722,7 +726,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-16T18:20:50+09:00",
+      "updated_at": "2026-10-16T20:13:22+09:00",
       "summary": {
         "overall": {
           "picks": 9,
@@ -860,7 +864,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-10-16T18:20:50+09:00",
+            "evaluated_at": "2026-10-16T20:13:22+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-16"
           },
@@ -872,7 +876,7 @@
             "hit": true,
             "return_krw": 148780,
             "profit_krw": 48780,
-            "settled_at": "2026-10-16T18:20:50+09:00"
+            "settled_at": "2026-10-16T20:13:22+09:00"
           }
         },
         {
@@ -1096,7 +1100,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-16T18:20:51+09:00",
+      "generated_at": "2026-10-16T20:13:22+09:00",
       "overall": {
         "observed": 50,
         "evaluated": 43,
@@ -1662,5 +1666,23 @@
     "errors": [],
     "updated_at": "2026-10-16T18:16:59.648633+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-16T20:13:18+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 2,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 1,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
