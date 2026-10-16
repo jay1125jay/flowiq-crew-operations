@@ -1,15 +1,15 @@
 {
   "model_source": "horse_empirical_bayes_v0.2",
-  "generated_at": "2026-10-16T14:27:59+09:00",
-  "input_races": 9747,
-  "warmup_races": 2924,
-  "walk_forward_races": 6823,
-  "log_loss": 2.178647103942726,
-  "uniform_log_loss": 2.328115571635263,
-  "brier": 0.08522632584967774,
-  "uniform_brier": 0.08837477404911824,
-  "top1_accuracy": 0.23127656456104353,
-  "uniform_expected_top1": 0.09814687364519041,
+  "generated_at": "2026-10-16T18:09:54+09:00",
+  "input_races": 9750,
+  "warmup_races": 2937,
+  "walk_forward_races": 6813,
+  "log_loss": 2.178637650013637,
+  "uniform_log_loss": 2.3280283577751417,
+  "brier": 0.08523588480163134,
+  "uniform_brier": 0.08838194364473077,
+  "top1_accuracy": 0.23132247174519302,
+  "uniform_expected_top1": 0.09815594039504429,
   "feature_whitelist": [
     "horse_name",
     "jockey",
@@ -27,6 +27,7 @@
     "body_weight"
   ],
   "leakage_guards": "PASS",
+  "learning_order": "WHOLE_DATE_PREDICT_BEFORE_ANY_DATE_RESULT_UPDATE",
   "eligible_for_value": true,
   "promotion_rule": "walk_forward>=500 and logloss/brier beat uniform by >=0.5% and top1 beats uniform expectation by >5%"
 }
