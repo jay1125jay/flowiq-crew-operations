@@ -1,46 +1,46 @@
 #!/usr/bin/env python3
-"""BTC trader skill screening with forward-only observations. PAPER ONLY; never places orders."""
+"""BTC trader skill screening with strict forward-only fill cursor. PAPER ONLY."""
 import datetime as dt, hashlib, json, math, pathlib, re, urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]; DATA=ROOT/"data"; API="https://api.hyperliquid.xyz/info"; ADDRESS=re.compile(r"^0x[a-fA-F0-9]{40}$")
-MAX_WALLETS=8; MIN_VERIFIED_CLOSES=20; MIN_VERIFIED_DAYS=7; SLIPPAGE_BPS=3.0; RECENT_KEYS_MAX=500; MIN_CANDIDATE_CLOSES=20; MIN_CANDIDATE_WIN_RATE=0.45; MIN_CANDIDATE_PF=1.05
+MAX_WALLETS=8; MIN_VERIFIED_CLOSES=20; MIN_VERIFIED_DAYS=7; SLIPPAGE_BPS=3.0; MIN_CANDIDATE_CLOSES=20; MIN_CANDIDATE_WIN_RATE=.45; MIN_CANDIDATE_PF=1.05
 
-def query(payload):
- req=urllib.request.Request(API,data=json.dumps(payload).encode(),headers={"Content-Type":"application/json","User-Agent":"BTC-Flow-Paper-Research/2.0"},method="POST")
- with urllib.request.urlopen(req,timeout=25) as r:return json.load(r)
-def fill_key(f):
- raw="|".join(str(f.get(k,"")) for k in ("time","hash","tid","px","sz","side","dir","closedPnl")); return hashlib.sha256(raw.encode()).hexdigest()[:24]
-def blank_obs(now):
- return {"baseline_at":now.isoformat(),"last_observed_at":now.isoformat(),"recent_keys":[],"new_fills":0,"close_count":0,"win_count":0,"realized_pnl":0.0,"fees":0.0,"notional":0.0,"running_net":0.0,"peak_net":0.0,"max_drawdown":0.0,"close_pnls":[]}
-def update_forward(obs,fills,now):
- seen=set(obs.get("recent_keys",[])); fresh=[f for f in sorted(fills,key=lambda x:int(x.get("time",0))) if fill_key(f) not in seen]
- if not obs.get("initialized"):
-  obs["recent_keys"]=[fill_key(f) for f in fills[-RECENT_KEYS_MAX:]]; obs["initialized"]=True; obs["last_observed_at"]=now.isoformat(); return obs,0
+def query(p):
+ r=urllib.request.Request(API,data=json.dumps(p).encode(),headers={"Content-Type":"application/json","User-Agent":"BTC-Flow-Paper-Research/2.1"},method="POST")
+ with urllib.request.urlopen(r,timeout=25) as x:return json.load(x)
+def key(f):
+ # tid/hash are stable exchange identifiers. Include remaining fields only as collision protection.
+ raw="|".join(str(f.get(k,"")) for k in ("tid","hash","time","coin","px","sz","side","dir","closedPnl")); return hashlib.sha256(raw.encode()).hexdigest()[:32]
+def blank(now):return {"baseline_at":now.isoformat(),"last_observed_at":now.isoformat(),"last_fill_time_ms":0,"seen_at_cursor":[],"new_fills":0,"close_count":0,"win_count":0,"realized_pnl":0.0,"fees":0.0,"notional":0.0,"running_net":0.0,"peak_net":0.0,"max_drawdown":0.0,"close_pnls":[],"initialized":False}
+def reset_forward(obs,now,fills):
+ # Old schema used a rolling 500-key cache while API can return 2000 fills; old fills re-entered as fresh.
+ # Reset contaminated forward counters once, then use monotonic time cursor + IDs at cursor timestamp.
+ times=[int(f.get("time",0) or 0) for f in fills]; cursor=max(times,default=0); at={key(f) for f in fills if int(f.get("time",0) or 0)==cursor}
+ base=blank(now); base.update({"initialized":True,"last_fill_time_ms":cursor,"seen_at_cursor":sorted(at),"dedup_schema":2,"reset_reason":"ROLLING_KEY_CACHE_CONTAMINATION"}); return base
+def update(obs,fills,now):
+ if obs.get("dedup_schema")!=2:return reset_forward(obs,now,fills),0
+ cursor=int(obs.get("last_fill_time_ms",0)); seen=set(obs.get("seen_at_cursor",[])); ordered=sorted(fills,key=lambda f:(int(f.get("time",0) or 0),key(f))); fresh=[f for f in ordered if int(f.get("time",0) or 0)>cursor or (int(f.get("time",0) or 0)==cursor and key(f) not in seen)]
  for f in fresh:
-  pnl=float(f.get("closedPnl") or 0); fee=float(f.get("fee") or 0); px=float(f.get("px") or 0); sz=abs(float(f.get("sz") or 0)); notional=px*sz; is_close=abs(pnl)>1e-10 or "Close" in str(f.get("dir",""))
-  obs["new_fills"]=int(obs.get("new_fills",0))+1; obs["fees"]=float(obs.get("fees",0))+fee; obs["notional"]=float(obs.get("notional",0))+notional
-  if is_close:
-   obs["close_count"]=int(obs.get("close_count",0))+1; obs["win_count"]=int(obs.get("win_count",0))+(1 if pnl>0 else 0); obs["realized_pnl"]=float(obs.get("realized_pnl",0))+pnl; obs.setdefault("close_pnls",[]).append(pnl-fee); obs["close_pnls"]=obs["close_pnls"][-500:]
-  net_delta=pnl-fee; obs["running_net"]=float(obs.get("running_net",0))+net_delta; obs["peak_net"]=max(float(obs.get("peak_net",0)),obs["running_net"]); obs["max_drawdown"]=max(float(obs.get("max_drawdown",0)),obs["peak_net"]-obs["running_net"])
- obs["recent_keys"]=list(dict.fromkeys([fill_key(f) for f in fills[-RECENT_KEYS_MAX:]]+obs.get("recent_keys",[])))[:RECENT_KEYS_MAX]; obs["last_observed_at"]=now.isoformat(); return obs,len(fresh)
-def metrics(values):
- vals=[float(x) for x in values]; wins=[x for x in vals if x>0]; losses=[x for x in vals if x<0]; gp=sum(wins); gl=abs(sum(losses)); pf=(gp/gl) if gl>0 else (99.0 if gp>0 else 0.0); total=sum(vals); largest=max(vals) if vals else 0.0; concentration=(max(0.0,largest)/total) if total>0 else 1.0
- mean=total/len(vals) if vals else 0.0; variance=sum((x-mean)**2 for x in vals)/len(vals) if vals else 0.0; consistency=(mean/math.sqrt(variance)) if variance>1e-12 else (1.0 if mean>0 else 0.0)
- return pf,concentration,consistency
-def score_wallet(address,fills,obs,now):
- btc=[x for x in fills if x.get("coin")=="BTC"]; hist_closes=[x for x in btc if abs(float(x.get("closedPnl") or 0))>1e-10 or "Close" in str(x.get("dir",""))]; hist_vals=[float(x.get("closedPnl") or 0)-float(x.get("fee") or 0) for x in hist_closes]; hist_pnl=sum(float(x.get("closedPnl") or 0)-float(x.get("fee") or 0) for x in btc); hist_wins=sum(1 for x in hist_closes if float(x.get("closedPnl") or 0)>0); hist_pf,hist_conc,hist_cons=metrics(hist_vals); notionals=[float(x.get("px") or 0)*abs(float(x.get("sz") or 0)) for x in btc if float(x.get("px") or 0)>0]; avg_notional=sum(notionals)/len(notionals) if notionals else 0.0
- times=[int(x.get("time",0)) for x in btc if int(x.get("time",0))>0]; history_days=((max(times)-min(times))/86400000) if len(times)>=2 else 0.0; capped=len(fills)>=2000; baseline=dt.datetime.fromisoformat(obs["baseline_at"].replace("Z","+00:00")); forward_days=max(0.0,(now-baseline).total_seconds()/86400); closes=int(obs.get("close_count",0)); wins=int(obs.get("win_count",0)); forward_net=float(obs.get("realized_pnl",0))-float(obs.get("fees",0)); stress_net=forward_net-float(obs.get("notional",0))*SLIPPAGE_BPS/10000; fpf,fconc,fcons=metrics(obs.get("close_pnls",[])); dd=float(obs.get("max_drawdown",0)); winrate=hist_wins/max(1,len(hist_closes)); candidate=len(hist_closes)>=MIN_CANDIDATE_CLOSES and hist_pnl>0 and winrate>=MIN_CANDIDATE_WIN_RATE and hist_pf>=MIN_CANDIDATE_PF and hist_conc<=0.80
- verified=forward_days>=MIN_VERIFIED_DAYS and closes>=MIN_VERIFIED_CLOSES and stress_net>0 and fpf>=1.05 and fconc<=0.65
- sample=min(1.0,closes/100); wr=(wins/closes) if closes else 0.0; pfscore=min(1.0,max(0.0,(fpf-1)/1.5)) if closes else 0.0; ddscore=max(0.0,min(1.0,stress_net/(stress_net+dd+100))) if stress_net>0 else 0.0; consscore=max(0.0,min(1.0,(fcons+0.25)/1.25)) if closes else 0.0; concentration_score=max(0.0,1-min(1.0,fconc)) if closes else 0.0; score=round(100*(.22*wr+.22*pfscore+.20*ddscore+.16*consscore+.10*concentration_score+.10*sample),1) if closes else 0.0
- return {"address":address,"history_sample_fills":len(btc),"history_sample_closes":len(hist_closes),"history_sample_capped":capped,"history_span_days":round(history_days,1),"history_sample_net_pnl_usd":round(hist_pnl,2),"history_sample_win_rate_pct":round(100*winrate,1) if hist_closes else None,"history_profit_factor":round(hist_pf,2),"history_largest_win_share_pct":round(hist_conc*100,1),"history_consistency":round(hist_cons,3),"history_avg_fill_notional_usd":round(avg_notional,2),"forward_observed_days":round(forward_days,2),"forward_closes":closes,"forward_win_rate_pct":round(100*wins/closes,1) if closes else None,"forward_net_pnl_usd":round(forward_net,2),"forward_stress_net_pnl_usd":round(stress_net,2),"forward_profit_factor":round(fpf,2),"forward_largest_win_share_pct":round(fconc*100,1),"forward_consistency":round(fcons,3),"forward_drawdown_usd":round(dd,2),"paper_candidate":candidate,"verified_whale":verified,"eligible_for_paper_observation":verified,"skill_score":score,"caveat":"History only seeds candidates. Verification requires forward profitability, PF, diversification and drawdown-aware evidence."}
+  pnl=float(f.get("closedPnl") or 0); fee=float(f.get("fee") or 0); px=float(f.get("px") or 0); sz=abs(float(f.get("sz") or 0)); notion=px*sz; close=abs(pnl)>1e-10 or "Close" in str(f.get("dir","")); obs["new_fills"]+=1; obs["fees"]+=fee; obs["notional"]+=notion
+  if close:obs["close_count"]+=1; obs["win_count"]+=(pnl>0); obs["realized_pnl"]+=pnl; obs["close_pnls"].append(pnl-fee); obs["close_pnls"]=obs["close_pnls"][-500:]
+  d=pnl-fee; obs["running_net"]+=d; obs["peak_net"]=max(obs["peak_net"],obs["running_net"]); obs["max_drawdown"]=max(obs["max_drawdown"],obs["peak_net"]-obs["running_net"])
+ if ordered:
+  newest=max(int(f.get("time",0) or 0) for f in ordered)
+  if newest>cursor:obs["last_fill_time_ms"]=newest; obs["seen_at_cursor"]=sorted({key(f) for f in ordered if int(f.get("time",0) or 0)==newest})
+  elif newest==cursor:obs["seen_at_cursor"]=sorted(seen|{key(f) for f in ordered if int(f.get("time",0) or 0)==cursor})
+ obs["last_observed_at"]=now.isoformat(); return obs,len(fresh)
+def met(v):
+ v=[float(x) for x in v]; w=[x for x in v if x>0]; l=[x for x in v if x<0]; gp=sum(w); gl=abs(sum(l)); pf=gp/gl if gl else (99.0 if gp else 0); total=sum(v); conc=max(0,max(v,default=0))/total if total>0 else 1; mean=total/len(v) if v else 0; var=sum((x-mean)**2 for x in v)/len(v) if v else 0; cons=mean/math.sqrt(var) if var>1e-12 else (1 if mean>0 else 0); return pf,conc,cons
+def score(a,fills,o,now):
+ btc=[x for x in fills if x.get("coin")=="BTC"]; hc=[x for x in btc if abs(float(x.get("closedPnl") or 0))>1e-10 or "Close" in str(x.get("dir",""))]; hv=[float(x.get("closedPnl") or 0)-float(x.get("fee") or 0) for x in hc]; hp=sum(float(x.get("closedPnl") or 0)-float(x.get("fee") or 0) for x in btc); hw=sum(float(x.get("closedPnl") or 0)>0 for x in hc); hpf,hconc,hcons=met(hv); nts=[float(x.get("px") or 0)*abs(float(x.get("sz") or 0)) for x in btc if float(x.get("px") or 0)>0]; ts=[int(x.get("time",0)) for x in btc if int(x.get("time",0))>0]; days=(max(ts)-min(ts))/86400000 if len(ts)>1 else 0; fd=max(0,(now-dt.datetime.fromisoformat(o["baseline_at"].replace("Z","+00:00"))).total_seconds()/86400); c=int(o["close_count"]); w=int(o["win_count"]); fn=o["realized_pnl"]-o["fees"]; sn=fn-o["notional"]*SLIPPAGE_BPS/10000; pf,conc,cons=met(o["close_pnls"]); dd=o["max_drawdown"]; wr=hw/max(1,len(hc)); candidate=len(hc)>=20 and hp>0 and wr>=.45 and hpf>=1.05 and hconc<=.8; verified=fd>=7 and c>=20 and sn>0 and pf>=1.05 and conc<=.65; sample=min(1,c/100); fwr=w/c if c else 0; score=round(100*(.22*fwr+.22*min(1,max(0,(pf-1)/1.5))+.20*(max(0,min(1,sn/(sn+dd+100))) if sn>0 else 0)+.16*max(0,min(1,(cons+.25)/1.25))+.10*max(0,1-min(1,conc))+.10*sample),1) if c else 0
+ return {"address":a,"history_sample_fills":len(btc),"history_sample_closes":len(hc),"history_sample_capped":len(fills)>=2000,"history_span_days":round(days,1),"history_sample_net_pnl_usd":round(hp,2),"history_sample_win_rate_pct":round(100*wr,1) if hc else None,"history_profit_factor":round(hpf,2),"history_largest_win_share_pct":round(hconc*100,1),"history_consistency":round(hcons,3),"history_avg_fill_notional_usd":round(sum(nts)/len(nts),2) if nts else 0,"forward_observed_days":round(fd,2),"forward_closes":c,"forward_win_rate_pct":round(100*fwr,1) if c else None,"forward_net_pnl_usd":round(fn,2),"forward_stress_net_pnl_usd":round(sn,2),"forward_profit_factor":round(pf,2),"forward_largest_win_share_pct":round(conc*100,1),"forward_consistency":round(cons,3),"forward_drawdown_usd":round(dd,2),"paper_candidate":candidate,"verified_whale":verified,"eligible_for_paper_observation":verified,"skill_score":score,"dedup_schema":o.get("dedup_schema",2)}
 def main():
- DATA.mkdir(parents=True,exist_ok=True); cfg=DATA/"whale-watchlist.json"; addresses=json.loads(cfg.read_text(encoding="utf-8")).get("addresses",[]) if cfg.exists() else []; addresses=list(dict.fromkeys(str(x).lower() for x in addresses));
- if len(addresses)>MAX_WALLETS or any(not ADDRESS.fullmatch(x) for x in addresses):raise ValueError("invalid watchlist")
- now=dt.datetime.now(dt.timezone.utc); obs_path=DATA/"whale-observations.json"; store=json.loads(obs_path.read_text(encoding="utf-8")) if obs_path.exists() else {"schema_version":2,"wallets":{}}; store["schema_version"]=2; results=[]; errors=[]
- for a in addresses:
+ DATA.mkdir(parents=True,exist_ok=True); cfg=DATA/"whale-watchlist.json"; aa=json.loads(cfg.read_text()).get("addresses",[]) if cfg.exists() else []; aa=list(dict.fromkeys(str(x).lower() for x in aa));
+ if len(aa)>MAX_WALLETS or any(not ADDRESS.fullmatch(x) for x in aa):raise ValueError("invalid watchlist")
+ now=dt.datetime.now(dt.timezone.utc); op=DATA/"whale-observations.json"; st=json.loads(op.read_text()) if op.exists() else {"wallets":{}}; st["schema_version"]=3; rr=[]; errors=[]
+ for a in aa:
   try:
-   fills=query({"type":"userFills","user":a,"aggregateByTime":False}); btc=[x for x in fills if x.get("coin")=="BTC"]; obs=store["wallets"].get(a) or blank_obs(now); obs.setdefault("close_pnls",[]); obs,_=update_forward(obs,btc,now); store["wallets"][a]=obs; results.append(score_wallet(a,fills,obs,now))
+   fills=query({"type":"userFills","user":a,"aggregateByTime":False}); btc=[x for x in fills if x.get("coin")=="BTC"]; o=st["wallets"].get(a) or blank(now); o,n=update(o,btc,now); st["wallets"][a]=o; rr.append(score(a,fills,o,now))
   except Exception as e:errors.append({"address":a,"error":type(e).__name__})
- store["updated_at"]=now.isoformat(); obs_path.write_text(json.dumps(store,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); results.sort(key=lambda x:(x["verified_whale"],x["paper_candidate"],x["skill_score"],x["history_sample_net_pnl_usd"]),reverse=True)
- out={"schema_version":3,"updated_at":now.isoformat(),"paper_only":True,"real_trading_enabled":False,"candidate_rule":{"min_history_closes":MIN_CANDIDATE_CLOSES,"min_history_win_rate_pct":MIN_CANDIDATE_WIN_RATE*100,"min_profit_factor":MIN_CANDIDATE_PF,"max_largest_win_share_pct":80},"verification_rule":{"min_forward_days":MIN_VERIFIED_DAYS,"min_forward_closes":MIN_VERIFIED_CLOSES,"stress_slippage_bps":SLIPPAGE_BPS,"min_profit_factor":1.05,"max_largest_win_share_pct":65},"ranked_wallets":results,"errors":errors,"watchlist_count":len(addresses),"paper_candidate_count":sum(1 for x in results if x["paper_candidate"]),"verified_count":sum(1 for x in results if x["verified_whale"]),"status":"NEEDS_WATCHLIST" if not addresses else ("PARTIAL" if errors else "OK")}; (DATA/"whale-ranking.json").write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); print("Whale ranking",out["status"],"candidates",out["paper_candidate_count"],"verified",out["verified_count"])
+ st["updated_at"]=now.isoformat(); op.write_text(json.dumps(st,indent=2)+"\n"); rr.sort(key=lambda x:(x["verified_whale"],x["paper_candidate"],x["skill_score"],x["history_sample_net_pnl_usd"]),reverse=True); out={"schema_version":4,"updated_at":now.isoformat(),"paper_only":True,"real_trading_enabled":False,"data_quality":{"dedup_schema":2,"method":"MONOTONIC_FILL_TIME_CURSOR_PLUS_IDS","legacy_forward_counters_reset":True},"candidate_rule":{"min_history_closes":20,"min_history_win_rate_pct":45,"min_profit_factor":1.05,"max_largest_win_share_pct":80},"verification_rule":{"min_forward_days":7,"min_forward_closes":20,"stress_slippage_bps":3,"min_profit_factor":1.05,"max_largest_win_share_pct":65},"ranked_wallets":rr,"errors":errors,"watchlist_count":len(aa),"paper_candidate_count":sum(x["paper_candidate"] for x in rr),"verified_count":sum(x["verified_whale"] for x in rr),"status":"NEEDS_WATCHLIST" if not aa else ("PARTIAL" if errors else "OK")}; (DATA/"whale-ranking.json").write_text(json.dumps(out,indent=2)+"\n"); print("Whale ranking",out["status"],"candidates",out["paper_candidate_count"],"verified",out["verified_count"])
  if errors:raise RuntimeError("wallet API errors")
 if __name__=="__main__":main()
