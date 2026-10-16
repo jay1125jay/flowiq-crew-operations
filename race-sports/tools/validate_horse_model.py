@@ -1,6 +1,7 @@
 import json
 import math
 from collections import defaultdict
+from itertools import groupby
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -125,17 +126,34 @@ def update(stats,e):
     return starts,wins
 
 
+def walk_forward_predictions(races):
+    """Freeze state for the whole date: intraday result availability is unknown."""
+    stats={"horse":defaultdict(lambda:[0,0]),"jockey":defaultdict(lambda:[0,0]),"trainer":defaultdict(lambda:[0,0])}
+    starts=wins=seen=0
+    requested=max(100,int(len(races)*.30)) if races else 0
+    ordered=sorted(races,key=lambda e:(e.get("event_date") or "",e.get("id") or ""))
+    for date, group in groupby(ordered,key=lambda e:e.get("event_date")):
+        day=list(group)
+        if not date: raise ValueError("MISSING_EVENT_DATE")
+        base=wins/starts if starts else .10
+        predictions=[score(e,stats,base) for e in day]
+        for e,probs in zip(day,predictions):
+            yield e,probs,seen>=requested
+        for e in day:
+            st,wi=update(stats,e); starts+=st; wins+=wi
+        seen+=len(day)
+
+
 def main():
     rs=records()
     stats={"horse":defaultdict(lambda:[0,0]),"jockey":defaultdict(lambda:[0,0]),"trainer":defaultdict(lambda:[0,0])}
     total_starts=total_wins=0
     warmup=max(100,int(len(rs)*.30)) if rs else 0
     ll=brier=ull=ubrier=0.0;top1=0;uacc=0.0;tests=0
-    for i,e in enumerate(rs):
+    for e,probs,is_oos in walk_forward_predictions(rs):
         outs=e.get("outcomes") or []
         base=(total_wins/total_starts) if total_starts else .10
-        if i>=warmup and outs:
-            probs=score(e,stats,base)
+        if is_oos and outs:
             win_idx=next((j for j,o in enumerate(outs) if win_label(e,o)==1),None)
             if probs and win_idx is not None:
                 n=len(probs);pw=max(1e-12,probs[win_idx])
@@ -147,7 +165,6 @@ def main():
                 top1 += int(max(range(n),key=lambda j:probs[j])==win_idx)
                 uacc += 1.0/n
                 tests += 1
-        s,w=update(stats,e);total_starts+=s;total_wins+=w
     mll=ll/tests if tests else None;mul=ull/tests if tests else None
     mb=brier/tests if tests else None;mub=ubrier/tests if tests else None
     acc=top1/tests if tests else None;uac=uacc/tests if tests else None
@@ -158,11 +175,11 @@ def main():
     )
     report={
         "model_source":MODEL_SOURCE,"generated_at":datetime.now(KST).isoformat(timespec="seconds"),
-        "input_races":len(rs),"warmup_races":warmup,"walk_forward_races":tests,
+        "input_races":len(rs),"warmup_races":len(rs)-tests,"walk_forward_races":tests,
         "log_loss":mll,"uniform_log_loss":mul,"brier":mb,"uniform_brier":mub,
         "top1_accuracy":acc,"uniform_expected_top1":uac,
         "feature_whitelist":FEATURES,"forbidden_postrace_fields":FORBIDDEN,
-        "leakage_guards":leakage,"eligible_for_value":eligible,
+        "leakage_guards":leakage,"learning_order":"WHOLE_DATE_PREDICT_BEFORE_ANY_DATE_RESULT_UPDATE","eligible_for_value":eligible,
         "promotion_rule":"walk_forward>=500 and logloss/brier beat uniform by >=0.5% and top1 beats uniform expectation by >5%",
     }
     OUT.parent.mkdir(parents=True,exist_ok=True)

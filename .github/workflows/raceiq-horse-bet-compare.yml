@@ -10,6 +10,7 @@ on:
       - 'race-sports/tools/horse_win_confidence_roi.py'
       - 'race-sports/tools/validate_horse_model.py'
       - 'race-sports/data/backfill/horse/**'
+      - 'race-sports/tools/test_horse_research.py'
 
 permissions:
   contents: write
@@ -29,6 +30,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify chronology and settlement invariants
+        run: python race-sports/tools/test_horse_research.py
       - name: Compare win and quinella walk-forward hit rates
         run: python race-sports/tools/horse_win_quinella_compare.py
       - name: Find and validate win confidence ROI threshold
@@ -39,6 +42,7 @@ jobs:
           set -euo pipefail
           cp race-sports/models/horse_win_quinella_compare.json /tmp/horse-win-quinella.json
           cp race-sports/models/horse_win_confidence_roi.json /tmp/horse-win-confidence-roi.json
+          cp race-sports/data/model_state/horse_win_confidence_experiment.json /tmp/horse-confidence-experiment.json
           git config user.name "raceiq-horse-compare-bot"
           git config user.email "actions@users.noreply.github.com"
           for n in 1 2 3 4 5; do
@@ -46,7 +50,8 @@ jobs:
             git reset --hard origin/main
             cp /tmp/horse-win-quinella.json race-sports/models/horse_win_quinella_compare.json
             cp /tmp/horse-win-confidence-roi.json race-sports/models/horse_win_confidence_roi.json
-            git add race-sports/models/horse_win_quinella_compare.json race-sports/models/horse_win_confidence_roi.json
+            cp /tmp/horse-confidence-experiment.json race-sports/data/model_state/horse_win_confidence_experiment.json
+            git add race-sports/models/horse_win_quinella_compare.json race-sports/models/horse_win_confidence_roi.json race-sports/data/model_state/horse_win_confidence_experiment.json
             if git diff --cached --quiet; then echo 'HORSE_BET_COMPARE_PUBLISH=NO_CHANGE'; exit 0; fi
             git commit -m "data: publish horse win ROI threshold research"
             if git push origin HEAD:main; then echo 'HORSE_BET_COMPARE_PUBLISH=PASS'; exit 0; fi

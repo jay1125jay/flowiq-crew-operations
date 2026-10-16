@@ -1,150 +1,134 @@
 #!/usr/bin/env python3
+"""Fixed-cohort, discovery-only threshold selection; final odds settle only."""
 from __future__ import annotations
-
+import hashlib
 import json
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
 import validate_horse_model as hv
 
-OUT = Path('race-sports/models/horse_win_confidence_roi.json')
-KST = timezone(timedelta(hours=9))
-STAKE = 100000
-VERSION = 'HORSE_WIN_CONFIDENCE_ROI_V1_CHRONOLOGICAL_OOS'
-MIN_DISCOVERY_BETS = 150
-MIN_HOLDOUT_BETS = 75
-DISCOVERY_FRAC = 0.60
+OUT=Path('race-sports/models/horse_win_confidence_roi.json')
+LOCK=Path('race-sports/data/model_state/horse_win_confidence_experiment.json')
+KST=timezone(timedelta(hours=9))
+STAKE=100000
+VERSION='HORSE_WIN_CONFIDENCE_ROI_V2_FROZEN_DATE_BATCH'
+MIN_DISCOVERY_BETS=150
+MIN_HOLDOUT_BETS=75
+DISCOVERY_FRAC=.60
 
+def fingerprint(races):
+    # Hash only the actual model/settlement inputs, not fetch timestamps.
+    fields=hv.FEATURES+['number','final_rank','won','final_odds']
+    obj=[{'id':e.get('id'),'date':e.get('event_date'),'result':{k:(e.get('result') or {}).get(k) for k in ['status','winner_number','top3']},
+          'outcomes':[{k:o.get(k) for k in fields} for o in e.get('outcomes',[])]} for e in races]
+    return hashlib.sha256(json.dumps(obj,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
 
-def rank_index(event, rank):
-    for i, o in enumerate(event.get('outcomes') or []):
-        try:
-            if int(o.get('final_rank')) == rank:
-                return i
-        except Exception:
-            pass
-    return None
+def build_rows(races=None):
+    races=hv.records() if races is None else races
+    rows=[];warmup=0
+    for e,probs,is_oos in hv.walk_forward_predictions(races):
+        if not is_oos: warmup+=1;continue
+        order=sorted(range(len(probs)),key=lambda j:probs[j],reverse=True)
+        if len(order)<2:continue
+        pred=order[0];outs=e['outcomes']
+        odds=hv.sf(outs[pred].get('final_odds'))
+        rows.append({'event_id':e.get('id'),'event_date':e.get('event_date'),
+                     'top_p':probs[pred],'margin':probs[pred]-probs[order[1]],
+                     'odds':odds if odds is not None and odds>0 else None,
+                     'hit':hv.win_label(e,outs[pred])==1})
+    return races,warmup,rows
 
+def split_rows(rows):
+    cut=int(len(rows)*DISCOVERY_FRAC)
+    # Never split one date between discovery and holdout.
+    while 0<cut<len(rows) and rows[cut-1]['event_date']==rows[cut]['event_date']:cut+=1
+    return rows[:cut],rows[cut:]
 
-def build_rows():
-    races = hv.records()
-    stats = {'horse': defaultdict(lambda:[0,0]), 'jockey': defaultdict(lambda:[0,0]), 'trainer': defaultdict(lambda:[0,0])}
-    total_starts = total_wins = 0
-    warmup = max(100, int(len(races) * .30)) if races else 0
-    rows = []
-    for i, e in enumerate(races):
-        outs = e.get('outcomes') or []
-        base = (total_wins / total_starts) if total_starts else .10
-        if i >= warmup and len(outs) >= 2:
-            probs = hv.score(e, stats, base)
-            first = rank_index(e, 1)
-            if probs and first is not None:
-                order = sorted(range(len(probs)), key=lambda j: probs[j], reverse=True)
-                pred = order[0]
-                try: odds = float(outs[pred].get('final_odds'))
-                except Exception: odds = 0.0
-                if odds > 0:
-                    p1 = float(probs[pred])
-                    p2 = float(probs[order[1]]) if len(order) > 1 else 0.0
-                    rows.append({
-                        'event_id': e.get('id'), 'event_date': e.get('event_date'),
-                        'top_p': p1, 'margin': p1-p2, 'odds': odds, 'hit': pred == first,
-                    })
-        s,w = hv.update(stats,e); total_starts += s; total_wins += w
-    return races, warmup, rows
+def metric(rows,pmin,mmin=0):
+    selected=[r for r in rows if r['top_p']>=pmin and r['margin']>=mmin]
+    settled=[r for r in selected if hv.sf(r['odds']) is not None and r['odds']>0]
+    n=len(selected);hits=sum(r['hit'] for r in selected)
+    stake=len(settled)*STAKE;returned=sum(STAKE*r['odds'] for r in settled if r['hit'])
+    return {'bets':n,'hits':hits,'hit_rate':round(hits/n,8) if n else None,
+            'roi_bets':len(settled),'excluded_missing_odds':n-len(settled),
+            'total_staked_krw':stake,'total_return_krw':round(returned),
+            'net_profit_krw':round(returned-stake),'roi':round(returned/stake-1,8) if stake else None,
+            'coverage':round(n/len(rows),8) if rows else None}
 
+def p_grid(_=None):return [x/1000 for x in range(80,501,5)]
+def m_grid():return [x/1000 for x in range(0,201,10)]
 
-def metric(rows, pmin, mmin=0.0):
-    selected = [r for r in rows if r['top_p'] >= pmin and r['margin'] >= mmin]
-    n = len(selected); hits = sum(int(r['hit']) for r in selected)
-    staked = n * STAKE
-    returned = sum(STAKE * r['odds'] for r in selected if r['hit'])
-    net = returned - staked
-    return {
-        'bets': n, 'hits': hits, 'hit_rate': round(hits/n,8) if n else None,
-        'total_staked_krw': int(staked), 'total_return_krw': round(returned),
-        'net_profit_krw': round(net), 'roi': round(net/staked,8) if staked else None,
-        'coverage': round(n/len(rows),8) if rows else None,
-    }
+def choose(discovery):
+    all_candidates=[]
+    for p in p_grid():
+        for m in m_grid():
+            d=metric(discovery,p,m)
+            all_candidates.append({'top_p_min':p,'margin_min':m,'discovery':d})
+    valid=[r for r in all_candidates if r['discovery']['roi_bets']>=MIN_DISCOVERY_BETS]
+    rules=[]
+    for family,pool in [('PROBABILITY_ONLY',[r for r in valid if r['margin_min']==0]),('PROBABILITY_PLUS_MARGIN',valid)]:
+        positive=[r for r in pool if r['discovery']['roi']>=0]
+        if positive:
+            broad=max(positive,key=lambda r:(r['discovery']['bets'],r['discovery']['roi'],-r['top_p_min'],-r['margin_min']))
+            rules.append({'name':'BROADEST_NONNEGATIVE_'+family,**broad})
+        if pool:
+            best=max(pool,key=lambda r:(r['discovery']['roi'],r['discovery']['bets'],-r['top_p_min'],-r['margin_min']))
+            rules.append({'name':'BEST_DISCOVERY_'+family,**best})
+    # Primary rule selected before reading holdout. Never choose by holdout ROI.
+    primary=max(rules,key=lambda r:(r['discovery']['roi'],r['discovery']['bets']))['name'] if rules else None
+    return rules,primary,all_candidates
 
-
-def p_grid(rows):
-    # Dense, deterministic probability grid; thresholds are pre-race model probabilities only.
-    vals = {round(x/1000,3) for x in range(80, 501, 5)}
-    vals |= {round(r['top_p'],3) for r in rows}
-    return sorted(x for x in vals if .05 <= x <= .70)
-
-
-def m_grid():
-    return [round(x/1000,3) for x in range(0, 201, 10)]
-
-
-def find_probability_threshold(discovery):
-    candidates=[]
-    for p in p_grid(discovery):
-        m=metric(discovery,p,0.0)
-        if m['bets'] >= MIN_DISCOVERY_BETS:
-            candidates.append((p,m))
-    profitable=[x for x in candidates if x[1]['roi'] is not None and x[1]['roi'] >= 0]
-    breakeven=min(profitable,key=lambda x:x[0]) if profitable else None
-    best=max(candidates,key=lambda x:(x[1]['roi'],x[1]['bets'])) if candidates else None
-    return breakeven,best
-
-
-def find_probability_margin(discovery):
-    candidates=[]
-    for p in p_grid(discovery):
-        for margin in m_grid():
-            m=metric(discovery,p,margin)
-            if m['bets'] >= MIN_DISCOVERY_BETS:
-                candidates.append((p,margin,m))
-    profitable=[x for x in candidates if x[2]['roi'] is not None and x[2]['roi'] >= 0]
-    # Prefer broadest profitable rule first, then ROI. This avoids selecting a tiny lucky slice.
-    breakeven=max(profitable,key=lambda x:(x[2]['bets'],x[2]['roi'])) if profitable else None
-    best=max(candidates,key=lambda x:(x[2]['roi'],x[2]['bets'])) if candidates else None
-    return breakeven,best
-
-
-def pack_rule(name, rule, holdout, with_margin=False):
-    if not rule:
-        return {'name':name,'state':'NO_DISCOVERY_RULE'}
-    if with_margin:
-        p,margin,disc=rule
-    else:
-        p,disc=rule; margin=0.0
-    test=metric(holdout,p,margin)
-    state='OOS_PASS_POSITIVE_ROI' if test['bets'] >= MIN_HOLDOUT_BETS and test['roi'] is not None and test['roi'] >= 0 else 'OOS_FAIL_NOT_PROFITABLE'
-    if test['bets'] < MIN_HOLDOUT_BETS: state='OOS_HOLD_SMALL_SAMPLE'
-    return {'name':name,'state':state,'top_p_min':p,'margin_min':margin,'discovery':disc,'holdout':test}
-
+def state(d,h):
+    if d['roi_bets']<MIN_DISCOVERY_BETS or h['roi_bets']<MIN_HOLDOUT_BETS:return 'HOLD_SMALL_SAMPLE'
+    if d['roi']<0 or h['roi']<0:return 'FAIL'
+    # These historical dates were already examined in V1: cannot claim untouched.
+    return 'HOLD_REUSED_HISTORICAL_HOLDOUT'
 
 def main():
-    races,warmup,rows=build_rows()
-    cut=max(1,min(len(rows)-1,int(len(rows)*DISCOVERY_FRAC))) if len(rows)>1 else len(rows)
-    discovery,holdout=rows[:cut],rows[cut:]
-    p_break,p_best=find_probability_threshold(discovery)
-    pm_break,pm_best=find_probability_margin(discovery)
-    rules=[
-        pack_rule('LOWEST_PROBABILITY_THRESHOLD_WITH_NONNEGATIVE_DISCOVERY_ROI',p_break,holdout),
-        pack_rule('BEST_DISCOVERY_ROI_PROBABILITY_ONLY',p_best,holdout),
-        pack_rule('BROADEST_NONNEGATIVE_DISCOVERY_ROI_PROBABILITY_PLUS_MARGIN',pm_break,holdout,True),
-        pack_rule('BEST_DISCOVERY_ROI_PROBABILITY_PLUS_MARGIN',pm_best,holdout,True),
-    ]
-    oos_pass=[r for r in rules if r.get('state')=='OOS_PASS_POSITIVE_ROI']
-    conclusion = 'OOS_POSITIVE_RULE_FOUND' if oos_pass else 'NO_OOS_PROFITABLE_THRESHOLD_FOUND'
-    report={
-        'version':VERSION,'generated_at':datetime.now(KST).isoformat(timespec='seconds'),
-        'model_source':hv.MODEL_SOURCE,'input_races':len(races),'warmup_races':warmup,
-        'odds_eligible_walk_forward_races':len(rows),
-        'split':{'method':'CHRONOLOGICAL_60PCT_DISCOVERY_40PCT_UNTOUCHED_HOLDOUT','discovery_races':len(discovery),'holdout_races':len(holdout)},
-        'stake_per_selected_race_krw':STAKE,'min_discovery_bets':MIN_DISCOVERY_BETS,'min_holdout_bets':MIN_HOLDOUT_BETS,
-        'rules':rules,'conclusion':conclusion,
-        'policy':'SELECTION_USES_PRE_RACE_MODEL_TOP_P_AND_MARGIN_ONLY; THRESHOLDS_CHOSEN_ON_EARLIER_DISCOVERY_PERIOD; PROFITABILITY_VERIFIED_ON_LATER_UNTOUCHED_HOLDOUT; OFFICIAL_FINAL_TOTE_ODDS_USED_ONLY_FOR SETTLEMENT; NO_POSTRACE_FIELD_IN_SELECTION; DO_NOT_PROMOTE DISCOVERY_ONLY PROFIT',
-        'warning':'FINAL_TOTE_ODDS_ARE SETTLEMENT REFERENCE, NOT PRE-RACE LOCKED EXECUTION PRICES. POSITIVE HISTORICAL OOS ROI DOES NOT GUARANTEE FUTURE PROFIT.'
-    }
-    OUT.parent.mkdir(parents=True,exist_ok=True)
-    OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
-    print(json.dumps({'HORSE_WIN_CONFIDENCE_ROI':'PASS','conclusion':conclusion,'rows':len(rows),'rules':rules},ensure_ascii=False))
-
-if __name__=='__main__': main()
+    current=hv.records();lock=json.loads(LOCK.read_text()) if LOCK.exists() else None
+    if lock:
+        ids=set(lock['input_event_ids']);races=[e for e in current if e.get('id') in ids]
+        if len(races)!=len(ids) or fingerprint(races)!=lock['input_sha256']:
+            raise SystemExit('FROZEN_COHORT_CHANGED: do not retune; inspect corrected source records')
+    else:races=current
+    races,warmup,rows=build_rows(races);discovery,holdout=split_rows(rows)
+    if lock:
+        rules=lock['rules'];primary=lock['primary_rule'];candidates=None
+        if [r['event_id'] for r in discovery]!=lock['discovery_event_ids']:raise SystemExit('FROZEN_SPLIT_CHANGED')
+    else:
+        rules,primary,candidates=choose(discovery)
+        lock={'version':VERSION,'created_at':datetime.now(KST).isoformat(timespec='seconds'),
+              'input_event_ids':[e['id'] for e in races],'input_sha256':fingerprint(races),
+              'discovery_event_ids':[r['event_id'] for r in discovery],
+              'rules':rules,'primary_rule':primary,'holdout_previously_examined':True,
+              'policy':'IMMUTABLE_COHORT_AND_RULES; NEW_BACKFILL_DOES_NOT_RETUNE; V1_HOLDOUT_REUSED_RESEARCH_ONLY'}
+        LOCK.parent.mkdir(parents=True,exist_ok=True);LOCK.write_text(json.dumps(lock,ensure_ascii=False,indent=2))
+    # Recreate discovery table for audit only; never change frozen selected rules.
+    if candidates is None:candidates=choose(discovery)[2]
+    evaluated=[]
+    for rule in rules:
+        h=metric(holdout,rule['top_p_min'],rule['margin_min'])
+        evaluated.append({**rule,'holdout':h,'state':state(rule['discovery'],h)})
+    # Display the fixed grid without using holdout metrics for rule selection.
+    for candidate in candidates:
+        candidate['holdout']=metric(holdout,candidate['top_p_min'],candidate['margin_min'])
+    primary_result=next((r for r in evaluated if r['name']==primary),None)
+    conclusion='NO_OOS_PROFITABLE_THRESHOLD_FOUND'
+    if primary_result and primary_result['state']=='HOLD_REUSED_HISTORICAL_HOLDOUT':conclusion='HOLD_REQUIRES_NEW_UNTOUCHED_FORWARD_SAMPLE'
+    if not primary_result or primary_result['state']=='HOLD_SMALL_SAMPLE':conclusion='HOLD_SMALL_SAMPLE'
+    report={'version':VERSION,'generated_at':datetime.now(KST).isoformat(timespec='seconds'),
+            'model_source':hv.MODEL_SOURCE,'input_races':len(races),'current_available_races':len(current),
+            'warmup_races':warmup,'walk_forward_races':len(rows),
+            'odds_eligible_walk_forward_races':sum(r['odds'] is not None for r in rows),
+            'split':{'method':'FROZEN_CHRONOLOGICAL_60_40_WHOLE_DATES','discovery_races':len(discovery),
+                     'holdout_races':len(holdout),'discovery_end':discovery[-1]['event_date'] if discovery else None,
+                     'holdout_start':holdout[0]['event_date'] if holdout else None,'holdout_is_new_untouched':False},
+            'stake_per_selected_race_krw':STAKE,'min_discovery_bets':MIN_DISCOVERY_BETS,'min_holdout_bets':MIN_HOLDOUT_BETS,
+            'primary_rule':primary,'rules':evaluated,'candidate_count':len(candidates),
+            'discovery_candidates':candidates,'conclusion':conclusion,
+            'value_filter':{'state':'BLOCKED_NO_HISTORICAL_PRE_RACE_ODDS','reason':'Final tote odds cannot be used as a pre-race EV selection feature'},
+            'policy':'PREDICT_ENTIRE_DATE_THEN_UPDATE; FIXED_GRID; DISCOVERY_ONLY_SELECTION; FROZEN_COHORT_AND_RULES; MISSING_ODDS_EXCLUDED_FROM_ROI_NOT_PREDICTION_OR_SPLIT',
+            'warning':'V1 already exposed these historical holdout dates. This correction is retrospective revalidation, not a new untouched test. No live betting.'}
+    OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(report,ensure_ascii=False,indent=2))
+    print(json.dumps({k:v for k,v in report.items() if k!='discovery_candidates'},ensure_ascii=False))
+if __name__=='__main__':main()

@@ -12,7 +12,7 @@ OUT = Path('race-sports/models/horse_win_quinella_compare.json')
 PAYOUTS = Path('race-sports/data/model_state/horse_quinella_payouts.json')
 KST = timezone(timedelta(hours=9))
 STAKE = 100000
-VERSION = 'HORSE_WIN_QUINELLA_COMPARE_V2_SAME_SAMPLE_ROI'
+VERSION = 'HORSE_WIN_QUINELLA_COMPARE_V3_DATE_BATCH_OOS'
 
 
 def rank_index(event, rank):
@@ -50,11 +50,12 @@ def run():
     same_n = same_win_hits = same_q_hits = 0
     same_win_return = same_q_return = 0.0
 
-    for i, e in enumerate(races):
+    actual_warmup = 0
+    for e, probs, is_oos in hv.walk_forward_predictions(races):
+        actual_warmup += int(not is_oos)
         outs = e.get('outcomes') or []
         base = (total_wins / total_starts) if total_starts else .10
-        if i >= warmup and len(outs) >= 2:
-            probs = hv.score(e, stats, base)
+        if is_oos and len(outs) >= 2:
             first = rank_index(e, 1)
             second = rank_index(e, 2)
             if probs and first is not None:
@@ -80,14 +81,15 @@ def run():
                     pr = payouts.get(str(e.get('id'))) or {}
                     try: q_odds = float(pr.get('quinella_odds'))
                     except Exception: q_odds = 0.0
-                    if q_odds > 0 and odds > 0:
+                    if (hv.sf(q_odds) is not None and q_odds > 0 and hv.sf(odds) is not None and odds > 0
+                            and pr.get('source') == 'KRA_SCORETABLE_DETAIL_OFFICIAL'
+                            and str(pr.get('event_id')) == str(e.get('id'))
+                            and set(pr.get('official_pair') or []) == {int(outs[first]['number']), int(outs[second]['number'])}):
                         same_n += 1
                         same_win_hits += int(hit); same_q_hits += int(q_hit)
                         if hit: same_win_return += STAKE * odds
                         if q_hit: same_q_return += STAKE * q_odds
 
-        s, w = hv.update(stats, e)
-        total_starts += s; total_wins += w
 
     win_rate = win_hits / win_tests if win_tests else None
     q_rate = quinella_hits / quinella_tests if quinella_tests else None
@@ -100,8 +102,8 @@ def run():
         'version': VERSION,
         'generated_at': datetime.now(KST).isoformat(timespec='seconds'),
         'model_source': hv.MODEL_SOURCE,
-        'method': 'SAME_CHRONOLOGICAL_WALK_FORWARD_MODEL; FIRST_30PCT_WARMUP; NO_POSTRACE_FIELDS_IN_PREDICTION',
-        'input_races': len(races), 'warmup_races': warmup,
+        'method': 'DATE_BATCH_WALK_FORWARD; FIRST_30PCT_WARMUP_ROUNDED_TO_FULL_DATE; NO_POSTRACE_FIELDS_IN_PREDICTION',
+        'input_races': len(races), 'warmup_races': actual_warmup,
         'win': {
             'definition': 'MODEL_TOP1_EQUALS_OFFICIAL_1ST', 'tested': win_tests, 'hits': win_hits,
             'hit_rate': round(win_rate, 8) if win_rate is not None else None,

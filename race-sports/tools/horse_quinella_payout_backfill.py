@@ -76,7 +76,7 @@ def fetch_one(e):
         return e.get('id'),None,type(ex).__name__
 
 def main():
-    races=hv.records(); warmup=max(100,int(len(races)*.30)) if races else 0; eligible=races[warmup:]
+    races=hv.records(); eligible=[e for e,_,is_oos in hv.walk_forward_predictions(races) if is_oos]
     if OUT.exists():
         try: doc=json.loads(OUT.read_text(encoding='utf-8'))
         except Exception: doc={}
@@ -89,7 +89,9 @@ def main():
             eid,rec,err=fut.result()
             if rec: records[eid]=rec; added+=1
             elif eid: errors[err or 'UNKNOWN']=errors.get(err or 'UNKNOWN',0)+1
-    doc={'version':'HORSE_QUINELLA_PAYOUT_BACKFILL_V1_KRA_OFFICIAL','generated_at':datetime.now(KST).isoformat(timespec='seconds'),'source':'KRA_SCORETABLE_DETAIL_OFFICIAL','policy':'OFFICIAL_FINAL_TOTE_PAYOUT_ONLY; EXACT_EVENT_ID; OFFICIAL_1ST_2ND_PAIR_MUST_MATCH; NO_SYNTHETIC_ODDS','eligible_walk_forward_races':len(eligible),'stored':len(records),'added_this_run':added,'requested_this_run':len(missing),'remaining_estimate':max(0,len(eligible)-len(records)),'errors_this_run':errors,'records':records}
+    eligible_ids={e['id'] for e in eligible}
+    covered=len(eligible_ids.intersection(records))
+    doc={'version':'HORSE_QUINELLA_PAYOUT_BACKFILL_V2_EXACT_COHORT','generated_at':datetime.now(KST).isoformat(timespec='seconds'),'source':'KRA_SCORETABLE_DETAIL_OFFICIAL','policy':'OFFICIAL_FINAL_TOTE_PAYOUT_ONLY; EXACT_EVENT_ID; OFFICIAL_1ST_2ND_PAIR_MUST_MATCH; NO_SYNTHETIC_ODDS','eligible_walk_forward_races':len(eligible),'stored':len(records),'covered_eligible':covered,'complete':covered==len(eligible_ids),'added_this_run':added,'requested_this_run':len(missing),'remaining_estimate':len(eligible_ids)-covered,'errors_this_run':errors,'records':records}
     OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(doc,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps({k:v for k,v in doc.items() if k!='records'},ensure_ascii=False))
 
