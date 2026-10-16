@@ -155,7 +155,7 @@
       "start_label": "03:30",
       "start_timestamp": 1792175400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Eintracht Frankfurt vs FC Cologne",
       "home": "Eintracht Frankfurt",
       "away": "FC Cologne",
@@ -226,7 +226,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401874959",
@@ -241,7 +245,7 @@
       "start_label": "03:45",
       "start_timestamp": 1792176300,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Frosinone vs Sassuolo",
       "home": "Frosinone",
       "away": "Sassuolo",
@@ -310,7 +314,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401876437",
@@ -325,7 +333,7 @@
       "start_label": "03:45",
       "start_timestamp": 1792176300,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Le Mans vs Toulouse",
       "home": "Le Mans",
       "away": "Toulouse",
@@ -394,7 +402,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401882844",
@@ -3191,7 +3203,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-17T01:33:35+09:00",
+      "updated_at": "2026-10-17T03:56:24+09:00",
       "summary": {
         "overall": {
           "picks": 13,
@@ -3527,7 +3539,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-17T01:33:35+09:00",
+      "generated_at": "2026-10-17T03:56:24+09:00",
       "overall": {
         "observed": 80,
         "evaluated": 44,
@@ -4133,5 +4145,23 @@
     "errors": [],
     "updated_at": "2026-10-17T03:28:37.376597+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-17T03:56:19+09:00",
+    "polled_sports": [
+      "SOCCER"
+    ],
+    "field_changes": 6,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 17,
+        "field_changes": 6,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
