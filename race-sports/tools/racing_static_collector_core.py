@@ -1,5 +1,6 @@
 INLINE_KBOAT_ODDS_ENABLED = False
 import json,re,html,urllib.request,time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 from bull_model_features_v130 import parse_card as parse_bull_card
@@ -191,15 +192,21 @@ def collect_cycle(z,errors):
             if 1<=m<=60 and m not in candidates:candidates.append(m)
         raw=None;url=None;meeting=None
         fetch_errors=[]
-        for m in candidates:
+        # Resolve independent meeting probes concurrently, retaining fixed
+        # candidate priority and exact visible-date verification.
+        def probe(m):
             u=f'https://www.kcycle.or.kr/race/card/decision/{y}/{m}/{day}'
             try:
-                candidate=fetch(u,timeout=12,retries=2)
+                return m,u,fetch(u,timeout=10,retries=1),None
             except Exception as ex:
-                fetch_errors.append(f'M{m}:{type(ex).__name__}')
+                return m,u,None,type(ex).__name__
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            probes=list(pool.map(probe,candidates))
+        for m,u,candidate,error in probes:
+            if error:
+                fetch_errors.append(f'M{m}:{error}')
                 continue
-            sd=selected_date(candidate,y)
-            if sd==date:
+            if selected_date(candidate,y)==date:
                 raw=candidate;url=u;meeting=m;break
         if raw is None:
             raise RuntimeError(f'KCYCLE_MEETING_NOT_RESOLVED:{candidates}:{fetch_errors[:4]}')
@@ -229,8 +236,8 @@ def collect_bull(z,errors):
         for r in races:
             st=str(r.get('start_text') or '').strip()
             q=re.search(r'(\d{1,2})\s*(?::|시)\s*(\d{1,2})',st)
-            tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}' if q else ('순차 진행' if '발매 마감 후' in st else '시간 미정')
-            start_label=tm if q else ('순차 진행' if '발매 마감 후' in st else (st or '시간 미정'))
+            tm=f'{int(q.group(1)):02d}:{int(q.group(2)):02d}' if q else ''
+            start_label=tm if q else date
             rn=int(r.get('race_no') or 0)
             red=str((r.get('red') or {}).get('name') or '').strip()
             blue=str((r.get('blue') or {}).get('name') or '').strip()
@@ -313,10 +320,14 @@ def collect_horse(z,errors):
         'source_errors':source_errors[:3]
     }}]
 
-def main():
-    z=now(); errors=[]; events=[]; providers=[]
+def collect_all(z):
+    errors=[];events=[];providers=[]
     for fn in (collect_horse,collect_cycle,collect_boat,collect_bull):
         es,ps=fn(z,errors);events.extend(es);providers.extend(ps)
+    return events,providers,errors
+
+def main():
+    z=now(); events,providers,errors=collect_all(z)
     events.sort(key=lambda e:(e.get('start_time') or '99:99',e.get('sport','')))
     payload={'date':z.strftime('%Y-%m-%d'),'date_display':z.strftime('%Y.%m.%d'),'time':z.strftime('%H:%M:%S'),'generated_at':z.isoformat(),'mode':'GITHUB_4SPORT_OFFICIAL','sample_data':False,'events':events,'providers':providers,'errors':errors[-20:]}
     OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')

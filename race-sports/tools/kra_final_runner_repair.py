@@ -115,6 +115,8 @@ def _preserve_pre_race(old, new):
     )
     for o in new:
         q = old_by.get(o.get('key'), {})
+        if not o.get('horse_name') or q.get('horse_name') != o.get('horse_name'):
+            q = {}
         for k in keep:
             if q.get(k) is not None:
                 o[k] = q[k]

@@ -113,5 +113,58 @@ for _name in dir(core):
         globals()[_name] = getattr(core, _name)
 
 
+def _collect_worker(queue, index, fn, z):
+    errors = []
+    try:
+        events, providers = fn(z, errors)
+        queue.put((index, events, providers, errors, None))
+    except Exception as exc:
+        queue.put((index, [], [], [], f'{type(exc).__name__}:{exc}'))
+
+
+def collect_parallel(z, collectors=None, deadline_seconds=65):
+    # Each provider owns its parser globals. In particular, KBOAT's temporary
+    # date binding must never affect KCYCLE's exact-date check.
+    import multiprocessing
+    import queue as queue_module
+    import time
+    ctx = multiprocessing.get_context('fork')  # GitHub Actions Ubuntu
+    queue = ctx.Queue()
+    collectors = collectors or (core.collect_horse, core.collect_cycle,
+                                core.collect_boat, core.collect_bull)
+    jobs = [ctx.Process(target=_collect_worker, args=(queue, i, fn, z))
+            for i, fn in enumerate(collectors)]
+    results = {}
+    deadline = time.monotonic() + deadline_seconds
+    try:
+        for job in jobs:
+            job.start()
+        while len(results) < len(jobs):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RuntimeError('RACING_PROVIDER_DEADLINE:fail_closed')
+            try:
+                item = queue.get(timeout=remaining)
+            except queue_module.Empty:
+                raise RuntimeError('RACING_PROVIDER_DEADLINE:fail_closed')
+            results[item[0]] = item
+        events, providers, errors = [], [], []
+        for i in range(len(jobs)):
+            _, es, ps, errs, failure = results[i]
+            if failure:
+                raise RuntimeError(f'RACING_PROVIDER_FAILED:{i}:{failure}')
+            events.extend(es); providers.extend(ps); errors.extend(errs)
+        return events, providers, errors
+    finally:
+        for job in jobs:
+            if job.pid is not None:
+                if job.is_alive():
+                    job.terminate()
+                job.join(timeout=1)
+        queue.close()
+
+
+core.collect_all = collect_parallel
+
 if __name__ == '__main__':
     core.main()

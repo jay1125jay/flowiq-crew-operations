@@ -31,6 +31,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify chronological horse research guards
+        run: python -m unittest discover -s race-sports/tools -p test_horse_research.py
       - name: Collect official KRA quinella payouts
         run: python race-sports/tools/horse_quinella_payout_backfill.py
       - name: Compare win vs quinella on identical payout sample

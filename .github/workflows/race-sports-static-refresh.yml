@@ -18,6 +18,8 @@ on:
       - 'race-sports/tools/cycle_model_distribution_guard.py'
       - 'race-sports/tools/kcycle_official_enricher.py'
       - 'race-sports/tools/kra_official_enricher.py'
+      - 'race-sports/tools/kra_final_runner_repair.py'
+      - 'race-sports/tools/test_racing_refresh.py'
       - 'race-sports/tools/kra_odds_endpoint_guard.py'
       - 'race-sports/tools/bull_model_features_v130.py'
       - 'race-sports/tools/bull_official_enricher.py'
@@ -137,6 +139,9 @@ jobs:
       - name: Test KRA official final runner odds parser
         if: github.event_name == 'push'
         run: python race-sports/tools/kra_official_enricher.py --self-test
+
+      - name: Test provider isolation and horse identity
+        run: python -m unittest discover -s race-sports/tools -p test_racing_refresh.py
 
       - name: Test Horse probability engine
         if: github.event_name == 'push'

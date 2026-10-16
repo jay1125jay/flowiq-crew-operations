@@ -328,28 +328,21 @@ def main():
     try:
         cache_url=RUNNERS_URL+('?' if '?' not in RUNNERS_URL else '&')+'_ts='+str(int(time.time()))
         raw=fetch(cache_url);page_date,races=parse_runners(raw);raw_races=len(races)
-        # If KRA exposes a stale selector date, never blindly accept it.  The
-        # only fallback trust path is a strong exact match against today's
-        # official schedule already stored on the events.
+        # A matching departure time is not proof of race/runner identity.
         schedule_matches=0
+        selector_mismatch=page_date != today
+        schedule_fallback=False
+        if selector_mismatch:races={}
         for e in horse:
             venue=venue_of(e);info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
-            if not info or not info.get('outcomes'):continue
-            if info.get('start_time') and e.get('start_time') and info['start_time']==e['start_time']:
-                schedule_matches+=1
-        min_matches=max(1,min(3,len(horse)))
-        selector_mismatch=bool(page_date and page_date!=today)
-        schedule_fallback=selector_mismatch and schedule_matches>=min_matches
-        if selector_mismatch and not schedule_fallback:races={}
-        for e in horse:
-            venue=venue_of(e);info=races.get((venue,int(e.get('race_no') or 0))) if venue else None
-            if not info:continue
+            if not info or e.get('status')=='FINAL':continue
             if info.get('start_time') and e.get('start_time') and info['start_time']!=e['start_time']:continue
             if selector_mismatch and schedule_fallback and not (info.get('start_time') and e.get('start_time') and info['start_time']==e['start_time']):continue
             if info.get('outcomes'):
                 old={o.get('key'):o for o in e.get('outcomes',[]) if o.get('key')}
                 for o in info['outcomes']:
                     q=old.get(o['key'],{})
+                    if not o.get('horse_name') or q.get('horse_name') != o.get('horse_name'):q={}
                     for k in ('model_p','model_source','model_updated_at','odds','odds_source','odds_capture_mode','odds_observed_at','final_rank','final_odds','final_place_odds','final_odds_source'):
                         if q.get(k) is not None:o[k]=q[k]
                 e['outcomes']=info['outcomes'];runner_linked+=1
@@ -377,7 +370,7 @@ def main():
                     endpoint_hits[source]=endpoint_hits.get(source,0)+(1 if hit else 0)
                     if len(hit)>=2:used=source;break
                 except Exception as x:
-                    api_errors.append(f'{source}:{venue}:{rn}:{type(x).__name__}:{x}'[:220])
+                    api_errors.append(f'{source}:{venue}:{rn}:{type(x).__name__}')
             if used and hit:
                 mapped=apply_pre_odds(e,hit,used+'_PRE_CAPTURE',observed)
                 if mapped:pre_odds_events+=1;pre_odds_runners+=mapped
@@ -398,24 +391,13 @@ def main():
     except Exception as e:
         set_provider(payload,'HORSE_RESULT_KRA','FETCH_RETRY',{'error':f'{type(e).__name__}:{e}'[:220],'source_url':RESULTS_URL})
 
-    detail_errors=[]
-    for e in horse:
-        if e.get('status')!='FINAL':continue
-        venue=venue_of(e);meet=MEET_CODE.get(venue);rn=int(e.get('race_no') or 0)
-        if not meet or not rn:continue
-        url=DETAIL_URL.format(meet=meet,date=today.replace('-',''),race_no=rn)
-        try:
-            rows=parse_detail_runner_odds(fetch(url,timeout=10,retries=1));by_num={int(o.get('number') or 0):o for o in e.get('outcomes',[])};mapped=0
-            for n,v in rows.items():
-                o=by_num.get(n)
-                if not o:continue
-                if v.get('final_odds') is not None:o['final_odds']=v['final_odds']
-                if v.get('final_place_odds') is not None:o['final_place_odds']=v['final_place_odds']
-                o['final_odds_source']='KRA_SCORETABLE_DETAIL_OFFICIAL';mapped+=1
-            if mapped:final_odds_linked+=1
-        except Exception as x:
-            detail_errors.append(f'{venue}:{rn}:{type(x).__name__}:{x}'[:220])
-    set_provider(payload,'HORSE_FINAL_ODDS_KRA','PASS' if final_odds_linked else ('NO_TODAY_CARD' if not horse else ('FETCH_RETRY' if detail_errors else 'WAITING')),{'linked_events':final_odds_linked,'errors':detail_errors[:3],'source':'KRA_SCORETABLE_DETAIL_OFFICIAL'})
+    # Official detail rows supply horse identities and final tote odds together;
+    # never attach final odds to a potentially different day's runner numbers.
+    from kra_final_runner_repair import repair_doc
+    final_odds_linked, final_count, _, detail_errors, final_status = repair_doc(payload)
+    set_provider(payload,'HORSE_FINAL_ODDS_KRA',final_status,{
+        'linked_events':final_odds_linked,'final_events':final_count,
+        'errors':detail_errors[:3],'source':'KRA_SCORETABLE_DETAIL_OFFICIAL'})
 
     DATA.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     print(json.dumps({'KRA_ENRICH':'PASS','runner_linked':runner_linked,'pre_odds_events':pre_odds_events,'pre_odds_runners':pre_odds_runners,'result_linked':result_linked,'final_odds_linked':final_odds_linked},ensure_ascii=False))
