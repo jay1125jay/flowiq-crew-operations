@@ -30,6 +30,7 @@ jobs:
         run: |
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
+          python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_category_paper.py' -v
       - name: Refresh diversified public trader pool
         run: |
           for i in 1 2 3; do
