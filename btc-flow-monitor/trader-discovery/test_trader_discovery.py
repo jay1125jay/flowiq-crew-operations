@@ -1,5 +1,6 @@
 import importlib.util, pathlib, unittest
 P=pathlib.Path(__file__).with_name('trader_discovery.py'); S=importlib.util.spec_from_file_location('td',P); td=importlib.util.module_from_spec(S); S.loader.exec_module(td)
+NOW='2026-10-17T00:00:00+00:00'
 
 def f(t,start,sz,side,pnl='0'):
  return {'coin':'BTC','time':t,'tid':t,'startPosition':str(start),'sz':str(sz),'side':side,'closedPnl':pnl,'px':'100','fee':'0'}
@@ -18,11 +19,11 @@ class TraderDiscoveryTests(unittest.TestCase):
   fills=[]
   for i in range(10):
    t=i*120000; fills += [f(t,0,1,'B'),f(t+60000,1,1,'A')]
-  x=td.classify(rank(),fills); self.assertTrue(x['category_flags']['SCALPER']); self.assertTrue(x['category_flags']['WHALE']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE']); self.assertTrue(x['category_flags']['HIGH_PROFIT']); self.assertTrue(x['category_flags']['CONSISTENT'])
+  x=td.classify(rank(),fills,NOW); self.assertTrue(x['category_flags']['SCALPER']); self.assertTrue(x['category_flags']['WHALE']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE']); self.assertTrue(x['category_flags']['HIGH_PROFIT']); self.assertTrue(x['category_flags']['CONSISTENT'])
  def test_swing(self):
   fills=[]
   for i in range(5):
    t=i*20000000; fills += [f(t,0,1,'B'),f(t+18000000,1,1,'A')]
-  self.assertTrue(td.classify(rank(),fills)['category_flags']['SWING'])
+  self.assertTrue(td.classify(rank(),fills,NOW)['category_flags']['SWING'])
 
 if __name__=='__main__': unittest.main()
