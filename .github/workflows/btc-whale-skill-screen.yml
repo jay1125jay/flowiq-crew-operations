@@ -58,11 +58,13 @@ jobs:
             test "$i" -eq 3 && exit 1
             sleep 15
           done
+      - name: Update six independent PAPER category accounts
+        run: python btc-flow-monitor/trader-discovery/category_paper.py
       - name: Persist expanded pool, ranking, cohorts, observations, and PAPER state atomically
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
+          git add btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
           if ! git diff --cached --quiet; then
             git commit -m "data: rotate expanded BTC trader cohort research"
             git pull --rebase origin main
