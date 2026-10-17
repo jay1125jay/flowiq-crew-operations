@@ -245,7 +245,7 @@
       "start_label": "01:00",
       "start_timestamp": 1792252800,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Bologna vs Internazionale",
       "home": "Bologna",
       "away": "Internazionale",
@@ -298,10 +298,6 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20261017",
-      "score": {
-        "home": 1,
-        "away": 1
-      },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
@@ -320,7 +316,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 1,
+        "away_score": 3,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-18T03:24:17.799407+09:00"
+      }
     },
     {
       "id": "SPORTS-SOCCER-401879258",
@@ -479,8 +484,8 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261017",
       "score": {
-        "home": 1,
-        "away": 2
+        "home": 2,
+        "away": 5
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -569,8 +574,8 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20261017",
       "score": {
-        "home": 3,
-        "away": 0
+        "home": 6,
+        "away": 1
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -2909,7 +2914,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-18T02:32:54+09:00",
+      "updated_at": "2026-10-18T03:24:21+09:00",
       "summary": {
         "overall": {
           "picks": 18,
@@ -3225,7 +3230,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-18T02:32:54+09:00",
+      "generated_at": "2026-10-18T03:24:21+09:00",
       "overall": {
         "observed": 102,
         "evaluated": 70,
@@ -3734,5 +3739,23 @@
       },
       "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
     }
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-18T03:24:17+09:00",
+    "polled_sports": [
+      "SOCCER"
+    ],
+    "field_changes": 5,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 22,
+        "field_changes": 5,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
