@@ -67,6 +67,6 @@ jobs:
           git add btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
           if ! git diff --cached --quiet; then
             git commit -m "data: rotate expanded BTC trader cohort research"
-            git pull --rebase origin main
+            git pull --rebase -X ours origin main
             git push origin HEAD:main
           fi
