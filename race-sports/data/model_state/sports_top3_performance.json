@@ -654,12 +654,23 @@
       "away": "Brest",
       "home_ko": "릴",
       "away_ko": "브레스트",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_CURRENT",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 2.05,
-        "odds_provider": "DraftKings"
+        "odds_provider": "DraftKings",
+        "hit": false,
+        "return_krw": 0,
+        "profit_krw": -100000,
+        "settled_at": "2026-10-18T05:51:06+09:00"
+      },
+      "evaluation": {
+        "winner_key": "DRAW",
+        "hit": false,
+        "evaluated_at": "2026-10-18T05:51:06+09:00",
+        "source": "CURRENT_SNAPSHOT",
+        "source_snapshot_date": "2026-10-18"
       }
     },
     "SPORTS-SOCCER-401876431": {
@@ -693,12 +704,23 @@
       "home": "Troyes",
       "away": "Lens",
       "away_ko": "랑스",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_CURRENT",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 1.8333,
-        "odds_provider": "DraftKings"
+        "odds_provider": "DraftKings",
+        "hit": true,
+        "return_krw": 183330,
+        "profit_krw": 83330,
+        "settled_at": "2026-10-18T05:51:06+09:00"
+      },
+      "evaluation": {
+        "winner_key": "AWAY",
+        "hit": true,
+        "evaluated_at": "2026-10-18T05:51:06+09:00",
+        "source": "CURRENT_SNAPSHOT",
+        "source_snapshot_date": "2026-10-18"
       }
     },
     "SPORTS-SOCCER-401874935": {
@@ -733,12 +755,23 @@
       "away": "Genoa",
       "home_ko": "AS 로마",
       "away_ko": "제노아",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_CURRENT",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 1.5263,
-        "odds_provider": "DraftKings"
+        "odds_provider": "DraftKings",
+        "hit": true,
+        "return_krw": 152630,
+        "profit_krw": 52630,
+        "settled_at": "2026-10-18T05:51:06+09:00"
+      },
+      "evaluation": {
+        "winner_key": "HOME",
+        "hit": true,
+        "evaluated_at": "2026-10-18T05:51:06+09:00",
+        "source": "CURRENT_SNAPSHOT",
+        "source_snapshot_date": "2026-10-18"
       }
     },
     "SPORTS-BASKETBALL-KBL-S49G01N26": {
@@ -809,45 +842,45 @@
     }
   },
   "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-  "updated_at": "2026-10-18T03:24:21+09:00",
+  "updated_at": "2026-10-18T05:51:06+09:00",
   "summary": {
     "overall": {
       "picks": 18,
-      "evaluated": 12,
-      "pending": 6,
-      "hits": 7,
-      "misses": 5,
-      "hit_rate": 0.583333,
+      "evaluated": 15,
+      "pending": 3,
+      "hits": 9,
+      "misses": 6,
+      "hit_rate": 0.6,
       "paper_roi": {
         "stake_per_pick_krw": 100000,
         "odds_locked_picks": 13,
-        "settled": 9,
-        "pending": 4,
+        "settled": 12,
+        "pending": 1,
         "excluded_no_locked_odds": 5,
-        "total_staked_krw": 900000,
-        "total_return_krw": 838360,
-        "net_profit_krw": -61640,
-        "roi": -0.068489
+        "total_staked_krw": 1200000,
+        "total_return_krw": 1174320,
+        "net_profit_krw": -25680,
+        "roi": -0.0214
       }
     },
     "by_sport": {
       "SOCCER": {
         "picks": 5,
-        "evaluated": 1,
-        "pending": 4,
-        "hits": 1,
-        "misses": 0,
-        "hit_rate": 1.0,
+        "evaluated": 4,
+        "pending": 1,
+        "hits": 3,
+        "misses": 1,
+        "hit_rate": 0.75,
         "paper_roi": {
           "stake_per_pick_krw": 100000,
           "odds_locked_picks": 5,
-          "settled": 1,
-          "pending": 4,
+          "settled": 4,
+          "pending": 1,
           "excluded_no_locked_odds": 0,
-          "total_staked_krw": 100000,
-          "total_return_krw": 195240,
-          "net_profit_krw": 95240,
-          "roi": 0.9524
+          "total_staked_krw": 400000,
+          "total_return_krw": 531200,
+          "net_profit_krw": 131200,
+          "roi": 0.328
         }
       },
       "BASEBALL": {
@@ -912,7 +945,7 @@
   "threshold_advice": {
     "SOCCER": {
       "state": "HOLD_SAMPLE",
-      "evaluated": 1,
+      "evaluated": 4,
       "required": 30
     },
     "BASEBALL": {
@@ -935,7 +968,7 @@
   "carryover": {
     "resolved_from_history": 0,
     "conflicts": 0,
-    "pending_within_window": 6,
+    "pending_within_window": 3,
     "unresolved_after_window": 0,
     "window_days": 3
   },
