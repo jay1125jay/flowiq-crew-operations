@@ -30,34 +30,41 @@ jobs:
         run: |
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
-      - name: Screen tracked public BTC wallets
+      - name: Refresh diversified public trader pool
+        run: |
+          for i in 1 2 3; do
+            python btc-flow-monitor/trader-discovery/leaderboard_expand.py && break
+            test "$i" -eq 3 && exit 1
+            sleep 15
+          done
+      - name: Screen rotating BTC trader batch within API budget
         run: |
           for i in 1 2 3; do
             python btc-flow-monitor/scripts/whale_ranker.py && break
             test "$i" -eq 3 && exit 1
-            sleep 10
+            sleep 15
           done
-      - name: Classify six trader research cohorts
+      - name: Classify and accumulate six trader research cohorts
         run: |
           for i in 1 2 3; do
             python btc-flow-monitor/trader-discovery/trader_discovery.py && break
             test "$i" -eq 3 && exit 1
-            sleep 10
+            sleep 15
           done
       - name: Run wallet copy simulation (no real orders)
         run: |
           for i in 1 2 3; do
             python btc-flow-monitor/scripts/whale_paper_follow.py && break
             test "$i" -eq 3 && exit 1
-            sleep 10
+            sleep 15
           done
-      - name: Persist ranking, trader cohorts, observations, and PAPER state atomically
+      - name: Persist expanded pool, ranking, cohorts, observations, and PAPER state atomically
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json btc-flow-monitor/trader-discovery/latest.json
+          git add btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
           if ! git diff --cached --quiet; then
-            git commit -m "data: update whale and trader cohort PAPER research"
+            git commit -m "data: rotate expanded BTC trader cohort research"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
