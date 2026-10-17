@@ -1,4 +1,4 @@
-name: BTC whale screening + copy PAPER (PAPER only)
+name: BTC whale + trader cohorts + copy PAPER (PAPER only)
 on:
   workflow_dispatch:
   schedule:
@@ -9,6 +9,7 @@ on:
       - 'btc-flow-monitor/scripts/whale_ranker.py'
       - 'btc-flow-monitor/scripts/whale_paper_follow.py'
       - 'btc-flow-monitor/scripts/test_whale_paper.py'
+      - 'btc-flow-monitor/trader-discovery/**'
       - 'btc-flow-monitor/data/whale-watchlist.json'
       - '.github/workflows/btc-whale-skill-screen.yml'
 permissions:
@@ -25,12 +26,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify PAPER engine with isolated offline trade lifecycle
-        run: python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
-      - name: Screen tracked public BTC whale wallets
+      - name: Verify PAPER engines offline
+        run: |
+          python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
+          python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
+      - name: Screen tracked public BTC wallets
         run: |
           for i in 1 2 3; do
             python btc-flow-monitor/scripts/whale_ranker.py && break
+            test "$i" -eq 3 && exit 1
+            sleep 10
+          done
+      - name: Classify six trader research cohorts
+        run: |
+          for i in 1 2 3; do
+            python btc-flow-monitor/trader-discovery/trader_discovery.py && break
             test "$i" -eq 3 && exit 1
             sleep 10
           done
@@ -41,13 +51,13 @@ jobs:
             test "$i" -eq 3 && exit 1
             sleep 10
           done
-      - name: Persist ranking, forward observations, and PAPER state atomically
+      - name: Persist ranking, trader cohorts, observations, and PAPER state atomically
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
+          git add btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json btc-flow-monitor/trader-discovery/latest.json
           if ! git diff --cached --quiet; then
-            git commit -m "data: update whale screening and copy PAPER state"
+            git commit -m "data: update whale and trader cohort PAPER research"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
