@@ -10,6 +10,7 @@ on:
       - 'btc-flow-monitor/scripts/whale_paper_follow.py'
       - 'btc-flow-monitor/scripts/test_whale_paper.py'
       - 'btc-flow-monitor/trader-discovery/**'
+      - 'btc-flow-monitor/dashboard-follow.js'
       - 'btc-flow-monitor/data/whale-watchlist.json'
       - '.github/workflows/btc-whale-skill-screen.yml'
 permissions:
@@ -31,6 +32,17 @@ jobs:
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_category_paper.py' -v
+      - name: Wire full follower panel into dashboard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('btc-flow-monitor/dashboard.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./dashboard-follow.js"></script>'
+          if tag not in s:
+              if '</body>' not in s: raise SystemExit('dashboard body close missing')
+              p.write_text(s.replace('</body>',tag+'</body>'),encoding='utf-8')
+          PY
       - name: Refresh diversified public trader pool
         run: |
           for i in 1 2 3; do
@@ -68,11 +80,11 @@ jobs:
           done
       - name: Update six independent PAPER category accounts from full catalog
         run: python btc-flow-monitor/trader-discovery/category_paper.py
-      - name: Persist expanded pool, ranking, cohorts, full position feed, observations, and PAPER state atomically
+      - name: Persist dashboard, expanded pool, cohorts, full position feed, observations, and PAPER state atomically
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
+          git add btc-flow-monitor/dashboard.html btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
           if ! git diff --cached --quiet; then
             git commit -m "data: rotate expanded BTC trader cohort research"
             git pull --rebase -X ours origin main
