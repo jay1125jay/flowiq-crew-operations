@@ -11,6 +11,7 @@ on:
       - 'btc-flow-monitor/scripts/test_whale_paper.py'
       - 'btc-flow-monitor/trader-discovery/**'
       - 'btc-flow-monitor/dashboard-follow.js'
+      - 'btc-flow-monitor/integrate-follow.py'
       - 'btc-flow-monitor/data/whale-watchlist.json'
       - '.github/workflows/btc-whale-skill-screen.yml'
 permissions:
@@ -32,17 +33,8 @@ jobs:
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_category_paper.py' -v
-      - name: Wire full follower panel into dashboard
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('btc-flow-monitor/dashboard.html')
-          s=p.read_text(encoding='utf-8')
-          tag='<script src="./dashboard-follow.js"></script>'
-          if tag not in s:
-              if '</body>' not in s: raise SystemExit('dashboard body close missing')
-              p.write_text(s.replace('</body>',tag+'</body>'),encoding='utf-8')
-          PY
+      - name: Integrate full follower panel into dashboard safely
+        run: python btc-flow-monitor/integrate-follow.py
       - name: Refresh diversified public trader pool
         run: |
           for i in 1 2 3; do
