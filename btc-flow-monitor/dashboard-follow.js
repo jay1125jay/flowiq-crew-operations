@@ -1,56 +1,29 @@
 (()=>{
 const names={WHALE:'고래',HIGH_WIN_RATE:'고승률',HIGH_PROFIT:'고수익',CONSISTENT:'안정형',SCALPER:'스캘퍼',SWING:'스윙'};
 const fmt=(n,d=2)=>Number.isFinite(Number(n))?Number(n).toLocaleString('ko-KR',{maximumFractionDigits:d}):'—';
-const usd=n=>'$'+fmt(n);const short=a=>a?a.slice(0,8)+'…'+a.slice(-5):'—';
-const side=s=>({LONG:'롱',SHORT:'숏',FLAT:'관망'}[s]||s||'미관측');
-const time=t=>t?new Date(t).toLocaleString('ko-KR'):'—';
+const usd=n=>Number.isFinite(Number(n))?'$'+fmt(n):'—';const short=a=>a?a.slice(0,8)+'…'+a.slice(-5):'—';
+const side=s=>({LONG:'롱',SHORT:'숏',FLAT:'관망'}[s]||s||'미관측');const time=t=>t?new Date(t).toLocaleString('ko-KR'):'—';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const acct=(key,a)=>({cat:a?.category||key.replace(/_(5|10)X$/,''),lev:Number(a?.leverage||key.match(/_(5|10)X$/)?.[1]||0)});
 let loading=false;
-function install(){
- const nav=document.getElementById('nav'),log=document.getElementById('log');if(!nav||!log)return;
- if(!document.getElementById('follow')){
-  const b=document.createElement('button');b.dataset.page='follow';b.textContent='현재 추종';nav.insertBefore(b,[...nav.querySelectorAll('button')].find(x=>x.dataset.page==='log')||null);
-  const p=document.createElement('section');p.className='page';p.id='follow';
-  p.innerHTML='<div class="panel"><div class="head"><h2>전체 트레이더 현재 추종 · PAPER ONLY</h2><div class="muted" id="followMeta">조회 중</div></div><div class="pad"><div class="grid" id="followSummary"></div><div class="tablewrap"><table class="table"><thead><tr><th>지갑</th><th>유형</th><th>원본 방향</th><th>PAPER 계좌</th><th>진입가</th><th>현재가</th><th>미실현 PnL(추정)</th><th>진입시간</th></tr></thead><tbody id="followRows"></tbody></table></div></div></div>';log.parentNode.insertBefore(p,log);
-  b.onclick=()=>{nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='follow'));window.scrollTo({top:0,behavior:'smooth'});refresh()};
- }
- if(!document.getElementById('categoryHistory')){
-  const p=document.createElement('div');p.id='categoryHistory';p.className='panel';
-  p.innerHTML='<div class="head"><h2>6유형 PAPER 종료 거래 기록</h2><div class="muted" id="categoryHistoryMeta">최근 종료 거래 · 수수료 및 슬리피지 반영</div></div><div class="pad"><div class="grid" id="categoryStats"></div><div class="tablewrap"><table class="table"><thead><tr><th>유형</th><th>지갑</th><th>방향</th><th>진입시간</th><th>종료시간</th><th>진입가</th><th>종료가</th><th>종료사유</th><th>순손익</th></tr></thead><tbody id="categoryHistoryRows"></tbody></table></div></div>';
-  log.appendChild(p);
- }
- document.getElementById('refreshBtn')?.addEventListener('click',()=>refresh());
- refresh();
-}
+function install(){const nav=document.getElementById('nav'),log=document.getElementById('log');if(!nav||!log)return;
+ if(!document.getElementById('follow')){const b=document.createElement('button');b.dataset.page='follow';b.textContent='현재 추종';nav.insertBefore(b,[...nav.querySelectorAll('button')].find(x=>x.dataset.page==='log')||null);const p=document.createElement('section');p.className='page';p.id='follow';p.innerHTML='<div class="panel"><div class="head"><h2>트레이더 현재 추종 · 5X / 10X PAPER ONLY</h2><div class="muted" id="followMeta">조회 중</div></div><div class="pad"><div class="grid" id="followSummary"></div><div class="tablewrap"><table class="table"><thead><tr><th>지갑</th><th>분류</th><th>원본 방향</th><th>추종 계좌 · 진입 · 현재 · 손익 · 청산가</th></tr></thead><tbody id="followRows"></tbody></table></div></div></div>';log.parentNode.insertBefore(p,log);b.onclick=()=>{nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='follow'));window.scrollTo({top:0,behavior:'smooth'});refresh()}}
+ if(!document.getElementById('categoryHistory')){const p=document.createElement('div');p.id='categoryHistory';p.className='panel';p.innerHTML='<div class="head"><h2>5X / 10X PAPER 종료 거래 기록</h2><div class="muted" id="categoryHistoryMeta">조회 중</div></div><div class="pad"><div class="grid" id="categoryStats"></div><div class="tablewrap"><table class="table"><thead><tr><th>유형</th><th>배율</th><th>지갑</th><th>방향</th><th>진입</th><th>종료</th><th>진입가</th><th>종료가</th><th>청산가</th><th>종료사유</th><th>순손익</th></tr></thead><tbody id="categoryHistoryRows"></tbody></table></div></div>';log.appendChild(p)}
+ document.getElementById('refreshBtn')?.addEventListener('click',refresh);refresh()}
 async function json(p){const r=await fetch(p+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error(p+' HTTP '+r.status);return r.json()}
-async function refresh(){
- if(loading||!document.getElementById('followMeta'))return;loading=true;
- try{
-  const [f,c,cp]=await Promise.all([json('./trader-discovery/current-positions.json'),json('./trader-discovery/latest.json'),json('./trader-discovery/category-paper.json')]);
-  const ws=c.wallets||[],dirs=f.wallets||{},accounts=cp.accounts||{},mid=Number(f.btc_mid_usd);
-  const byWallet={};let positions=0;
-  for(const [cat,a] of Object.entries(accounts))for(const [wallet,p] of Object.entries(a.positions||{})){(byWallet[wallet]??=[]).push({cat,p});positions++}
-  const counts={LONG:0,SHORT:0,FLAT:0};Object.values(dirs).forEach(x=>{counts[x]=(counts[x]||0)+1});
-  document.getElementById('followSummary').innerHTML=[
-   ['전체 지갑',f.catalog_wallet_count??ws.length],['관측 성공',f.observed_wallet_count??Object.keys(dirs).length],['API 오류',f.errors?.length||0],['롱 / 숏 / 관망',counts.LONG+' / '+counts.SHORT+' / '+counts.FLAT],['PAPER 추종',Object.keys(byWallet).length+'명 · '+positions+'건']
-  ].map(([k,v])=>'<div class="card"><h3>'+k+'</h3><div class="big">'+esc(v)+'</div></div>').join('');
-  document.getElementById('followRows').innerHTML=ws.map(w=>{
-   const entries=byWallet[w.address]||[],d=dirs[w.address];
-   const detail=entries.length?entries.map(({cat,p})=>{
-    const price=mid*(p.side==='LONG'?0.9997:1.0003);
-    const gross=(price-Number(p.entry))*Number(p.qty)*(p.side==='LONG'?1:-1);
-    const est=gross-mid*Number(p.qty)*0.0005-Number(p.fee||0);
-    return '<div><b>'+esc(names[cat]||cat)+'</b> '+esc(side(p.side))+' · '+usd(p.entry)+' → '+usd(mid)+' · <span class="'+(est>=0?'green':'red')+'">'+usd(est)+'</span> · '+esc(time(p.entry_at))+'</div>'
-   }).join(''):'<span class="muted">'+(d==='FLAT'?'포지션 없음':d?'미추종':'미관측')+'</span>';
-   return '<tr><td class="mono">'+esc(short(w.address))+'</td><td>'+esc((w.categories||[]).map(x=>names[x]||x).join(', ')||'관찰')+'</td><td>'+esc(side(d))+'</td><td colspan="5">'+detail+'</td></tr>';
-  }).join('');
-  document.getElementById('followMeta').textContent='원본 관측 '+time(f.generated_at)+' · PAPER 평가 '+time(cp.updated_at)+' · 원본 API 조회는 주기 실행, 화면 갱신은 60초';
-  const trades=Object.entries(accounts).flatMap(([cat,a])=>(a.closed||[]).map(t=>({...t,cat}))).sort((a,b)=>String(b.exit_at).localeCompare(String(a.exit_at)));
-  document.getElementById('categoryStats').innerHTML=Object.entries(accounts).map(([cat,a])=>'<div class="card"><h3>'+esc(names[cat]||cat)+'</h3><div class="big '+(a.net_pnl_usd>=0?'green':'red')+'">'+usd(a.net_pnl_usd)+'</div><div class="metric">승률 '+(a.win_rate_pct==null?'표본 없음':fmt(a.win_rate_pct)+'%')+' · 종료 '+fmt(a.closed_count)+'건 · MDD '+fmt(a.mdd_pct)+'% · PF '+(a.profit_factor==null?'—':fmt(a.profit_factor))+'</div></div>').join('');
-  document.getElementById('categoryHistoryRows').innerHTML=trades.slice(0,200).map(t=>'<tr><td>'+esc(names[t.cat]||t.cat)+'</td><td class="mono">'+esc(short(t.wallet))+'</td><td>'+esc(side(t.side))+'</td><td>'+esc(time(t.entry_at))+'</td><td>'+esc(time(t.exit_at))+'</td><td>'+ (t.entry_price==null?'기존 기록':usd(t.entry_price))+'</td><td>'+(t.exit_price==null?'기존 기록':usd(t.exit_price))+'</td><td>'+esc(t.reason)+'</td><td class="'+(t.pnl_usd>=0?'green':'red')+'">'+usd(t.pnl_usd)+'</td></tr>').join('');
-  document.getElementById('categoryHistoryMeta').textContent='유형별 최대 300건 보존 · 화면 최근 200건 · 총 '+trades.length+'건 · 기존 거래의 진입가/시간은 과거 기록에 없어 복원하지 않음';
- }catch(e){document.getElementById('followMeta').textContent='데이터 조회 실패: '+e.message}
- finally{loading=false}
-}
+async function refresh(){if(loading||!document.getElementById('followMeta'))return;loading=true;try{
+ const [f,c,cp]=await Promise.all([json('./trader-discovery/current-positions.json'),json('./trader-discovery/latest.json'),json('./trader-discovery/category-paper.json')]);
+ if(cp.paper_only!==true||cp.real_trading_enabled!==false)throw Error('PAPER 안전 플래그 불일치');
+ const ws=c.wallets||[],dirs=f.wallets||{},accounts=cp.accounts||{},mid=Number(f.btc_mid_usd);const active=Object.entries(accounts).filter(([k,a])=>[5,10].includes(acct(k,a).lev));
+ const byWallet={};let positions=0;for(const [key,a] of active)for(const [wallet,p] of Object.entries(a.positions||{})){(byWallet[wallet]??=[]).push({key,a,p});positions++}
+ const counts={LONG:0,SHORT:0,FLAT:0};Object.values(dirs).forEach(x=>counts[x]=(counts[x]||0)+1);
+ document.getElementById('followSummary').innerHTML=[['전체 지갑',f.catalog_wallet_count??ws.length],['관측 성공',f.observed_wallet_count??Object.keys(dirs).length],['API 오류',f.errors?.length||0],['롱 / 숏 / 관망',counts.LONG+' / '+counts.SHORT+' / '+counts.FLAT],['활성 PAPER 계좌',active.length+' / 12'],['추종',Object.keys(byWallet).length+'명 · '+positions+'포지션']].map(([k,v])=>'<div class="card"><h3>'+k+'</h3><div class="big">'+esc(v)+'</div></div>').join('');
+ document.getElementById('followRows').innerHTML=ws.map(w=>{const entries=byWallet[w.address]||[],d=dirs[w.address];const detail=entries.length?entries.map(({key,a,p})=>{const m=acct(key,a),mark=mid*(p.side==='LONG'?0.9997:1.0003),gross=(mark-Number(p.entry))*Number(p.qty)*(p.side==='LONG'?1:-1),fee=mid*Number(p.qty)*0.0005,est=gross-fee;return '<div><b>'+esc(names[m.cat]||m.cat)+' '+m.lev+'X</b> '+esc(side(p.side))+' · '+usd(p.entry)+' → '+usd(mid)+' · PnL <span class="'+(est>=0?'green':'red')+'">'+usd(est)+'</span> · 청산 '+usd(p.liquidation_price)+' · '+esc(time(p.entry_at))+'</div>'}).join(''):'<span class="muted">'+(d==='FLAT'?'포지션 없음':d?'미추종':'미관측')+'</span>';return '<tr><td class="mono">'+esc(short(w.address))+'</td><td>'+esc((w.categories||[]).map(x=>names[x]||x).join(', ')||'관찰')+'</td><td>'+esc(side(d))+'</td><td>'+detail+'</td></tr>'}).join('');
+ document.getElementById('followMeta').textContent='PAPER ONLY · 5X/10X 독립 계좌 · BTC $'+fmt(mid)+' · 원본 '+time(f.generated_at)+' · 평가 '+time(cp.updated_at)+' · 60초 화면 갱신';
+ const trades=active.flatMap(([key,a])=>(a.closed||[]).map(t=>({...t,key,a}))).sort((a,b)=>String(b.exit_at).localeCompare(String(a.exit_at)));
+ document.getElementById('categoryStats').innerHTML=active.map(([key,a])=>{const m=acct(key,a);return '<div class="card"><h3>'+esc(names[m.cat]||m.cat)+' '+m.lev+'X</h3><div class="big '+(Number(a.net_pnl_usd)>=0?'green':'red')+'">'+usd(a.net_pnl_usd)+'</div><div class="metric">자산 '+usd(a.equity_usd)+' · 오픈 '+fmt(a.open_count)+' · 종료 '+fmt(a.closed_count)+' · 승률 '+(a.win_rate_pct==null?'표본 없음':fmt(a.win_rate_pct)+'%')+' · MDD '+fmt(a.mdd_pct)+'% · PF '+(a.profit_factor==null?'—':fmt(a.profit_factor))+' · 청산 '+fmt(a.liquidations)+'</div></div>'}).join('');
+ document.getElementById('categoryHistoryRows').innerHTML=trades.slice(0,200).map(t=>{const m=acct(t.key,t.a);return '<tr><td>'+esc(names[m.cat]||m.cat)+'</td><td><b>'+m.lev+'X</b></td><td class="mono">'+esc(short(t.wallet))+'</td><td>'+esc(side(t.side))+'</td><td>'+esc(time(t.entry_at))+'</td><td>'+esc(time(t.exit_at))+'</td><td>'+usd(t.entry_price)+'</td><td>'+usd(t.exit_price)+'</td><td>'+usd(t.liquidation_price)+'</td><td>'+esc(t.reason)+'</td><td class="'+(Number(t.pnl_usd)>=0?'green':'red')+'">'+usd(t.pnl_usd)+'</td></tr>'}).join('');
+ document.getElementById('categoryHistoryMeta').textContent='신규 5X/10X 기록만 표시 · 최대 계좌당 300건 보존 · 화면 최근 200건 · 총 '+trades.length+'건 · 과거 무레버리지 기록은 UI에서 제외하고 데이터로만 보존';
+}catch(e){document.getElementById('followMeta').textContent='데이터 조회 실패: '+e.message;const m=document.getElementById('categoryHistoryMeta');if(m)m.textContent='데이터 조회 실패: '+e.message}finally{loading=false}}
 document.addEventListener('DOMContentLoaded',install);if(document.readyState!=='loading')install();setInterval(refresh,60000);window.addEventListener('btcflow:refresh',refresh);
 })();
