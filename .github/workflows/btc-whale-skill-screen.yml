@@ -52,20 +52,27 @@ jobs:
             test "$i" -eq 3 && exit 1
             sleep 15
           done
-      - name: Run wallet copy simulation (no real orders)
+      - name: Observe current BTC positions for full classified trader catalog
+        run: |
+          for i in 1 2 3; do
+            python btc-flow-monitor/trader-discovery/current_positions.py && break
+            test "$i" -eq 3 && exit 1
+            sleep 15
+          done
+      - name: Run legacy whale leverage copy simulation (no real orders)
         run: |
           for i in 1 2 3; do
             python btc-flow-monitor/scripts/whale_paper_follow.py && break
             test "$i" -eq 3 && exit 1
             sleep 15
           done
-      - name: Update six independent PAPER category accounts
+      - name: Update six independent PAPER category accounts from full catalog
         run: python btc-flow-monitor/trader-discovery/category_paper.py
-      - name: Persist expanded pool, ranking, cohorts, observations, and PAPER state atomically
+      - name: Persist expanded pool, ranking, cohorts, full position feed, observations, and PAPER state atomically
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
+          git add btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
           if ! git diff --cached --quiet; then
             git commit -m "data: rotate expanded BTC trader cohort research"
             git pull --rebase -X ours origin main
