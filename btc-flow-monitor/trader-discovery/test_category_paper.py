@@ -34,6 +34,26 @@ class PaperTests(unittest.TestCase):
   self.assertEqual(s['accounts']['HIGH_WIN_RATE']['open_count'],1)
   self.assertEqual(s['accounts']['SCALPER']['open_count'],1)
   self.assertEqual(s['accounts']['SWING']['open_count'],0)
+ def test_api_error_does_not_close_position(self):
+  s=mod.advance({},cohort({'WHALE':True}),feed('LONG'),'t0')
+  s=mod.advance(s,cohort({'WHALE':True}),{'paper_only':True,'btc_mid_usd':50000,'wallets':{},'errors':[{'address':ADDR}]},'t1')
+  self.assertEqual(s['accounts']['WHALE']['open_count'],1)
+  self.assertEqual(s['accounts']['WHALE']['closed_count'],0)
+ def test_category_change_does_not_force_exit(self):
+  s=mod.advance({},cohort({'WHALE':True}),feed('LONG'),'t0')
+  s=mod.advance(s,cohort({'WHALE':False}),feed('LONG'),'t1')
+  self.assertEqual(s['accounts']['WHALE']['open_count'],1)
+  s=mod.advance(s,cohort({'WHALE':False}),feed('FLAT'),'t2')
+  self.assertEqual(s['accounts']['WHALE']['open_count'],0)
+  self.assertEqual(s['accounts']['WHALE']['closed'][0]['reason'],'SOURCE_FLAT')
+ def test_closed_trade_audit_fields(self):
+  s=mod.advance({},cohort({'WHALE':True}),feed('LONG'),'t0')
+  s=mod.advance(s,cohort({'WHALE':True}),feed('FLAT'),'t1')
+  t=s['accounts']['WHALE']['closed'][0]
+  for k in ('entry_at','exit_at','entry_price','exit_price','notional_usd','pnl_usd','reason'):
+   self.assertIn(k,t)
+ def test_reject_live_flag(self):
+  with self.assertRaises(ValueError):mod.advance({},cohort({'WHALE':True}),{'paper_only':True,'real_trading_enabled':True,'btc_mid_usd':50000},'t0')
  def test_reject_nonpaper(self):
   with self.assertRaises(ValueError):mod.advance({},cohort({'WHALE':True}),{'paper_only':False,'btc_mid_usd':50000},'t0')
 if __name__=='__main__':unittest.main()
