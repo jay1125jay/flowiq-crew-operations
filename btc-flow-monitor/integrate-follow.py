@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
-"""Safely inject current-follow UI loader into BTC FLOW dashboard. Idempotent."""
+"""Keep exactly one current-follow UI loader in BTC FLOW dashboard."""
 from pathlib import Path
-p=Path(__file__).with_name('dashboard.html')
-s=p.read_text(encoding='utf-8')
-tag='<script src="./dashboard-follow.js?v=2"></script>'
-if tag in s:
-    print('DASHBOARD FOLLOW INTEGRATION PASS already-present')
+import re
+
+p = Path(__file__).with_name('dashboard.html')
+s = p.read_text(encoding='utf-8')
+tag = '<script src="./dashboard-follow.js?v=2"></script>'
+pattern = r'<script\s+src=["\']\./dashboard-follow\.js(?:\?[^"\']*)?["\']\s*>\s*</script>'
+
+# Remove every legacy/versioned loader, then add one canonical loader.
+clean = re.sub(pattern, '', s, flags=re.IGNORECASE)
+if '</body>' not in clean:
+    raise SystemExit('FAIL: </body> not found')
+clean = clean.replace('</body>', tag + '</body>', 1)
+
+count = len(re.findall(pattern, clean, flags=re.IGNORECASE))
+if count != 1:
+    raise SystemExit(f'FAIL: dashboard-follow loader count={count}')
+
+if clean != s:
+    p.write_text(clean, encoding='utf-8')
+    print('DASHBOARD FOLLOW INTEGRATION PASS normalized-to-one')
 else:
-    if '</body>' not in s: raise SystemExit('FAIL: </body> not found')
-    s=s.replace('</body>',tag+'</body>',1)
-    p.write_text(s,encoding='utf-8')
-    print('DASHBOARD FOLLOW INTEGRATION PASS injected')
+    print('DASHBOARD FOLLOW INTEGRATION PASS already-canonical')
