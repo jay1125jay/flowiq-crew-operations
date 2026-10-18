@@ -1079,7 +1079,7 @@
       "start_label": "14:00",
       "start_timestamp": 1792299600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "KIA vs LG",
       "home": "KIA",
       "away": "LG",
@@ -1116,7 +1116,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-KBL-S49G01N26",
@@ -1158,8 +1162,8 @@
       "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261018&toDate=20261018&tcodeList=all&seasonGrade=1",
       "venue": "잠실학생체육관",
       "score": {
-        "home": 0,
-        "away": 0
+        "home": 9,
+        "away": 10
       },
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
@@ -1214,8 +1218,8 @@
       "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261018&toDate=20261018&tcodeList=all&seasonGrade=1",
       "venue": "수원 KT 소닉붐 아레나",
       "score": {
-        "home": 0,
-        "away": 0
+        "home": 4,
+        "away": 9
       },
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
@@ -2787,7 +2791,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-18T14:05:17+09:00",
+      "updated_at": "2026-10-18T14:05:34+09:00",
       "summary": {
         "overall": {
           "picks": 18,
@@ -2925,7 +2929,7 @@
           "evaluation": {
             "winner_key": "DRAW",
             "hit": false,
-            "evaluated_at": "2026-10-18T14:05:17+09:00",
+            "evaluated_at": "2026-10-18T14:05:34+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-18"
           },
@@ -2937,7 +2941,7 @@
             "hit": false,
             "return_krw": 0,
             "profit_krw": -100000,
-            "settled_at": "2026-10-18T14:05:17+09:00"
+            "settled_at": "2026-10-18T14:05:34+09:00"
           }
         },
         {
@@ -2955,7 +2959,7 @@
           "evaluation": {
             "winner_key": "AWAY",
             "hit": true,
-            "evaluated_at": "2026-10-18T14:05:17+09:00",
+            "evaluated_at": "2026-10-18T14:05:34+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-18"
           },
@@ -2967,7 +2971,7 @@
             "hit": true,
             "return_krw": 183330,
             "profit_krw": 83330,
-            "settled_at": "2026-10-18T14:05:17+09:00"
+            "settled_at": "2026-10-18T14:05:34+09:00"
           }
         },
         {
@@ -2985,7 +2989,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-10-18T14:05:17+09:00",
+            "evaluated_at": "2026-10-18T14:05:34+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-18"
           },
@@ -2997,7 +3001,7 @@
             "hit": true,
             "return_krw": 152630,
             "profit_krw": 52630,
-            "settled_at": "2026-10-18T14:05:17+09:00"
+            "settled_at": "2026-10-18T14:05:34+09:00"
           }
         },
         {
@@ -3136,7 +3140,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-18T14:05:17+09:00",
+      "generated_at": "2026-10-18T14:05:34+09:00",
       "overall": {
         "observed": 102,
         "evaluated": 75,
@@ -3723,5 +3727,39 @@
     "errors": [],
     "updated_at": "2026-10-18T14:02:26.673997+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-18T14:05:27+09:00",
+    "polled_sports": [
+      "SOCCER",
+      "BASEBALL",
+      "BASKETBALL"
+    ],
+    "field_changes": 4,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 14,
+        "field_changes": 0,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "PASS",
+        "matched": 1,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KBO_OFFICIAL"
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 3,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
