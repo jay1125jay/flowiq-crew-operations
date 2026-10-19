@@ -63,7 +63,7 @@ jobs:
           assert feed.get('real_trading_enabled') is False, 'feed live flag'
           assert paper.get('paper_only') is True, 'paper PAPER flag'
           assert paper.get('real_trading_enabled') is False, 'paper live flag'
-          assert paper.get('schema_version') == 4, paper.get('schema_version')
+          assert paper.get('schema_version') == 5, paper.get('schema_version')
           assert paper.get('leverages') == [5,10]
           assert paper.get('account_count') == 12
           accounts=paper.get('accounts',{})
@@ -74,6 +74,7 @@ jobs:
           for key,a in accounts.items():
             assert key.endswith(('_5X','_10X')), key
             assert a.get('leverage') in (5,10), key
+            assert isinstance(a.get('pending_reversals',{}),dict), key
             for pos in a.get('positions',{}).values():
               assert pos.get('leverage') == a['leverage']
               assert pos.get('margin_usd') == 150.0
@@ -84,7 +85,7 @@ jobs:
           ts=datetime.datetime.fromisoformat(stamp.replace('Z','+00:00'))
           age=(datetime.datetime.now(datetime.timezone.utc)-ts).total_seconds()
           assert -60 <= age <= 180, f'feed stale age={age:.1f}s'
-          print(f'BTC FLOW VALIDATION PASS accounts=12 observed={feed.get("observed_wallet_count")} age={age:.1f}s')
+          print(f'BTC FLOW VALIDATION PASS schema=5 accounts=12 observed={feed.get("observed_wallet_count")} age={age:.1f}s')
           PY
       - name: Persist validated research state
         run: |
