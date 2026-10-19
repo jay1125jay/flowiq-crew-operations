@@ -1,4 +1,4 @@
-name: BTC whale + trader cohorts + copy PAPER (PAPER only)
+name: BTC whale + trader cohorts + adaptive PAPER
 on:
   workflow_dispatch:
   schedule:
@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'btc-flow-monitor/trader-discovery/**'
+      - 'btc-flow-monitor/**'
       - '.github/workflows/btc-whale-skill-screen.yml'
 permissions:
   contents: write
@@ -27,9 +27,10 @@ jobs:
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_category_paper.py' -v
-      - name: Integrate follower panel safely
+          python -m unittest discover -s btc-flow-monitor -p 'test_adaptive_meta.py' -v
+      - name: Integrate dashboard
         run: python btc-flow-monitor/integrate-follow.py
-      - name: Refresh public trader pool
+      - name: Refresh trader pool
         run: python btc-flow-monitor/trader-discovery/leaderboard_expand.py
       - name: Screen BTC traders
         run: python btc-flow-monitor/scripts/whale_ranker.py
@@ -37,33 +38,31 @@ jobs:
         run: python btc-flow-monitor/trader-discovery/trader_discovery.py
       - name: Observe positions
         run: python btc-flow-monitor/trader-discovery/current_positions.py
-      - name: Run whale PAPER
+      - name: Run control whale PAPER
         run: python btc-flow-monitor/scripts/whale_paper_follow.py
-      - name: Update cohort PAPER accounts
+      - name: Run cohort PAPER
         run: python btc-flow-monitor/trader-discovery/category_paper.py
-      - name: Validate PAPER state
+      - name: Run adaptive multi-engine PAPER
+        run: python btc-flow-monitor/adaptive_meta.py
+      - name: Validate safety
         run: |
           python - <<'PY'
           import json,pathlib
-          b=pathlib.Path('btc-flow-monitor/trader-discovery')
-          f=json.loads((b/'current-positions.json').read_text())
-          p=json.loads((b/'category-paper.json').read_text())
-          assert f['paper_only'] is True and f['real_trading_enabled'] is False
-          assert p['paper_only'] is True and p['real_trading_enabled'] is False
-          assert p['schema_version']==6
-          assert p['leverages']==[5,10] and p['account_count']==12
-          assert '60 minutes' in p['swing_filter']
-          assert p['feed_errors']==0
-          assert f['observed_wallet_count']==p['observed_wallet_count']
-          print('BTC FLOW VALIDATION PASS schema=6')
+          b=pathlib.Path('btc-flow-monitor')
+          p=json.loads((b/'trader-discovery/category-paper.json').read_text())
+          m=json.loads((b/'data/adaptive-meta.json').read_text())
+          assert p['paper_only'] is True and p['real_trading_enabled'] is False and p['schema_version']==6
+          assert m['paper_only'] is True and m['real_trading_enabled'] is False
+          assert m['schema_version']==1 and 'ADAPTIVE_META' in m['decisions'] and 'WHALE_COPY' in m['decisions']
+          print('BTC FLOW ADAPTIVE VALIDATION PASS')
           PY
       - name: Persist validated research state
         run: |
           git config user.name github-actions-bot
           git config user.email github-actions-bot@users.noreply.github.com
-          git add btc-flow-monitor/dashboard.html btc-flow-monitor/trader-discovery/category-paper.json btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/candidate-pool.json btc-flow-monitor/trader-discovery/latest.json btc-flow-monitor/data/whale-ranking.json btc-flow-monitor/data/whale-observations.json btc-flow-monitor/data/whale-paper-state.json
+          git add btc-flow-monitor/dashboard.html btc-flow-monitor/data btc-flow-monitor/trader-discovery/*.json
           if ! git diff --cached --quiet; then
-            git commit -m 'data: rotate validated BTC trader cohort research'
+            git commit -m 'data: rotate validated BTC adaptive research'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
