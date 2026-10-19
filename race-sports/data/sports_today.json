@@ -1146,7 +1146,7 @@
       "start_label": "19:00",
       "start_timestamp": 1792404000,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "원주 DB vs 대구 한국가스공사",
       "home": "원주 DB",
       "away": "대구 한국가스공사",
@@ -1172,10 +1172,6 @@
       "data_state": "FRESH",
       "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261019&toDate=20261019&tcodeList=all&seasonGrade=1",
       "venue": "원주DB프로미아레나",
-      "score": {
-        "home": 94,
-        "away": 55
-      },
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1187,7 +1183,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 104,
+        "away_score": 78,
+        "winner_key": "HOME",
+        "source": "KBL_OFFICIAL",
+        "updated_at": "2026-10-19T23:36:19.865826+09:00"
+      }
     }
   ],
   "integrity": {
@@ -1362,7 +1367,7 @@
     "rejected_reason_counts": {},
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-19T20:11:48+09:00",
+      "updated_at": "2026-10-19T23:36:22+09:00",
       "summary": {
         "overall": {
           "picks": 18,
@@ -1725,18 +1730,18 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-19T20:11:48+09:00",
+      "generated_at": "2026-10-19T23:36:22+09:00",
       "overall": {
         "observed": 103,
-        "evaluated": 80,
-        "pending": 23,
+        "evaluated": 81,
+        "pending": 22,
         "hits": 41,
-        "misses": 39,
-        "hit_rate": 0.5125,
-        "mean_model_p": 0.583175,
-        "calibration_gap": -0.070675,
-        "wilson95_lower": 0.404933,
-        "wilson95_upper": 0.618921
+        "misses": 40,
+        "hit_rate": 0.506173,
+        "mean_model_p": 0.582447,
+        "calibration_gap": -0.076274,
+        "wilson95_lower": 0.399508,
+        "wilson95_upper": 0.612279
       },
       "bins": {
         "UNDER_50": {
@@ -1753,15 +1758,15 @@
         },
         "50_55": {
           "observed": 25,
-          "evaluated": 18,
-          "pending": 7,
+          "evaluated": 19,
+          "pending": 6,
           "hits": 11,
-          "misses": 7,
-          "hit_rate": 0.611111,
-          "mean_model_p": 0.520775,
-          "calibration_gap": 0.090337,
-          "wilson95_lower": 0.38619,
-          "wilson95_upper": 0.796948
+          "misses": 8,
+          "hit_rate": 0.578947,
+          "mean_model_p": 0.520958,
+          "calibration_gap": 0.057989,
+          "wilson95_lower": 0.362759,
+          "wilson95_upper": 0.768581
         },
         "55_60": {
           "observed": 15,
@@ -2028,15 +2033,15 @@
         "BASKETBALL": {
           "overall": {
             "observed": 42,
-            "evaluated": 39,
-            "pending": 3,
+            "evaluated": 40,
+            "pending": 2,
             "hits": 15,
-            "misses": 24,
-            "hit_rate": 0.384615,
-            "mean_model_p": 0.648343,
-            "calibration_gap": -0.263728,
-            "wilson95_lower": 0.248914,
-            "wilson95_upper": 0.541009
+            "misses": 25,
+            "hit_rate": 0.375,
+            "mean_model_p": 0.645241,
+            "calibration_gap": -0.270241,
+            "wilson95_lower": 0.24223,
+            "wilson95_upper": 0.529676
           },
           "bins": {
             "UNDER_50": {
@@ -2053,15 +2058,15 @@
             },
             "50_55": {
               "observed": 8,
-              "evaluated": 7,
-              "pending": 1,
+              "evaluated": 8,
+              "pending": 0,
               "hits": 2,
-              "misses": 5,
-              "hit_rate": 0.285714,
-              "mean_model_p": 0.516083,
-              "calibration_gap": -0.230369,
-              "wilson95_lower": 0.082219,
-              "wilson95_upper": 0.641066
+              "misses": 6,
+              "hit_rate": 0.25,
+              "mean_model_p": 0.517106,
+              "calibration_gap": -0.267106,
+              "wilson95_lower": 0.071479,
+              "wilson95_upper": 0.590725
             },
             "55_60": {
               "observed": 7,
@@ -2293,5 +2298,23 @@
     "errors": [],
     "updated_at": "2026-10-19T20:38:57.040745+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-19T23:36:19+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 3,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 1,
+        "field_changes": 3,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
