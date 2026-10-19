@@ -144,7 +144,7 @@
       "start_label": "01:30",
       "start_timestamp": 1792427400,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Monza vs Cagliari",
       "home": "Monza",
       "away": "Cagliari",
@@ -196,10 +196,6 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20261019",
-      "score": {
-        "home": 4,
-        "away": 0
-      },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
@@ -217,7 +213,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 4,
+        "away_score": 0,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-20T05:12:43.704043+09:00"
+      }
     },
     {
       "id": "SPORTS-SOCCER-401874784",
@@ -232,7 +237,7 @@
       "start_label": "03:45",
       "start_timestamp": 1792435500,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Parma vs Torino",
       "home": "Parma",
       "away": "Torino",
@@ -303,7 +308,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 3
+      }
     },
     {
       "id": "SPORTS-SOCCER-401879257",
@@ -318,7 +327,7 @@
       "start_label": "04:00",
       "start_timestamp": 1792436400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Tottenham Hotspur vs Coventry City",
       "home": "Tottenham Hotspur",
       "away": "Coventry City",
@@ -387,7 +396,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 1,
+        "away": 1
+      }
     },
     {
       "id": "SPORTS-SOCCER-401882842",
@@ -402,7 +415,7 @@
       "start_label": "04:00",
       "start_timestamp": 1792436400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Getafe vs Rayo Vallecano",
       "home": "Getafe",
       "away": "Rayo Vallecano",
@@ -473,7 +486,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 1
+      }
     },
     {
       "id": "SPORTS-BASEBALL-401908028",
@@ -970,7 +987,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-20T02:44:43+09:00",
+      "updated_at": "2026-10-20T05:12:48+09:00",
       "summary": {
         "overall": {
           "picks": 18,
@@ -1333,7 +1350,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-20T02:44:43+09:00",
+      "generated_at": "2026-10-20T05:12:48+09:00",
       "overall": {
         "observed": 108,
         "evaluated": 81,
@@ -1920,5 +1937,23 @@
     "errors": [],
     "updated_at": "2026-10-20T03:10:28.199785+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-20T05:12:43+09:00",
+    "polled_sports": [
+      "SOCCER"
+    ],
+    "field_changes": 9,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 4,
+        "field_changes": 9,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
