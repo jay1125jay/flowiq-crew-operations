@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY scheduler.py /app/scheduler.py
+USER 65534:65534
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 BTC_SCHEDULER_ENABLED=false PAPER_ONLY=true REAL_TRADING=false
+CMD ["python", "scheduler.py"]
