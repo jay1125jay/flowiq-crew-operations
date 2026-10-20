@@ -2,7 +2,7 @@ name: BTC whale + trader cohorts + adaptive PAPER
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '2-59/5 * * * *'
   push:
     branches: [main]
     paths:
@@ -58,3 +58,29 @@ jobs:
           git config user.email github-actions-bot@users.noreply.github.com
           git add btc-flow-monitor/dashboard.html btc-flow-monitor/data/*.json btc-flow-monitor/trader-discovery/*.json
           python btc-flow-monitor/persist_research.py
+
+  dashboard_check:
+    needs: screen_and_simulate
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.51.0
+          python -m playwright install --with-deps chromium
+      - name: Verify desktop and mobile dashboard
+        run: python btc-flow-monitor/verify_dashboard.py
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-dashboard-browser-evidence
+          path: btc-flow-monitor/browser-evidence/
+          retention-days: 7

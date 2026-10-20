@@ -236,6 +236,20 @@ def validate_inputs(coh, feed, market, rank, now):
     return price
 
 
+
+def continuity(history, observation):
+    times = sorted(set(x['at'] for x in history if x.get('at')) | {observation}, key=stamp)
+    gaps = [(stamp(b)-stamp(a)).total_seconds() for a,b in zip(times,times[1:])]
+    recent = gaps[-3:]
+    return dict(target_interval_seconds=300, tolerance_seconds=900,
+        last_gap_seconds=gaps[-1] if gaps else None,
+        max_gap_seconds=max(gaps, default=0),
+        gap_count=sum(g > 900 for g in gaps),
+        approximate_missed_intervals=sum(max(0, int(g//300)-1) for g in gaps if g > 900),
+        status='WARMUP' if not gaps else 'GAPPED' if any(g > 900 for g in recent) else 'OBSERVED_OK',
+        window_observations=len(times),
+        note='Observed intervals only; GitHub cron is not a guaranteed five-minute clock.')
+
 def advance(state, coh, feed, now, deriv=None, rank=None):
     market = deriv or {}
     rank = rank or {}
@@ -247,6 +261,7 @@ def advance(state, coh, feed, now, deriv=None, rank=None):
         if stamp(observation) < stamp(state['last_observation_at']):
             raise ValueError('out-of-order observation')
     state = migrate(copy.deepcopy(state), observation)
+    cadence = continuity(state.get('history', []), observation)
     structure, regime = market_structure(market['candles'])
     smart = cohort_score(coh, feed, now)
     prior_market = state.get('previous_market', {})
@@ -314,7 +329,7 @@ def advance(state, coh, feed, now, deriv=None, rank=None):
         paper_rules=dict(starting_equity_usd=START, max_notional_usd=NOTIONAL,
             max_equity_exposure=.5, leverage=1, fee_rate=FEE, slippage_rate=SLIP,
             funding_model='PREVIOUS_OBSERVED_HOURLY_RATE_ESTIMATE', entry_threshold=ENTRY_THRESHOLD),
-        profitability='UNPROVEN', data_quality=dict(feed_errors=0, source_at=observation,
+        profitability='UNPROVEN', data_quality=dict(feed_errors=0, source_at=observation, continuity=cadence,
             unavailable=['market_wide_liquidations','market_wide_long_short_ratio']),
         control='Original whale-paper-state.json preserved. WHALE_COPY uses the same top-3 baseline/change rules with normalized common exposure.',
         limitations=['Sampled execution and liquidation; intrainterval moves are not observed.',

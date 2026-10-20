@@ -99,6 +99,21 @@ class PaperTests(unittest.TestCase):
     def test_sampled_liquidation_does_not_reenter(self):
         s=run(side='SHORT');s=run(s,1,'SHORT',200000)
         a=s['accounts']['SMART_MONEY'];self.assertEqual(a['liquidations'],1);self.assertFalse(a['positions'])
+    def test_continuity_detects_hours_of_missing_observations(self):
+        s=run();s=run(s,48)
+        c=s['data_quality']['continuity']
+        self.assertEqual(c['status'],'GAPPED')
+        self.assertEqual(c['last_gap_seconds'],14400)
+        self.assertEqual(c['gap_count'],1)
+        self.assertEqual(c['approximate_missed_intervals'],47)
+    def test_continuity_recovers_after_three_timely_intervals(self):
+        s=run();s=run(s,48)
+        for i in (49,50,51):s=run(s,i)
+        c=s['data_quality']['continuity']
+        self.assertEqual(c['status'],'OBSERVED_OK')
+        self.assertEqual(c['gap_count'],1)
+    def test_duplicate_does_not_create_cadence_sample(self):
+        s=run();self.assertEqual(run(s)['data_quality']['continuity']['window_observations'],1)
     def test_serializable_finite_output(self):
         json.dumps(run(),allow_nan=False)
 
