@@ -20,8 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+        with: {python-version: '3.12'}
       - name: Verify PAPER engines offline
         run: |
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
@@ -42,19 +41,19 @@ jobs:
         run: python btc-flow-monitor/scripts/whale_paper_follow.py
       - name: Run cohort PAPER
         run: python btc-flow-monitor/trader-discovery/category_paper.py
-      - name: Run adaptive multi-engine PAPER
+      - name: Run adaptive PAPER competition
         run: python btc-flow-monitor/adaptive_meta.py
-      - name: Validate safety
+      - name: Validate safety and competition
         run: |
           python - <<'PY'
           import json,pathlib
-          b=pathlib.Path('btc-flow-monitor')
-          p=json.loads((b/'trader-discovery/category-paper.json').read_text())
-          m=json.loads((b/'data/adaptive-meta.json').read_text())
+          b=pathlib.Path('btc-flow-monitor');p=json.loads((b/'trader-discovery/category-paper.json').read_text());m=json.loads((b/'data/adaptive-meta.json').read_text())
           assert p['paper_only'] is True and p['real_trading_enabled'] is False and p['schema_version']==6
-          assert m['paper_only'] is True and m['real_trading_enabled'] is False
-          assert m['schema_version']==1 and 'ADAPTIVE_META' in m['decisions'] and 'WHALE_COPY' in m['decisions']
-          print('BTC FLOW ADAPTIVE VALIDATION PASS')
+          assert m['paper_only'] is True and m['real_trading_enabled'] is False and m['schema_version']==2
+          expected={'WHALE_COPY','SMART_MONEY','MARKET_STRUCTURE','DERIVATIVES','FIXED_ENSEMBLE','ADAPTIVE_META'}
+          assert set(m['accounts'])==expected and set(m['decisions'])==expected and len(m['leaderboard'])==6
+          assert m['paper_rules']['starting_equity_usd']==1000.0 and m['paper_rules']['notional_usd']==500.0
+          print('BTC FLOW ADAPTIVE COMPETITION VALIDATION PASS schema=2 accounts=6')
           PY
       - name: Persist validated research state
         run: |
