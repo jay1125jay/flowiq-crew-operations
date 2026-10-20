@@ -30,7 +30,7 @@
     },
     "SMART_MONEY": {
       "starting_equity_usd": 1000.0,
-      "cash": 999.75,
+      "cash": 999.7546716556325,
       "positions": {
         "BTC": {
           "side": "SHORT",
@@ -40,19 +40,19 @@
           "entry_fee": 0.25,
           "entry_at": "2026-10-20T09:15:42.939222+00:00",
           "regime": "RANGE",
-          "funding_usd": 0.0
+          "funding_usd": -0.0046716556325293234
         }
       },
       "closed": [],
       "peak": 1000.0,
-      "mdd_pct": 0.08002400720215519,
+      "mdd_pct": 0.15706568114349012,
       "fees_usd": 0.25,
-      "funding_usd": 0.0,
+      "funding_usd": -0.0046716556325293234,
       "liquidations": 0,
-      "equity_usd": 999.1997599279784,
-      "net_pnl_usd": -0.8002400720215519,
-      "return_pct": -0.08002400720215075,
-      "unrealized_pnl_usd": -0.8002400720216053,
+      "equity_usd": 998.4293431885651,
+      "net_pnl_usd": -1.570656811434901,
+      "return_pct": -0.15706568114348674,
+      "unrealized_pnl_usd": -1.570656811434826,
       "closed_count": 0,
       "expectancy_usd": 0.0,
       "profit_factor": null,
@@ -60,7 +60,7 @@
       "win_rate_pct": null,
       "average_win_usd": 0.0,
       "average_loss_usd": 0.0,
-      "return_drawdown_ratio": -0.9999999999999445,
+      "return_drawdown_ratio": -0.9999999999999785,
       "regime_performance": {}
     },
     "MARKET_STRUCTURE": {
@@ -113,38 +113,54 @@
     },
     "FIXED_ENSEMBLE": {
       "starting_equity_usd": 1000.0,
-      "cash": 999.75,
-      "positions": {
-        "BTC": {
+      "cash": 998.4293431885651,
+      "positions": {},
+      "closed": [
+        {
+          "source": "BTC",
           "side": "SHORT",
-          "entry_price": 81346.08885,
-          "qty": 0.00614657701517754,
-          "notional_usd": 500.0,
-          "entry_fee": 0.25,
           "entry_at": "2026-10-20T09:15:42.939222+00:00",
+          "exit_at": "2026-10-20T10:00:28.846550+00:00",
+          "entry_price": 81346.08885,
+          "exit_price": 81520.94894999999,
+          "qty": 0.00614657701517754,
+          "entry_fee": 0.25,
+          "exit_fee": 0.25053739553576576,
+          "funding_usd": -0.0046716556325293234,
+          "pnl_usd": -1.570656811434826,
           "regime": "RANGE",
-          "funding_usd": 0.0
+          "reason": "SIGNAL_CHANGE"
         }
-      },
-      "closed": [],
+      ],
       "peak": 1000.0,
-      "mdd_pct": 0.08002400720215519,
-      "fees_usd": 0.25,
-      "funding_usd": 0.0,
+      "mdd_pct": 0.15706568114349012,
+      "fees_usd": 0.5005373955357657,
+      "funding_usd": -0.0046716556325293234,
       "liquidations": 0,
-      "equity_usd": 999.1997599279784,
-      "net_pnl_usd": -0.8002400720215519,
-      "return_pct": -0.08002400720215075,
-      "unrealized_pnl_usd": -0.8002400720216053,
-      "closed_count": 0,
-      "expectancy_usd": 0.0,
-      "profit_factor": null,
-      "profit_factor_status": "NO_TRADES",
-      "win_rate_pct": null,
+      "equity_usd": 998.4293431885651,
+      "net_pnl_usd": -1.570656811434901,
+      "return_pct": -0.15706568114348674,
+      "unrealized_pnl_usd": 0,
+      "closed_count": 1,
+      "expectancy_usd": -1.570656811434826,
+      "profit_factor": 0.0,
+      "profit_factor_status": "FINITE",
+      "win_rate_pct": 0.0,
       "average_win_usd": 0.0,
-      "average_loss_usd": 0.0,
-      "return_drawdown_ratio": -0.9999999999999445,
-      "regime_performance": {}
+      "average_loss_usd": -1.570656811434826,
+      "return_drawdown_ratio": -0.9999999999999785,
+      "regime_performance": {
+        "RANGE": {
+          "n": 1,
+          "expectancy": -1.570656811434826,
+          "net": -1.570656811434826,
+          "pf": 0.0,
+          "pf_status": "FINITE",
+          "win_rate": 0.0,
+          "average_win": 0.0,
+          "average_loss": -1.570656811434826
+        }
+      }
     },
     "ADAPTIVE_META": {
       "starting_equity_usd": 1000.0,
@@ -254,6 +270,11 @@
       "at": "2026-10-20T09:15:42.939222+00:00",
       "price": 81370.5,
       "regime": "RANGE"
+    },
+    {
+      "at": "2026-10-20T10:00:28.846550+00:00",
+      "price": 81496.5,
+      "regime": "RANGE"
     }
   ],
   "engine_weights": {
@@ -266,9 +287,9 @@
     "MARKET_STRUCTURE": 0,
     "DERIVATIVES": 0
   },
-  "updated_at": "2026-10-20T09:15:43.438297+00:00",
-  "last_observation_at": "2026-10-20T09:15:42.939222+00:00",
-  "btc_mid_usd": 81370.5,
+  "updated_at": "2026-10-20T10:00:29.289519+00:00",
+  "last_observation_at": "2026-10-20T10:00:28.846550+00:00",
+  "btc_mid_usd": 81496.5,
   "regime": "RANGE",
   "decisions": {
     "SMART_MONEY": {
@@ -278,40 +299,40 @@
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "MARKET_STRUCTURE": {
-      "score": -0.10635030055652306,
+      "score": 0.05210015110034237,
       "signal": "WAIT",
-      "confidence": 10.635030055652306,
+      "confidence": 5.210015110034237,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "DERIVATIVES": {
-      "score": -0.031209373373756257,
+      "score": -0.03795873851983178,
       "signal": "WAIT",
-      "confidence": 3.1209373373756257,
+      "confidence": 3.795873851983178,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "FIXED_ENSEMBLE": {
-      "score": -0.16637858565178423,
-      "signal": "SHORT",
-      "confidence": 16.637858565178423,
+      "score": -0.10434827801825315,
+      "signal": "WAIT",
+      "confidence": 10.434827801825316,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "ADAPTIVE_META": {
-      "score": -0.14385038360544622,
+      "score": -0.09328335476851625,
       "signal": "WAIT",
-      "confidence": 14.385038360544621,
+      "confidence": 9.328335476851626,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "WHALE_COPY": {
-      "score": -1.0,
-      "signal": "SHORT",
-      "confidence": 100.0,
+      "score": 0.0,
+      "signal": "WAIT",
+      "confidence": 0.0,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     }
   },
   "previous_market": {
     "funding_rate": 1.25e-05,
-    "open_interest_btc": 40464.95654,
-    "reference_price": 81390.5
+    "open_interest_btc": 40407.88156,
+    "reference_price": 81469.5
   },
   "paper_rules": {
     "starting_equity_usd": 1000.0,
@@ -326,7 +347,7 @@
   "profitability": "UNPROVEN",
   "data_quality": {
     "feed_errors": 0,
-    "source_at": "2026-10-20T09:15:42.939222+00:00",
+    "source_at": "2026-10-20T10:00:28.846550+00:00",
     "unavailable": [
       "market_wide_liquidations",
       "market_wide_long_short_ratio"
@@ -377,21 +398,21 @@
     },
     {
       "engine": "SMART_MONEY",
-      "equity_usd": 999.1997599279784,
-      "net_pnl_usd": -0.8002400720215519,
+      "equity_usd": 998.4293431885651,
+      "net_pnl_usd": -1.570656811434901,
       "profit_factor": null,
-      "mdd_pct": 0.08002400720215519,
+      "mdd_pct": 0.15706568114349012,
       "closed_count": 0,
       "expectancy_usd": 0.0
     },
     {
       "engine": "FIXED_ENSEMBLE",
-      "equity_usd": 999.1997599279784,
-      "net_pnl_usd": -0.8002400720215519,
-      "profit_factor": null,
-      "mdd_pct": 0.08002400720215519,
-      "closed_count": 0,
-      "expectancy_usd": 0.0
+      "equity_usd": 998.4293431885651,
+      "net_pnl_usd": -1.570656811434901,
+      "profit_factor": 0.0,
+      "mdd_pct": 0.15706568114349012,
+      "closed_count": 1,
+      "expectancy_usd": -1.570656811434826
     }
   ]
 }
