@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Observe current BTC direction for every classified trader. Public Hyperliquid data; PAPER only."""
-import datetime as dt,json,pathlib,time,urllib.request
+import datetime as dt,json,pathlib,time,urllib.request,urllib.error
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 COHORT=ROOT/'trader-discovery/latest.json'; OUT=ROOT/'trader-discovery/current-positions.json'
 API='https://api.hyperliquid.xyz/info'
 def api(payload):
  req=urllib.request.Request(API,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json','User-Agent':'BTC-Flow-Paper-Research/2.0'},method='POST')
- with urllib.request.urlopen(req,timeout=25) as r:return json.load(r)
+ for attempt in range(3):
+  try:
+   with urllib.request.urlopen(req,timeout=15) as r:return json.load(r)
+  except (urllib.error.URLError, TimeoutError):
+   if attempt==2:raise
+   time.sleep(2**attempt)
 def btc(state):
  for x in state.get('assetPositions',[]):
   p=x.get('position',{})

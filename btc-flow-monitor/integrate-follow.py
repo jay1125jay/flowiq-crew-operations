@@ -5,11 +5,12 @@ import re
 
 p = Path(__file__).with_name('dashboard.html')
 s = p.read_text(encoding='utf-8')
-tag = '<script src="./dashboard-follow.js?v=2"></script>'
+tag = '<script src="./dashboard-follow.js?v=2"></script><script src="./dashboard-adaptive.js?v=3"></script>'
 pattern = r'<script\s+src=["\']\./dashboard-follow\.js(?:\?[^"\']*)?["\']\s*>\s*</script>'
 
 # Remove every legacy/versioned loader, then add one canonical loader.
 clean = re.sub(pattern, '', s, flags=re.IGNORECASE)
+clean = re.sub(r'<script\s+src=[\"\']\./dashboard-adaptive\.js(?:\?[^\"\']*)?[\"\']\s*>\s*</script>', '', clean, flags=re.IGNORECASE)
 if '</body>' not in clean:
     raise SystemExit('FAIL: </body> not found')
 clean = clean.replace('</body>', tag + '</body>', 1)

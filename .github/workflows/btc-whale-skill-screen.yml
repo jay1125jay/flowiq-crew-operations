@@ -19,6 +19,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - name: Verify PAPER engines offline
@@ -26,7 +29,7 @@ jobs:
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_category_paper.py' -v
-          python -m unittest discover -s btc-flow-monitor -p 'test_adaptive_meta.py' -v
+          python -m unittest discover -s btc-flow-monitor -p 'test_*.py' -v
       - name: Integrate dashboard
         run: python btc-flow-monitor/integrate-follow.py
       - name: Refresh trader pool
@@ -35,8 +38,12 @@ jobs:
         run: python btc-flow-monitor/scripts/whale_ranker.py
       - name: Classify cohorts
         run: python btc-flow-monitor/trader-discovery/trader_discovery.py
+      - name: Collect public derivatives and closed candles
+        run: python btc-flow-monitor/collect_adaptive_market.py
       - name: Observe positions
         run: python btc-flow-monitor/trader-discovery/current_positions.py
+      - name: Validate input freshness and complete feeds
+        run: python btc-flow-monitor/validate_research.py
       - name: Run control whale PAPER
         run: python btc-flow-monitor/scripts/whale_paper_follow.py
       - name: Run cohort PAPER
@@ -44,24 +51,10 @@ jobs:
       - name: Run adaptive PAPER competition
         run: python btc-flow-monitor/adaptive_meta.py
       - name: Validate safety and competition
-        run: |
-          python - <<'PY'
-          import json,pathlib
-          b=pathlib.Path('btc-flow-monitor');p=json.loads((b/'trader-discovery/category-paper.json').read_text());m=json.loads((b/'data/adaptive-meta.json').read_text())
-          assert p['paper_only'] is True and p['real_trading_enabled'] is False and p['schema_version']==6
-          assert m['paper_only'] is True and m['real_trading_enabled'] is False and m['schema_version']==2
-          expected={'WHALE_COPY','SMART_MONEY','MARKET_STRUCTURE','DERIVATIVES','FIXED_ENSEMBLE','ADAPTIVE_META'}
-          assert set(m['accounts'])==expected and set(m['decisions'])==expected and len(m['leaderboard'])==6
-          assert m['paper_rules']['starting_equity_usd']==1000.0 and m['paper_rules']['notional_usd']==500.0
-          print('BTC FLOW ADAPTIVE COMPETITION VALIDATION PASS schema=2 accounts=6')
-          PY
+        run: python btc-flow-monitor/validate_research.py --outputs
       - name: Persist validated research state
         run: |
           git config user.name github-actions-bot
           git config user.email github-actions-bot@users.noreply.github.com
-          git add btc-flow-monitor/dashboard.html btc-flow-monitor/data btc-flow-monitor/trader-discovery/*.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'data: rotate validated BTC adaptive research'
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
+          git add btc-flow-monitor/dashboard.html btc-flow-monitor/data/*.json btc-flow-monitor/trader-discovery/*.json
+          python btc-flow-monitor/persist_research.py
