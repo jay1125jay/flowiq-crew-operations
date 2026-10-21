@@ -1268,7 +1268,7 @@
       "start_label": "20:10",
       "start_timestamp": 1792581000,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "TSG 고스트호크스 vs 고양소노",
       "home": "TSG 고스트호크스",
       "away": "고양소노",
@@ -1292,10 +1292,6 @@
       "data_state": "FRESH",
       "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261021&toDate=20261021&tcodeList=all&seasonGrade=1",
       "venue": "펑산 체육관",
-      "score": {
-        "home": 0,
-        "away": 0
-      },
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1307,7 +1303,16 @@
         "min_team_games": 5
       },
       "model_validated": false,
-      "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+      "model_state": "INSUFFICIENT_LEAGUE_HISTORY",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 94,
+        "away_score": 99,
+        "winner_key": "AWAY",
+        "source": "KBL_OFFICIAL",
+        "updated_at": "2026-10-21T23:42:29.332895+09:00"
+      }
     }
   ],
   "integrity": {
@@ -1539,7 +1544,7 @@
     "rejected_reason_counts": {},
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-21T22:11:17+09:00",
+      "updated_at": "2026-10-21T23:42:32+09:00",
       "summary": {
         "overall": {
           "picks": 19,
@@ -1677,7 +1682,7 @@
           "evaluation": {
             "winner_key": "AWAY",
             "hit": false,
-            "evaluated_at": "2026-10-21T22:11:17+09:00",
+            "evaluated_at": "2026-10-21T23:42:32+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-10-21"
           },
@@ -1689,7 +1694,7 @@
             "hit": false,
             "return_krw": 0,
             "profit_krw": -100000,
-            "settled_at": "2026-10-21T22:11:17+09:00"
+            "settled_at": "2026-10-21T23:42:32+09:00"
           }
         },
         {
@@ -1902,7 +1907,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-21T22:11:17+09:00",
+      "generated_at": "2026-10-21T23:42:32+09:00",
       "overall": {
         "observed": 119,
         "evaluated": 97,
@@ -2469,5 +2474,23 @@
     "errors": [],
     "updated_at": "2026-10-21T22:08:46.217163+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-21T23:42:28+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 3,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 1,
+        "field_changes": 3,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
