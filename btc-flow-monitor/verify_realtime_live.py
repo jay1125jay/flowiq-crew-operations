@@ -1,5 +1,6 @@
 """Bounded public-feed smoke test. Disposable accounts, never production state."""
 import argparse
+from contextlib import closing
 import asyncio
 import json
 from pathlib import Path
@@ -32,7 +33,7 @@ async def main():
             except Exception:
                 pass
         await task
-        with sqlite3.connect(Path(directory)/'paper.sqlite') as db:
+        with closing(sqlite3.connect(Path(directory)/'paper.sqlite')) as db:
             row=db.execute('SELECT body FROM state WHERE id=1').fetchone()
         state=json.loads(row[0]) if row else {}
         summary=dict(paper_only=True,real_trading_enabled=False,mode='DISPOSABLE_LIVE_SMOKE',
