@@ -1,0 +1,13 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTC FLOW · 실시간 모의거래</title>
+<style>body{margin:0;background:#0b1220;color:#e2e8f0;font:15px system-ui}main{max-width:1200px;margin:auto;padding:24px}h1{font-size:25px}.tag{color:#71dec0}#status{padding:18px;background:#182338;border-radius:12px;margin:20px 0}small{color:#a6b5cd}.scroll{overflow:auto}table{border-collapse:collapse;min-width:900px;width:100%}th,td{text-align:right;border-bottom:1px solid #26354b;padding:14px 10px}th:first-child,td:first-child{text-align:left}th{color:#94a3b8}footer{margin-top:24px;line-height:1.8}</style>
+<main><span class="tag">PAPER ONLY · 모의거래 전용</span><h1>BTC FLOW · 실시간 엔진 비교</h1><small>별도 실시간 실험 계좌 · 초기자본 각 $1,000 · 수익성 미검증</small><div id="status" role="status">연결 대기 · WAIT</div><div class="scroll"><table><thead><tr><th>엔진</th><th>신호</th><th>신호강도</th><th>자산 $</th><th>순손익 $</th><th>수익계수</th><th>최대낙폭 %</th><th>승률 %</th><th>청산 거래수</th></tr></thead><tbody id="rows"></tbody></table></div><footer><small>판단 목표: 1초 · 고래/파생 데이터 수집 목표: 60초 · 가격 수신이 5초 이상 지연되면 거래 중단.<br>신호강도는 승률이 아닙니다. 거래비용과 가상 체결을 반영하며, 기존 GitHub 계좌 기록과 합산하지 않습니다.</small></footer></main>
+<script>
+const labels={WHALE_COPY:'고래 추종',SMART_MONEY:'우수 트레이더',MARKET_STRUCTURE:'시장 구조',DERIVATIVES:'파생시장',FIXED_ENSEMBLE:'고정 조합',ADAPTIVE_META:'적응형 메타'};
+const num=v=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(2):'—';
+const date=v=>v?new Date(v).toLocaleTimeString('ko-KR'):'—';
+async function refresh(){try{const r=await fetch('/api/status',{cache:'no-store',signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error('http');const d=await r.json();const healthy=d.healthy&&d.updated_at&&Date.now()-Date.parse(d.updated_at)<6000;
+document.getElementById('status').textContent=(healthy?'정상 수신':'거래 대기')+' · '+d.status+' | 가격: '+date(d.quote_at)+' | 고래/파생: '+date(d.source_at)+' | 재접속: '+(d.reconnects||0);
+const body=document.getElementById('rows');body.replaceChildren();for(const x of d.rows||[]){const tr=document.createElement('tr');for(const value of [labels[x.engine]||x.engine,healthy?({LONG:'매수 방향',SHORT:'매도 방향',WAIT:'관망'}[x.signal]||'관망'):'관망',healthy?num(x.confidence):'—',num(x.equity_usd),num(x.net_pnl_usd),num(x.profit_factor),num(x.mdd_pct),num(x.win_rate_pct),x.closed_count??'—']){const td=document.createElement('td');td.textContent=value;tr.append(td);}body.append(tr);}}
+catch(e){document.getElementById('status').textContent='연결 끊김 · 거래 상태 확인 불가';document.getElementById('rows').replaceChildren();}finally{setTimeout(refresh,1000);}}
+refresh();
+</script></html>

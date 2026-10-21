@@ -250,11 +250,20 @@ def continuity(history, observation):
         window_observations=len(times),
         note='Observed intervals only; GitHub cron is not a guaranteed five-minute clock.')
 
-def advance(state, coh, feed, now, deriv=None, rank=None):
+def advance(state, coh, feed, now, deriv=None, rank=None, *, execution=None, signal_baseline=None):
     market = deriv or {}
     rank = rank or {}
     price = validate_inputs(coh, feed, market, rank, now)
     observation = feed['generated_at']
+    if execution is not None:
+        # Source timestamps stay intact; execution has its own clock and price.
+        fresh(execution['at'], now, 2)
+        price = number(execution['price'])
+        if not 1000 < price < 1000000:
+            raise ValueError('invalid execution price')
+        if abs(price / number(feed['btc_mid_usd']) - 1) > .05:
+            raise ValueError('execution/source price mismatch')
+        observation = execution['at']
     if state.get('last_observation_at'):
         if stamp(observation) == stamp(state['last_observation_at']):
             return state
@@ -265,7 +274,7 @@ def advance(state, coh, feed, now, deriv=None, rank=None):
     structure, regime = market_structure(market['candles'])
     smart = cohort_score(coh, feed, now)
     prior_market = state.get('previous_market', {})
-    ds = derivatives(market, prior_market)
+    ds = derivatives(market, prior_market if signal_baseline is None else signal_baseline)
     raw = dict(SMART_MONEY=smart, MARKET_STRUCTURE=structure, DERIVATIVES=ds)
     raw['FIXED_ENSEMBLE'] = .4*smart+.4*structure+.2*ds
     # Freeze weights between new completed trades; step <= 0.01 per update.
@@ -329,7 +338,7 @@ def advance(state, coh, feed, now, deriv=None, rank=None):
         paper_rules=dict(starting_equity_usd=START, max_notional_usd=NOTIONAL,
             max_equity_exposure=.5, leverage=1, fee_rate=FEE, slippage_rate=SLIP,
             funding_model='PREVIOUS_OBSERVED_HOURLY_RATE_ESTIMATE', entry_threshold=ENTRY_THRESHOLD),
-        profitability='UNPROVEN', data_quality=dict(feed_errors=0, source_at=observation, continuity=cadence,
+        profitability='UNPROVEN', data_quality=dict(feed_errors=0, source_at=feed['generated_at'], continuity=cadence,
             unavailable=['market_wide_liquidations','market_wide_long_short_ratio']),
         control='Original whale-paper-state.json preserved. WHALE_COPY uses the same top-3 baseline/change rules with normalized common exposure.',
         limitations=['Sampled execution and liquidation; intrainterval moves are not observed.',
