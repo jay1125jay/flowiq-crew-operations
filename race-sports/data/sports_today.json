@@ -138,7 +138,7 @@
       "start_label": "01:45",
       "start_timestamp": 1792601100,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Como vs Manchester United",
       "home": "Como",
       "away": "Manchester United",
@@ -188,10 +188,6 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20261021",
-      "score": {
-        "home": 3,
-        "away": 0
-      },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
@@ -210,7 +206,16 @@
         "min_team_games": 5
       },
       "model_validated": false,
-      "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+      "model_state": "INSUFFICIENT_LEAGUE_HISTORY",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 4,
+        "away_score": 1,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-22T03:58:58.748373+09:00"
+      }
     },
     {
       "id": "SPORTS-SOCCER-401915396",
@@ -225,7 +230,7 @@
       "start_label": "01:45",
       "start_timestamp": 1792601100,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Lille vs Galatasaray",
       "home": "Lille",
       "away": "Galatasaray",
@@ -278,10 +283,6 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=20261021",
-      "score": {
-        "home": 2,
-        "away": 4
-      },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
@@ -300,7 +301,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 4,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-22T03:58:58.748434+09:00"
+      }
     },
     {
       "id": "SPORTS-SOCCER-401882870",
@@ -369,7 +379,7 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261021",
       "score": {
-        "home": 0,
+        "home": 2,
         "away": 0
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
@@ -4618,7 +4628,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-      "updated_at": "2026-10-22T03:15:26+09:00",
+      "updated_at": "2026-10-22T03:59:03+09:00",
       "summary": {
         "overall": {
           "picks": 21,
@@ -4970,7 +4980,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-22T03:15:26+09:00",
+      "generated_at": "2026-10-22T03:59:03+09:00",
       "overall": {
         "observed": 134,
         "evaluated": 97,
@@ -5479,5 +5489,23 @@
       },
       "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
     }
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-22T03:58:58+09:00",
+    "polled_sports": [
+      "SOCCER"
+    ],
+    "field_changes": 7,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 10,
+        "field_changes": 7,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
