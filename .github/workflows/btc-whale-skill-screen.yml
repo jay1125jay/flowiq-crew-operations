@@ -112,3 +112,35 @@ jobs:
           name: btc-realtime-evidence
           path: btc-flow-monitor/browser-evidence/realtime-live.json
           retention-days: 7
+
+  windows_check:
+    if: github.event_name != 'schedule'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      PAPER_ONLY: 'true'
+      REAL_TRADING: 'false'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install stream client on Windows
+        run: python -m pip install -r btc-flow-monitor/realtime/requirements.txt
+      - name: Verify Windows locks, restart and PAPER accounting
+        run: python -m unittest discover -s btc-flow-monitor -p 'test_*.py' -v
+      - name: Verify Windows public stream and six accounts
+        run: python btc-flow-monitor/verify_realtime_live.py
+      - name: Package Windows launcher and BTC-only files
+        shell: pwsh
+        run: |
+          Get-ChildItem btc-flow-monitor -Directory -Recurse -Filter __pycache__ | Remove-Item -Recurse -Force
+          Remove-Item btc-flow-monitor/browser-evidence -Recurse -Force -ErrorAction SilentlyContinue
+          Compress-Archive -Path btc-flow-monitor -DestinationPath BTC_FLOW_WINDOWS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BTC_FLOW_WINDOWS
+          path: BTC_FLOW_WINDOWS.zip
+          retention-days: 30

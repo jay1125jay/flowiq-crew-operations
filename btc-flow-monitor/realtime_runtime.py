@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import copy
 import datetime as dt
-import fcntl
 import json
 import os
 from pathlib import Path
@@ -40,10 +39,19 @@ class Store:
     def __init__(self, directory):
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
-        self.lock = (directory / 'writer.lock').open('a')
+        self.lock = (directory / 'writer.lock').open('a+b')
         try:
-            fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+            if os.name == 'nt':
+                import msvcrt
+                if self.lock.seek(0, 2) == 0:
+                    self.lock.write(b'0')
+                    self.lock.flush()
+                self.lock.seek(0)
+                msvcrt.locking(self.lock.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
             self.lock.close()
             raise RuntimeError('another PAPER writer owns this directory')
         try:
@@ -336,17 +344,29 @@ async def run(args):
         raise ValueError('state directory must be outside source tree')
     store = Store(directory)
     stop = threading.Event()
-    runner, quotes, sources, view = Runner(store), Quotes(), Sources(), View()
-    quotes.highwater = runner.state['quote_ms']
+    server = worker = task = None
+    previous_signals = {}
     loop = asyncio.get_running_loop()
-    for signum in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(signum, stop.set)
-    worker = threading.Thread(target=collect_sources, args=(directory, sources, stop), daemon=True)
-    worker.start()
-    server = serve(view, args.host, args.port)
-    task = asyncio.create_task(stream(quotes, stop))
-    deadline = time.monotonic()+args.seconds if args.seconds else float('inf')
     try:
+        runner, quotes, sources, view = Runner(store), Quotes(), Sources(), View()
+        quotes.highwater = runner.state['quote_ms']
+        for signum in (signal.SIGTERM, signal.SIGINT):
+            previous_signals[signum] = signal.getsignal(signum)
+            if os.name == 'nt':
+                signal.signal(signum, lambda *_: stop.set())
+            else:
+                loop.add_signal_handler(signum, stop.set)
+        server = serve(view, args.host, args.port)
+        worker = threading.Thread(target=collect_sources, args=(directory, sources, stop), daemon=True)
+        worker.start()
+        task = asyncio.create_task(stream(quotes, stop))
+        print(f'BTC FLOW PAPER ONLY | http://{args.host}:{server.server_port}/', flush=True)
+        print(f'State: {directory} | Stop: Ctrl+C | Keep PC awake.', flush=True)
+        if getattr(args, 'open_browser', False):
+            import webbrowser
+            webbrowser.open(f'http://{args.host}:{server.server_port}/')
+        deadline = time.monotonic()+args.seconds if args.seconds else float('inf')
+        last_status = None
         while not stop.is_set() and time.monotonic() < deadline:
             start = time.monotonic()
             bundle, error = sources.get()
@@ -356,20 +376,32 @@ async def run(args):
                 runner.status = 'INVALID_INPUT'
                 runner.last_error = type(exc).__name__
             view.update(runner.public(quotes, bundle, time.time()))
+            if runner.status != last_status:
+                print(f'{iso(time.time())} {runner.status}', flush=True)
+                last_status = runner.status
             if task.done():
-                task.result()  # Missing dependency / unexpected task failure is fatal.
+                task.result()
                 raise RuntimeError('stream task stopped')
             await asyncio.sleep(max(0, 1-(time.monotonic()-start)))
     finally:
         stop.set()
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
-        server.shutdown()
-        worker.join(timeout=5)
+        if task is not None:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        if server is not None:
+            server.shutdown()
+            server.server_close()
+        if worker is not None:
+            worker.join(timeout=5)
         store.close()
+        for signum, handler in previous_signals.items():
+            if os.name != 'nt':
+                loop.remove_signal_handler(signum)
+            signal.signal(signum, handler)
+        print('STOPPED: PAPER state preserved.', flush=True)
 
 
 def main():
@@ -377,6 +409,7 @@ def main():
     parser.add_argument('--state-dir', required=True)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--open-browser', action='store_true')
     parser.add_argument('--seconds', type=int, default=0, help='bounded smoke run; 0 runs until stopped')
     asyncio.run(run(parser.parse_args()))
 
