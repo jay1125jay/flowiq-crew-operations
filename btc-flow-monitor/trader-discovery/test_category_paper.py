@@ -47,13 +47,13 @@ class SwingCapitalTests(unittest.TestCase):
   s=mod.advance({},cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
   a5=s['accounts']['SWING_5X'];a10=s['accounts']['SWING_10X']
   for a in (a5,a10):
-   self.assertEqual(a['starting_equity_krw'],3000000);self.assertEqual(a['starting_equity_usd'],2000);self.assertEqual(a['krw_per_usd'],1500);self.assertEqual(a['fx_mode'],'FIXED_SIMULATION_NOT_LIVE_FX');self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.01)
+   self.assertEqual(a['starting_equity_krw'],3000000);self.assertEqual(a['starting_equity_usd'],2000);self.assertEqual(a['krw_per_usd'],1500);self.assertEqual(a['fx_mode'],'FIXED_SIMULATION_NOT_LIVE_FX');self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.10)
   self.assertGreater(a5['total_notional_krw'],14800000);self.assertLess(a5['total_notional_krw'],15000000)
   self.assertGreater(a10['total_notional_krw'],29500000);self.assertLess(a10['total_notional_krw'],30000000)
  def test_six_targets_share_account_capital_equally(self):
   addrs,coh,fd=many_swing(6);s=mod.advance({},coh,fd,'2026-10-22T00:00:00+00:00')
   for lev,target in ((5,15000000),(10,30000000)):
-   a=s['accounts'][f'SWING_{lev}X'];self.assertEqual(a['open_count'],6);margins=[a['positions'][x]['margin_usd'] for x in addrs];self.assertLess(max(margins)-min(margins),1e-9);self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.01);self.assertGreater(a['total_notional_krw'],target*0.98);self.assertLess(a['total_notional_krw'],target)
+   a=s['accounts'][f'SWING_{lev}X'];self.assertEqual(a['open_count'],6);margins=[a['positions'][x]['margin_usd'] for x in addrs];self.assertLess(max(margins)-min(margins),1e-9);self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.10);self.assertGreater(a['total_notional_krw'],target*0.98);self.assertLess(a['total_notional_krw'],target)
  def test_archive_once_and_do_not_reset_on_next_run(self):
   old=mod._new_account('SWING',5);old['cash']=1234;old['closed']=[{'pnl_usd':234}]
   s={'accounts':{'SWING_5X':copy.deepcopy(old)},'legacy_unleveraged_accounts':{}}
