@@ -18,8 +18,13 @@ def validate(outputs=False):
         assert p['schema_version']==7 and set(p['accounts'])==expected and p['account_count']==12
         assert p['paper_only'] is True and p['real_trading_enabled'] is False
         assert p['feed_errors']==0 and p['observed_wallet_count']==len(feed['wallets'])
-        policy=p['swing_capital_policy']
+        policy=p['all_accounts_capital_policy']
         assert policy['capital_krw']==3000000 and policy['fixed_krw_per_usd']==1500
+        for key,account in p['accounts'].items():
+            assert account['starting_equity_krw']==3000000 and account['starting_equity_usd']==2000
+            assert account['capital_epoch']==policy['capital_epoch']
+            assert account['krw_per_usd']==1500 and account['fx_mode']=='FIXED_SIMULATION_NOT_LIVE_FX'
+            assert account['margin_used_krw']+account['cost_buffer_krw']<=3000000.1
         for leverage,target_notional in ((5,15000000),(10,30000000)):
             a=p['accounts'][f'SWING_{leverage}X']
             assert a['starting_equity_krw']==3000000 and a['starting_equity_usd']==2000
