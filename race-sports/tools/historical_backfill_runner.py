@@ -58,8 +58,8 @@ def main():
     bull_end=start+total
 
     budget.deadline=horse_end
-    if budget.available('horse')>0:
-        hb.backfill_horse(state,budget,seen['horse'],stats)
+    # Classify/de-duplicate pending work even when today's quota is exhausted.
+    hb.backfill_horse(state,budget,seen['horse'],stats)
 
     shared_remaining=budget.available('ksports')
     cycle_calls=(shared_remaining+1)//2
@@ -116,3 +116,4 @@ def main():
     print(json.dumps({'HISTORICAL_BACKFILL':'PASS',**report},ensure_ascii=False))
 
 if __name__=='__main__':main()
+
