@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T13:37:17+09:00",
+  "generated_at": "2026-10-22T17:02:20+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -62,9 +62,19 @@
   },
   "retry_metrics": {
     "horse": {
-      "attempted_this_run": 18,
+      "attempted_this_run": 0,
       "recovered_this_run": 0,
-      "remaining": 723
+      "remaining": 729,
+      "deferred": 688,
+      "due": 41,
+      "duplicates_removed": 0,
+      "already_saved_removed": 0,
+      "by_classification": {
+        "UNTRIED": 41,
+        "UNRESOLVED_PAGE_OR_PARSER": 632,
+        "TRANSIENT_FETCH_FAILURE": 56
+      },
+      "policy": "NO_ABSENCE_INFERENCE_KEEP_UNRESOLVED_BACKOFF_1_TO_14_DAYS"
     }
   },
   "quota_policy": "daily hard caps; use remaining quota opportunistically; KCYCLE/KBOAT start 50/50 then reallocate unused shared quota",
