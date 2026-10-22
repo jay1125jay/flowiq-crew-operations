@@ -15,14 +15,24 @@ def validate(outputs=False):
         safe(p);safe(m)
         fresh(p['updated_at'],now);fresh(m['updated_at'],now)
         expected={f'{c}_{l}X' for c in ('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING') for l in (5,10)}
-        assert p['schema_version']==6 and set(p['accounts'])==expected and p['account_count']==12
+        assert p['schema_version']==7 and set(p['accounts'])==expected and p['account_count']==12
+        assert p['paper_only'] is True and p['real_trading_enabled'] is False
         assert p['feed_errors']==0 and p['observed_wallet_count']==len(feed['wallets'])
-        for leverage in (5,10):
+        policy=p['swing_capital_policy']
+        assert policy['capital_krw']==3000000 and policy['fixed_krw_per_usd']==1500
+        for leverage,target_notional in ((5,15000000),(10,30000000)):
             a=p['accounts'][f'SWING_{leverage}X']
             assert a['starting_equity_krw']==3000000 and a['starting_equity_usd']==2000
-            assert a['krw_per_usd']==1500 and a['margin_per_position_krw']==450000
+            assert a['krw_per_usd']==1500 and a['fx_mode']=='FIXED_SIMULATION_NOT_LIVE_FX'
+            assert a['capital_epoch']==policy['capital_epoch']
+            assert a['allocation_mode']=='EQUAL_ACROSS_CURRENT_TARGETS_FEE_AND_SLIPPAGE_SAFE'
+            assert a['margin_used_krw']+a['cost_buffer_krw']<=3000000.10
+            assert 0<=a['total_notional_krw']<=target_notional+0.10
             assert abs(a['net_pnl_usd']-(a['equity_usd']-a['starting_equity_usd']))<0.0002
             assert abs(a['equity_krw']-a['equity_usd']*1500)<0.2
+            margins=[x['margin_usd'] for x in a['positions'].values()]
+            if len(margins)>1 and len(margins)==a.get('allocation_target_count'):
+                assert max(margins)-min(margins)<1e-8
         assert m['schema_version']==3 and set(m['accounts'])==set(ENGINES)
         assert set(m['decisions'])==set(ENGINES) and len(m['leaderboard'])==6
         assert m['last_observation_at']==feed['generated_at'] and m['data_quality']['feed_errors']==0
