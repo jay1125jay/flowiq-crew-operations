@@ -1,11 +1,18 @@
-import importlib.util,pathlib,unittest
+import importlib.util,pathlib,unittest,copy
 P=pathlib.Path(__file__).with_name('category_paper.py');spec=importlib.util.spec_from_file_location('category_paper',P);mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
 ADDR='0x'+'1'*40
+
 def cohort(flags,addr=ADDR):return {'paper_only':True,'wallets':[{'address':addr,'category_flags':flags}]}
 def feed(side,price=50000,addr=ADDR):return {'paper_only':True,'btc_mid_usd':price,'wallets':{addr:side}}
+def many_swing(n=6):
+ addrs=['0x'+format(i+1,'040x') for i in range(n)]
+ coh={'paper_only':True,'wallets':[{'address':a,'category_flags':{'SWING':True}} for a in addrs]}
+ fd={'paper_only':True,'btc_mid_usd':50000,'wallets':{a:'LONG' for a in addrs}}
+ return addrs,coh,fd
+
 class PaperTests(unittest.TestCase):
  def test_creates_only_5x_10x_accounts(self):
-  s=mod.advance({},cohort({'SCALPER':True}),feed('LONG'),'2026-10-19T00:00:00+00:00');self.assertEqual(s['account_count'],12);self.assertEqual(s['schema_version'],6);self.assertIn('SCALPER_5X',s['accounts']);self.assertIn('SCALPER_10X',s['accounts']);self.assertNotIn('SCALPER',s['accounts'])
+  s=mod.advance({},cohort({'SCALPER':True}),feed('LONG'),'2026-10-19T00:00:00+00:00');self.assertEqual(s['account_count'],12);self.assertEqual(s['schema_version'],7);self.assertIn('SCALPER_5X',s['accounts']);self.assertIn('SCALPER_10X',s['accounts']);self.assertNotIn('SCALPER',s['accounts'])
  def test_leverage_notional_and_margin(self):
   s=mod.advance({},cohort({'WHALE':True}),feed('LONG'),'2026-10-19T00:00:00+00:00');p5=s['accounts']['WHALE_5X']['positions'][ADDR];p10=s['accounts']['WHALE_10X']['positions'][ADDR];self.assertEqual(p5['margin_usd'],150);self.assertEqual(p5['notional_usd'],750);self.assertEqual(p10['notional_usd'],1500)
  def test_non_whale_flip_closes_and_reopens(self):
@@ -34,28 +41,23 @@ class PaperTests(unittest.TestCase):
   s=mod.advance({},cohort({'WHALE':True}),feed('LONG',50000),'2026-10-19T00:00:00+00:00');s=mod.advance(s,cohort({'WHALE':True}),feed('LONG',45000),'2026-10-19T00:05:00+00:00');a=s['accounts']['WHALE_10X'];self.assertEqual(a['liquidations'],1);self.assertNotIn(ADDR,a['positions'])
  def test_reject_live_flag(self):
   with self.assertRaises(ValueError):mod.advance({},cohort({'WHALE':True}),{'paper_only':True,'real_trading_enabled':True,'btc_mid_usd':50000},'2026-10-19T00:00:00+00:00')
+
 class SwingCapitalTests(unittest.TestCase):
- def test_three_million_each_and_fifteen_percent_margin(self):
+ def test_three_million_each_and_near_target_notional(self):
   s=mod.advance({},cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
-  for lev in (5,10):
-   a=s['accounts'][f'SWING_{lev}X'];p=a['positions'][ADDR]
-   self.assertEqual(a['starting_equity_krw'],3000000)
-   self.assertEqual(a['starting_equity_usd'],2000)
-   self.assertEqual(p['margin_usd']*1500,450000)
-   self.assertEqual(p['notional_usd']*1500,450000*lev)
-   self.assertAlmostEqual(a['net_pnl_usd'],a['equity_usd']-2000,places=4)
-   self.assertLess(a['net_pnl_usd'],0)
+  a5=s['accounts']['SWING_5X'];a10=s['accounts']['SWING_10X']
+  for a in (a5,a10):
+   self.assertEqual(a['starting_equity_krw'],3000000);self.assertEqual(a['starting_equity_usd'],2000);self.assertEqual(a['krw_per_usd'],1500);self.assertEqual(a['fx_mode'],'FIXED_SIMULATION_NOT_LIVE_FX');self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.01)
+  self.assertGreater(a5['total_notional_krw'],14800000);self.assertLess(a5['total_notional_krw'],15000000)
+  self.assertGreater(a10['total_notional_krw'],29500000);self.assertLess(a10['total_notional_krw'],30000000)
+ def test_six_targets_share_account_capital_equally(self):
+  addrs,coh,fd=many_swing(6);s=mod.advance({},coh,fd,'2026-10-22T00:00:00+00:00')
+  for lev,target in ((5,15000000),(10,30000000)):
+   a=s['accounts'][f'SWING_{lev}X'];self.assertEqual(a['open_count'],6);margins=[a['positions'][x]['margin_usd'] for x in addrs];self.assertLess(max(margins)-min(margins),1e-9);self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.01);self.assertGreater(a['total_notional_krw'],target*0.98);self.assertLess(a['total_notional_krw'],target)
  def test_archive_once_and_do_not_reset_on_next_run(self):
-  import copy
   old=mod._new_account('SWING',5);old['cash']=1234;old['closed']=[{'pnl_usd':234}]
   s={'accounts':{'SWING_5X':copy.deepcopy(old)},'legacy_unleveraged_accounts':{}}
-  s=mod.advance(s,cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
-  self.assertEqual(s['capital_archives'][0]['account'],old)
-  a=copy.deepcopy(s['accounts']['SWING_5X'])
-  s=mod.advance(s,cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:05:00+00:00')
-  self.assertEqual(len(s['capital_archives']),1)
-  self.assertEqual(s['accounts']['SWING_5X']['cash'],a['cash'])
-  self.assertEqual(s['accounts']['SWING_5X']['started_at'],a['started_at'])
+  s=mod.advance(s,cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00');self.assertEqual(s['capital_archives'][0]['account'],old);a=copy.deepcopy(s['accounts']['SWING_5X']);s=mod.advance(s,cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:05:00+00:00');self.assertEqual(len(s['capital_archives']),1);self.assertEqual(s['accounts']['SWING_5X']['cash'],a['cash']);self.assertEqual(s['accounts']['SWING_5X']['started_at'],a['started_at'])
  def test_other_categories_keep_original_budget(self):
   s=mod.advance({},cohort({'WHALE':True,'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
   for key,a in s['accounts'].items():
