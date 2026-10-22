@@ -310,7 +310,7 @@ class View:
             return data
 
 
-def serve(view, host, port):
+def serve(view, host, port, phone=None):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             path = urlsplit(self.path).path
@@ -319,6 +319,12 @@ def serve(view, host, port):
                 html = html.replace('<head>', '<head><script>window.BTC_LOCAL_RUNTIME=true;</script>', 1)
                 body = html.encode('utf-8')
                 content_type, code = 'text/html; charset=utf-8', 200
+            elif path == '/api/phone-share':
+                body = json.dumps(phone.snapshot() if phone else {'status': 'DISABLED', 'url': None}).encode()
+                content_type, code = 'application/json', 200
+            elif path == '/api/phone-qr' and phone and phone.qr():
+                body = phone.qr()
+                content_type, code = 'image/svg+xml', 200
             elif path in ('/api/status', '/healthz'):
                 data = view.read()
                 body = json.dumps(data, allow_nan=False).encode()
@@ -357,7 +363,7 @@ async def run(args):
         raise ValueError('state directory must be outside source tree')
     store = Store(directory)
     stop = threading.Event()
-    server = worker = task = None
+    server = worker = task = phone = None
     previous_signals = {}
     loop = asyncio.get_running_loop()
     try:
@@ -369,7 +375,12 @@ async def run(args):
                 signal.signal(signum, lambda *_: stop.set())
             else:
                 loop.add_signal_handler(signum, stop.set)
-        server = serve(view, args.host, args.port)
+        if getattr(args, 'share_phone', False):
+            from phone_share import PhoneShare
+            phone = PhoneShare(view, directory)
+        server = serve(view, args.host, args.port, phone)
+        if phone:
+            phone.start()
         worker = threading.Thread(target=collect_sources, args=(directory, sources, stop), daemon=True)
         worker.start()
         task = asyncio.create_task(stream(quotes, stop))
@@ -404,6 +415,8 @@ async def run(args):
                 await task
             except asyncio.CancelledError:
                 pass
+        if phone is not None:
+            phone.close()
         if server is not None:
             server.shutdown()
             server.server_close()
@@ -422,6 +435,7 @@ def main():
     parser.add_argument('--state-dir', required=True)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--share-phone', action='store_true')
     parser.add_argument('--open-browser', action='store_true')
     parser.add_argument('--seconds', type=int, default=0, help='bounded smoke run; 0 runs until stopped')
     asyncio.run(run(parser.parse_args()))

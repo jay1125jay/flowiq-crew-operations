@@ -12,7 +12,7 @@ if not exist "%BTC_HOME%\venv\Scripts\python.exe" (
   py -3.12 -m venv "%BTC_HOME%\venv"
   if errorlevel 1 goto failed
 )
-"%BTC_HOME%\venv\Scripts\python.exe" -c "import websockets; assert websockets.__version__ == '15.0.1'" >nul 2>nul
+"%BTC_HOME%\venv\Scripts\python.exe" -c "import websockets, qrcode; assert websockets.__version__ == '15.0.1'" >nul 2>nul
 if errorlevel 1 (
   echo Installing public market data client...
   "%BTC_HOME%\venv\Scripts\python.exe" -m pip install --disable-pip-version-check -r "%~dp0..\realtime\requirements.txt"
@@ -22,7 +22,7 @@ set "PAPER_ONLY=true"
 set "REAL_TRADING=false"
 set "PYTHONUTF8=1"
 echo Keep this window open. Press Ctrl+C to stop safely.
-"%BTC_HOME%\venv\Scripts\python.exe" "%~dp0..\realtime_runtime.py" --state-dir "%BTC_HOME%\state" --host 127.0.0.1 --port 8080 --open-browser
+"%BTC_HOME%\venv\Scripts\python.exe" "%~dp0..\realtime_runtime.py" --state-dir "%BTC_HOME%\state" --host 127.0.0.1 --port 8080 --open-browser --share-phone
 if errorlevel 1 goto failed
 pause
 exit /b 0
