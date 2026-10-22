@@ -461,13 +461,32 @@
       "home": "Werder Bremen",
       "away": "SC Paderborn 07",
       "home_ko": "베르더 브레멘",
-      "resolution_state": "UNRESOLVED_AFTER_HISTORY_WINDOW",
+      "resolution_state": "RESOLVED_FROM_HISTORY",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 1.7692,
-        "odds_provider": "DraftKings"
-      }
+        "odds_provider": "DraftKings",
+        "hit": false,
+        "return_krw": 0,
+        "profit_krw": -100000,
+        "settled_at": "2026-10-22T16:34:13+09:00"
+      },
+      "result_recheck": {
+        "checked_at": "2026-10-22T16:34:13+09:00",
+        "state": "FINAL_VERIFIED",
+        "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/summary?event=401884766"
+      },
+      "evaluation": {
+        "winner_key": "DRAW",
+        "hit": false,
+        "evaluated_at": "2026-10-22T16:34:13+09:00",
+        "source": "ESPN_EVENT_SUMMARY_RECHECK",
+        "source_snapshot_date": "2026-10-22",
+        "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/summary?event=401884766"
+      },
+      "final_home_score": 2,
+      "final_away_score": 2
     },
     "SPORTS-BASKETBALL-401906509": {
       "event_id": "SPORTS-BASKETBALL-401906509",
@@ -946,12 +965,12 @@
         "hit": true,
         "return_krw": 154050,
         "profit_krw": 54050,
-        "settled_at": "2026-10-22T15:00:35+09:00"
+        "settled_at": "2026-10-22T16:34:13+09:00"
       },
       "evaluation": {
         "winner_key": "HOME",
         "hit": true,
-        "evaluated_at": "2026-10-22T15:00:35+09:00",
+        "evaluated_at": "2026-10-22T16:34:13+09:00",
         "source": "LOCKED_BOARD",
         "source_snapshot_date": "2026-10-22"
       }
@@ -997,57 +1016,57 @@
         "hit": true,
         "return_krw": 184750,
         "profit_krw": 84750,
-        "settled_at": "2026-10-22T15:00:35+09:00"
+        "settled_at": "2026-10-22T16:34:13+09:00"
       },
       "evaluation": {
         "winner_key": "AWAY",
         "hit": true,
-        "evaluated_at": "2026-10-22T15:00:35+09:00",
+        "evaluated_at": "2026-10-22T16:34:13+09:00",
         "source": "LOCKED_BOARD",
         "source_snapshot_date": "2026-10-22"
       }
     }
   },
-  "version": "SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI",
-  "updated_at": "2026-10-22T15:00:35+09:00",
+  "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
+  "updated_at": "2026-10-22T16:34:13+09:00",
   "summary": {
     "overall": {
       "picks": 21,
-      "evaluated": 20,
-      "pending": 1,
+      "evaluated": 21,
+      "pending": 0,
       "hits": 12,
-      "misses": 8,
-      "hit_rate": 0.6,
+      "misses": 9,
+      "hit_rate": 0.571429,
       "paper_roi": {
         "stake_per_pick_krw": 100000,
         "odds_locked_picks": 16,
-        "settled": 15,
-        "pending": 1,
+        "settled": 16,
+        "pending": 0,
         "excluded_no_locked_odds": 5,
-        "total_staked_krw": 1500000,
+        "total_staked_krw": 1600000,
         "total_return_krw": 1513120,
-        "net_profit_krw": 13120,
-        "roi": 0.008747
+        "net_profit_krw": -86880,
+        "roi": -0.0543
       }
     },
     "by_sport": {
       "SOCCER": {
         "picks": 5,
-        "evaluated": 4,
-        "pending": 1,
+        "evaluated": 5,
+        "pending": 0,
         "hits": 3,
-        "misses": 1,
-        "hit_rate": 0.75,
+        "misses": 2,
+        "hit_rate": 0.6,
         "paper_roi": {
           "stake_per_pick_krw": 100000,
           "odds_locked_picks": 5,
-          "settled": 4,
-          "pending": 1,
+          "settled": 5,
+          "pending": 0,
           "excluded_no_locked_odds": 0,
-          "total_staked_krw": 400000,
+          "total_staked_krw": 500000,
           "total_return_krw": 531200,
-          "net_profit_krw": 131200,
-          "roi": 0.328
+          "net_profit_krw": 31200,
+          "roi": 0.0624
         }
       },
       "BASEBALL": {
@@ -1112,7 +1131,7 @@
   "threshold_advice": {
     "SOCCER": {
       "state": "HOLD_SAMPLE",
-      "evaluated": 4,
+      "evaluated": 5,
       "required": 30
     },
     "BASEBALL": {
@@ -1131,12 +1150,12 @@
       "required": 30
     }
   },
-  "policy": "APPEND_ONLY_PICK_LEDGER; CURRENT_AND_SPORTS_HISTORY_FINAL_RESULTS_RESOLVE_PENDING; HISTORY_WINDOW_3_DAYS; CONFLICT_FAIL_CLOSED; NEVER_COUNT_UNRESOLVED_AS_MISS; LOCK_ODDS_ON_FIRST_RECORD_ONLY; NO_RETROACTIVE_ODDS; PAPER_100K_FIXED_STAKE; THRESHOLD_ADVICE_REQUIRES_30_EVALUATED",
+  "policy": "APPEND_ONLY_PICK_LEDGER; CURRENT_AND_SPORTS_HISTORY_FINAL_RESULTS_RESOLVE_PENDING; HISTORY_WINDOW_3_DAYS_PLUS_BOUNDED_SOURCE_RECHECK_NO_AGE_EXPIRY; CONFLICT_FAIL_CLOSED; NEVER_COUNT_UNRESOLVED_AS_MISS; LOCK_ODDS_ON_FIRST_RECORD_ONLY; NO_RETROACTIVE_ODDS; PAPER_100K_FIXED_STAKE; THRESHOLD_ADVICE_REQUIRES_30_EVALUATED",
   "carryover": {
     "resolved_from_history": 0,
     "conflicts": 0,
     "pending_within_window": 0,
-    "unresolved_after_window": 1,
+    "unresolved_after_window": 0,
     "window_days": 3
   },
   "paper_betting_policy": {
