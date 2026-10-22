@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 import time
+from urllib.parse import urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import adaptive_meta as engine
@@ -192,6 +193,7 @@ class Runner:
             target_interval_seconds=1, source_refresh_seconds=60,
             btc_mid_usd=competition.get('btc_mid_usd'), profitability='UNPROVEN',
             epoch='REALTIME_PAPER_SEPARATE_EPOCH', error=self.last_error,
+            competition=copy.deepcopy(competition),
             rows=[dict(engine=k, signal=competition.get('decisions', {}).get(k, {}).get('signal', 'WAIT') if healthy else 'WAIT',
                 confidence=competition.get('decisions', {}).get(k, {}).get('confidence') if healthy else None,
                 **{f: a.get(f) for f in ('equity_usd','net_pnl_usd','profit_factor','mdd_pct','win_rate_pct','closed_count','fees_usd','unrealized_pnl_usd')})
@@ -311,14 +313,25 @@ class View:
 def serve(view, host, port):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
-            if self.path == '/':
-                body = (ROOT/'realtime/index.html').read_bytes()
+            path = urlsplit(self.path).path
+            if path in ('/', '/dashboard.html'):
+                html = (ROOT/'dashboard.html').read_text(encoding='utf-8')
+                html = html.replace('<head>', '<head><script>window.BTC_LOCAL_RUNTIME=true;</script>', 1)
+                body = html.encode('utf-8')
                 content_type, code = 'text/html; charset=utf-8', 200
-            elif self.path in ('/api/status', '/healthz'):
+            elif path in ('/api/status', '/healthz'):
                 data = view.read()
                 body = json.dumps(data, allow_nan=False).encode()
                 content_type = 'application/json'
-                code = 200 if self.path == '/api/status' or data.get('healthy') else 503
+                code = 200 if path == '/api/status' or data.get('healthy') else 503
+            elif path in ('/dashboard-adaptive.js', '/dashboard-follow.js',
+                          '/data/whale-paper-state.json', '/data/whale-ranking.json',
+                          '/trader-discovery/latest.json', '/trader-discovery/category-paper.json',
+                          '/trader-discovery/current-positions.json'):
+                # Explicit allowlist: never expose source code or the local SQLite ledger.
+                body = (ROOT/path.lstrip('/')).read_bytes()
+                content_type = 'application/javascript; charset=utf-8' if path.endswith('.js') else 'application/json'
+                code = 200
             else:
                 self.send_error(404)
                 return
