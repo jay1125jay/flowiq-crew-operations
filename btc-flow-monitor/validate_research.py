@@ -17,6 +17,12 @@ def validate(outputs=False):
         expected={f'{c}_{l}X' for c in ('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING') for l in (5,10)}
         assert p['schema_version']==6 and set(p['accounts'])==expected and p['account_count']==12
         assert p['feed_errors']==0 and p['observed_wallet_count']==len(feed['wallets'])
+        for leverage in (5,10):
+            a=p['accounts'][f'SWING_{leverage}X']
+            assert a['starting_equity_krw']==3000000 and a['starting_equity_usd']==2000
+            assert a['krw_per_usd']==1500 and a['margin_per_position_krw']==450000
+            assert abs(a['net_pnl_usd']-(a['equity_usd']-a['starting_equity_usd']))<0.0002
+            assert abs(a['equity_krw']-a['equity_usd']*1500)<0.2
         assert m['schema_version']==3 and set(m['accounts'])==set(ENGINES)
         assert set(m['decisions'])==set(ENGINES) and len(m['leaderboard'])==6
         assert m['last_observation_at']==feed['generated_at'] and m['data_quality']['feed_errors']==0

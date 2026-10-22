@@ -34,4 +34,32 @@ class PaperTests(unittest.TestCase):
   s=mod.advance({},cohort({'WHALE':True}),feed('LONG',50000),'2026-10-19T00:00:00+00:00');s=mod.advance(s,cohort({'WHALE':True}),feed('LONG',45000),'2026-10-19T00:05:00+00:00');a=s['accounts']['WHALE_10X'];self.assertEqual(a['liquidations'],1);self.assertNotIn(ADDR,a['positions'])
  def test_reject_live_flag(self):
   with self.assertRaises(ValueError):mod.advance({},cohort({'WHALE':True}),{'paper_only':True,'real_trading_enabled':True,'btc_mid_usd':50000},'2026-10-19T00:00:00+00:00')
+class SwingCapitalTests(unittest.TestCase):
+ def test_three_million_each_and_fifteen_percent_margin(self):
+  s=mod.advance({},cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
+  for lev in (5,10):
+   a=s['accounts'][f'SWING_{lev}X'];p=a['positions'][ADDR]
+   self.assertEqual(a['starting_equity_krw'],3000000)
+   self.assertEqual(a['starting_equity_usd'],2000)
+   self.assertEqual(p['margin_usd']*1500,450000)
+   self.assertEqual(p['notional_usd']*1500,450000*lev)
+   self.assertAlmostEqual(a['net_pnl_usd'],a['equity_usd']-2000,places=4)
+   self.assertLess(a['net_pnl_usd'],0)
+ def test_archive_once_and_do_not_reset_on_next_run(self):
+  import copy
+  old=mod._new_account('SWING',5);old['cash']=1234;old['closed']=[{'pnl_usd':234}]
+  s={'accounts':{'SWING_5X':copy.deepcopy(old)},'legacy_unleveraged_accounts':{}}
+  s=mod.advance(s,cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
+  self.assertEqual(s['capital_archives'][0]['account'],old)
+  a=copy.deepcopy(s['accounts']['SWING_5X'])
+  s=mod.advance(s,cohort({'SWING':True}),feed('LONG'),'2026-10-22T00:05:00+00:00')
+  self.assertEqual(len(s['capital_archives']),1)
+  self.assertEqual(s['accounts']['SWING_5X']['cash'],a['cash'])
+  self.assertEqual(s['accounts']['SWING_5X']['started_at'],a['started_at'])
+ def test_other_categories_keep_original_budget(self):
+  s=mod.advance({},cohort({'WHALE':True,'SWING':True}),feed('LONG'),'2026-10-22T00:00:00+00:00')
+  for key,a in s['accounts'].items():
+   if a['category']!='SWING':self.assertEqual(a['starting_equity_usd'],1000)
+  self.assertEqual(s['accounts']['WHALE_5X']['positions'][ADDR]['margin_usd'],150)
+
 if __name__=='__main__':unittest.main()
