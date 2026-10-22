@@ -7,7 +7,7 @@ on:
       - '.github/workflows/raceiq-freshness-watchdog.yml'
   workflow_dispatch:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '2-57/5 * * * *'
 
 permissions:
   contents: read
@@ -35,7 +35,7 @@ jobs:
 
           KST = timezone(timedelta(hours=9))
           now = datetime.now(KST)
-          max_age_minutes = 45
+          max_age_minutes = 10
           files = [
               Path('race-sports/data/today.json'),
               Path('race-sports/data/sports_today.json'),
@@ -60,6 +60,8 @@ jobs:
                       dt=dt.replace(tzinfo=KST)
                   age=(now-dt.astimezone(KST)).total_seconds()/60
                   ages[p.name]=round(age,1)
+                  if age < -2:
+                      reasons.append(f'{p.name}:FUTURE_TIMESTAMP:{age:.1f}m')
                   if age > max_age_minutes:
                       reasons.append(f'{p.name}:STALE:{age:.1f}m')
               except Exception:

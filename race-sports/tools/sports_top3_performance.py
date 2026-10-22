@@ -13,7 +13,7 @@ HISTORY = ROOT / 'data' / 'model_state' / 'sports_top3_performance.json'
 SPORTS_HISTORY = ROOT / 'data' / 'sports_history'
 KST = timezone(timedelta(hours=9))
 SPORTS = ('SOCCER','BASEBALL','BASKETBALL','VOLLEYBALL')
-VERSION = 'SPORTS_TOP3_PERFORMANCE_V4_LOCKED_ODDS_PAPER_ROI'
+VERSION = 'SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK'
 MIN_EVAL_FOR_ADVICE = 30
 TARGET_HIT_RATE = 0.70
 CARRYOVER_DAYS = 3
@@ -152,9 +152,10 @@ def _resolve_pending(records: dict, snapshots: list[tuple[str,dict]], now: datet
             rec['resolution_state']='RESULT_CONFLICT_FAIL_CLOSED'; rec['resolution_conflict_winners']=sorted(winners); conflicts+=1; continue
         if len(winners)==1:
             snap_day,wk,e=sorted(finals,key=lambda x:x[0])[-1]
-            rec['evaluation']={'winner_key':wk,'hit':wk==rec.get('pick_key'),'evaluated_at':now.isoformat(timespec='seconds'),'source':'SPORTS_HISTORY_CARRYOVER','source_snapshot_date':snap_day}
+            rec['evaluation']={'winner_key':wk,'hit':wk==rec.get('pick_key'),'evaluated_at':now.isoformat(timespec='seconds'),'source':(e.get('result') or {}).get('source') or 'SPORTS_HISTORY_CARRYOVER','source_snapshot_date':snap_day}
             rec['resolution_state']='RESOLVED_FROM_HISTORY'
             r=e.get('result') or {}
+            if r.get('source_url'):rec['evaluation']['source_url']=r['source_url']
             if 'home_score' in r: rec['final_home_score']=r.get('home_score')
             if 'away_score' in r: rec['final_away_score']=r.get('away_score')
             resolved+=1; continue
@@ -213,7 +214,7 @@ def apply(snapshot: dict, history: dict | None, now: datetime | None = None, his
     _settle_virtual_bets(records,now_iso)
     history['version']=VERSION; history['updated_at']=now_iso; history['summary']=_summary(records); history['threshold_advice']=_threshold_advice(records); history['carryover']=carry
     history['paper_betting_policy']={'mode':'PAPER_ONLY','stake_per_pick_krw':PAPER_STAKE_KRW,'odds_rule':'LOCK_DECIMAL_ODDS_AT_FIRST_TOP3_RECORD_CREATION_ONLY','missing_odds_rule':'EXCLUDE_FROM_ROI_NEVER_BACKFILL_RETROACTIVELY','settlement_rule':'WIN=STAKE*LOCKED_ODDS; LOSS=0_RETURN; PROFIT=RETURN-STAKE','real_betting':False}
-    history['policy']='APPEND_ONLY_PICK_LEDGER; CURRENT_AND_SPORTS_HISTORY_FINAL_RESULTS_RESOLVE_PENDING; HISTORY_WINDOW_3_DAYS; CONFLICT_FAIL_CLOSED; NEVER_COUNT_UNRESOLVED_AS_MISS; LOCK_ODDS_ON_FIRST_RECORD_ONLY; NO_RETROACTIVE_ODDS; PAPER_100K_FIXED_STAKE; THRESHOLD_ADVICE_REQUIRES_30_EVALUATED'
+    history['policy']='APPEND_ONLY_PICK_LEDGER; CURRENT_AND_SPORTS_HISTORY_FINAL_RESULTS_RESOLVE_PENDING; HISTORY_WINDOW_3_DAYS_PLUS_BOUNDED_SOURCE_RECHECK_NO_AGE_EXPIRY; CONFLICT_FAIL_CLOSED; NEVER_COUNT_UNRESOLVED_AS_MISS; LOCK_ODDS_ON_FIRST_RECORD_ONLY; NO_RETROACTIVE_ODDS; PAPER_100K_FIXED_STAKE; THRESHOLD_ADVICE_REQUIRES_30_EVALUATED'
     return history
 
 
@@ -224,6 +225,10 @@ def run(snapshot_path: Path = SNAPSHOT, history_path: Path = HISTORY, sports_his
         except Exception: history=None
     base=history if isinstance(history,dict) else {}
     history_snapshots=_load_history_snapshots(base.get('records') or {},sports_history_dir)
+    from sports_pending_results import recover_pending
+    recovered = recover_pending(base.get('records') or {})
+    if recovered['events']:
+        history_snapshots.append((recovered['date'], recovered))
     out=apply(snapshot,history,history_snapshots=history_snapshots)
     board=snapshot.setdefault('sports_top3',{}); board['performance']=_public_block(out)
     history_path.parent.mkdir(parents=True,exist_ok=True); history_path.write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8'); snapshot_path.write_text(json.dumps(snapshot,ensure_ascii=False,indent=2),encoding='utf-8')

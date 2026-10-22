@@ -2,6 +2,8 @@ name: raceiq-sports-top3
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17,47 * * * *'
   push:
     branches: [main]
     paths:
@@ -13,6 +15,8 @@ on:
       - 'race-sports/tools/sports_top3_calibration.py'
       - 'race-sports/tools/sports_top3_probability_report.py'
       - 'race-sports/tools/sports_top3_performance.py'
+      - 'race-sports/tools/sports_pending_results.py'
+      - 'race-sports/tools/test_sports_pending_results.py'
       - 'race-sports/tools/sports_top3_ui_patch.py'
       - 'race-sports/tools/sports_top3_performance_ui_patch.py'
       - 'race-sports/tools/sports_top3_probability_ui_patch.py'
@@ -50,6 +54,7 @@ jobs:
           python race-sports/tools/sports_top3_calibration.py --self-test
           python race-sports/tools/sports_top3_probability_report.py --self-test
           python race-sports/tools/sports_top3_performance.py --self-test
+          python -m unittest discover -s race-sports/tools -p test_sports_pending_results.py
           python race-sports/tools/sports_top3_ui_patch.py --self-test
           python race-sports/tools/sports_top3_performance_ui_patch.py --self-test
           python race-sports/tools/sports_top3_probability_ui_patch.py --self-test
