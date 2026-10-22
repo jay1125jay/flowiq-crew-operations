@@ -5,7 +5,7 @@ import re
 
 p = Path(__file__).with_name('dashboard.html')
 s = p.read_text(encoding='utf-8')
-tag = '<script src="./dashboard-follow.js?v=2"></script><script src="./dashboard-adaptive.js?v=3"></script>'
+tag = '<script src="./dashboard-follow.js?v=2"></script><script src="./dashboard-adaptive.js?v=4"></script>'
 pattern = r'<script\s+src=["\']\./dashboard-follow\.js(?:\?[^"\']*)?["\']\s*>\s*</script>'
 
 # Remove every legacy/versioned loader, then add one canonical loader.
