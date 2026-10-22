@@ -99,7 +99,7 @@ def advance(state,coh,feed,now):
     if cat=='SWING':
      existing_commit=sum(_swing_commitment(p) for p in a['positions'].values())
      new_buffer=_swing_cost_buffer(notional)
-     capital_base=min(float(a['starting_equity_usd']),max(0.0,equity_now))
+     capital_base=float(a.get('allocation_capital_usd',a['starting_equity_usd']))
      if existing_commit+margin+new_buffer>capital_base+1e-6:continue
     elif free_now < margin+entry_fee:continue
     a['cash']-=entry_fee
