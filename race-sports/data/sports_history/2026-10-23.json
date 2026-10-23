@@ -1,7 +1,7 @@
 {
   "date": "2026-10-23",
-  "time": "10:31:24",
-  "generated_at": "2026-10-23T10:31:24.023335+09:00",
+  "time": "10:58:53",
+  "generated_at": "2026-10-23T10:58:53.570097+09:00",
   "domain": "SPORTS",
   "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
   "enabled_sports": [
@@ -62,10 +62,10 @@
     {
       "provider": "SPORTS_ODDS_MULTIBOOK",
       "sport": "ALL",
-      "status": "PASS",
+      "status": "NO_ELIGIBLE_LEAGUE",
       "plan_mode": "AMATEUR_LEAGUE_AWARE",
-      "events_enriched": 1,
-      "outcomes_enriched": 2,
+      "events_enriched": 0,
+      "outcomes_enriched": 0,
       "meta": [
         {
           "sport": "SOCCER",
@@ -87,21 +87,16 @@
         },
         {
           "sport": "BASKETBALL",
-          "status": "PASS",
-          "events": 2,
-          "next_cursor": null,
-          "league_ids": [
-            "NBA"
-          ],
-          "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
-          "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
           "local_scheduled_competitions": [
-            "KBL",
-            "NBA"
+            "KBL"
           ],
           "unsupported_on_amateur": [
             "KBL"
-          ]
+          ],
+          "league_ids": [],
+          "events": 0
         },
         {
           "sport": "VOLLEYBALL",
@@ -114,7 +109,7 @@
         }
       ],
       "errors": [],
-      "updated_at": "2026-10-23T10:31:33.348324+09:00",
+      "updated_at": "2026-10-23T10:59:04.412598+09:00",
       "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
     }
   ],
@@ -132,7 +127,7 @@
       "start_label": "08:00",
       "start_timestamp": 1792710000,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Philadelphia 76ers vs Cleveland Cavaliers",
       "home": "Philadelphia 76ers",
       "away": "Cleveland Cavaliers",
@@ -145,7 +140,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-23T10:31:27.445949+09:00",
+          "odds_updated_at": "2026-10-23T10:58:57.708029+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "필라델피아 세븐티식서스",
           "model_p": 0.520391892627679,
@@ -159,7 +154,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-23T10:31:27.445949+09:00",
+          "odds_updated_at": "2026-10-23T10:58:57.708029+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "클리블랜드 캐벌리어스",
           "model_p": 0.47960810737232096,
@@ -171,9 +166,14 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261022",
-      "score": {
-        "home": 98,
-        "away": 95
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 114,
+        "away_score": 106,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-10-23T10:58:57.436464+09:00"
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -208,7 +208,7 @@
       "start_label": "10:30",
       "start_timestamp": 1792719000,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Oklahoma City Thunder vs Denver Nuggets",
       "home": "Oklahoma City Thunder",
       "away": "Denver Nuggets",
@@ -218,77 +218,12 @@
           "key": "HOME",
           "name": "Oklahoma City Thunder",
           "odds": 1.2941,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-10-23T01:27:22.274Z",
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-23T10:58:57.601619+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "오클라호마시티 선더",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.2941,
-              "american_odds": "-340",
-              "updated_at": "2026-10-23T01:27:22.274Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34510280?outcomes=0ML85842156_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.3125,
-              "american_odds": "-320",
-              "updated_at": "2026-10-23T01:28:08.186Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.181048583&selectionId=3319741"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.3077,
-              "american_odds": "-325",
-              "updated_at": "2026-10-23T01:27:26.927Z",
-              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/19878324?options=19878324-1550833634-2275439215"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.3125,
-              "american_odds": "-320",
-              "updated_at": "2026-10-23T01:27:14.927Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=68c9da8f-f88f-3304-b4f7-f58c73b93014"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.2941,
-              "american_odds": "-340",
-              "updated_at": "2026-10-23T01:27:26.927Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=cb57db4b-b593-4058-a6c2-352f57523fc8&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.3333,
-              "american_odds": "-300",
-              "updated_at": "2026-10-23T01:27:17.427Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.3205,
-              "american_odds": "-312",
-              "updated_at": "2026-10-23T01:27:27.427Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.3096,
-              "american_odds": "-323",
-              "updated_at": "2026-10-23T01:27:15.927Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.3003,
-              "american_odds": "-333",
-              "updated_at": "2026-10-23T01:27:16.927Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.6699281577330949,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -297,77 +232,12 @@
           "key": "AWAY",
           "name": "Denver Nuggets",
           "odds": 3.7,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-10-23T01:27:22.274Z",
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-23T10:58:57.601619+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "덴버 너기츠",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 3.7,
-              "american_odds": "+270",
-              "updated_at": "2026-10-23T01:27:22.274Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34510280?outcomes=0ML85842156_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 3.6,
-              "american_odds": "+260",
-              "updated_at": "2026-10-23T01:28:08.186Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.181048583&selectionId=237492"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 3.6,
-              "american_odds": "+260",
-              "updated_at": "2026-10-23T01:27:26.927Z",
-              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/19878324?options=19878324-1550833634-2275439214"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 3.5,
-              "american_odds": "+250",
-              "updated_at": "2026-10-23T01:27:14.927Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=e0d9fb13-ab73-3b25-be8c-9ab1c171c11d"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 3.7,
-              "american_odds": "+270",
-              "updated_at": "2026-10-23T01:27:26.927Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=89da41ad-78cf-4052-a8a2-354d7915d11d&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 3.5,
-              "american_odds": "+250",
-              "updated_at": "2026-10-23T01:27:17.427Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 3.5,
-              "american_odds": "+250",
-              "updated_at": "2026-10-23T01:27:27.427Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 3.5,
-              "american_odds": "+250",
-              "updated_at": "2026-10-23T01:27:15.927Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 3.5,
-              "american_odds": "+250",
-              "updated_at": "2026-10-23T01:27:16.927Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.33007184226690506,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -377,26 +247,17 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261022",
-      "odds_source": "SPORTSGAMEODDS",
+      "score": {
+        "home": 9,
+        "away": 15
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909094",
       "home_ko": "오클라호마시티 선더",
       "away_ko": "덴버 너기츠",
-      "odds_event_id": "y63fZFqszJO8HL8wCKSL",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -467,7 +328,7 @@
     "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
     "hard_failures": [],
     "stale_events": 0,
-    "sports_multibook_status": "PASS"
+    "sports_multibook_status": "NO_ELIGIBLE_LEAGUE"
   },
   "sports_top3": {
     "version": "SPORTS_TOP3_V6_UNBIASED_OOS_CALIBRATED",
@@ -1521,7 +1382,7 @@
       },
       "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
     },
-    "snapshot_preserved_at": "2026-10-23T10:31:24.023335+09:00"
+    "snapshot_preserved_at": "2026-10-23T10:58:53.570097+09:00"
   },
   "team_name_localization": {
     "language": "ko",
@@ -1530,10 +1391,10 @@
   },
   "odds_provider": {
     "provider": "SportsGameOdds",
-    "status": "PASS",
+    "status": "NO_ELIGIBLE_LEAGUE",
     "plan_mode": "AMATEUR_LEAGUE_AWARE",
-    "events_enriched": 1,
-    "outcomes_enriched": 2,
+    "events_enriched": 0,
+    "outcomes_enriched": 0,
     "meta": [
       {
         "sport": "SOCCER",
@@ -1555,21 +1416,16 @@
       },
       {
         "sport": "BASKETBALL",
-        "status": "PASS",
-        "events": 2,
-        "next_cursor": null,
-        "league_ids": [
-          "NBA"
-        ],
-        "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
-        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
         "local_scheduled_competitions": [
-          "KBL",
-          "NBA"
+          "KBL"
         ],
         "unsupported_on_amateur": [
           "KBL"
-        ]
+        ],
+        "league_ids": [],
+        "events": 0
       },
       {
         "sport": "VOLLEYBALL",
@@ -1582,7 +1438,7 @@
       }
     ],
     "errors": [],
-    "updated_at": "2026-10-23T10:31:33.348324+09:00",
+    "updated_at": "2026-10-23T10:59:04.412598+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
   }
 }
