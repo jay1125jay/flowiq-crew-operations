@@ -9,9 +9,14 @@ import pc_source_collector
 import realtime_runtime as base_runtime
 
 
+PC_SOURCE_TTL_SECONDS = 300
+
+
 async def run(args):
     # Windows/home PCs can need longer than CI to build a complete source bundle.
-    # Install the resilient collector before the realtime loop starts.
+    # Keep true source timestamps intact, but allow a complete slow PC collection
+    # cycle to remain eligible for PAPER evaluation.
+    base_runtime.SOURCE_TTL = PC_SOURCE_TTL_SECONDS
     base_runtime.collect_sources = pc_source_collector.collect_sources
     category_realtime_server.install()
     await category_runtime.run(args)
