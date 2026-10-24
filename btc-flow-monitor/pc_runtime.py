@@ -5,9 +5,14 @@ import asyncio
 
 import category_realtime_runtime as category_runtime
 import category_realtime_server
+import pc_source_collector
+import realtime_runtime as base_runtime
 
 
 async def run(args):
+    # Windows/home PCs can need longer than CI to build a complete source bundle.
+    # Install the resilient collector before the realtime loop starts.
+    base_runtime.collect_sources = pc_source_collector.collect_sources
     category_realtime_server.install()
     await category_runtime.run(args)
 
