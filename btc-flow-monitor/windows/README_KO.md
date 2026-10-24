@@ -24,6 +24,23 @@ PC/인터넷을 켜두고 Windows 절전 모드를 해제하세요.
 기존 GitHub 모의계좌와 별도로 시작하는 실시간 실험입니다. 수익성 미검증.
 현재 화면은 해당 PC에서만 열립니다. 휴대폰 외부 접속은 아직 구성하지 않았습니다.
 
+## Windows 로그인 시 자동 실행
+
+`INSTALL_AUTOSTART.cmd`를 한 번 실행하면 현재 Windows 사용자 로그인 시
+`START_BTC_FLOW.cmd`가 자동 실행되도록 Windows 작업 스케줄러에 등록합니다.
+관리자 권한 없이 등록을 먼저 시도하며, PC 정책 때문에 거부되는 경우에만
+우클릭 → 관리자 권한으로 실행을 한 번 사용하세요.
+
+- 등록: `btc-flow-monitor/windows/INSTALL_AUTOSTART.cmd`
+- 해제: `btc-flow-monitor/windows/REMOVE_AUTOSTART.cmd`
+- 작업 이름: `BTC FLOW PAPER Autostart`
+- 다중 실행 정책: 새 인스턴스 무시 + 런타임 자체 중복 writer 차단
+- 자동실행이어도 `PAPER_ONLY=true`, `REAL_TRADING=false`는 그대로 유지
+- 자동실행 해제는 저장된 PAPER 계좌 기록을 삭제하지 않음
+
+프로젝트 폴더를 다른 위치로 옮겼다면 기존 자동실행을 해제한 뒤 새 위치에서
+`INSTALL_AUTOSTART.cmd`를 다시 실행하세요.
+
 ## 기존 대시보드 연결
 실행하면 기존 BTC FLOW 대시보드가 http://127.0.0.1:8080/ 에 열립니다. 홈의 6개 엔진 비교표는 PC 계좌로 1초마다 갱신합니다. 나머지 메뉴는 다운로드 당시 GitHub 저장 기록입니다. PC 화면의 QR을 스캔하면 기존 인터넷 대시보드 주소에서 동일한 6개 PC 계좌를 볼 수 있습니다.
 
