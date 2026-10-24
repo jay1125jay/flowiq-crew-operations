@@ -35,4 +35,21 @@ class DesktopRuntimeTests(unittest.TestCase):
                 asyncio.run(rt.run(args))
             store=rt.Store(directory);store.close()
 
+    def test_windows_autostart_controls_are_paper_only(self):
+        windows=Path(__file__).with_name('windows')
+        start=(windows/'START_BTC_FLOW.cmd').read_text(encoding='utf-8')
+        install=(windows/'INSTALL_AUTOSTART.cmd').read_text(encoding='utf-8')
+        remove=(windows/'REMOVE_AUTOSTART.cmd').read_text(encoding='utf-8')
+        self.assertIn('set "PAPER_ONLY=true"',start)
+        self.assertIn('set "REAL_TRADING=false"',start)
+        self.assertIn('pc_runtime.py',start)
+        self.assertIn('START_BTC_FLOW.cmd',install)
+        self.assertIn('Register-ScheduledTask',install)
+        self.assertIn('New-ScheduledTaskTrigger -AtLogOn',install)
+        self.assertIn('MultipleInstances IgnoreNew',install)
+        self.assertIn('RunLevel Limited',install)
+        self.assertIn('Unregister-ScheduledTask',remove)
+        self.assertIn('BTC FLOW PAPER Autostart',install)
+        self.assertIn('BTC FLOW PAPER Autostart',remove)
+
 if __name__=='__main__':unittest.main()
