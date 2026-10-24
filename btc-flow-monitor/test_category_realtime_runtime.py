@@ -60,6 +60,8 @@ class CategoryRealtimeTests(unittest.TestCase):
             self.assertEqual(a['starting_equity_krw'],3000000)
             self.assertEqual(a['leverage'],10)
             self.assertLessEqual(a['margin_used_krw']+a['cost_buffer_krw'],3000000.1)
+            self.assertGreaterEqual(a['free_equity_krw'],-1.0)
+            self.assertLessEqual(a['total_notional_krw'],30000000.1)
         self.assertNotIn('category_competition',self.runner.state)
         payload=json.loads((crt.Path(self.temp.name)/'category-paper-realtime.json').read_text())
         self.assertEqual(payload['version'],1)
