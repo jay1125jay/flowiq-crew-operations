@@ -35,6 +35,22 @@ class CategoryRealtimeTests(unittest.TestCase):
         self.q.receive(message(now,price),now)
         return self.runner.tick(self.q,b or bundle(),now)
 
+    def test_six_category_accounts_bootstrap_before_first_source(self):
+        c=self.runner.category_state
+        self.assertEqual(set(c['accounts']),crt.EXPECTED_KEYS)
+        self.assertEqual(c['account_count'],6)
+        self.assertEqual(c['feed_mode'],'WAITING_FOR_FIRST_LIVE_SOURCE')
+        self.assertIsNone(self.runner.category_source_id)
+        for a in c['accounts'].values():
+            self.assertEqual(a['starting_equity_krw'],3000000)
+            self.assertEqual(a['equity_krw'],3000000)
+            self.assertEqual(a['leverage'],10)
+            self.assertEqual(a['open_count'],0)
+        payload=json.loads((crt.Path(self.temp.name)/'category-paper-realtime.json').read_text())
+        self.assertEqual(payload['version'],1)
+        self.assertIsNone(payload['source_id'])
+        self.assertEqual(payload['state']['account_count'],6)
+
     def test_six_category_accounts_are_3m_10x_and_separate(self):
         self.assertTrue(self.tick())
         c=self.runner.category_state
@@ -72,6 +88,10 @@ class CategoryRealtimeTests(unittest.TestCase):
         self.assertEqual(self.runner.category_state['accounts']['WHALE_10X']['positions'][A]['side'],'SHORT')
 
     def test_public_payload_labels_category_and_adaptive_separately(self):
+        p0=self.runner.public(self.q,None,NOW)
+        self.assertEqual(p0['category_account_count'],6)
+        self.assertEqual(len(p0['category_rows']),6)
+        self.assertFalse(p0['category_healthy'])
         self.tick();p=self.runner.public(self.q,bundle(),NOW)
         self.assertEqual(p['category_mode'],'PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE')
         self.assertEqual(p['category_account_count'],6)
