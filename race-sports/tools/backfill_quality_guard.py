@@ -32,8 +32,12 @@ def validate_horse(e):
     if not one_winner(outs):
         return False, 'HORSE_WINNER_COUNT'
     ranks = [o.get('final_rank') for o in outs if o.get('final_rank') is not None]
-    if len(ranks) < 3 or len(set(ranks)) != len(ranks):
+    from collections import Counter
+    if len(ranks) < 3:
         return False, 'HORSE_RANKS_INVALID'
+    for rank, count in Counter(ranks).items():
+        if count > 1 and (not isinstance(rank, int) or rank <= 2 or not any(o.get('official_dead_heat') is True for o in outs if o.get('final_rank') == rank)):
+            return False, 'HORSE_RANKS_INVALID'
     for o in outs:
         name = str(o.get('horse_name') or '').strip()
         if not name or '코너지점' in name or name in {'마명', '순위', '마번'}:
@@ -195,3 +199,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

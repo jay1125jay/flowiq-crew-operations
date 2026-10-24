@@ -7,6 +7,7 @@ import historical_backfill as hb
 import historical_backfill_hardening as hardening
 import historical_cycle_result_fallback as cycle_result_fallback
 import historical_retry_repair as retry_repair
+import horse_parser_regressions as parser_regressions
 
 hardening.install(hb)
 cycle_result_fallback.install(hb)
@@ -33,9 +34,11 @@ def main():
         'bull':max(0,args.bull_slice),
     },start+total)
     seen={s:hb.existing_ids(s) for s in ('horse','cycle','boat','bull')}
+    snapshot_recovered = parser_regressions.recover(state, seen['horse'])
     stats={
         'horse_records':0,'horse_dates':0,
         'horse_retry_attempted':0,'horse_retry_recovered':0,
+        'horse_official_snapshot_recovered':len(snapshot_recovered),
         'cycle_records':0,'cycle_dates':0,
         'boat_records':0,'boat_dates':0,
         'bull_records':0,'bull_cards':0,
@@ -116,4 +119,5 @@ def main():
     print(json.dumps({'HISTORICAL_BACKFILL':'PASS',**report},ensure_ascii=False))
 
 if __name__=='__main__':main()
+
 

@@ -18,7 +18,9 @@ def _horse_candidate_valid(hb, outcome):
     num = outcome.get('number')
     rank = outcome.get('final_rank')
     try:
-        if not 1 <= int(num) <= 20 or not 1 <= int(rank) <= 20:
+        if not 1 <= int(num) <= 20:
+            return False
+        if not (rank is None and outcome.get('finish_status') == 'DNF') and not 1 <= int(rank) <= 20:
             return False
     except Exception:
         return False
@@ -61,6 +63,8 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
         text,
     )
     race_info = {}
+    if not meta:
+        return None
     if meta:
         rendered = date(int(meta.group(1)), int(meta.group(2)), int(meta.group(3)))
         rendered_race = int(meta.group(4))
@@ -73,6 +77,8 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
 
     header = None
     candidates = []
+    no_win_pool = any(re.fullmatch(r'단승식\s*:\s*0', _clean(hb, cell)) for row in p.rows for cell in row)
+    no_place_pool = any(re.fullmatch(r'연승식\s*:\s*0', _clean(hb, cell)) for row in p.rows for cell in row)
     for row in p.rows:
         norm = [_clean(hb, x).replace(' ', '') for x in row]
         if all(k in norm for k in ('순위', '마번', '마명', '기수명', '조교사명', '단승')):
@@ -91,19 +97,28 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
             continue
         if not header:
             continue
+        # Stop at the next results/sectional table; its numeric cells are not horses.
+        if '순위' in norm and '마번' in norm:
+            break
         required = [header['rank'], header['number'], header['horse_name']]
         if any(i is None for i in required) or len(row) <= max(required):
             continue
 
         rank = hb.as_int(row[header['rank']])
         number = hb.as_int(row[header['number']])
-        if rank is None or number is None:
+        if number is None:
             continue
 
         def val(key):
             i = header.get(key)
             return _clean(hb, row[i]) if i is not None and i < len(row) else None
 
+        finish_status = None
+        if rank is None:
+            if '주행중지' in row or '경주중지' in row:
+                finish_status = 'DNF'
+            else:
+                continue  # Scratched/non-starting runners are not losing bets.
         outcome = {
             'key': f'N{int(number)}',
             'number': int(number),
@@ -117,10 +132,12 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
             'jockey': val('jockey'),
             'trainer': val('trainer'),
             'owner': val('owner'),
-            'final_rank': int(rank),
-            'won': int(rank) == 1,
-            'final_odds': hb.as_float(val('single')),
-            'final_place_odds': hb.as_float(val('place')),
+            'final_rank': int(rank) if rank is not None else None,
+            'finish_status': finish_status or 'FINISHED',
+            'official_dead_heat': '동순위' in row,
+            'won': rank == 1,
+            'final_odds': None if no_win_pool else hb.as_float(val('single')),
+            'final_place_odds': None if no_place_pool else hb.as_float(val('place')),
         }
         if _horse_candidate_valid(hb, outcome):
             candidates.append(outcome)
@@ -134,8 +151,11 @@ def _parse_horse_detail(hb, raw, meet, d, race_no):
     rows.sort(key=lambda x: x['number'])
     if len(rows) < 5:
         return None
-    if len({o['final_rank'] for o in rows}) != len(rows):
-        return None
+    from collections import Counter
+    rank_counts = Counter(o['final_rank'] for o in rows if o['final_rank'] is not None)
+    for rank, count in rank_counts.items():
+        if count > 1 and (rank <= 2 or not any(o.get('official_dead_heat') for o in rows if o['final_rank'] == rank)):
+            return None
     if sum(1 for o in rows if o['won']) != 1:
         return None
     if len({o['horse_name'] for o in rows}) != len(rows):
@@ -390,3 +410,4 @@ def self_test():
 if __name__ == '__main__':
     if '--self-test' in sys.argv:
         self_test()
+
