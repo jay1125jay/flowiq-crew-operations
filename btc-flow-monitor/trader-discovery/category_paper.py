@@ -17,6 +17,7 @@ def _age_seconds(stamp,now):
  try:return max(0.0,(datetime.datetime.fromisoformat(now.replace('Z','+00:00'))-datetime.datetime.fromisoformat(stamp.replace('Z','+00:00'))).total_seconds())
  except Exception:return 0.0
 def _swing_cost_buffer(notional):return float(notional)*SWING_COST_BUFFER_RATE
+def _remaining_execution_buffer(notional):return float(notional)*SLIPPAGE
 def _swing_commitment(p):return float(p['margin_usd'])+float(p.get('cost_buffer_usd',_swing_cost_buffer(p['notional_usd'])))
 def _close(a,wallet,p,price,now,reason,exit_override=None):
  exit_price=exit_override if exit_override is not None else price*(1-SLIPPAGE if p['side']=='LONG' else 1+SLIPPAGE)
@@ -75,7 +76,6 @@ def advance(state,coh,feed,now):
       _close(a,wallet,p,price,now,'SOURCE_FLIP')
       if cat=='WHALE':a['pending_reversals'][wallet]={'side':new,'seen_at':now};blocked.add(wallet)
     elif cat=='SWING':a['pending_reversals'].pop(wallet,None)
-
    candidates=[w for w in sorted(eligible) if signals.get(w) in ('LONG','SHORT') and w not in blocked and w not in a['positions']]
    candidates=candidates[:max(0,MAX_POSITIONS-len(a['positions']))]
    swing_margin=None
@@ -88,7 +88,6 @@ def advance(state,coh,feed,now):
     swing_margin=per_target_commit/(1+lev*SWING_COST_BUFFER_RATE)
     a['allocation_target_count']=len(a['positions'])+len(candidates)
     a['allocation_capital_usd']=round(capital_base,6)
-
    for wallet in candidates:
     side=signals.get(wallet)
     if cat=='WHALE' and wallet in a['pending_reversals']:
@@ -112,10 +111,11 @@ def advance(state,coh,feed,now):
    unreal=_unreal(a['positions'],price);equity=a['cash']+unreal;reserved=sum(p['margin_usd'] for p in a['positions'].values());total_notional=sum(p['notional_usd'] for p in a['positions'].values());a['peak']=max(a['peak'],equity);a['mdd_pct']=max(a['mdd_pct'],100*(a['peak']-equity)/a['peak']);wins=sum(t['pnl_usd']>0 for t in a['closed']);loss=sum(min(0,t['pnl_usd']) for t in a['closed'])
    cost_buffer=sum(_swing_cost_buffer(p['notional_usd']) for p in a['positions'].values())
    fee_buffer=sum(p['notional_usd']*2*FEE_RATE for p in a['positions'].values())
-   free_equity=equity-reserved-cost_buffer
-   extra={'total_notional_usd':round(total_notional,2),'cost_buffer_usd':round(cost_buffer,4),'fee_buffer_usd':round(fee_buffer,4)}
+   remaining_execution_buffer=sum(_remaining_execution_buffer(p['notional_usd']) for p in a['positions'].values())
+   free_equity=equity-reserved-remaining_execution_buffer
+   extra={'total_notional_usd':round(total_notional,2),'cost_buffer_usd':round(cost_buffer,4),'fee_buffer_usd':round(fee_buffer,4),'remaining_execution_buffer_usd':round(remaining_execution_buffer,4)}
    a.update({'equity_usd':round(equity,4),'net_pnl_usd':round(equity-a['starting_equity_usd'],4),'unrealized_pnl_usd':round(unreal,4),'margin_used_usd':round(reserved,2),'free_equity_usd':round(free_equity,4),'mdd_pct':round(a['mdd_pct'],3),'closed_count':len(a['closed']),'win_rate_pct':round(wins/len(a['closed'])*100,2) if a['closed'] else None,'open_count':len(a['positions']),'eligible_observed':len(eligible),'profit_factor':round(sum(max(0,t['pnl_usd']) for t in a['closed'])/abs(loss),3) if loss else None,'closed_pnl_usd':round(sum(t['pnl_usd'] for t in a['closed']),4),**extra})
-   fx=a['krw_per_usd'];a.update(equity_krw=round(equity*fx,2),net_pnl_krw=round((equity-a['starting_equity_usd'])*fx,2),margin_used_krw=round(reserved*fx,2),free_equity_krw=round(free_equity*fx,2),total_notional_krw=round(total_notional*fx,2),fee_buffer_krw=round(a['fee_buffer_usd']*fx,2),cost_buffer_krw=round(a['cost_buffer_usd']*fx,2),return_pct=round((equity/a['starting_equity_usd']-1)*100,4))
+   fx=a['krw_per_usd'];a.update(equity_krw=round(equity*fx,2),net_pnl_krw=round((equity-a['starting_equity_usd'])*fx,2),margin_used_krw=round(reserved*fx,2),free_equity_krw=round(free_equity*fx,2),total_notional_krw=round(total_notional*fx,2),fee_buffer_krw=round(a['fee_buffer_usd']*fx,2),cost_buffer_krw=round(a['cost_buffer_usd']*fx,2),remaining_execution_buffer_krw=round(a['remaining_execution_buffer_usd']*fx,2),return_pct=round((equity/a['starting_equity_usd']-1)*100,4))
  state.update({'schema_version':8,'paper_only':True,'real_trading_enabled':False,'updated_at':now,'follower_mode':'COHORT_SPECIFIC_EXECUTION','feed_mode':'FULL_CLASSIFIED_TRADER_CATALOG','leverages':list(LEVERAGES),'account_count':6,'observed_wallet_count':feed.get('observed_wallet_count',len(signals)),'feed_errors':len(feed.get('errors',[])),'max_positions_per_account':MAX_POSITIONS,'margin_per_position_usd':None,'maintenance_margin_rate':MAINTENANCE_MARGIN_RATE,'all_accounts_capital_policy':{'capital_krw':SWING_CAPITAL_KRW,'fixed_krw_per_usd':SWING_KRW_PER_USD,'capital_epoch':SWING_CAPITAL_EPOCH},'swing_capital_policy':{'capital_krw':SWING_CAPITAL_KRW,'fixed_krw_per_usd':SWING_KRW_PER_USD,'allocation':'equal across current entry targets from remaining account capital','cost_buffer_rate':SWING_COST_BUFFER_RATE,'capital_epoch':SWING_CAPITAL_EPOCH},'whale_filter':'Initial WHALE positions follow immediately. After a WHALE source flip, close immediately but require the new direction to persist into the next observation before re-entry.','swing_filter':f'SWING holds positions for at least {SWING_MIN_HOLD_SECONDS//60} minutes unless liquidation. After minimum hold, an opposite signal must persist for {SWING_REVERSAL_CONFIRMATIONS} observations before exit; no same-cycle reverse entry.','limitation':'PAPER only. 10x isolated-style simulations; fixed test FX KRW 1500 per USD for all category displays; sampled mark liquidation approximation; funding not modeled; no same-cycle re-entry after liquidation; no real orders.'});return state
 
 def main():
