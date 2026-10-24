@@ -5,6 +5,7 @@ import asyncio
 
 import category_realtime_runtime as category_runtime
 import category_realtime_server
+import pc_price_stream
 import pc_source_collector
 import realtime_runtime as base_runtime
 
@@ -18,6 +19,9 @@ async def run(args):
     # cycle to remain eligible for PAPER evaluation.
     base_runtime.SOURCE_TTL = PC_SOURCE_TTL_SECONDS
     base_runtime.collect_sources = pc_source_collector.collect_sources
+    # Some home/office networks allow Hyperliquid HTTPS while blocking/silencing
+    # WebSocket traffic. Prefer WS BBO and automatically fall back to public REST.
+    base_runtime.stream = pc_price_stream.stream
     category_realtime_server.install()
     await category_runtime.run(args)
 
