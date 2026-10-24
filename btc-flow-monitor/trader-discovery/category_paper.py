@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Six trader cohorts x 5x/10x isolated forward-only BTC PAPER ledgers. Never sends orders."""
+"""Six trader cohorts x 10x isolated forward-only BTC PAPER ledgers. Never sends orders."""
 import json,pathlib,datetime,copy
 ROOT=pathlib.Path(__file__).resolve().parents[1];OUT=ROOT/'trader-discovery/category-paper.json'
-CATS=('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING');LEVERAGES=(5,10)
+CATS=('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING');LEVERAGES=(10,)
 MAX_POSITIONS=6;MARGIN_USD=150.0;SLIPPAGE=0.0003;FEE_RATE=0.0005;MAINTENANCE_MARGIN_RATE=0.005
 SWING_CAPITAL_KRW=3000000;SWING_KRW_PER_USD=1500.0
-SWING_CAPITAL_EPOCH='ALL_12_ACCOUNTS_KRW_3000000_RESET_V1'
+SWING_CAPITAL_EPOCH='ALL_6_ACCOUNTS_KRW_3000000_10X_V2'
 SWING_MIN_HOLD_SECONDS=3600;SWING_REVERSAL_CONFIRMATIONS=2
 SWING_COST_BUFFER_RATE=2*(FEE_RATE+SLIPPAGE)
 
@@ -34,7 +34,7 @@ def _swing_capital(state,now):
    key=f'{cat}_{lev}X';old=state['accounts'].get(key)
    if old and old.get('capital_epoch')==SWING_CAPITAL_EPOCH:continue
    if old:
-    state.setdefault('capital_archives',[]).append({'account_key':key,'archived_at':now,'reason':'ALL_ACCOUNTS_3000000_KRW_PAPER_RESET','account':copy.deepcopy(old)})
+    state.setdefault('capital_archives',[]).append({'account_key':key,'archived_at':now,'reason':'TEN_X_ONLY_NEW_TEST','account':copy.deepcopy(old)})
    a=_new_account(cat,lev)
    a.update(started_at=now,allocation_mode='EQUAL_ACROSS_CURRENT_TARGETS_FEE_AND_SLIPPAGE_SAFE',cost_buffer_rate=SWING_COST_BUFFER_RATE)
    state['accounts'][key]=a
@@ -45,7 +45,10 @@ def advance(state,coh,feed,now):
  if not 1000<price<1000000:raise ValueError('invalid BTC price')
  signals=feed.get('wallets',{})
  if 'legacy_unleveraged_accounts' not in state and state.get('accounts'):state['legacy_unleveraged_accounts']=state['accounts']
- state['accounts']={k:v for k,v in state.get('accounts',{}).items() if k.endswith('_5X') or k.endswith('_10X')}
+ for key,account in list(state.get('accounts',{}).items()):
+  if key.endswith('_5X'):
+   state.setdefault('capital_archives',[]).append({'account_key':key,'archived_at':now,'reason':'RETIRED_5X_TEST','account':copy.deepcopy(account)})
+ state['accounts']={k:v for k,v in state.get('accounts',{}).items() if k.endswith('_10X')}
  _swing_capital(state,now)
  for cat in CATS:
   eligible={w['address'] for w in coh.get('wallets',[]) if w.get('category_flags',{}).get(cat) and w.get('address') in signals}
@@ -115,13 +118,13 @@ def advance(state,coh,feed,now):
    if True:
     cost_buffer=sum(_swing_cost_buffer(p['notional_usd']) for p in a['positions'].values())
     fee_buffer=sum(p['notional_usd']*2*FEE_RATE for p in a['positions'].values())
-    free_equity=equity-reserved-cost_buffer
+    free_equity=equity-reserved
     extra.update(cost_buffer_usd=round(cost_buffer,4),fee_buffer_usd=round(fee_buffer,4))
    a.update({'equity_usd':round(equity,4),'net_pnl_usd':round(equity-a['starting_equity_usd'],4),'unrealized_pnl_usd':round(unreal,4),'margin_used_usd':round(reserved,2),'free_equity_usd':round(free_equity,4),'mdd_pct':round(a['mdd_pct'],3),'closed_count':len(a['closed']),'win_rate_pct':round(wins/len(a['closed'])*100,2) if a['closed'] else None,'open_count':len(a['positions']),'eligible_observed':len(eligible),'profit_factor':round(sum(max(0,t['pnl_usd']) for t in a['closed'])/abs(loss),3) if loss else None,'closed_pnl_usd':round(sum(t['pnl_usd'] for t in a['closed']),4),**extra})
    if True:
     fx=a['krw_per_usd'];a.update(equity_krw=round(equity*fx,2),net_pnl_krw=round((equity-a['starting_equity_usd'])*fx,2),margin_used_krw=round(reserved*fx,2),total_notional_krw=round(total_notional*fx,2),fee_buffer_krw=round(a['fee_buffer_usd']*fx,2),cost_buffer_krw=round(a['cost_buffer_usd']*fx,2),return_pct=round((equity/a['starting_equity_usd']-1)*100,4))
- state.update({'schema_version':7,'paper_only':True,'real_trading_enabled':False,'updated_at':now,'follower_mode':'COHORT_SPECIFIC_EXECUTION','feed_mode':'FULL_CLASSIFIED_TRADER_CATALOG','leverages':list(LEVERAGES),'account_count':12,'observed_wallet_count':feed.get('observed_wallet_count',len(signals)),'feed_errors':len(feed.get('errors',[])),'max_positions_per_account':MAX_POSITIONS,'margin_per_position_usd':None,'maintenance_margin_rate':MAINTENANCE_MARGIN_RATE,'all_accounts_capital_policy':{'capital_krw':SWING_CAPITAL_KRW,'fixed_krw_per_usd':SWING_KRW_PER_USD,'capital_epoch':SWING_CAPITAL_EPOCH},'swing_capital_policy':{'capital_krw':SWING_CAPITAL_KRW,'fixed_krw_per_usd':SWING_KRW_PER_USD,'allocation':'equal across current entry targets from remaining account capital','cost_buffer_rate':SWING_COST_BUFFER_RATE,'capital_epoch':SWING_CAPITAL_EPOCH},'whale_filter':'Initial WHALE positions follow immediately. After a WHALE source flip, close immediately but require the new direction to persist into the next observation before re-entry.','swing_filter':f'SWING holds positions for at least {SWING_MIN_HOLD_SECONDS//60} minutes unless liquidation. After minimum hold, an opposite signal must persist for {SWING_REVERSAL_CONFIRMATIONS} observations before exit; no same-cycle reverse entry.','limitation':'PAPER only. 5x/10x isolated-style simulations; fixed test FX KRW 1500 per USD for SWING display only; sampled mark liquidation approximation; funding not modeled; no same-cycle re-entry after liquidation; no real orders.'});return state
+ state.update({'schema_version':8,'paper_only':True,'real_trading_enabled':False,'updated_at':now,'follower_mode':'COHORT_SPECIFIC_EXECUTION','feed_mode':'FULL_CLASSIFIED_TRADER_CATALOG','leverages':list(LEVERAGES),'account_count':6,'observed_wallet_count':feed.get('observed_wallet_count',len(signals)),'feed_errors':len(feed.get('errors',[])),'max_positions_per_account':MAX_POSITIONS,'margin_per_position_usd':None,'maintenance_margin_rate':MAINTENANCE_MARGIN_RATE,'all_accounts_capital_policy':{'capital_krw':SWING_CAPITAL_KRW,'fixed_krw_per_usd':SWING_KRW_PER_USD,'capital_epoch':SWING_CAPITAL_EPOCH},'swing_capital_policy':{'capital_krw':SWING_CAPITAL_KRW,'fixed_krw_per_usd':SWING_KRW_PER_USD,'allocation':'equal across current entry targets from remaining account capital','cost_buffer_rate':SWING_COST_BUFFER_RATE,'capital_epoch':SWING_CAPITAL_EPOCH},'whale_filter':'Initial WHALE positions follow immediately. After a WHALE source flip, close immediately but require the new direction to persist into the next observation before re-entry.','swing_filter':f'SWING holds positions for at least {SWING_MIN_HOLD_SECONDS//60} minutes unless liquidation. After minimum hold, an opposite signal must persist for {SWING_REVERSAL_CONFIRMATIONS} observations before exit; no same-cycle reverse entry.','limitation':'PAPER only. 10x isolated-style simulations; fixed test FX KRW 1500 per USD for all category displays; sampled mark liquidation approximation; funding not modeled; no same-cycle re-entry after liquidation; no real orders.'});return state
 
 def main():
- state=json.loads(OUT.read_text()) if OUT.exists() else {};coh=json.loads((ROOT/'trader-discovery/latest.json').read_text());feed=json.loads((ROOT/'trader-discovery/current-positions.json').read_text());now=datetime.datetime.now(datetime.timezone.utc).isoformat();OUT.write_text(json.dumps(advance(state,coh,feed,now),indent=2)+'\n');print('CATEGORY PAPER PASS 12 accounts 5x/10x',feed.get('observed_wallet_count'))
+ state=json.loads(OUT.read_text()) if OUT.exists() else {};coh=json.loads((ROOT/'trader-discovery/latest.json').read_text());feed=json.loads((ROOT/'trader-discovery/current-positions.json').read_text());now=datetime.datetime.now(datetime.timezone.utc).isoformat();OUT.write_text(json.dumps(advance(state,coh,feed,now),indent=2)+'\n');print('CATEGORY PAPER PASS 6 accounts 10x',feed.get('observed_wallet_count'))
 if __name__=='__main__':main()

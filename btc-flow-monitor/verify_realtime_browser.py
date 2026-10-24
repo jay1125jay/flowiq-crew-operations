@@ -41,12 +41,12 @@ def main():
                 page.wait_for_function("!document.querySelector('#adaptiveRows').textContent.includes('LONG · 상승')")
                 assert page.locator('#adaptiveRows').inner_text().count('판단 보류')==6
                 page.get_by_role('button',name='6유형 PAPER',exact=True).click()
-                page.wait_for_function("document.querySelectorAll('#paper6 .card').length===12")
+                page.wait_for_function("document.querySelectorAll('#paper6 .card').length===6")
                 page.get_by_role('button',name='홈',exact=True).click()
                 page.route('**/api/status',lambda route:route.fulfill(status=503,body='unavailable'))
                 page.wait_for_function("document.querySelectorAll('#adaptiveRows tr').length===0")
                 assert not errors,errors
-                evidence[name]={'existing_dashboard':True,'live_equity':True,'twelve_saved_accounts':True,'six_rows':True,'stale_wait':True,'error_clears':True,'no_overflow':True}
+                evidence[name]={'existing_dashboard':True,'live_equity':True,'six_saved_accounts':True,'six_rows':True,'stale_wait':True,'error_clears':True,'no_overflow':True}
                 page.close()
             browser.close()
     finally:

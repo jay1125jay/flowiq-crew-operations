@@ -31,16 +31,16 @@ def main():
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
                 assert not errors,errors
                 page.screenshot(path=str(OUT/f'{name}.png'),full_page=True)
-                # Existing twelve accounts must still render on their own tab.
+                # Existing six accounts must still render on their own tab.
                 page.get_by_role('button',name='6유형 PAPER',exact=True).click()
-                page.wait_for_function("document.querySelectorAll('#paper6 .card').length === 12")
+                page.wait_for_function("document.querySelectorAll('#paper6 .card').length === 6")
                 # Error response must clear the table instead of showing stale success.
                 page.route('**/data/adaptive-meta.json*',lambda route:route.fulfill(status=503,body='unavailable'))
                 page.get_by_role('button',name='홈',exact=True).click()
                 page.get_by_role('button',name='↻ 새로고침',exact=True).click()
                 page.wait_for_function("document.querySelector('#adaptiveStatus').textContent.includes('확인 불가')")
                 assert page.locator('#adaptiveRows tr').count()==0
-                result[name]={'six_engines':True,'twelve_cohort_accounts':True,'no_document_overflow':True,'error_state':True,'page_errors':errors}
+                result[name]={'six_engines':True,'six_cohort_accounts':True,'no_document_overflow':True,'error_state':True,'page_errors':errors}
                 page.close()
             browser.close()
     finally:
