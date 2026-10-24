@@ -74,7 +74,7 @@ class TenOnlyTests(unittest.TestCase):
   for a in s['accounts'].values():
    self.assertEqual(a['leverage'],10);self.assertEqual(a['starting_equity_krw'],3000000)
    self.assertGreater(a['total_notional_krw'],29500000);self.assertLess(a['total_notional_krw'],30000000)
-   self.assertGreaterEqual(a['free_equity_usd'],0)
+   expected=a['equity_usd']-a['margin_used_usd']-a['cost_buffer_usd'];self.assertAlmostEqual(a['free_equity_usd'],expected,places=2);self.assertAlmostEqual(a['free_equity_krw'],a['free_equity_usd']*1500,places=1)
    self.assertEqual(a['open_count'],2)
   s=mod.advance(s,c,f,'2026-10-24T00:05:00+00:00')
   self.assertEqual(len(s['capital_archives']),1)
