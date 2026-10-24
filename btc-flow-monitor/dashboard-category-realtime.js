@@ -12,7 +12,7 @@
   function install(){
     const home=document.getElementById('home');if(!home||document.getElementById('categoryRealtimePanel'))return;
     const p=document.createElement('div');p.className='panel';p.id='categoryRealtimePanel';
-    p.innerHTML='<div class="head"><h2>PC 6유형 실시간 테스트 · 각 300만원 · 10X</h2><div class="muted" id="categoryRealtimeStatus">연결 확인 중</div></div><div class="pad"><div class="notice">PAPER ONLY · Adaptive 계좌와 완전 별도 기록 · 가격 평가는 1초 · 진입/반전 판단은 새 트레이더 소스가 들어올 때만 수행</div><div class="tablewrap"><table class="table"><thead><tr><th>유형</th><th>자산</th><th>순손익</th><th>수익률</th><th>MDD</th><th>실질 가용자금</th><th>총 포지션</th><th>오픈</th><th>종료</th><th>승률</th><th>PF</th><th>청산</th></tr></thead><tbody id="categoryRealtimeRows"></tbody></table></div><div class="muted" id="categoryRealtimeMeta"></div></div>';
+    p.innerHTML='<div class="head"><h2>PC 6유형 실시간 테스트 · 각 3,000,000원 · 10X</h2><div class="muted" id="categoryRealtimeStatus">연결 확인 중</div></div><div class="pad"><div class="notice">PAPER ONLY · Adaptive 계좌와 완전 별도 기록 · 가격 평가는 1초 · 진입/반전 판단은 새 트레이더 소스가 들어올 때만 수행</div><div class="tablewrap"><table class="table"><thead><tr><th>유형</th><th>자산</th><th>순손익</th><th>수익률</th><th>MDD</th><th>실질 가용자금</th><th>총 포지션</th><th>오픈</th><th>종료</th><th>승률</th><th>PF</th><th>청산</th></tr></thead><tbody id="categoryRealtimeRows"></tbody></table></div><div class="muted" id="categoryRealtimeMeta"></div></div>';
     const adaptive=document.getElementById('adaptivePanel');if(adaptive&&adaptive.parentNode===home)adaptive.after(p);else home.prepend(p);
     refresh();
   }
@@ -32,7 +32,7 @@
       const stale=!payload.category_healthy;
       status.textContent=(stale?'PC 6유형 연결 대기':'PC 6유형 실시간 정상')+' · BTC $'+fmt(payload.btc_mid_usd)+' · 평가 '+(d.updated_at?new Date(d.updated_at).toLocaleTimeString('ko-KR'):'—');
       status.className=stale?'red':'muted';
-      document.getElementById('categoryRealtimeMeta').textContent='PC 별도 계좌 파일 category-paper-realtime.json · 소스 '+(payload.category_source_at?new Date(payload.category_source_at).toLocaleTimeString('ko-KR'):'대기')+' · 새 소스 반영 '+fmt(payload.category_source_events,0)+'회 · Adaptive 성과와 합산하지 않음';
+      document.getElementById('categoryRealtimeMeta').textContent='시작자금 각 3,000,000원 · PC 별도 계좌 파일 category-paper-realtime.json · 소스 '+(payload.category_source_at?new Date(payload.category_source_at).toLocaleTimeString('ko-KR'):'대기')+' · 새 소스 반영 '+fmt(payload.category_source_events,0)+'회 · Adaptive 성과와 합산하지 않음';
     }catch(e){status.textContent='PC 6유형 확인 불가: '+e.message;status.className='red';document.getElementById('categoryRealtimeRows').textContent='';document.getElementById('categoryRealtimeMeta').textContent='';}
     finally{busy=false;}
   }
