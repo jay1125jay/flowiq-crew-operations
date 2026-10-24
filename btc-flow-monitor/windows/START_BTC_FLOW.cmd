@@ -21,6 +21,8 @@ if errorlevel 1 (
 set "PAPER_ONLY=true"
 set "REAL_TRADING=false"
 set "PYTHONUTF8=1"
+"%BTC_HOME%\venv\Scripts\python.exe" "%~dp0..\integrate-follow.py"
+if errorlevel 1 goto failed
 echo BTC FLOW PAPER ONLY - Adaptive and 6 category accounts remain separate.
 echo 6 categories: KRW 3,000,000 each / 10X only / 1-second mark evaluation.
 echo Keep this window open. Press Ctrl+C to stop safely.
