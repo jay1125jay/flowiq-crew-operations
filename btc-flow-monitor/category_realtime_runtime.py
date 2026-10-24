@@ -37,6 +37,67 @@ def _validate_category_state(state):
             raise ValueError('category runtime capital/leverage mismatch')
 
 
+def _blank_category_state(now):
+    """Create six visible PAPER accounts immediately, before the first live source arrives."""
+    state = {'accounts': {}}
+    category._swing_capital(state, now)
+    for account in state['accounts'].values():
+        equity = float(account['starting_equity_usd'])
+        fx = float(account['krw_per_usd'])
+        account.update(
+            equity_usd=round(equity, 4),
+            net_pnl_usd=0.0,
+            unrealized_pnl_usd=0.0,
+            margin_used_usd=0.0,
+            free_equity_usd=round(equity, 4),
+            total_notional_usd=0.0,
+            cost_buffer_usd=0.0,
+            fee_buffer_usd=0.0,
+            closed_count=0,
+            win_rate_pct=None,
+            open_count=0,
+            profit_factor=None,
+            closed_pnl_usd=0.0,
+            equity_krw=round(equity * fx, 2),
+            net_pnl_krw=0.0,
+            margin_used_krw=0.0,
+            free_equity_krw=round(equity * fx, 2),
+            total_notional_krw=0.0,
+            fee_buffer_krw=0.0,
+            cost_buffer_krw=0.0,
+            return_pct=0.0,
+        )
+    state.update(
+        schema_version=8,
+        paper_only=True,
+        real_trading_enabled=False,
+        updated_at=now,
+        follower_mode='COHORT_SPECIFIC_EXECUTION',
+        feed_mode='WAITING_FOR_FIRST_LIVE_SOURCE',
+        leverages=[10],
+        account_count=6,
+        observed_wallet_count=0,
+        feed_errors=0,
+        max_positions_per_account=category.MAX_POSITIONS,
+        margin_per_position_usd=None,
+        maintenance_margin_rate=category.MAINTENANCE_MARGIN_RATE,
+        all_accounts_capital_policy={
+            'capital_krw': category.SWING_CAPITAL_KRW,
+            'fixed_krw_per_usd': category.SWING_KRW_PER_USD,
+            'capital_epoch': category.SWING_CAPITAL_EPOCH,
+        },
+        runtime_mode='PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE',
+        runtime_mark_interval_seconds=1,
+        runtime_source_refresh_seconds=60,
+        runtime_source_id=None,
+        runtime_source_event=False,
+        adaptive_accounts_separate=True,
+        control='Six category ledgers are separate from Adaptive PAPER accounts. Waiting for first live source. No real orders.',
+    )
+    _validate_category_state(state)
+    return state
+
+
 class CategoryState:
     """Separate durable file; never imports or overwrites Adaptive account state."""
     def __init__(self, adaptive_store):
@@ -129,6 +190,9 @@ class CombinedRunner(base.Runner):
         super().__init__(store)
         self.category_store = CategoryState(store)
         self.category_state, self.category_source_id = self.category_store.read()
+        if not self.category_state:
+            self.category_state = _blank_category_state(base.iso(base.time.time()))
+            self.category_store.save(self.category_state, None)
         self.category_source_events = 0
 
     def tick(self, quotes, bundle, now, source_error=None):
@@ -165,7 +229,7 @@ class CombinedRunner(base.Runner):
         state = copy.deepcopy(self.category_state)
         payload.update(
             category_mode='PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE',
-            category_healthy=bool(payload.get('healthy') and state),
+            category_healthy=bool(payload.get('healthy') and state and self.category_source_id),
             category_source_at=self.category_source_id,
             category_source_events=self.category_source_events,
             category_account_count=len(state.get('accounts', {})),
