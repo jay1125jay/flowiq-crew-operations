@@ -24,7 +24,7 @@ set "PYTHONUTF8=1"
 echo BTC FLOW PAPER ONLY - Adaptive and 6 category accounts remain separate.
 echo 6 categories: KRW 3,000,000 each / 10X only / 1-second mark evaluation.
 echo Keep this window open. Press Ctrl+C to stop safely.
-"%BTC_HOME%\venv\Scripts\python.exe" "%~dp0..\category_realtime_runtime.py" --state-dir "%BTC_HOME%\state" --host 127.0.0.1 --port 8080 --open-browser --share-phone
+"%BTC_HOME%\venv\Scripts\python.exe" "%~dp0..\pc_runtime.py" --state-dir "%BTC_HOME%\state" --host 127.0.0.1 --port 8080 --open-browser --share-phone
 if errorlevel 1 goto failed
 pause
 exit /b 0
