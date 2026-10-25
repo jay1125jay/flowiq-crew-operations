@@ -857,7 +857,7 @@
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261024",
       "score": {
         "home": 100,
-        "away": 91
+        "away": 100
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "Draft Kings",
@@ -932,8 +932,8 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261024",
       "score": {
-        "home": 27,
-        "away": 29
+        "home": 38,
+        "away": 30
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "Draft Kings",
@@ -1009,7 +1009,7 @@
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261024",
       "score": {
         "home": 34,
-        "away": 25
+        "away": 34
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "Draft Kings",
@@ -1044,7 +1044,7 @@
       "start_label": "09:00",
       "start_timestamp": 1792886400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Milwaukee Brewers vs Tampa Bay Rays",
       "home": "Milwaukee Brewers",
       "away": "Tampa Bay Rays",
@@ -1244,7 +1244,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909857",
@@ -1259,7 +1263,7 @@
       "start_label": "09:00",
       "start_timestamp": 1792886400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Chicago Bulls vs Washington Wizards",
       "home": "Chicago Bulls",
       "away": "Washington Wizards",
@@ -1459,7 +1463,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 2,
+        "away": 5
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909858",
@@ -1474,7 +1482,7 @@
       "start_label": "09:00",
       "start_timestamp": 1792886400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Dallas Mavericks vs San Antonio Spurs",
       "home": "Dallas Mavericks",
       "away": "San Antonio Spurs",
@@ -1674,7 +1682,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 4
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909856",
@@ -3602,7 +3614,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-10-25T06:55:43+09:00",
+      "updated_at": "2026-10-25T09:15:44+09:00",
       "summary": {
         "overall": {
           "picks": 23,
@@ -3977,7 +3989,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-10-25T06:55:43+09:00",
+      "generated_at": "2026-10-25T09:15:44+09:00",
       "overall": {
         "observed": 192,
         "evaluated": 143,
@@ -4576,5 +4588,31 @@
     "errors": [],
     "updated_at": "2026-10-25T09:08:59.566265+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-10-25T09:15:39+09:00",
+    "polled_sports": [
+      "BASEBALL",
+      "BASKETBALL"
+    ],
+    "field_changes": 9,
+    "providers": [
+      {
+        "sport": "BASEBALL",
+        "status": "PASS",
+        "matched": 2,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KBO_OFFICIAL"
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 11,
+        "field_changes": 7,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
