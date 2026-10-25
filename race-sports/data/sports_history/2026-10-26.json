@@ -1,0 +1,2780 @@
+{
+  "date": "2026-10-26",
+  "time": "00:02:28",
+  "generated_at": "2026-10-26T00:02:28.556443+09:00",
+  "domain": "SPORTS",
+  "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
+  "enabled_sports": [
+    "SOCCER",
+    "BASEBALL",
+    "BASKETBALL",
+    "VOLLEYBALL"
+  ],
+  "providers": [
+    {
+      "provider": "SPORTS_SOCCER_ESPN_PUBLIC+KLEAGUE_OFFICIAL",
+      "sport": "SOCCER",
+      "status": "PASS",
+      "requests": 36,
+      "successful_requests": 35,
+      "raw_events": 48,
+      "top_tier_events": 13,
+      "odds_events": 12,
+      "odds_summary_requests": 13,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASEBALL_ESPN_PUBLIC+KBO_OFFICIAL",
+      "sport": "BASEBALL",
+      "status": "PASS",
+      "requests": 3,
+      "successful_requests": 3,
+      "raw_events": 2,
+      "top_tier_events": 1,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASKETBALL_ESPN_PUBLIC+KBL_OFFICIAL",
+      "sport": "BASKETBALL",
+      "status": "PASS",
+      "requests": 10,
+      "successful_requests": 10,
+      "raw_events": 17,
+      "top_tier_events": 8,
+      "odds_events": 7,
+      "odds_summary_requests": 7,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_VOLLEYBALL_DAUM_SPORTS_PUBLIC_FALLBACK",
+      "sport": "VOLLEYBALL",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_ODDS_MULTIBOOK",
+      "sport": "ALL",
+      "status": "PASS",
+      "plan_mode": "AMATEUR_LEAGUE_AWARE",
+      "events_enriched": 6,
+      "outcomes_enriched": 12,
+      "meta": [
+        {
+          "sport": "SOCCER",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [
+            "AFC Champions League Elite",
+            "Bundesliga",
+            "LaLiga",
+            "Ligue 1",
+            "Premier League",
+            "Serie A"
+          ],
+          "unsupported_on_amateur": [
+            "AFC Champions League Elite",
+            "Bundesliga",
+            "LaLiga",
+            "Ligue 1",
+            "Premier League",
+            "Serie A"
+          ],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASEBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [
+            "KBO"
+          ],
+          "unsupported_on_amateur": [
+            "KBO"
+          ],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASKETBALL",
+          "status": "PASS",
+          "events": 7,
+          "next_cursor": null,
+          "league_ids": [
+            "NBA"
+          ],
+          "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+          "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+          "local_scheduled_competitions": [
+            "KBL",
+            "NBA"
+          ],
+          "unsupported_on_amateur": [
+            "KBL"
+          ]
+        },
+        {
+          "sport": "VOLLEYBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        }
+      ],
+      "errors": [],
+      "updated_at": "2026-10-26T00:02:39.339329+09:00",
+      "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+    }
+  ],
+  "events": [
+    {
+      "id": "SPORTS-SOCCER-401882833",
+      "provider_event_id": "401882833",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "LaLiga",
+      "event_date": "2026-10-26",
+      "start_time": "00:15",
+      "start_label": "00:15",
+      "start_timestamp": 1792941300,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Celta Vigo vs Real Betis",
+      "home": "Celta Vigo",
+      "away": "Real Betis",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Celta Vigo",
+          "odds": 2.7,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.238079+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "셀타 비고",
+          "model_p": 0.26930791333990967,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.3,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.238079+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23450373407726433,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Real Betis",
+          "odds": 2.65,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.238079+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "레알 베티스",
+          "model_p": 0.49618835258282595,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/summary?event=401882833",
+      "home_ko": "셀타 비고",
+      "away_ko": "레알 베티스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "LaLiga",
+        "competition_games": 3334,
+        "home_team_games": 332,
+        "away_team_games": 333,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401876423",
+      "provider_event_id": "401876423",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Ligue 1",
+      "event_date": "2026-10-26",
+      "start_time": "01:15",
+      "start_label": "01:15",
+      "start_timestamp": 1792944900,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Toulouse vs Troyes",
+      "home": "Toulouse",
+      "away": "Troyes",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Toulouse",
+          "odds": 1.5263,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.267335+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "툴루즈",
+          "model_p": 0.6920706126612627,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.267335+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.19221388550912505,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Troyes",
+          "odds": 6.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.267335+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.11571550182961222,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/summary?event=401876423",
+      "home_ko": "툴루즈",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Ligue 1",
+        "competition_games": 2978,
+        "home_team_games": 234,
+        "away_team_games": 103,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401876424",
+      "provider_event_id": "401876424",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Ligue 1",
+      "event_date": "2026-10-26",
+      "start_time": "01:15",
+      "start_label": "01:15",
+      "start_timestamp": 1792944900,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Stade Rennais vs Strasbourg",
+      "home": "Stade Rennais",
+      "away": "Strasbourg",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Stade Rennais",
+          "odds": 1.7692,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.241024+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.5025337150554551,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.2,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.241024+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23324813804599537,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Strasbourg",
+          "odds": 4.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.241024+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "스트라스부르",
+          "model_p": 0.26421814689854956,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/summary?event=401876424",
+      "away_ko": "스트라스부르",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Ligue 1",
+        "competition_games": 2978,
+        "home_team_games": 308,
+        "away_team_games": 306,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401876426",
+      "provider_event_id": "401876426",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Ligue 1",
+      "event_date": "2026-10-26",
+      "start_time": "01:15",
+      "start_label": "01:15",
+      "start_timestamp": 1792944900,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Marseille vs Le Havre AC",
+      "home": "Marseille",
+      "away": "Le Havre AC",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Marseille",
+          "odds": 1.4762,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.303152+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "마르세유",
+          "model_p": 0.6115552300781619,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.9,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.303152+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.21097282031814343,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Le Havre AC",
+          "odds": 6.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.303152+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "르아브르",
+          "model_p": 0.17747194960369464,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/summary?event=401876426",
+      "home_ko": "마르세유",
+      "away_ko": "르아브르",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Ligue 1",
+        "competition_games": 2978,
+        "home_team_games": 307,
+        "away_team_games": 111,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401876429",
+      "provider_event_id": "401876429",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Ligue 1",
+      "event_date": "2026-10-26",
+      "start_time": "01:15",
+      "start_label": "01:15",
+      "start_timestamp": 1792944900,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "AJ Auxerre vs Le Mans",
+      "home": "AJ Auxerre",
+      "away": "Le Mans",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "AJ Auxerre",
+          "odds": 2.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.222408+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.49623895615408115,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.222408+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23449372483629063,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Le Mans",
+          "odds": 3.4,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.222408+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.26926731900962825,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/summary?event=401876429",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Ligue 1",
+        "competition_games": 2978,
+        "home_team_games": 113,
+        "away_team_games": 7,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401876430",
+      "provider_event_id": "401876430",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Ligue 1",
+      "event_date": "2026-10-26",
+      "start_time": "01:15",
+      "start_label": "01:15",
+      "start_timestamp": 1792944900,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Angers vs Lorient",
+      "home": "Angers",
+      "away": "Lorient",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Angers",
+          "odds": 3.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.252931+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "앙제",
+          "model_p": 0.336444206244823,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.3,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.252931+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.25121969809750716,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Lorient",
+          "odds": 2.4,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.252931+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "로리앙",
+          "model_p": 0.41233609565766977,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/summary?event=401876430",
+      "home_ko": "앙제",
+      "away_ko": "로리앙",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Ligue 1",
+        "competition_games": 2978,
+        "home_team_games": 273,
+        "away_team_games": 189,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401878764",
+      "provider_event_id": "401878764",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Premier League",
+      "event_date": "2026-10-26",
+      "start_time": "01:30",
+      "start_label": "01:30",
+      "start_timestamp": 1792945800,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Sunderland vs Leeds United",
+      "home": "Sunderland",
+      "away": "Leeds United",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Sunderland",
+          "odds": 2.95,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.300125+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "선덜랜드",
+          "model_p": 0.4060441794524552,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.15,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.300125+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.2525024379257868,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Leeds United",
+          "odds": 2.55,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.300125+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "리즈 유나이티드",
+          "model_p": 0.34145338262175806,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/summary?event=401878764",
+      "home_ko": "선덜랜드",
+      "away_ko": "리즈 유나이티드",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Premier League",
+        "competition_games": 3272,
+        "home_team_games": 43,
+        "away_team_games": 157,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401884759",
+      "provider_event_id": "401884759",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Bundesliga",
+      "event_date": "2026-10-26",
+      "start_time": "01:30",
+      "start_label": "01:30",
+      "start_timestamp": 1792945800,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "SC Freiburg vs Bayern Munich",
+      "home": "SC Freiburg",
+      "away": "Bayern Munich",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "SC Freiburg",
+          "odds": 5.25,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.339574+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "프라이부르크",
+          "model_p": 0.18812121730687872,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.8,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.339574+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.21386684518065718,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Bayern Munich",
+          "odds": 1.4762,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.339574+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "바이에른 뮌헨",
+          "model_p": 0.5980119375124641,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/summary?event=401884759",
+      "home_ko": "프라이부르크",
+      "away_ko": "바이에른 뮌헨",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Bundesliga",
+        "competition_games": 2645,
+        "home_team_games": 294,
+        "away_team_games": 294,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401874772",
+      "provider_event_id": "401874772",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2026-10-26",
+      "start_time": "02:00",
+      "start_label": "02:00",
+      "start_timestamp": 1792947600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Lecce vs Juventus",
+      "home": "Lecce",
+      "away": "Juventus",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Lecce",
+          "odds": 6.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.296346+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "레체",
+          "model_p": 0.3096239422615056,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.296346+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.2444661184459365,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Juventus",
+          "odds": 1.5128,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.296346+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "유벤투스",
+          "model_p": 0.44590993929255796,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/summary?event=401874772",
+      "home_ko": "레체",
+      "away_ko": "유벤투스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Serie A",
+        "competition_games": 3304,
+        "home_team_games": 196,
+        "away_team_games": 330,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401882829",
+      "provider_event_id": "401882829",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "LaLiga",
+      "event_date": "2026-10-26",
+      "start_time": "02:30",
+      "start_label": "02:30",
+      "start_timestamp": 1792949400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Real Sociedad vs Levante",
+      "home": "Real Sociedad",
+      "away": "Levante",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Real Sociedad",
+          "odds": 1.5714,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.435603+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "레알 소시에다드",
+          "model_p": 0.4807634780138621,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.435603+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.237553526296997,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Levante",
+          "odds": 5.25,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.435603+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "레반테",
+          "model_p": 0.2816829956891409,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/summary?event=401882829",
+      "home_ko": "레알 소시에다드",
+      "away_ko": "레반테",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "LaLiga",
+        "competition_games": 3334,
+        "home_team_games": 332,
+        "away_team_games": 220,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401874779",
+      "provider_event_id": "401874779",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2026-10-26",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1792957500,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Udinese vs AC Milan",
+      "home": "Udinese",
+      "away": "AC Milan",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Udinese",
+          "odds": 4.2,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.494486+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "우디네세",
+          "model_p": 0.24643548711336719,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.494486+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.2288435321953996,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "AC Milan",
+          "odds": 1.8,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.494486+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "AC 밀란",
+          "model_p": 0.5247209806912332,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/summary?event=401874779",
+      "home_ko": "우디네세",
+      "away_ko": "AC 밀란",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Serie A",
+        "competition_games": 3304,
+        "home_team_games": 331,
+        "away_team_games": 330,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401882832",
+      "provider_event_id": "401882832",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "LaLiga",
+      "event_date": "2026-10-26",
+      "start_time": "05:00",
+      "start_label": "05:00",
+      "start_timestamp": 1792958400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Barcelona vs Real Madrid",
+      "home": "Barcelona",
+      "away": "Real Madrid",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Barcelona",
+          "odds": 1.5714,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.382184+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "바르셀로나",
+          "model_p": 0.5024049816019925,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 5.75,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.382184+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23327362309275881,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Real Madrid",
+          "odds": 4.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:29.382184+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "레알 마드리드",
+          "model_p": 0.2643213953052486,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/summary?event=401882832",
+      "home_ko": "바르셀로나",
+      "away_ko": "레알 마드리드",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "LaLiga",
+        "competition_games": 3334,
+        "home_team_games": 334,
+        "away_team_games": 334,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909861",
+      "provider_event_id": "401909861",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "06:00",
+      "start_label": "06:00",
+      "start_timestamp": 1792962000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Utah Jazz vs Los Angeles Lakers",
+      "home": "Utah Jazz",
+      "away": "Los Angeles Lakers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Utah Jazz",
+          "odds": 3.0,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "유타 재즈",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 3.0,
+              "american_odds": "+200",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888793?outcomes=0ML86897854_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 2.88,
+              "american_odds": "+188",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606411&selectionId=237484"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 3.0,
+              "american_odds": "+200",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20030998?options=20030998-1569406500-2326542660"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 3.05,
+              "american_odds": "+205",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=435ca7fa-2560-37cb-9c7f-7eaa51535989"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 3.0,
+              "american_odds": "+200",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=ac0cbd54-7970-4255-be16-f99a6762ec63&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 2.9,
+              "american_odds": "+190",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 3.0,
+              "american_odds": "+200",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 3.0,
+              "american_odds": "+200",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 2.9,
+              "american_odds": "+190",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.2895846065430245,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Los Angeles Lakers",
+          "odds": 1.4082,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "LA 레이커스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.4082,
+              "american_odds": "-245",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888793?outcomes=0ML86897854_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.4444,
+              "american_odds": "-225",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606411&selectionId=5368712"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.4,
+              "american_odds": "-250",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20030998?options=20030998-1569406500-2326542659"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.4,
+              "american_odds": "-250",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=eb274189-ffe3-3722-a269-7f9e1787a120"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.4167,
+              "american_odds": "-240",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=ee1bb5be-c5f0-418f-aa1e-201e1afab066&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.4348,
+              "american_odds": "-230",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.4,
+              "american_odds": "-250",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.4,
+              "american_odds": "-250",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.4,
+              "american_odds": "-250",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.7104153934569756,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909861",
+      "home_ko": "유타 재즈",
+      "away_ko": "LA 레이커스",
+      "odds_event_id": "kBcJQ2GFFav8l5tVa0d3",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 763,
+        "away_team_games": 802,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909862",
+      "provider_event_id": "401909862",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "07:00",
+      "start_label": "07:00",
+      "start_timestamp": 1792965600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Brooklyn Nets vs Indiana Pacers",
+      "home": "Brooklyn Nets",
+      "away": "Indiana Pacers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Brooklyn Nets",
+          "odds": 3.2,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "브루클린 네츠",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 3.2,
+              "american_odds": "+220",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888794?outcomes=0ML86897855_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 3.15,
+              "american_odds": "+215",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606409&selectionId=6500320"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 3.2,
+              "american_odds": "+220",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20030999?options=20030999-1569406503-2326542662"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 3.22,
+              "american_odds": "+222",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=9753d51a-910e-3255-b81b-5e6c1bc5a998"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 3.2,
+              "american_odds": "+220",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=aebdd6eb-59a7-41fb-9c73-1f45f56b91fb&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 3.2,
+              "american_odds": "+220",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 3.1,
+              "american_odds": "+210",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.5370091144361184,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Indiana Pacers",
+          "odds": 1.3704,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "인디애나 페이서스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.3704,
+              "american_odds": "-270",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888794?outcomes=0ML86897855_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.3846,
+              "american_odds": "-260",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606409&selectionId=237481"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.3636,
+              "american_odds": "-275",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20030999?options=20030999-1569406503-2326542661"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.3597,
+              "american_odds": "-278",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=ee2f9f5a-0830-34a2-aa47-5358a8936ded"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.3704,
+              "american_odds": "-270",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=ed49a571-4eea-4ca5-887e-9e9b0fec6bf9&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.3704,
+              "american_odds": "-270",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.3401,
+              "american_odds": "-294",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.3597,
+              "american_odds": "-278",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.3636,
+              "american_odds": "-275",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.4629908855638816,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909862",
+      "home_ko": "브루클린 네츠",
+      "away_ko": "인디애나 페이서스",
+      "odds_event_id": "LRK2JUBcfzaBFclHv3xX",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 748,
+        "away_team_games": 777,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909863",
+      "provider_event_id": "401909863",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "08:00",
+      "start_label": "08:00",
+      "start_timestamp": 1792969200,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "New York Knicks vs Orlando Magic",
+      "home": "New York Knicks",
+      "away": "Orlando Magic",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "New York Knicks",
+          "odds": 1.3356,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "뉴욕 닉스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.3356,
+              "american_odds": "-298",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888877?outcomes=0ML86898037_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.3448,
+              "american_odds": "-290",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606487&selectionId=237482"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.3333,
+              "american_odds": "-300",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031000?options=20031000-1569406506-2326542664"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.3279,
+              "american_odds": "-305",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=ec471306-783e-3349-b53d-2daf6183081e"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.3571,
+              "american_odds": "-280",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=aac40d46-1278-49b0-9ad2-88082b7904a5&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.3509,
+              "american_odds": "-285",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.3497,
+              "american_odds": "-286",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.33,
+              "american_odds": "-303",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.3333,
+              "american_odds": "-300",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.6963570757904094,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Orlando Magic",
+          "odds": 3.4,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "올랜도 매직",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 3.4,
+              "american_odds": "+240",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888877?outcomes=0ML86898037_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 3.35,
+              "american_odds": "+235",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606487&selectionId=237475"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 3.4,
+              "american_odds": "+240",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031000?options=20031000-1569406506-2326542663"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 3.4,
+              "american_odds": "+240",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=a29bb44b-32ba-3167-866c-e11b2d3ba45a"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=f1be704f-1707-462e-a1bf-12038f8eb449&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 3.35,
+              "american_odds": "+235",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 3.4,
+              "american_odds": "+240",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.3036429242095906,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909863",
+      "home_ko": "뉴욕 닉스",
+      "away_ko": "올랜도 매직",
+      "odds_event_id": "AsturwiKEVP5Z1IQLCNN",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 784,
+        "away_team_games": 754,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909864",
+      "provider_event_id": "401909864",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "08:00",
+      "start_label": "08:00",
+      "start_timestamp": 1792969200,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Minnesota Timberwolves vs Toronto Raptors",
+      "home": "Minnesota Timberwolves",
+      "away": "Toronto Raptors",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Minnesota Timberwolves",
+          "odds": 1.8696,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "미네소타 팀버울브스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.8696,
+              "american_odds": "-115",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888840?outcomes=0ML86897956_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.9259,
+              "american_odds": "-108",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.619000512&selectionId=237478"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.8696,
+              "american_odds": "-115",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031001?options=20031001-1569406509-2326542666"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=108ae873-c8a7-309c-ae53-504730ed8668"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=aa40f470-5a5d-412f-9a8a-798db84b7b49&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.9434,
+              "american_odds": "-106",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.8696,
+              "american_odds": "-115",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.8,
+              "american_odds": "-125",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.6456356519945337,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Toronto Raptors",
+          "odds": 1.9524,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "토론토 랩터스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.9524,
+              "american_odds": "-105",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888840?outcomes=0ML86897956_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.9259,
+              "american_odds": "-108",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.619000512&selectionId=237476"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.9524,
+              "american_odds": "-105",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031001?options=20031001-1569406509-2326542665"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=8724ce02-1c2b-330c-bc7c-b22461b0025f"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=8b3ccfc3-06f3-4a69-8fd9-45d6aa8ce7c1&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.8772,
+              "american_odds": "-114",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.9524,
+              "american_odds": "-105",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 2.0,
+              "american_odds": "+100",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.3543643480054663,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909864",
+      "home_ko": "미네소타 팀버울브스",
+      "away_ko": "토론토 랩터스",
+      "odds_event_id": "JZC1ktwuNXAP7pdIul89",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 781,
+        "away_team_games": 787,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909865",
+      "provider_event_id": "401909865",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "08:00",
+      "start_label": "08:00",
+      "start_timestamp": 1792969200,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Oklahoma City Thunder vs LA Clippers",
+      "home": "Oklahoma City Thunder",
+      "away": "LA Clippers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Oklahoma City Thunder",
+          "odds": 1.0741,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:32.771682+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "오클라호마시티 선더",
+          "model_p": 0.7454110816818402,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "LA Clippers",
+          "odds": 9.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-26T00:02:32.771682+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "LA 클리퍼스",
+          "model_p": 0.2545889183181598,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909865",
+      "home_ko": "오클라호마시티 선더",
+      "away_ko": "LA 클리퍼스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 794,
+        "away_team_games": 782,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909866",
+      "provider_event_id": "401909866",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "08:30",
+      "start_label": "08:30",
+      "start_timestamp": 1792971000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Philadelphia 76ers vs Detroit Pistons",
+      "home": "Philadelphia 76ers",
+      "away": "Detroit Pistons",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Philadelphia 76ers",
+          "odds": 1.9804,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "필라델피아 세븐티식서스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.9804,
+              "american_odds": "-102",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888879?outcomes=0ML86898039_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.9434,
+              "american_odds": "-106",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606495&selectionId=40274538"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.9524,
+              "american_odds": "-105",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031003?options=20031003-1569406516-2326542672"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.9524,
+              "american_odds": "-105",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=25939164-6721-3946-9cc6-03dd0d1f62ef"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 2.0,
+              "american_odds": "+100",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=5b7ffc3f-3a33-4f71-9a9f-5dd7a0738aad&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 2.02,
+              "american_odds": "+102",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.8333,
+              "american_odds": "-120",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.8,
+              "american_odds": "-125",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.4600811058751098,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Detroit Pistons",
+          "odds": 1.8475,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "디트로이트 피스턴스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.8475,
+              "american_odds": "-118",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888879?outcomes=0ML86898039_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606495&selectionId=237474"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.8696,
+              "american_odds": "-115",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031003?options=20031003-1569406516-2326542671"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.8696,
+              "american_odds": "-115",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=8faa6866-c9a0-34d9-81ea-0e3bf65b36e7"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.8333,
+              "american_odds": "-120",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=a592dbfd-67d7-4138-be93-f189f6034cd3&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.9091,
+              "american_odds": "-110",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.8197,
+              "american_odds": "-122",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.9009,
+              "american_odds": "-111",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 2.0,
+              "american_odds": "+100",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.5399188941248901,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909866",
+      "home_ko": "필라델피아 세븐티식서스",
+      "away_ko": "디트로이트 피스턴스",
+      "odds_event_id": "qzBMWI7ubI2g2rDwcoUN",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 803,
+        "away_team_games": 742,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909867",
+      "provider_event_id": "401909867",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-26",
+      "start_time": "10:00",
+      "start_label": "10:00",
+      "start_timestamp": 1792976400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Sacramento Kings vs Memphis Grizzlies",
+      "home": "Sacramento Kings",
+      "away": "Memphis Grizzlies",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Sacramento Kings",
+          "odds": 2.4,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "새크라멘토 킹스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 2.4,
+              "american_odds": "+140",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888881?outcomes=0ML86898051_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 2.34,
+              "american_odds": "+134",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606418&selectionId=237470"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 2.35,
+              "american_odds": "+135",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031004?options=20031004-1569406519-2326542674"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 2.4,
+              "american_odds": "+140",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=e12c4858-d1f5-30c4-8c7f-f43763bb5573"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 2.4,
+              "american_odds": "+140",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=be1aefd7-ea4c-4cac-9214-58aaf6bef957&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 2.35,
+              "american_odds": "+135",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 2.48,
+              "american_odds": "+148",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 2.4,
+              "american_odds": "+140",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 2.5,
+              "american_odds": "+150",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.4892345601416593,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Memphis Grizzlies",
+          "odds": 1.6024,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-10-25T14:58:48.532Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "멤피스 그리즐리스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.6024,
+              "american_odds": "-166",
+              "updated_at": "2026-10-25T14:58:48.532Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/34888881?outcomes=0ML86898051_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.6329,
+              "american_odds": "-158",
+              "updated_at": "2026-10-25T14:59:25.372Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=717.193606418&selectionId=237491"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.6061,
+              "american_odds": "-165",
+              "updated_at": "2026-10-25T14:59:26.015Z",
+              "deeplink": "https://sports.nj.betmgm.com/en/sports/events/20031004?options=20031004-1569406519-2326542673"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.6061,
+              "american_odds": "-165",
+              "updated_at": "2026-10-25T14:58:48.150Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=e0bf4493-2039-31cc-b3b4-c4f6c5330013"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.6061,
+              "american_odds": "-165",
+              "updated_at": "2026-10-25T14:58:57.650Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=e5867209-aff0-48f8-a4c7-6655b1ffdb42&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.625,
+              "american_odds": "-160",
+              "updated_at": "2026-10-25T14:58:34.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.5587,
+              "american_odds": "-179",
+              "updated_at": "2026-10-25T14:58:44.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.5917,
+              "american_odds": "-169",
+              "updated_at": "2026-10-25T14:58:33.650Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.5319,
+              "american_odds": "-188",
+              "updated_at": "2026-10-25T14:58:56.150Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.5107654398583408,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261025",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909867",
+      "home_ko": "새크라멘토 킹스",
+      "away_ko": "멤피스 그리즐리스",
+      "odds_event_id": "EQ8yKN5p6eQFzxzRFVE4",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11675,
+        "home_team_games": 736,
+        "away_team_games": 760,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASEBALL-KBO-20261026HTSS0",
+      "provider_event_id": "20261026HTSS0",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "KBO_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "KBO",
+      "event_date": "2026-10-26",
+      "start_time": "18:30",
+      "start_label": "18:30",
+      "start_timestamp": 1793007000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "삼성 vs KIA",
+      "home": "삼성",
+      "away": "KIA",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "삼성",
+          "model_p": 0.48200157495777446,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "KIA",
+          "model_p": 0.5179984250422256,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "KBO_FIRST_TEAM",
+      "data_state": "FRESH",
+      "source_url": "https://www.koreabaseball.com/Schedule/ScoreBoard.aspx",
+      "venue": "대구",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "KBO",
+        "competition_games": 5524,
+        "home_team_games": 1097,
+        "away_team_games": 1095,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-KBL-S49G01N40",
+      "provider_event_id": "S49G01N40",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "KBL_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "KBL",
+      "event_date": "2026-10-26",
+      "start_time": "19:00",
+      "start_label": "19:00",
+      "start_timestamp": 1793008800,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "고양 소노 vs 창원 LG",
+      "home": "고양 소노",
+      "away": "창원 LG",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "고양 소노",
+          "model_p": 0.3689213679229389,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "창원 LG",
+          "model_p": 0.6310786320770612,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "KBL_SEASON_GRADE_1",
+      "data_state": "FRESH",
+      "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261026&toDate=20261026&tcodeList=all&seasonGrade=1",
+      "venue": "고양소노아레나",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "KBL",
+        "competition_games": 2206,
+        "home_team_games": 117,
+        "away_team_games": 244,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401912644",
+      "provider_event_id": "401912644",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "AFC Champions League Elite",
+      "event_date": "2026-10-26",
+      "start_time": "22:45",
+      "start_label": "22:45",
+      "start_timestamp": 1793022300,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Neftchi Fergana vs Al Ittihad",
+      "home": "Neftchi Fergana",
+      "away": "Al Ittihad",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Neftchi Fergana",
+          "model_source": "sports_elo_v0.2",
+          "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "name_ko": "무승부",
+          "model_source": "sports_elo_v0.2",
+          "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+        },
+        {
+          "key": "AWAY",
+          "name": "Al Ittihad",
+          "model_source": "sports_elo_v0.2",
+          "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/afc.champions/scoreboard?dates=20261026",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "AFC Champions League Elite",
+        "competition_games": 891,
+        "home_team_games": 1,
+        "away_team_games": 21,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": false,
+      "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+    }
+  ],
+  "integrity": {
+    "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
+    "hard_failures": [],
+    "stale_events": 0,
+    "sports_multibook_status": "PASS"
+  },
+  "team_name_localization": {
+    "language": "ko",
+    "translated_fields": 34,
+    "missing_team_names": [
+      "AJ Auxerre",
+      "Al Ittihad",
+      "Le Mans",
+      "Neftchi Fergana",
+      "Stade Rennais",
+      "Troyes"
+    ]
+  },
+  "odds_provider": {
+    "provider": "SportsGameOdds",
+    "status": "PASS",
+    "plan_mode": "AMATEUR_LEAGUE_AWARE",
+    "events_enriched": 6,
+    "outcomes_enriched": 12,
+    "meta": [
+      {
+        "sport": "SOCCER",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [
+          "AFC Champions League Elite",
+          "Bundesliga",
+          "LaLiga",
+          "Ligue 1",
+          "Premier League",
+          "Serie A"
+        ],
+        "unsupported_on_amateur": [
+          "AFC Champions League Elite",
+          "Bundesliga",
+          "LaLiga",
+          "Ligue 1",
+          "Premier League",
+          "Serie A"
+        ],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [
+          "KBO"
+        ],
+        "unsupported_on_amateur": [
+          "KBO"
+        ],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "events": 7,
+        "next_cursor": null,
+        "league_ids": [
+          "NBA"
+        ],
+        "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+        "local_scheduled_competitions": [
+          "KBL",
+          "NBA"
+        ],
+        "unsupported_on_amateur": [
+          "KBL"
+        ]
+      },
+      {
+        "sport": "VOLLEYBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      }
+    ],
+    "errors": [],
+    "updated_at": "2026-10-26T00:02:39.339329+09:00",
+    "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  }
+}
