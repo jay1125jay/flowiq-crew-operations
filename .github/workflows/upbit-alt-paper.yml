@@ -1,0 +1,44 @@
+name: Upbit ALT PAPER engine
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    paths:
+      - 'upbit-alt-paper/engine.py'
+      - '.github/workflows/upbit-alt-paper.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upbit-alt-paper-engine
+  cancel-in-progress: false
+
+jobs:
+  paper-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Upbit PAPER cycle
+        run: python upbit-alt-paper/engine.py
+
+      - name: Save PAPER state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add upbit-alt-paper/data/state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: refresh Upbit ALT PAPER state"
+            git pull --rebase
+            git push
+          fi
