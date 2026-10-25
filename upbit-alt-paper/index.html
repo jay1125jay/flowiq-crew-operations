@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#071018" />
+  <title>UPBIT ALT PAPER ENGINE</title>
+  <link rel="stylesheet" href="./style.css?v=1" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">UPBIT ALT PAPER ENGINE</div>
+        <h1>급등 탐지 · 모의 자동매매</h1>
+      </div>
+      <div class="live"><span></span> LIVE · PAPER ONLY</div>
+    </header>
+
+    <section class="status-strip" id="statusStrip"></section>
+    <section class="metrics" id="metrics"></section>
+
+    <section class="panel wide">
+      <div class="panel-head">
+        <div><div class="kicker">SCANNER</div><h2>급등 후보 순위</h2></div>
+        <div class="muted">점수 · 거래대금 · RSI · 돌파선</div>
+      </div>
+      <div class="table-wrap"><table id="candidateTable"></table></div>
+    </section>
+
+    <section class="two-col">
+      <article class="panel">
+        <div class="panel-head"><div><div class="kicker">PAPER POSITION</div><h2>가상 보유</h2></div></div>
+        <div id="positions"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><div><div class="kicker">RECENT TRADES</div><h2>최근 자동매매</h2></div></div>
+        <div id="trades"></div>
+      </article>
+    </section>
+
+    <footer>모의투자 전용 · 실제 주문 기능 없음 · 새로고침 시 최신 GitHub Actions 결과 표시</footer>
+  </main>
+  <script src="./app.js?v=1"></script>
+</body>
+</html>
