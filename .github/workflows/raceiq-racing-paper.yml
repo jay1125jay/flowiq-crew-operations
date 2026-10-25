@@ -1,0 +1,49 @@
+name: raceiq-racing-paper
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'race-sports/tools/racing_paper.py'
+      - 'race-sports/tools/test_racing_paper.py'
+      - '.github/workflows/raceiq-racing-paper.yml'
+  workflow_run:
+    workflows: ['race-sports-static-refresh']
+    types: [completed]
+  schedule:
+    - cron: '8,23,38,53 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: raceiq-racing-paper
+  cancel-in-progress: false
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test prospective paper ledger
+        run: python -m unittest discover -s race-sports/tools -p test_racing_paper.py
+      - name: Publish immutable picks and official settlements
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'raceiq-paper-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          for n in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python race-sports/tools/racing_paper.py
+            git add race-sports/data/model_state/racing_paper.json
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'chore: lock and settle RaceIQ racing paper picks'
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
