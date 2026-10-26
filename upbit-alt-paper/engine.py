@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STATE_PATH = BASE_DIR / "data" / "state.json"
 API = "https://api.upbit.com/v1"
 KST = timezone(timedelta(hours=9))
-STRATEGY_VERSION = "v2_BREAKOUT_CONFIRM"
+STRATEGY_VERSION = "v3_EV_PROFIT"
 
 SETTINGS = {
     "starting_capital": 1_000_000.0,
@@ -19,6 +19,13 @@ SETTINGS = {
     "slippage_rate": 0.001,
     "allocation_per_trade": 100_000.0,
     "max_positions": 3,
+    "risk_per_trade_pct": 0.50,
+    "strong_risk_per_trade_pct": 0.75,
+    "max_open_risk_pct": 1.50,
+    "max_position_equity_pct": 35.0,
+    "daily_loss_limit_pct": 2.0,
+    "target_r_multiple": 2.2,
+    "breakeven_at_r": 1.0,
     "stop_loss_pct": 3.5,
     "trailing_pct": 3.0,
     "take_profit_pct": 12.0,
@@ -209,6 +216,14 @@ def analyze_candidate(ticker: dict, meta: dict, btc_change: float) -> dict:
         or breakout_candle_pct > SETTINGS["max_breakout_candle_pct"]
     )
 
+    # v3: 손절폭을 먼저 정하고 손익비가 나오는 자리만 진입한다.
+    proposed_stop = max(support, breakout * 0.985)
+    if proposed_stop <= 0 or proposed_stop >= price:
+        proposed_stop = price * 0.97
+    stop_distance_pct = ((price - proposed_stop) / price * 100.0) if price > 0 else 99.0
+    stop_valid = 1.0 <= stop_distance_pct <= 4.5
+    proposed_target = price + (price - proposed_stop) * SETTINGS["target_r_multiple"]
+
     score = 10
     score += 20 if volume_ratio >= 3 else 12 if volume_ratio >= 2 else 6 if volume_ratio >= 1.5 else 0
     score += 15 if 50 <= rsi <= 68 else 8 if 45 <= rsi <= 72 else 0
@@ -217,6 +232,7 @@ def analyze_candidate(ticker: dict, meta: dict, btc_change: float) -> dict:
     score += 10 if trade_value_24h >= 10_000_000_000 else 6 if trade_value_24h >= 5_000_000_000 else 2
     score += 10 if btc_change > -0.02 else 4 if btc_change > -0.04 else 0
     score += 5 if price_holds_breakout else 0
+    score += 5 if stop_valid else -12
     if upper_wick_risk:
         score -= 15
     if collapse_risk:
@@ -232,6 +248,8 @@ def analyze_candidate(ticker: dict, meta: dict, btc_change: float) -> dict:
         and breakout_close_confirmed
         and breakout_volume_confirmed
         and price_holds_breakout
+        and stop_valid
+        and btc_change > -0.02
         and not overextended
         and not upper_wick_risk
         and not collapse_risk
@@ -260,6 +278,11 @@ def analyze_candidate(ticker: dict, meta: dict, btc_change: float) -> dict:
         "breakout_volume_ratio": round(breakout_volume_ratio, 3),
         "breakout_distance_pct": round(breakout_distance_pct, 3),
         "breakout_candle_pct": round(breakout_candle_pct, 3),
+        "proposed_stop": round(proposed_stop, 8),
+        "proposed_target": round(proposed_target, 8),
+        "stop_distance_pct": round(stop_distance_pct, 3),
+        "stop_valid": stop_valid,
+        "target_r": SETTINGS["target_r_multiple"],
     }
 
 
@@ -358,11 +381,23 @@ def execute_cycle(state: dict) -> dict:
         highest = max(float(p.get("highest_price", entry)), market_price)
         p["highest_price"] = round(highest, 8)
 
-        stop_hit = market_price <= float(p["stop_price"])
-        trail_armed = highest >= entry * 1.05
-        trail_hit = trail_armed and market_price <= highest * (1.0 - SETTINGS["trailing_pct"] / 100.0)
-        take_profit = market_price >= entry * (1.0 + SETTINGS["take_profit_pct"] / 100.0)
         opened_at = parse_iso(p.get("opened_at"))
+        if p.get("strategy_version") == STRATEGY_VERSION:
+            initial_stop = float(p.get("initial_stop_price", p["stop_price"]))
+            risk_per_unit = max(entry - initial_stop, entry * 0.005)
+            max_r = max(float(p.get("max_r", 0.0)), (highest - entry) / risk_per_unit)
+            p["max_r"] = round(max_r, 3)
+            if max_r >= SETTINGS["breakeven_at_r"]:
+                p["stop_price"] = round(max(float(p["stop_price"]), entry * 1.002), 8)
+            stop_hit = market_price <= float(p["stop_price"])
+            trail_armed = max_r >= 1.5
+            trail_hit = trail_armed and market_price <= highest * 0.975
+            take_profit = market_price >= float(p.get("target_price", entry + risk_per_unit * SETTINGS["target_r_multiple"]))
+        else:
+            stop_hit = market_price <= float(p["stop_price"])
+            trail_armed = highest >= entry * 1.05
+            trail_hit = trail_armed and market_price <= highest * (1.0 - SETTINGS["trailing_pct"] / 100.0)
+            take_profit = market_price >= entry * (1.0 + SETTINGS["take_profit_pct"] / 100.0)
         max_hold = bool(opened_at and datetime.now(KST) - opened_at >= timedelta(hours=SETTINGS["max_hold_hours"]))
 
         if stop_hit or trail_hit or take_profit or max_hold:
@@ -414,7 +449,15 @@ def execute_cycle(state: dict) -> dict:
         closed = parse_iso(state.get("cooldowns", {}).get(market))
         return bool(closed and datetime.now(KST) - closed < timedelta(minutes=SETTINGS["cooldown_minutes"]))
 
-    if len(remaining_positions) < SETTINGS["max_positions"]:
+    today = datetime.now(KST).date()
+    today_realized = sum(
+        float(t.get("pnl", 0.0)) for t in state.get("trades", [])
+        if t.get("side") == "SELL" and parse_iso(t.get("time")) and parse_iso(t.get("time")).astimezone(KST).date() == today
+    )
+    daily_stop = today_realized <= -(SETTINGS["starting_capital"] * SETTINGS["daily_loss_limit_pct"] / 100.0)
+    open_risk = sum(float(p.get("risk_amount", 0.0)) for p in remaining_positions if p.get("strategy_version") == STRATEGY_VERSION)
+
+    if not daily_stop and btc_change > -0.02 and len(remaining_positions) < SETTINGS["max_positions"]:
         trigger = next(
             (
                 c
@@ -430,51 +473,66 @@ def execute_cycle(state: dict) -> dict:
             None,
         )
         if trigger and cash >= 50_000:
-            allocation = min(SETTINGS["allocation_per_trade"], cash * 0.15)
             entry_price = float(trigger["price"]) * (1.0 + slippage)
-            gross = allocation / (1.0 + fee_rate)
-            fee = gross * fee_rate
-            quantity = gross / entry_price
-            opened_at = now_iso()
-            position = {
-                "market": trigger["market"],
-                "symbol": trigger["symbol"],
-                "korean_name": trigger["korean_name"],
-                "entry_price": round(entry_price, 8),
-                "current_price": round(float(trigger["price"]), 8),
-                "quantity": round(quantity, 12),
-                "cost_basis": round(gross, 2),
-                "entry_fee": round(fee, 2),
-                "stop_price": round(entry_price * (1.0 - SETTINGS["stop_loss_pct"] / 100.0), 8),
-                "highest_price": round(entry_price, 8),
-                "trailing_pct": SETTINGS["trailing_pct"],
-                "entry_score": trigger["score"],
-                "opened_at": opened_at,
-                "unrealized_pnl": 0.0,
-                "pnl_pct": 0.0,
-                "strategy_version": STRATEGY_VERSION,
-                "breakout_price": trigger["breakout_price"],
-                "breakout_volume_ratio": trigger["breakout_volume_ratio"],
-            }
-            state["positions"].append(position)
-            state["trades"].append(
-                {
-                    "time": opened_at,
+            stop_price = float(trigger["proposed_stop"])
+            per_unit_risk = entry_price - stop_price
+            equity_est = cash + sum(float(p.get("current_price", p["entry_price"])) * float(p["quantity"]) for p in remaining_positions)
+            strong = trigger["score"] >= 90 and trigger["volume_ratio"] >= 3 and trigger["breakout_volume_ratio"] >= 2.5
+            risk_pct = SETTINGS["strong_risk_per_trade_pct"] if strong else SETTINGS["risk_per_trade_pct"]
+            portfolio_room = max(0.0, equity_est * SETTINGS["max_open_risk_pct"] / 100.0 - open_risk)
+            risk_budget = min(equity_est * risk_pct / 100.0, portfolio_room)
+            max_allocation = min(cash * 0.95, equity_est * SETTINGS["max_position_equity_pct"] / 100.0)
+            allocation = min((risk_budget / per_unit_risk) * entry_price * (1.0 + fee_rate), max_allocation) if per_unit_risk > 0 else 0.0
+            if allocation >= 50_000:
+                gross = allocation / (1.0 + fee_rate)
+                fee = gross * fee_rate
+                quantity = gross / entry_price
+                actual_risk = quantity * per_unit_risk
+                opened_at = now_iso()
+                position = {
                     "market": trigger["market"],
                     "symbol": trigger["symbol"],
-                    "side": "BUY",
-                    "price": round(entry_price, 8),
+                    "korean_name": trigger["korean_name"],
+                    "entry_price": round(entry_price, 8),
+                    "current_price": round(float(trigger["price"]), 8),
                     "quantity": round(quantity, 12),
-                    "gross_value": round(gross, 2),
-                    "fee": round(fee, 2),
-                    "pnl": 0.0,
+                    "cost_basis": round(gross, 2),
+                    "entry_fee": round(fee, 2),
+                    "stop_price": round(stop_price, 8),
+                    "initial_stop_price": round(stop_price, 8),
+                    "target_price": round(entry_price + per_unit_risk * SETTINGS["target_r_multiple"], 8),
+                    "risk_amount": round(actual_risk, 2),
+                    "risk_pct_equity": round(actual_risk / equity_est * 100.0 if equity_est > 0 else 0.0, 3),
+                    "max_r": 0.0,
+                    "highest_price": round(entry_price, 8),
+                    "trailing_pct": SETTINGS["trailing_pct"],
+                    "entry_score": trigger["score"],
+                    "opened_at": opened_at,
+                    "unrealized_pnl": 0.0,
                     "pnl_pct": 0.0,
-                    "reason": f"CONFIRMED BREAKOUT {trigger['score']}",
                     "strategy_version": STRATEGY_VERSION,
+                    "breakout_price": trigger["breakout_price"],
+                    "breakout_volume_ratio": trigger["breakout_volume_ratio"],
                 }
-            )
-            cash -= gross + fee
-            entries += 1
+                state["positions"].append(position)
+                state["trades"].append(
+                    {
+                        "time": opened_at,
+                        "market": trigger["market"],
+                        "symbol": trigger["symbol"],
+                        "side": "BUY",
+                        "price": round(entry_price, 8),
+                        "quantity": round(quantity, 12),
+                        "gross_value": round(gross, 2),
+                        "fee": round(fee, 2),
+                        "pnl": 0.0,
+                        "pnl_pct": 0.0,
+                        "reason": f"EV BREAKOUT {trigger['score']} / {SETTINGS['target_r_multiple']}R",
+                        "strategy_version": STRATEGY_VERSION,
+                    }
+                )
+                cash -= gross + fee
+                entries += 1
 
     state["account"]["cash"] = round(cash, 2)
     state["account"]["realized_pnl"] = round(realized, 2)
@@ -486,6 +544,13 @@ def execute_cycle(state: dict) -> dict:
     state["paper_only"] = True
     state["strategy_version"] = STRATEGY_VERSION
     state["settings"] = SETTINGS.copy()
+    state["risk"] = {
+        "daily_stop": daily_stop,
+        "today_realized_pnl": round(today_realized, 2),
+        "open_risk_krw": round(open_risk, 2),
+        "max_open_risk_pct": SETTINGS["max_open_risk_pct"],
+        "btc_entry_gate": btc_change > -0.02,
+    }
     state["engine"] = {
         "status": "PASS" if not errors else "PARTIAL",
         "markets_scanned": len(krw_markets),
