@@ -11,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STATE_PATH = BASE_DIR / "data" / "state.json"
 API = "https://api.upbit.com/v1"
 KST = timezone(timedelta(hours=9))
+STRATEGY_VERSION = "v2_BREAKOUT_CONFIRM"
 
 SETTINGS = {
     "starting_capital": 1_000_000.0,
@@ -28,6 +29,11 @@ SETTINGS = {
     "candidate_min_trade_value_24h": 2_000_000_000.0,
     "deep_scan_limit": 25,
     "display_candidate_limit": 15,
+    "breakout_buffer_pct": 0.2,
+    "breakout_retest_tolerance_pct": 0.5,
+    "max_breakout_extension_pct": 2.0,
+    "min_breakout_volume_ratio": 1.5,
+    "max_breakout_candle_pct": 4.0,
 }
 
 
@@ -47,7 +53,7 @@ def parse_iso(value: str | None) -> datetime | None:
 def api_get(path: str):
     req = urllib.request.Request(
         f"{API}{path}",
-        headers={"Accept": "application/json", "User-Agent": "UPBIT-ALT-PAPER/1.0"},
+        headers={"Accept": "application/json", "User-Agent": "UPBIT-ALT-PAPER/2.0"},
     )
     with urllib.request.urlopen(req, timeout=15) as response:
         return json.loads(response.read().decode("utf-8"))
@@ -64,6 +70,7 @@ def load_state() -> dict:
     return {
         "version": 1,
         "paper_only": True,
+        "strategy_version": STRATEGY_VERSION,
         "updated_at": None,
         "settings": SETTINGS.copy(),
         "account": {
@@ -149,43 +156,83 @@ def analyze_candidate(ticker: dict, meta: dict, btc_change: float) -> dict:
     )
     trade_value_24h = float(ticker.get("acc_trade_price_24h", 0.0))
     volume_ratio = trade_value_24h / avg_daily_value if avg_daily_value > 0 else 0.0
-    rsi = calc_rsi14(candles)
 
-    prior = candles[1:21]
-    breakout = max(float(c["high_price"]) for c in prior) if prior else float(ticker["trade_price"])
-    support_window = candles[1:13]
-    support = min(float(c["low_price"]) for c in support_window) if support_window else float(ticker["trade_price"])
+    # RSI는 진행 중인 현재 15분봉을 제외하고 계산한다.
+    rsi = calc_rsi14(candles[1:])
 
-    current = candles[0]
-    open_price = float(current["opening_price"])
-    high_price = float(current["high_price"])
-    low_price = float(current["low_price"])
-    close_price = float(current["trade_price"])
-    candle_range = max(high_price - low_price, 1e-12)
-    upper_wick = high_price - max(open_price, close_price)
-    upper_wick_risk = upper_wick / candle_range >= 0.55
+    # 진입 판단은 진행 중 봉(candles[0])이 아니라 직전 마감봉(candles[1])으로 확정한다.
+    breakout_candle = candles[1]
+    resistance_window = candles[2:22]
+    breakout = (
+        max(float(c["high_price"]) for c in resistance_window)
+        if resistance_window
+        else float(ticker["trade_price"])
+    )
+    support_window = candles[2:14]
+    support = (
+        min(float(c["low_price"]) for c in support_window)
+        if support_window
+        else float(ticker["trade_price"])
+    )
+
+    bo_open = float(breakout_candle["opening_price"])
+    bo_high = float(breakout_candle["high_price"])
+    bo_low = float(breakout_candle["low_price"])
+    bo_close = float(breakout_candle["trade_price"])
+    bo_range = max(bo_high - bo_low, 1e-12)
+    bo_upper_wick = bo_high - max(bo_open, bo_close)
+    upper_wick_risk = bo_upper_wick / bo_range >= 0.50
+    breakout_candle_pct = ((bo_close - bo_open) / bo_open * 100.0) if bo_open > 0 else 0.0
+
+    history_for_volume = candles[2:14]
+    avg_15m_value = (
+        sum(float(c.get("candle_acc_trade_price", 0.0)) for c in history_for_volume) / len(history_for_volume)
+        if history_for_volume
+        else 0.0
+    )
+    breakout_value = float(breakout_candle.get("candle_acc_trade_price", 0.0))
+    breakout_volume_ratio = breakout_value / avg_15m_value if avg_15m_value > 0 else 0.0
 
     price = float(ticker["trade_price"])
     day_high = float(ticker.get("high_price", price))
     collapse_risk = day_high > 0 and price <= day_high * 0.90
     change_pct = float(ticker.get("signed_change_rate", 0.0)) * 100.0
 
-    score = 15
-    score += 25 if volume_ratio >= 3 else 14 if volume_ratio >= 2 else 7 if volume_ratio >= 1.5 else 0
-    score += 20 if 50 <= rsi <= 70 else 10 if 45 <= rsi <= 75 else 0
-    score += 20 if price >= breakout * 0.995 else 12 if price >= breakout * 0.97 else 4
+    buffer = SETTINGS["breakout_buffer_pct"] / 100.0
+    retest_tolerance = SETTINGS["breakout_retest_tolerance_pct"] / 100.0
+    breakout_close_confirmed = bo_close >= breakout * (1.0 + buffer)
+    breakout_volume_confirmed = breakout_volume_ratio >= SETTINGS["min_breakout_volume_ratio"]
+    price_holds_breakout = price >= breakout * (1.0 - retest_tolerance)
+    breakout_distance_pct = ((price - breakout) / breakout * 100.0) if breakout > 0 else 0.0
+    overextended = (
+        breakout_distance_pct > SETTINGS["max_breakout_extension_pct"]
+        or breakout_candle_pct > SETTINGS["max_breakout_candle_pct"]
+    )
+
+    score = 10
+    score += 20 if volume_ratio >= 3 else 12 if volume_ratio >= 2 else 6 if volume_ratio >= 1.5 else 0
+    score += 15 if 50 <= rsi <= 68 else 8 if 45 <= rsi <= 72 else 0
+    score += 20 if breakout_close_confirmed else 8 if price >= breakout * 0.98 else 0
+    score += 10 if breakout_volume_confirmed else 4 if breakout_volume_ratio >= 1.1 else 0
     score += 10 if trade_value_24h >= 10_000_000_000 else 6 if trade_value_24h >= 5_000_000_000 else 2
     score += 10 if btc_change > -0.02 else 4 if btc_change > -0.04 else 0
+    score += 5 if price_holds_breakout else 0
     if upper_wick_risk:
         score -= 15
     if collapse_risk:
         score -= 15
+    if overextended:
+        score -= 20
     score = int(max(0, min(100, round(score))))
 
     hard_trigger = (
         score >= 80
         and volume_ratio >= 3
-        and 50 <= rsi <= 70
+        and 50 <= rsi <= 68
+        and breakout_close_confirmed
+        and breakout_volume_confirmed
+        and price_holds_breakout
+        and not overextended
         and not upper_wick_risk
         and not collapse_risk
     )
@@ -206,6 +253,13 @@ def analyze_candidate(ticker: dict, meta: dict, btc_change: float) -> dict:
         "status": status,
         "upper_wick_risk": upper_wick_risk,
         "collapse_risk": collapse_risk,
+        "breakout_confirmed": breakout_close_confirmed,
+        "breakout_volume_confirmed": breakout_volume_confirmed,
+        "price_holds_breakout": price_holds_breakout,
+        "overextended": overextended,
+        "breakout_volume_ratio": round(breakout_volume_ratio, 3),
+        "breakout_distance_pct": round(breakout_distance_pct, 3),
+        "breakout_candle_pct": round(breakout_candle_pct, 3),
     }
 
 
@@ -346,6 +400,7 @@ def execute_cycle(state: dict) -> dict:
                     "pnl": round(pnl, 2),
                     "pnl_pct": round(pnl_pct, 3),
                     "reason": reason,
+                    "strategy_version": p.get("strategy_version", "v1_LEGACY"),
                 }
             )
             state["cooldowns"][p["market"]] = closed_at
@@ -364,7 +419,13 @@ def execute_cycle(state: dict) -> dict:
             (
                 c
                 for c in candidates
-                if c["status"] == "TRIGGER" and c["market"] not in open_markets and not cooldown_active(c["market"])
+                if c["status"] == "TRIGGER"
+                and c.get("breakout_confirmed")
+                and c.get("breakout_volume_confirmed")
+                and c.get("price_holds_breakout")
+                and not c.get("overextended")
+                and c["market"] not in open_markets
+                and not cooldown_active(c["market"])
             ),
             None,
         )
@@ -391,6 +452,9 @@ def execute_cycle(state: dict) -> dict:
                 "opened_at": opened_at,
                 "unrealized_pnl": 0.0,
                 "pnl_pct": 0.0,
+                "strategy_version": STRATEGY_VERSION,
+                "breakout_price": trigger["breakout_price"],
+                "breakout_volume_ratio": trigger["breakout_volume_ratio"],
             }
             state["positions"].append(position)
             state["trades"].append(
@@ -405,7 +469,8 @@ def execute_cycle(state: dict) -> dict:
                     "fee": round(fee, 2),
                     "pnl": 0.0,
                     "pnl_pct": 0.0,
-                    "reason": f"TRIGGER {trigger['score']}",
+                    "reason": f"CONFIRMED BREAKOUT {trigger['score']}",
+                    "strategy_version": STRATEGY_VERSION,
                 }
             )
             cash -= gross + fee
@@ -419,6 +484,7 @@ def execute_cycle(state: dict) -> dict:
     elapsed_ms = int((time.time() - started) * 1000)
     state["updated_at"] = now_iso()
     state["paper_only"] = True
+    state["strategy_version"] = STRATEGY_VERSION
     state["settings"] = SETTINGS.copy()
     state["engine"] = {
         "status": "PASS" if not errors else "PARTIAL",
@@ -452,6 +518,7 @@ def main() -> None:
     save_state(state)
     print(json.dumps({
         "status": state["engine"]["status"],
+        "strategy_version": state.get("strategy_version"),
         "updated_at": state["updated_at"],
         "candidates": len(state["candidates"]),
         "positions": len(state["positions"]),
