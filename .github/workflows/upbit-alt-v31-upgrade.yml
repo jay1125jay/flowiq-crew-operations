@@ -1,0 +1,60 @@
+name: Upgrade Upbit ALT v3.1 guarded EV
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/upbit-alt-v31-upgrade.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Patch engine
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('upbit-alt-paper/engine.py')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('STRATEGY_VERSION = "v3_EV_PROFIT"','STRATEGY_VERSION = "v3_1_EV_GUARDED"')
+          s=s.replace('    "max_breakout_candle_pct": 4.0,\n}', '    "max_breakout_candle_pct": 4.0,\n    "min_stats_trades": 20,\n    "defensive_risk_multiplier": 0.50,\n}')
+
+          marker='\ndef execute_cycle(state: dict) -> dict:\n'
+          stats='''\ndef strategy_performance(state: dict) -> dict:\n    closed = [t for t in state.get("trades", []) if t.get("side") == "SELL" and t.get("strategy_version") == STRATEGY_VERSION]\n    pnls = [float(t.get("pnl", 0.0)) for t in closed]\n    wins = [x for x in pnls if x > 0]\n    losses = [x for x in pnls if x <= 0]\n    gross_profit = sum(wins)\n    gross_loss = abs(sum(losses))\n    profit_factor = gross_profit / gross_loss if gross_loss > 0 else (99.0 if gross_profit > 0 else 0.0)\n    expectancy = sum(pnls) / len(pnls) if pnls else 0.0\n    avg_win = sum(wins) / len(wins) if wins else 0.0\n    avg_loss = abs(sum(losses) / len(losses)) if losses else 0.0\n    payoff = avg_win / avg_loss if avg_loss > 0 else (99.0 if avg_win > 0 else 0.0)\n    curve = SETTINGS["starting_capital"]\n    peak = curve\n    max_dd = 0.0\n    for pnl in pnls:\n        curve += pnl\n        peak = max(peak, curve)\n        if peak > 0:\n            max_dd = max(max_dd, (peak - curve) / peak * 100.0)\n    r_values = [float(t.get("r_multiple", 0.0)) for t in closed if t.get("r_multiple") is not None]\n    return {\n        "strategy": STRATEGY_VERSION,\n        "closed_trades": len(closed),\n        "wins": len(wins),\n        "losses": len(losses),\n        "win_rate": round(len(wins) / len(closed) * 100.0, 2) if closed else 0.0,\n        "net_pnl": round(sum(pnls), 2),\n        "profit_factor": round(profit_factor, 3),\n        "expectancy_krw": round(expectancy, 2),\n        "avg_win": round(avg_win, 2),\n        "avg_loss": round(avg_loss, 2),\n        "payoff_ratio": round(payoff, 3),\n        "avg_r": round(sum(r_values) / len(r_values), 3) if r_values else 0.0,\n        "max_drawdown_pct": round(max_dd, 3),\n        "sample_ready": len(closed) >= SETTINGS["min_stats_trades"],\n    }\n\n'''
+          if marker not in s: raise SystemExit('execute marker missing')
+          s=s.replace(marker, stats+marker,1)
+
+          old='''        market_price = float(ticker["trade_price"])\n        entry = float(p["entry_price"])\n        highest = max(float(p.get("highest_price", entry)), market_price)\n        p["highest_price"] = round(highest, 8)\n\n        opened_at = parse_iso(p.get("opened_at"))\n        if p.get("strategy_version") == STRATEGY_VERSION:\n            initial_stop = float(p.get("initial_stop_price", p["stop_price"]))\n            risk_per_unit = max(entry - initial_stop, entry * 0.005)\n            max_r = max(float(p.get("max_r", 0.0)), (highest - entry) / risk_per_unit)\n            p["max_r"] = round(max_r, 3)\n            if max_r >= SETTINGS["breakeven_at_r"]:\n                p["stop_price"] = round(max(float(p["stop_price"]), entry * 1.002), 8)\n            stop_hit = market_price <= float(p["stop_price"])\n            trail_armed = max_r >= 1.5\n            trail_hit = trail_armed and market_price <= highest * 0.975\n            take_profit = market_price >= float(p.get("target_price", entry + risk_per_unit * SETTINGS["target_r_multiple"]))\n        else:\n'''
+          new='''        market_price = float(ticker["trade_price"])\n        entry = float(p["entry_price"])\n        highest = max(float(p.get("highest_price", entry)), market_price)\n\n        opened_at = parse_iso(p.get("opened_at"))\n        if p.get("strategy_version") == STRATEGY_VERSION:\n            # 5분 폴링 사이에 손절/목표가를 터치했는지 1분봉으로 보수적으로 복원한다.\n            minute_candles = api_get(f"/candles/minutes/1?market={p['market']}&count=6")\n            time.sleep(0.12)\n            minute_low = min(float(c["low_price"]) for c in minute_candles) if minute_candles else market_price\n            minute_high = max(float(c["high_price"]) for c in minute_candles) if minute_candles else market_price\n            highest = max(highest, minute_high)\n            p["highest_price"] = round(highest, 8)\n            initial_stop = float(p.get("initial_stop_price", p["stop_price"]))\n            risk_per_unit = max(entry - initial_stop, entry * 0.005)\n            max_r = max(float(p.get("max_r", 0.0)), (highest - entry) / risk_per_unit)\n            p["max_r"] = round(max_r, 3)\n            if max_r >= SETTINGS["breakeven_at_r"]:\n                p["stop_price"] = round(max(float(p["stop_price"]), entry * 1.002), 8)\n            stop_hit = minute_low <= float(p["stop_price"])\n            trail_armed = max_r >= 1.5\n            trail_hit = trail_armed and market_price <= highest * 0.975\n            take_profit = (not stop_hit) and minute_high >= float(p.get("target_price", entry + risk_per_unit * SETTINGS["target_r_multiple"]))\n        else:\n            p["highest_price"] = round(highest, 8)\n'''
+          if old not in s: raise SystemExit('exit block missing')
+          s=s.replace(old,new,1)
+
+          s=s.replace('''            exit_price = market_price * (1.0 - slippage)\n            quantity = float(p["quantity"])\n''','''            if p.get("strategy_version") == STRATEGY_VERSION and stop_hit:\n                reference_exit = float(p["stop_price"])\n            elif p.get("strategy_version") == STRATEGY_VERSION and take_profit:\n                reference_exit = float(p.get("target_price", market_price))\n            else:\n                reference_exit = market_price\n            exit_price = reference_exit * (1.0 - slippage)\n            quantity = float(p["quantity"])\n''',1)
+
+          s=s.replace('''                    "reason": reason,\n                    "strategy_version": p.get("strategy_version", "v1_LEGACY"),\n''','''                    "reason": reason,\n                    "strategy_version": p.get("strategy_version", "v1_LEGACY"),\n                    "risk_amount": round(float(p.get("risk_amount", 0.0)), 2),\n                    "r_multiple": round(pnl / float(p.get("risk_amount", 1.0)), 3) if float(p.get("risk_amount", 0.0)) > 0 else None,\n''',1)
+
+          s=s.replace('''    daily_stop = today_realized <= -(SETTINGS["starting_capital"] * SETTINGS["daily_loss_limit_pct"] / 100.0)\n    open_risk = sum''','''    daily_stop = today_realized <= -(SETTINGS["starting_capital"] * SETTINGS["daily_loss_limit_pct"] / 100.0)\n    perf_before_entry = strategy_performance(state)\n    defensive_mode = perf_before_entry["sample_ready"] and (perf_before_entry["profit_factor"] < 1.0 or perf_before_entry["expectancy_krw"] <= 0)\n    open_risk = sum''',1)
+
+          s=s.replace('''            risk_pct = SETTINGS["strong_risk_per_trade_pct"] if strong else SETTINGS["risk_per_trade_pct"]\n            portfolio_room''','''            risk_pct = SETTINGS["strong_risk_per_trade_pct"] if strong else SETTINGS["risk_per_trade_pct"]\n            if defensive_mode:\n                risk_pct *= SETTINGS["defensive_risk_multiplier"]\n            portfolio_room''',1)
+
+          s=s.replace('''    portfolio_metrics(state, ticker_map)\n    elapsed_ms''','''    portfolio_metrics(state, ticker_map)\n    state["performance"] = strategy_performance(state)\n    elapsed_ms''',1)
+
+          s=s.replace('''        "btc_entry_gate": btc_change > -0.02,\n    }''','''        "btc_entry_gate": btc_change > -0.02,\n        "defensive_mode": defensive_mode,\n    }''',1)
+
+          p.write_text(s,encoding='utf-8')
+          PY
+          python -m py_compile upbit-alt-paper/engine.py
+      - name: Commit upgrade
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add upbit-alt-paper/engine.py
+          git commit -m "feat: add guarded EV execution and strategy analytics"
+          git pull --rebase
+          git push
