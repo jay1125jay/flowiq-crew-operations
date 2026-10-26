@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 STATE_PATH = BASE_DIR / "data" / "state.json"
 API = "https://api.upbit.com/v1"
 KST = timezone(timedelta(hours=9))
-STRATEGY_VERSION = "v3_EV_PROFIT"
+STRATEGY_VERSION = "v3_1_EV_GUARDED"
 
 SETTINGS = {
     "starting_capital": 1_000_000.0,
@@ -41,6 +41,8 @@ SETTINGS = {
     "max_breakout_extension_pct": 2.0,
     "min_breakout_volume_ratio": 1.5,
     "max_breakout_candle_pct": 4.0,
+    "min_stats_trades": 20,
+    "defensive_risk_multiplier": 0.50,
 }
 
 
@@ -330,6 +332,45 @@ def portfolio_metrics(state: dict, ticker_map: dict[str, dict]) -> None:
     )
 
 
+def strategy_performance(state: dict) -> dict:
+    closed = [t for t in state.get("trades", []) if t.get("side") == "SELL" and t.get("strategy_version") == STRATEGY_VERSION]
+    pnls = [float(t.get("pnl", 0.0)) for t in closed]
+    wins = [x for x in pnls if x > 0]
+    losses = [x for x in pnls if x <= 0]
+    gross_profit = sum(wins)
+    gross_loss = abs(sum(losses))
+    profit_factor = gross_profit / gross_loss if gross_loss > 0 else (99.0 if gross_profit > 0 else 0.0)
+    expectancy = sum(pnls) / len(pnls) if pnls else 0.0
+    avg_win = sum(wins) / len(wins) if wins else 0.0
+    avg_loss = abs(sum(losses) / len(losses)) if losses else 0.0
+    payoff = avg_win / avg_loss if avg_loss > 0 else (99.0 if avg_win > 0 else 0.0)
+    curve = SETTINGS["starting_capital"]
+    peak = curve
+    max_dd = 0.0
+    for pnl in pnls:
+        curve += pnl
+        peak = max(peak, curve)
+        if peak > 0:
+            max_dd = max(max_dd, (peak - curve) / peak * 100.0)
+    r_values = [float(t.get("r_multiple", 0.0)) for t in closed if t.get("r_multiple") is not None]
+    return {
+        "strategy": STRATEGY_VERSION,
+        "closed_trades": len(closed),
+        "wins": len(wins),
+        "losses": len(losses),
+        "win_rate": round(len(wins) / len(closed) * 100.0, 2) if closed else 0.0,
+        "net_pnl": round(sum(pnls), 2),
+        "profit_factor": round(profit_factor, 3),
+        "expectancy_krw": round(expectancy, 2),
+        "avg_win": round(avg_win, 2),
+        "avg_loss": round(avg_loss, 2),
+        "payoff_ratio": round(payoff, 3),
+        "avg_r": round(sum(r_values) / len(r_values), 3) if r_values else 0.0,
+        "max_drawdown_pct": round(max_dd, 3),
+        "sample_ready": len(closed) >= SETTINGS["min_stats_trades"],
+    }
+
+
 def execute_cycle(state: dict) -> dict:
     started = time.time()
     entries = 0
@@ -379,21 +420,28 @@ def execute_cycle(state: dict) -> dict:
         market_price = float(ticker["trade_price"])
         entry = float(p["entry_price"])
         highest = max(float(p.get("highest_price", entry)), market_price)
-        p["highest_price"] = round(highest, 8)
 
         opened_at = parse_iso(p.get("opened_at"))
         if p.get("strategy_version") == STRATEGY_VERSION:
+            # 5분 폴링 사이에 손절/목표가를 터치했는지 1분봉으로 보수적으로 복원한다.
+            minute_candles = api_get(f"/candles/minutes/1?market={p['market']}&count=6")
+            time.sleep(0.12)
+            minute_low = min(float(c["low_price"]) for c in minute_candles) if minute_candles else market_price
+            minute_high = max(float(c["high_price"]) for c in minute_candles) if minute_candles else market_price
+            highest = max(highest, minute_high)
+            p["highest_price"] = round(highest, 8)
             initial_stop = float(p.get("initial_stop_price", p["stop_price"]))
             risk_per_unit = max(entry - initial_stop, entry * 0.005)
             max_r = max(float(p.get("max_r", 0.0)), (highest - entry) / risk_per_unit)
             p["max_r"] = round(max_r, 3)
             if max_r >= SETTINGS["breakeven_at_r"]:
                 p["stop_price"] = round(max(float(p["stop_price"]), entry * 1.002), 8)
-            stop_hit = market_price <= float(p["stop_price"])
+            stop_hit = minute_low <= float(p["stop_price"])
             trail_armed = max_r >= 1.5
             trail_hit = trail_armed and market_price <= highest * 0.975
-            take_profit = market_price >= float(p.get("target_price", entry + risk_per_unit * SETTINGS["target_r_multiple"]))
+            take_profit = (not stop_hit) and minute_high >= float(p.get("target_price", entry + risk_per_unit * SETTINGS["target_r_multiple"]))
         else:
+            p["highest_price"] = round(highest, 8)
             stop_hit = market_price <= float(p["stop_price"])
             trail_armed = highest >= entry * 1.05
             trail_hit = trail_armed and market_price <= highest * (1.0 - SETTINGS["trailing_pct"] / 100.0)
@@ -410,7 +458,13 @@ def execute_cycle(state: dict) -> dict:
                 if trail_hit
                 else "TIME / 최대보유시간"
             )
-            exit_price = market_price * (1.0 - slippage)
+            if p.get("strategy_version") == STRATEGY_VERSION and stop_hit:
+                reference_exit = float(p["stop_price"])
+            elif p.get("strategy_version") == STRATEGY_VERSION and take_profit:
+                reference_exit = float(p.get("target_price", market_price))
+            else:
+                reference_exit = market_price
+            exit_price = reference_exit * (1.0 - slippage)
             quantity = float(p["quantity"])
             gross = exit_price * quantity
             fee = gross * fee_rate
@@ -436,6 +490,8 @@ def execute_cycle(state: dict) -> dict:
                     "pnl_pct": round(pnl_pct, 3),
                     "reason": reason,
                     "strategy_version": p.get("strategy_version", "v1_LEGACY"),
+                    "risk_amount": round(float(p.get("risk_amount", 0.0)), 2),
+                    "r_multiple": round(pnl / float(p.get("risk_amount", 1.0)), 3) if float(p.get("risk_amount", 0.0)) > 0 else None,
                 }
             )
             state["cooldowns"][p["market"]] = closed_at
@@ -455,6 +511,8 @@ def execute_cycle(state: dict) -> dict:
         if t.get("side") == "SELL" and parse_iso(t.get("time")) and parse_iso(t.get("time")).astimezone(KST).date() == today
     )
     daily_stop = today_realized <= -(SETTINGS["starting_capital"] * SETTINGS["daily_loss_limit_pct"] / 100.0)
+    perf_before_entry = strategy_performance(state)
+    defensive_mode = perf_before_entry["sample_ready"] and (perf_before_entry["profit_factor"] < 1.0 or perf_before_entry["expectancy_krw"] <= 0)
     open_risk = sum(float(p.get("risk_amount", 0.0)) for p in remaining_positions if p.get("strategy_version") == STRATEGY_VERSION)
 
     if not daily_stop and btc_change > -0.02 and len(remaining_positions) < SETTINGS["max_positions"]:
@@ -479,6 +537,8 @@ def execute_cycle(state: dict) -> dict:
             equity_est = cash + sum(float(p.get("current_price", p["entry_price"])) * float(p["quantity"]) for p in remaining_positions)
             strong = trigger["score"] >= 90 and trigger["volume_ratio"] >= 3 and trigger["breakout_volume_ratio"] >= 2.5
             risk_pct = SETTINGS["strong_risk_per_trade_pct"] if strong else SETTINGS["risk_per_trade_pct"]
+            if defensive_mode:
+                risk_pct *= SETTINGS["defensive_risk_multiplier"]
             portfolio_room = max(0.0, equity_est * SETTINGS["max_open_risk_pct"] / 100.0 - open_risk)
             risk_budget = min(equity_est * risk_pct / 100.0, portfolio_room)
             max_allocation = min(cash * 0.95, equity_est * SETTINGS["max_position_equity_pct"] / 100.0)
@@ -539,6 +599,7 @@ def execute_cycle(state: dict) -> dict:
     state["trades"] = state["trades"][-120:]
 
     portfolio_metrics(state, ticker_map)
+    state["performance"] = strategy_performance(state)
     elapsed_ms = int((time.time() - started) * 1000)
     state["updated_at"] = now_iso()
     state["paper_only"] = True
@@ -550,6 +611,7 @@ def execute_cycle(state: dict) -> dict:
         "open_risk_krw": round(open_risk, 2),
         "max_open_risk_pct": SETTINGS["max_open_risk_pct"],
         "btc_entry_gate": btc_change > -0.02,
+        "defensive_mode": defensive_mode,
     }
     state["engine"] = {
         "status": "PASS" if not errors else "PARTIAL",
