@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T11:52:44+09:00",
+  "generated_at": "2026-10-27T10:14:16+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -7,21 +7,21 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 2500,
+    "horse": 257,
     "ksports": 0,
     "bull": 0
   },
   "usage_before_run": {
-    "horse": 2500,
+    "horse": 0,
     "ksports": 0,
     "bull": 0
   },
   "checkpoints": {
     "horse": {
-      "cursor_date": "2019-01-26",
+      "cursor_date": "2019-01-12",
       "complete": false,
-      "resume_meet_idx": 0,
-      "resume_race_no": 11
+      "resume_meet_idx": 1,
+      "resume_race_no": 6
     },
     "cycle": {
       "cursor_mode": "DETAIL_ROUTE_V3",
@@ -42,10 +42,10 @@
     }
   },
   "new": {
-    "horse_records": 0,
-    "horse_dates": 0,
-    "horse_retry_attempted": 0,
-    "horse_retry_recovered": 0,
+    "horse_records": 115,
+    "horse_dates": 6,
+    "horse_retry_attempted": 40,
+    "horse_retry_recovered": 11,
     "horse_official_snapshot_recovered": 0,
     "cycle_records": 0,
     "cycle_dates": 0,
@@ -53,29 +53,42 @@
     "boat_dates": 0,
     "bull_records": 0,
     "bull_cards": 0,
-    "errors": []
+    "errors": [
+      "HORSE 2019-01-26 M1 R12 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-26 M4 R1 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-25 M3 R1 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-20 M1 R2 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-20 M3 R3 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-19 M1 R11 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-19 M2 R6 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-18 M2 R1 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-18 M2 R7 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-18 M3 R2 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-18 M3 R7 URLError:<urlopen error timed out>",
+      "HORSE 2019-01-13 M1 R9 URLError:<urlopen error timed out>"
+    ]
   },
   "records_total": {
-    "horse": 17001,
+    "horse": 17127,
     "cycle": 26723,
     "boat": 9250,
     "bull": 14322
   },
   "retry_metrics": {
     "horse": {
-      "attempted_this_run": 0,
-      "recovered_this_run": 0,
-      "remaining": 990,
-      "deferred": 947,
-      "due": 43,
+      "attempted_this_run": 40,
+      "recovered_this_run": 11,
+      "remaining": 991,
+      "deferred": 884,
+      "due": 107,
       "duplicates_removed": 0,
       "already_saved_removed": 0,
       "by_classification": {
-        "UNTRIED": 14,
-        "UNRESOLVED_NO_RACE_METADATA": 217,
-        "TRANSIENT_FETCH_FAILURE": 152,
+        "UNRESOLVED_NO_RACE_METADATA": 219,
+        "TRANSIENT_FETCH_FAILURE": 153,
         "UNRESOLVED_PAGE_OR_PARSER": 604,
-        "UNRESOLVED_PARSER_REJECTED": 3
+        "UNRESOLVED_PARSER_REJECTED": 3,
+        "UNTRIED": 12
       },
       "policy": "NO_ABSENCE_INFERENCE_KEEP_UNRESOLVED_BACKOFF_1_TO_14_DAYS"
     }
@@ -98,7 +111,7 @@
     "rejected_total": 0,
     "by_sport": {
       "horse": {
-        "kept": 17001,
+        "kept": 17127,
         "rejected": 0
       },
       "cycle": {
