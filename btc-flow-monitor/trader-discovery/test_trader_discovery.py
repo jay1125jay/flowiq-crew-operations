@@ -6,7 +6,7 @@ def f(t,start,sz,side,pnl='0'):
  return {'coin':'BTC','time':t,'tid':t,'startPosition':str(start),'sz':str(sz),'side':side,'closedPnl':pnl,'px':'100','fee':'0'}
 
 def rank(**kw):
- d={'address':'0x'+'1'*40,'history_sample_closes':100,'history_sample_win_rate_pct':70,'history_sample_net_pnl_usd':20000,'history_avg_fill_notional_usd':30000,'forward_closes':100,'forward_net_pnl_usd':10000,'forward_drawdown_usd':100,'forward_profit_factor':2,'forward_largest_win_share_pct':5,'forward_observed_days':8,'verified_whale':False}; d.update(kw); return d
+ d={'address':'0x'+'1'*40,'history_sample_closes':100,'history_sample_win_rate_pct':70,'history_sample_net_pnl_usd':20000,'history_profit_factor':2,'history_avg_fill_notional_usd':30000,'forward_closes':100,'forward_net_pnl_usd':10000,'forward_drawdown_usd':100,'forward_profit_factor':2,'forward_largest_win_share_pct':5,'forward_observed_days':8,'paper_candidate':True,'verified_whale':False}; d.update(kw); return d
 
 class TraderDiscoveryTests(unittest.TestCase):
  def test_complete_episode(self):
@@ -19,7 +19,12 @@ class TraderDiscoveryTests(unittest.TestCase):
   fills=[]
   for i in range(10):
    t=i*120000; fills += [f(t,0,1,'B'),f(t+60000,1,1,'A')]
-  x=td.classify(rank(),fills,NOW); self.assertTrue(x['category_flags']['SCALPER']); self.assertTrue(x['category_flags']['WHALE']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE']); self.assertTrue(x['category_flags']['HIGH_PROFIT']); self.assertTrue(x['category_flags']['CONSISTENT'])
+  x=td.classify(rank(),fills,NOW); self.assertTrue(x['skill_gate_passed']); self.assertTrue(x['category_flags']['SCALPER']); self.assertTrue(x['category_flags']['WHALE']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE']); self.assertTrue(x['category_flags']['HIGH_PROFIT']); self.assertTrue(x['category_flags']['CONSISTENT'])
+ def test_unprofitable_trader_cannot_enter_any_category(self):
+  fills=[]
+  for i in range(10):
+   t=i*120000; fills += [f(t,0,1,'B'),f(t+60000,1,1,'A')]
+  x=td.classify(rank(paper_candidate=False,history_sample_net_pnl_usd=-100,history_profit_factor=.5),fills,NOW); self.assertFalse(x['skill_gate_passed']); self.assertFalse(any(x['category_flags'].values()))
  def test_swing(self):
   fills=[]
   for i in range(5):
