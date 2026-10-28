@@ -4,11 +4,13 @@ import datetime as dt
 import json
 import sys
 from adaptive_meta import ROOT, ENGINES, safe, fresh, validate_inputs, number
+from adaptive_feed import current_catalog_feed
 
 def validate(outputs=False):
     def read(p): return json.loads((ROOT/p).read_text())
     now = dt.datetime.now(dt.timezone.utc).isoformat()
-    coh=read('trader-discovery/latest.json'); feed=read('trader-discovery/current-positions.json')
+    coh=read('trader-discovery/latest.json'); raw_feed=read('trader-discovery/current-positions.json')
+    feed=current_catalog_feed(coh,raw_feed)
     validate_inputs(coh,feed,read('data/adaptive-market.json'),read('data/whale-ranking.json'),now)
     if outputs:
         p=read('trader-discovery/category-paper.json'); m=read('data/adaptive-meta.json')
@@ -17,7 +19,7 @@ def validate(outputs=False):
         expected={f'{c}_{l}X' for c in ('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING') for l in (10,)}
         assert p['schema_version']==8 and set(p['accounts'])==expected and p['account_count']==6
         assert p['paper_only'] is True and p['real_trading_enabled'] is False
-        assert p['feed_errors']==0 and p['observed_wallet_count']==len(feed['wallets'])
+        assert p['feed_errors']==0 and p['observed_wallet_count']==raw_feed['observed_wallet_count']
         policy=p['all_accounts_capital_policy']
         assert policy['capital_krw']==3000000 and policy['fixed_krw_per_usd']==1500
         for key,account in p['accounts'].items():
