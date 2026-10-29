@@ -1,0 +1,679 @@
+{
+  "date": "2026-10-30",
+  "time": "01:53:30",
+  "generated_at": "2026-10-30T01:53:30.130041+09:00",
+  "domain": "SPORTS",
+  "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
+  "enabled_sports": [
+    "SOCCER",
+    "BASEBALL",
+    "BASKETBALL",
+    "VOLLEYBALL"
+  ],
+  "providers": [
+    {
+      "provider": "SPORTS_SOCCER_ESPN_PUBLIC+KLEAGUE_OFFICIAL",
+      "sport": "SOCCER",
+      "status": "PASS",
+      "requests": 25,
+      "successful_requests": 25,
+      "raw_events": 33,
+      "top_tier_events": 2,
+      "odds_events": 2,
+      "odds_summary_requests": 2,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASEBALL_ESPN_PUBLIC+KBO_OFFICIAL",
+      "sport": "BASEBALL",
+      "status": "PASS",
+      "requests": 3,
+      "successful_requests": 3,
+      "raw_events": 1,
+      "top_tier_events": 1,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASKETBALL_ESPN_PUBLIC+KBL_OFFICIAL",
+      "sport": "BASKETBALL",
+      "status": "PASS",
+      "requests": 6,
+      "successful_requests": 6,
+      "raw_events": 14,
+      "top_tier_events": 4,
+      "odds_events": 3,
+      "odds_summary_requests": 3,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_VOLLEYBALL_DAUM_SPORTS_PUBLIC_FALLBACK",
+      "sport": "VOLLEYBALL",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_ODDS_MULTIBOOK",
+      "sport": "ALL",
+      "status": "PARTIAL",
+      "plan_mode": "AMATEUR_LEAGUE_AWARE",
+      "events_enriched": 0,
+      "outcomes_enriched": 0,
+      "meta": [
+        {
+          "sport": "SOCCER",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [
+            "Serie A"
+          ],
+          "unsupported_on_amateur": [
+            "Serie A"
+          ],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASEBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [
+            "KBO"
+          ],
+          "unsupported_on_amateur": [
+            "KBO"
+          ],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "VOLLEYBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        }
+      ],
+      "errors": [
+        {
+          "sport": "BASKETBALL",
+          "league_ids": [
+            "NBA"
+          ],
+          "error": "HTTP_429: {\"success\":false,\"error\":\"Rate limit exceeded\"}"
+        }
+      ],
+      "updated_at": "2026-10-30T01:53:40.108825+09:00",
+      "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+    }
+  ],
+  "events": [
+    {
+      "id": "SPORTS-SOCCER-401874976",
+      "provider_event_id": "401874976",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2026-10-30",
+      "start_time": "02:30",
+      "start_label": "02:30",
+      "start_timestamp": 1793295000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Frosinone vs Lecce",
+      "home": "Frosinone",
+      "away": "Lecce",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Frosinone",
+          "odds": 1.7143,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:31.153914+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.46249844802365564,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:31.153914+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.24116888388180516,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Lecce",
+          "odds": 4.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:31.153914+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "레체",
+          "model_p": 0.29633266809453923,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20261029",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/summary?event=401874976",
+      "away_ko": "레체",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Serie A",
+        "competition_games": 3314,
+        "home_team_games": 83,
+        "away_team_games": 197,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401874969",
+      "provider_event_id": "401874969",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "Serie A",
+      "event_date": "2026-10-30",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1793303100,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Fiorentina vs Atalanta",
+      "home": "Fiorentina",
+      "away": "Atalanta",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Fiorentina",
+          "odds": 2.25,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:31.140718+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "피오렌티나",
+          "model_p": 0.3867251099811621,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:31.140718+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.25648598137576534,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Atalanta",
+          "odds": 2.8,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:31.140718+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "아탈란타",
+          "model_p": 0.3567889086430725,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard?dates=20261029",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/summary?event=401874969",
+      "home_ko": "피오렌티나",
+      "away_ko": "아탈란타",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "Serie A",
+        "competition_games": 3314,
+        "home_team_games": 329,
+        "away_team_games": 330,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909893",
+      "provider_event_id": "401909893",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-30",
+      "start_time": "09:00",
+      "start_label": "09:00",
+      "start_timestamp": 1793318400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Atlanta Hawks vs Cleveland Cavaliers",
+      "home": "Atlanta Hawks",
+      "away": "Cleveland Cavaliers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Atlanta Hawks",
+          "odds": 1.8696,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:34.038176+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "애틀랜타 호크스",
+          "model_p": 0.5025686735545716,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Cleveland Cavaliers",
+          "odds": 1.9524,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:34.038176+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "클리블랜드 캐벌리어스",
+          "model_p": 0.4974313264454285,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261029",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909893",
+      "home_ko": "애틀랜타 호크스",
+      "away_ko": "클리블랜드 캐벌리어스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11707,
+        "home_team_games": 762,
+        "away_team_games": 782,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909894",
+      "provider_event_id": "401909894",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-30",
+      "start_time": "09:00",
+      "start_label": "09:00",
+      "start_timestamp": 1793318400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "New Orleans Pelicans vs Sacramento Kings",
+      "home": "New Orleans Pelicans",
+      "away": "Sacramento Kings",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "New Orleans Pelicans",
+          "odds": 1.4202,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:34.018836+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "뉴올리언스 펠리컨스",
+          "model_p": 0.6430096157475971,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Sacramento Kings",
+          "odds": 2.95,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:34.018836+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "새크라멘토 킹스",
+          "model_p": 0.3569903842524029,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261029",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909894",
+      "home_ko": "뉴올리언스 펠리컨스",
+      "away_ko": "새크라멘토 킹스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11707,
+        "home_team_games": 745,
+        "away_team_games": 738,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909895",
+      "provider_event_id": "401909895",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-10-30",
+      "start_time": "11:00",
+      "start_label": "11:00",
+      "start_timestamp": 1793325600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Portland Trail Blazers vs Memphis Grizzlies",
+      "home": "Portland Trail Blazers",
+      "away": "Memphis Grizzlies",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Portland Trail Blazers",
+          "odds": 1.3448,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:33.994265+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "포틀랜드 트레일블레이저스",
+          "model_p": 0.728123409646538,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Memphis Grizzlies",
+          "odds": 3.35,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-10-30T01:53:33.994265+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "멤피스 그리즐리스",
+          "model_p": 0.27187659035346207,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261029",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909895",
+      "home_ko": "포틀랜드 트레일블레이저스",
+      "away_ko": "멤피스 그리즐리스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11707,
+        "home_team_games": 764,
+        "away_team_games": 762,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASEBALL-KBO-20261030SSHT0",
+      "provider_event_id": "20261030SSHT0",
+      "domain": "SPORTS",
+      "sport": "BASEBALL",
+      "provider": "KBO_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "KBO",
+      "event_date": "2026-10-30",
+      "start_time": "18:30",
+      "start_label": "18:30",
+      "start_timestamp": 1793352600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "KIA vs 삼성",
+      "home": "KIA",
+      "away": "삼성",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "KIA",
+          "model_p": 0.5744973077566036,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "삼성",
+          "model_p": 0.4255026922433965,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "KBO_FIRST_TEAM",
+      "data_state": "FRESH",
+      "source_url": "https://www.koreabaseball.com/Schedule/ScoreBoard.aspx",
+      "venue": "광주",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "KBO",
+        "competition_games": 5526,
+        "home_team_games": 1097,
+        "away_team_games": 1099,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-KBL-S49G01N44",
+      "provider_event_id": "S49G01N44",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "KBL_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "KBL",
+      "event_date": "2026-10-30",
+      "start_time": "19:00",
+      "start_label": "19:00",
+      "start_timestamp": 1793354400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "고양 소노 vs 서울 삼성",
+      "home": "고양 소노",
+      "away": "서울 삼성",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "고양 소노",
+          "model_p": 0.5255399385977131,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "서울 삼성",
+          "model_p": 0.4744600614022869,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "KBL_SEASON_GRADE_1",
+      "data_state": "FRESH",
+      "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261030&toDate=20261030&tcodeList=all&seasonGrade=1",
+      "venue": "고양소노아레나",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "KBL",
+        "competition_games": 2210,
+        "home_team_games": 118,
+        "away_team_games": 231,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    }
+  ],
+  "integrity": {
+    "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
+    "hard_failures": [],
+    "stale_events": 0,
+    "sports_multibook_status": "PARTIAL"
+  },
+  "team_name_localization": {
+    "language": "ko",
+    "translated_fields": 9,
+    "missing_team_names": [
+      "Frosinone"
+    ]
+  },
+  "odds_provider": {
+    "provider": "SportsGameOdds",
+    "status": "PARTIAL",
+    "plan_mode": "AMATEUR_LEAGUE_AWARE",
+    "events_enriched": 0,
+    "outcomes_enriched": 0,
+    "meta": [
+      {
+        "sport": "SOCCER",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [
+          "Serie A"
+        ],
+        "unsupported_on_amateur": [
+          "Serie A"
+        ],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [
+          "KBO"
+        ],
+        "unsupported_on_amateur": [
+          "KBO"
+        ],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "VOLLEYBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      }
+    ],
+    "errors": [
+      {
+        "sport": "BASKETBALL",
+        "league_ids": [
+          "NBA"
+        ],
+        "error": "HTTP_429: {\"success\":false,\"error\":\"Rate limit exceeded\"}"
+      }
+    ],
+    "updated_at": "2026-10-30T01:53:40.108825+09:00",
+    "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  }
+}
