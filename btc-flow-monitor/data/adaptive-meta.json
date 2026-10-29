@@ -6,7 +6,7 @@
   "accounts": {
     "WHALE_COPY": {
       "starting_equity_usd": 1000.0,
-      "cash": 999.6922369372844,
+      "cash": 999.680407345251,
       "positions": {
         "0x7b7f72a28fe109fa703eeed7984f2a8a68fedee2": {
           "side": "LONG",
@@ -16,19 +16,19 @@
           "entry_fee": 0.08333333333333333,
           "entry_at": "2026-10-24T12:46:24.357928+00:00",
           "regime": "RANGE",
-          "funding_usd": 0.22442972938209385
+          "funding_usd": 0.23625932141558098
         }
       },
       "closed": [],
       "peak": 1001.0728696451401,
-      "mdd_pct": 0.17208069155850977,
+      "mdd_pct": 0.27702361192442626,
       "fees_usd": 0.08333333333333333,
-      "funding_usd": 0.22442972938209385,
+      "funding_usd": 0.23625932141558098,
       "liquidations": 0,
-      "equity_usd": 1000.4673898491254,
-      "net_pnl_usd": 0.4673898491254249,
-      "return_pct": 0.046738984912542136,
-      "unrealized_pnl_usd": 0.4673898491256313,
+      "equity_usd": 998.2996614236537,
+      "net_pnl_usd": -1.7003385763463257,
+      "return_pct": -0.17003385763463275,
+      "unrealized_pnl_usd": -1.7003385763462506,
       "closed_count": 0,
       "expectancy_usd": 0.0,
       "profit_factor": null,
@@ -36,7 +36,7 @@
       "win_rate_pct": null,
       "average_win_usd": 0.0,
       "average_loss_usd": 0.0,
-      "return_drawdown_ratio": 0.2716108616790992,
+      "return_drawdown_ratio": -0.6137883209790038,
       "regime_performance": {}
     },
     "SMART_MONEY": {
@@ -368,8 +368,19 @@
     },
     "DERIVATIVES": {
       "starting_equity_usd": 1000.0,
-      "cash": 1000.2494574318831,
-      "positions": {},
+      "cash": 999.9994574318831,
+      "positions": {
+        "BTC": {
+          "side": "LONG",
+          "entry_price": 80217.55804999999,
+          "qty": 0.006233049374157557,
+          "notional_usd": 500.0,
+          "entry_fee": 0.25,
+          "entry_at": "2026-10-29T06:03:36.530875+00:00",
+          "regime": "RANGE",
+          "funding_usd": 0.0
+        }
+      },
       "closed": [
         {
           "source": "BTC",
@@ -494,13 +505,13 @@
       ],
       "peak": 1003.4514738450587,
       "mdd_pct": 0.6514792485805969,
-      "fees_usd": 3.9881466182177117,
+      "fees_usd": 4.238146618217712,
       "funding_usd": -0.046060429904127474,
       "liquidations": 0,
-      "equity_usd": 1000.2494574318831,
-      "net_pnl_usd": 0.24945743188311553,
-      "return_pct": 0.024945743188320435,
-      "unrealized_pnl_usd": 0,
+      "equity_usd": 999.4496973599048,
+      "net_pnl_usd": -0.5503026400951967,
+      "return_pct": -0.05503026400951461,
+      "unrealized_pnl_usd": -0.7997600719783113,
       "closed_count": 8,
       "expectancy_usd": 0.031182178985329823,
       "profit_factor": 1.0307129375057165,
@@ -508,7 +519,7 @@
       "win_rate_pct": 25.0,
       "average_win_usd": 4.185841916790444,
       "average_loss_usd": -1.3537044002830416,
-      "return_drawdown_ratio": 0.03829092521775742,
+      "return_drawdown_ratio": -0.08446971124469609,
       "regime_performance": {
         "RANGE": {
           "n": 3,
@@ -1109,6 +1120,11 @@
       "at": "2026-10-29T00:20:20.720516+00:00",
       "price": 81239.5,
       "regime": "RANGE"
+    },
+    {
+      "at": "2026-10-29T06:03:36.530875+00:00",
+      "price": 80193.5,
+      "regime": "RANGE"
     }
   ],
   "engine_weights": {
@@ -1118,12 +1134,12 @@
   },
   "weight_sample_counts": {
     "SMART_MONEY": 4,
-    "MARKET_STRUCTURE": 10,
-    "DERIVATIVES": 7
+    "MARKET_STRUCTURE": 11,
+    "DERIVATIVES": 8
   },
-  "updated_at": "2026-10-29T00:20:21.244153+00:00",
-  "last_observation_at": "2026-10-29T00:20:20.720516+00:00",
-  "btc_mid_usd": 81239.5,
+  "updated_at": "2026-10-29T06:03:36.899217+00:00",
+  "last_observation_at": "2026-10-29T06:03:36.530875+00:00",
+  "btc_mid_usd": 80193.5,
   "regime": "RANGE",
   "decisions": {
     "SMART_MONEY": {
@@ -1133,27 +1149,27 @@
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "MARKET_STRUCTURE": {
-      "score": -0.016179533666453305,
+      "score": -0.06638918272920162,
       "signal": "WAIT",
-      "confidence": 1.6179533666453305,
+      "confidence": 6.638918272920162,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "DERIVATIVES": {
-      "score": -0.08269011618438961,
-      "signal": "WAIT",
-      "confidence": 8.269011618438961,
+      "score": 0.21686075813944652,
+      "signal": "LONG",
+      "confidence": 21.68607581394465,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "FIXED_ENSEMBLE": {
-      "score": -0.023009836703459245,
+      "score": 0.016816478536208657,
       "signal": "WAIT",
-      "confidence": 2.3009836703459245,
+      "confidence": 1.6816478536208657,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "ADAPTIVE_META": {
-      "score": -0.03295654995028097,
+      "score": 0.05015719180341496,
       "signal": "WAIT",
-      "confidence": 3.2956549950280967,
+      "confidence": 5.015719180341496,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "WHALE_COPY": {
@@ -1165,8 +1181,8 @@
   },
   "previous_market": {
     "funding_rate": 1.25e-05,
-    "open_interest_btc": 43729.64164,
-    "reference_price": 81239.5
+    "open_interest_btc": 43246.97208,
+    "reference_price": 80193.5
   },
   "paper_rules": {
     "starting_equity_usd": 1000.0,
@@ -1181,16 +1197,16 @@
   "profitability": "UNPROVEN",
   "data_quality": {
     "feed_errors": 0,
-    "source_at": "2026-10-29T00:20:20.720516+00:00",
+    "source_at": "2026-10-29T06:03:36.530875+00:00",
     "continuity": {
       "target_interval_seconds": 300,
       "tolerance_seconds": 900,
-      "last_gap_seconds": 13737.549629,
+      "last_gap_seconds": 20595.810359,
       "max_gap_seconds": 319346.336582,
-      "gap_count": 28,
-      "approximate_missed_intervals": 2432,
+      "gap_count": 29,
+      "approximate_missed_intervals": 2499,
       "status": "GAPPED",
-      "window_observations": 44,
+      "window_observations": 45,
       "note": "Observed intervals only; GitHub cron is not a guaranteed five-minute clock."
     },
     "unavailable": [
@@ -1206,22 +1222,22 @@
   ],
   "leaderboard": [
     {
-      "engine": "WHALE_COPY",
-      "equity_usd": 1000.4673898491254,
-      "net_pnl_usd": 0.4673898491254249,
-      "profit_factor": null,
-      "mdd_pct": 0.17208069155850977,
-      "closed_count": 0,
-      "expectancy_usd": 0.0
-    },
-    {
       "engine": "DERIVATIVES",
-      "equity_usd": 1000.2494574318831,
-      "net_pnl_usd": 0.24945743188311553,
+      "equity_usd": 999.4496973599048,
+      "net_pnl_usd": -0.5503026400951967,
       "profit_factor": 1.0307129375057165,
       "mdd_pct": 0.6514792485805969,
       "closed_count": 8,
       "expectancy_usd": 0.031182178985329823
+    },
+    {
+      "engine": "WHALE_COPY",
+      "equity_usd": 998.2996614236537,
+      "net_pnl_usd": -1.7003385763463257,
+      "profit_factor": null,
+      "mdd_pct": 0.27702361192442626,
+      "closed_count": 0,
+      "expectancy_usd": 0.0
     },
     {
       "engine": "FIXED_ENSEMBLE",
