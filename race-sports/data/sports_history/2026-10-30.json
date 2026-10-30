@@ -1,7 +1,7 @@
 {
   "date": "2026-10-30",
-  "time": "11:10:26",
-  "generated_at": "2026-10-30T11:10:26.792018+09:00",
+  "time": "11:23:18",
+  "generated_at": "2026-10-30T11:23:18.593382+09:00",
   "domain": "SPORTS",
   "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
   "enabled_sports": [
@@ -62,7 +62,7 @@
     {
       "provider": "SPORTS_ODDS_MULTIBOOK",
       "sport": "ALL",
-      "status": "PARTIAL",
+      "status": "NO_ELIGIBLE_LEAGUE",
       "plan_mode": "AMATEUR_LEAGUE_AWARE",
       "events_enriched": 0,
       "outcomes_enriched": 0,
@@ -90,6 +90,19 @@
           "events": 0
         },
         {
+          "sport": "BASKETBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [
+            "KBL"
+          ],
+          "unsupported_on_amateur": [
+            "KBL"
+          ],
+          "league_ids": [],
+          "events": 0
+        },
+        {
           "sport": "VOLLEYBALL",
           "status": "SKIP",
           "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
@@ -99,16 +112,8 @@
           "events": 0
         }
       ],
-      "errors": [
-        {
-          "sport": "BASKETBALL",
-          "league_ids": [
-            "NBA"
-          ],
-          "error": "HTTP_429: {\"success\":false,\"error\":\"Rate limit exceeded\"}"
-        }
-      ],
-      "updated_at": "2026-10-30T11:10:34.729008+09:00",
+      "errors": [],
+      "updated_at": "2026-10-30T11:23:28.509173+09:00",
       "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
     }
   ],
@@ -139,7 +144,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:27.515833+09:00",
+          "odds_updated_at": "2026-10-30T11:23:19.604915+09:00",
           "odds_data_state": "FRESH",
           "model_p": 0.46249844802365564,
           "model_source": "sports_elo_v0.2",
@@ -152,7 +157,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:27.515833+09:00",
+          "odds_updated_at": "2026-10-30T11:23:19.604915+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "무승부",
           "model_p": 0.24116888388180516,
@@ -166,7 +171,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:27.515833+09:00",
+          "odds_updated_at": "2026-10-30T11:23:19.604915+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "레체",
           "model_p": 0.29633266809453923,
@@ -185,7 +190,7 @@
         "away_score": 1,
         "winner_key": "HOME",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-30T11:10:27.115256+09:00"
+        "updated_at": "2026-10-30T11:23:18.992913+09:00"
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -232,7 +237,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:27.484938+09:00",
+          "odds_updated_at": "2026-10-30T11:23:19.665413+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "피오렌티나",
           "model_p": 0.3867251099811621,
@@ -246,7 +251,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:27.484938+09:00",
+          "odds_updated_at": "2026-10-30T11:23:19.665413+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "무승부",
           "model_p": 0.25648598137576534,
@@ -260,7 +265,7 @@
           "odds_source": "ESPN_PUBLIC_ODDS",
           "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:27.484938+09:00",
+          "odds_updated_at": "2026-10-30T11:23:19.665413+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "아탈란타",
           "model_p": 0.3567889086430725,
@@ -279,7 +284,7 @@
         "away_score": 2,
         "winner_key": "DRAW",
         "source": "ESPN_PUBLIC",
-        "updated_at": "2026-10-30T11:10:27.115314+09:00"
+        "updated_at": "2026-10-30T11:23:18.992948+09:00"
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -325,9 +330,9 @@
           "name": "Atlanta Hawks",
           "odds": 1.8475,
           "odds_source": "ESPN_PUBLIC_ODDS",
-          "odds_provider": "Draft Kings",
+          "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:29.963950+09:00",
+          "odds_updated_at": "2026-10-30T11:23:22.949336+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "애틀랜타 호크스",
           "model_p": 0.5025686735545716,
@@ -339,9 +344,9 @@
           "name": "Cleveland Cavaliers",
           "odds": 1.9804,
           "odds_source": "ESPN_PUBLIC_ODDS",
-          "odds_provider": "Draft Kings",
+          "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:29.963950+09:00",
+          "odds_updated_at": "2026-10-30T11:23:22.949336+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "클리블랜드 캐벌리어스",
           "model_p": 0.4974313264454285,
@@ -354,11 +359,11 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261029",
       "score": {
-        "home": 106,
-        "away": 96
+        "home": 110,
+        "away": 106
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
-      "odds_provider": "Draft Kings",
+      "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909893",
@@ -401,9 +406,9 @@
           "name": "New Orleans Pelicans",
           "odds": 1.4202,
           "odds_source": "ESPN_PUBLIC_ODDS",
-          "odds_provider": "Draft Kings",
+          "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:29.954997+09:00",
+          "odds_updated_at": "2026-10-30T11:23:23.007828+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "뉴올리언스 펠리컨스",
           "model_p": 0.6430096157475971,
@@ -415,9 +420,9 @@
           "name": "Sacramento Kings",
           "odds": 2.95,
           "odds_source": "ESPN_PUBLIC_ODDS",
-          "odds_provider": "Draft Kings",
+          "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:29.954997+09:00",
+          "odds_updated_at": "2026-10-30T11:23:23.007828+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "새크라멘토 킹스",
           "model_p": 0.3569903842524029,
@@ -430,11 +435,11 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261029",
       "score": {
-        "home": 123,
-        "away": 106
+        "home": 129,
+        "away": 120
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
-      "odds_provider": "Draft Kings",
+      "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909894",
@@ -466,7 +471,7 @@
       "start_label": "11:00",
       "start_timestamp": 1793325600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Portland Trail Blazers vs Memphis Grizzlies",
       "home": "Portland Trail Blazers",
       "away": "Memphis Grizzlies",
@@ -477,9 +482,9 @@
           "name": "Portland Trail Blazers",
           "odds": 1.3509,
           "odds_source": "ESPN_PUBLIC_ODDS",
-          "odds_provider": "Draft Kings",
+          "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:29.958554+09:00",
+          "odds_updated_at": "2026-10-30T11:23:22.977035+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "포틀랜드 트레일블레이저스",
           "model_p": 0.728123409646538,
@@ -491,9 +496,9 @@
           "name": "Memphis Grizzlies",
           "odds": 3.3,
           "odds_source": "ESPN_PUBLIC_ODDS",
-          "odds_provider": "Draft Kings",
+          "odds_provider": "DraftKings",
           "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
-          "odds_updated_at": "2026-10-30T11:10:29.958554+09:00",
+          "odds_updated_at": "2026-10-30T11:23:22.977035+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "멤피스 그리즐리스",
           "model_p": 0.27187659035346207,
@@ -505,8 +510,12 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261029",
+      "score": {
+        "home": 15,
+        "away": 15
+      },
       "odds_source": "ESPN_PUBLIC_ODDS",
-      "odds_provider": "Draft Kings",
+      "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909895",
@@ -634,7 +643,7 @@
     "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
     "hard_failures": [],
     "stale_events": 0,
-    "sports_multibook_status": "PARTIAL"
+    "sports_multibook_status": "NO_ELIGIBLE_LEAGUE"
   },
   "team_name_localization": {
     "language": "ko",
@@ -645,7 +654,7 @@
   },
   "odds_provider": {
     "provider": "SportsGameOdds",
-    "status": "PARTIAL",
+    "status": "NO_ELIGIBLE_LEAGUE",
     "plan_mode": "AMATEUR_LEAGUE_AWARE",
     "events_enriched": 0,
     "outcomes_enriched": 0,
@@ -673,6 +682,19 @@
         "events": 0
       },
       {
+        "sport": "BASKETBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [
+          "KBL"
+        ],
+        "unsupported_on_amateur": [
+          "KBL"
+        ],
+        "league_ids": [],
+        "events": 0
+      },
+      {
         "sport": "VOLLEYBALL",
         "status": "SKIP",
         "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
@@ -682,16 +704,8 @@
         "events": 0
       }
     ],
-    "errors": [
-      {
-        "sport": "BASKETBALL",
-        "league_ids": [
-          "NBA"
-        ],
-        "error": "HTTP_429: {\"success\":false,\"error\":\"Rate limit exceeded\"}"
-      }
-    ],
-    "updated_at": "2026-10-30T11:10:34.729008+09:00",
+    "errors": [],
+    "updated_at": "2026-10-30T11:23:28.509173+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
   }
 }
