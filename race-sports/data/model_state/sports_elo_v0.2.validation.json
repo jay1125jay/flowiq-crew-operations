@@ -1,6 +1,24 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
+    "SOCCER": {
+      "games": 21360,
+      "holdout_rows": 6409,
+      "walk_forward_rows": 6409,
+      "accuracy": 0.525355,
+      "log_loss": 0.988356,
+      "brier": 0.196338,
+      "uniform_log_loss": 1.098612,
+      "log_loss_edge": 0.110256,
+      "validated": true,
+      "selected_params": {
+        "k": 32.0,
+        "home_adv": 60.0,
+        "scale": 350.0,
+        "shrink": 1.0
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "BASEBALL": {
       "games": 29724,
       "holdout_rows": 8918,
@@ -16,24 +34,6 @@
         "home_adv": 30.0,
         "scale": 350.0,
         "shrink": 0.6
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "SOCCER": {
-      "games": 21361,
-      "holdout_rows": 6409,
-      "walk_forward_rows": 6409,
-      "accuracy": 0.525355,
-      "log_loss": 0.98838,
-      "brier": 0.196342,
-      "uniform_log_loss": 1.098612,
-      "log_loss_edge": 0.110232,
-      "validated": true,
-      "selected_params": {
-        "k": 32.0,
-        "home_adv": 60.0,
-        "scale": 350.0,
-        "shrink": 1.0
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
@@ -74,7 +74,7 @@
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
   },
-  "history_events": 66862,
+  "history_events": 66861,
   "training_cutoff_exclusive": "2026-10-31",
   "same_day_results_excluded": true,
   "competition_history": {
@@ -87,7 +87,7 @@
     "SOCCER::AFC Champions League Two": 368,
     "SOCCER::Bundesliga": 2646,
     "SOCCER::International Friendly": 2129,
-    "SOCCER::K League 1": 228,
+    "SOCCER::K League 1": 227,
     "SOCCER::LaLiga": 3338,
     "SOCCER::Ligue 1": 2984,
     "SOCCER::Premier League": 3273,
