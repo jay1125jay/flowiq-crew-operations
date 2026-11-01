@@ -22,6 +22,7 @@ def main():
     feed = json.loads((ROOT / 'trader-discovery' / 'current-positions.json').read_text(encoding='utf-8'))
     ranked = category_top6_policy.apply_top6_policy(cohort)
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    state = category_top6_policy.rotate_out_non_top6(state, ranked, feed, now, category)
     state = category.advance(state, ranked, feed, now)
     state['selection_policy'] = ranked.get('selection_policy')
     state['selection_rankings'] = ranked.get('selection_rankings')
