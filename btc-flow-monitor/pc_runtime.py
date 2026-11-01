@@ -5,12 +5,22 @@ import asyncio
 
 import category_realtime_runtime as category_runtime
 import category_realtime_server
+import category_top6_policy
 import pc_price_stream
 import pc_source_collector
 import realtime_runtime as base_runtime
 
 
 PC_SOURCE_TTL_SECONDS = 300
+_ORIGINAL_CATEGORY_ADVANCE = category_runtime.category.advance
+
+
+def _top6_category_advance(state, cohort, feed, now):
+    ranked = category_top6_policy.apply_top6_policy(cohort)
+    updated = _ORIGINAL_CATEGORY_ADVANCE(state, ranked, feed, now)
+    updated['selection_policy'] = ranked.get('selection_policy')
+    updated['selection_rankings'] = ranked.get('selection_rankings')
+    return updated
 
 
 async def run(args):
@@ -22,6 +32,9 @@ async def run(args):
     # Some home/office networks allow Hyperliquid HTTPS while blocking/silencing
     # WebSocket traffic. Prefer WS BBO and automatically fall back to public REST.
     base_runtime.stream = pc_price_stream.stream
+    # Track every fresh candidate but allow only the six best performers in each
+    # category to reach the existing PAPER execution/accounting engine.
+    category_runtime.category.advance = _top6_category_advance
     category_realtime_server.install()
     await category_runtime.run(args)
 
