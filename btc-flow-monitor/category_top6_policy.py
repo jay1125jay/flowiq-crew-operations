@@ -123,3 +123,41 @@ def apply_top6_policy(cohort):
     }
     out['selection_rankings'] = rankings
     return out
+
+
+def rotate_out_non_top6(state, ranked_cohort, feed, now, category_module):
+    """Close positions that no longer belong to the selected TOP 6 for that category."""
+    if not state or not state.get('accounts'):
+        return state
+    price = _num((feed or {}).get('btc_mid_usd'))
+    if not 1000 < price < 1000000:
+        return state
+
+    selected = {
+        cat: {
+            row.get('address')
+            for row in ranked_cohort.get('wallets', [])
+            if row.get('address') and (row.get('category_flags') or {}).get(cat)
+        }
+        for cat in CATS
+    }
+    events = state.setdefault('selection_rotation_events', [])
+
+    for account_key, account in state.get('accounts', {}).items():
+        cat = account.get('category')
+        if cat not in selected:
+            continue
+        for wallet, position in list((account.get('positions') or {}).items()):
+            if wallet in selected[cat]:
+                continue
+            category_module._close(account, wallet, position, price, now, 'TOP6_ROTATION_OUT')
+            account.setdefault('pending_reversals', {}).pop(wallet, None)
+            events.append({
+                'at': now,
+                'account': account_key,
+                'category': cat,
+                'wallet': wallet,
+                'reason': 'TOP6_ROTATION_OUT',
+            })
+    state['selection_rotation_events'] = events[-300:]
+    return state
