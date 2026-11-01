@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $repoZip = 'https://github.com/jay1125jay/flowiq-crew-operations/archive/refs/heads/main.zip'
+$bootstrapUrl = 'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/main/btc-flow-monitor/windows/AUTO_UPDATE_AND_START.ps1'
 $appRoot = Join-Path $env:LOCALAPPDATA 'BTC_FLOW_APP'
 $appDir = Join-Path $appRoot 'btc-flow-monitor'
 $paperDir = Join-Path $env:LOCALAPPDATA 'BTC_FLOW_PAPER'
@@ -12,6 +13,16 @@ Write-Host '[BTC FLOW] Checking latest version...'
 New-Item -ItemType Directory -Force -Path $tempRoot, $extractDir, $appRoot, $paperDir | Out-Null
 
 try {
+    # Refresh the bootstrap itself for the next launch when running from the stable bootstrap folder.
+    $selfPath = $MyInvocation.MyCommand.Path
+    if ($selfPath -and ($selfPath -like (Join-Path $env:LOCALAPPDATA 'BTC_FLOW_BOOTSTRAP\*'))) {
+        $nextBootstrap = Join-Path $tempRoot 'AUTO_UPDATE_AND_START.ps1'
+        Invoke-WebRequest -UseBasicParsing -Uri $bootstrapUrl -OutFile $nextBootstrap
+        if ((Get-Item $nextBootstrap).Length -gt 100) {
+            Copy-Item $nextBootstrap $selfPath -Force
+        }
+    }
+
     Invoke-WebRequest -UseBasicParsing -Uri $repoZip -OutFile $zipPath
     Expand-Archive -LiteralPath $zipPath -DestinationPath $extractDir -Force
     $source = Join-Path $extractDir 'flowiq-crew-operations-main\btc-flow-monitor'
