@@ -17,6 +17,7 @@ _ORIGINAL_CATEGORY_ADVANCE = category_runtime.category.advance
 
 def _top6_category_advance(state, cohort, feed, now):
     ranked = category_top6_policy.apply_top6_policy(cohort)
+    state = category_top6_policy.rotate_out_non_top6(state, ranked, feed, now, category_runtime.category)
     updated = _ORIGINAL_CATEGORY_ADVANCE(state, ranked, feed, now)
     updated['selection_policy'] = ranked.get('selection_policy')
     updated['selection_rankings'] = ranked.get('selection_rankings')
