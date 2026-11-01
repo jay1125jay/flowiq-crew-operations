@@ -2,19 +2,25 @@ name: BTC public PAPER snapshot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '1-59/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'btc-flow-monitor/scripts/public_market_snapshot.py'
+      - '.github/workflows/btc-public-paper-snapshot.yml'
 permissions:
   contents: write
 concurrency:
   group: btc-public-paper-snapshot
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:

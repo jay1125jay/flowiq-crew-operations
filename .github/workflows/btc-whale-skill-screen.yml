@@ -25,12 +25,14 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - name: Verify PAPER engines offline
+        if: github.event_name != 'schedule'
         run: |
           python -m unittest discover -s btc-flow-monitor/scripts -p 'test_whale_paper.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_trader_discovery.py' -v
           python -m unittest discover -s btc-flow-monitor/trader-discovery -p 'test_category_paper.py' -v
           python -m unittest discover -s btc-flow-monitor -p 'test_*.py' -v
       - name: Integrate dashboard
+        if: github.event_name != 'schedule'
         run: python btc-flow-monitor/integrate-follow.py
       - name: Refresh trader pool
         run: python btc-flow-monitor/trader-discovery/leaderboard_expand.py
@@ -50,6 +52,8 @@ jobs:
         run: python btc-flow-monitor/trader-discovery/category_paper.py
       - name: Run adaptive PAPER competition
         run: python btc-flow-monitor/adaptive_run.py
+      - name: Build compact engine health and profit-source status
+        run: python btc-flow-monitor/scripts/build_engine_status.py
       - name: Validate safety and competition
         run: python btc-flow-monitor/validate_research.py --outputs
       - name: Persist validated research state
@@ -60,6 +64,7 @@ jobs:
           python btc-flow-monitor/persist_research.py
 
   dashboard_check:
+    if: github.event_name != 'schedule'
     needs: screen_and_simulate
     runs-on: ubuntu-latest
     timeout-minutes: 8
