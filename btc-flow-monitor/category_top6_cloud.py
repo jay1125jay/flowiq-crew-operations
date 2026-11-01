@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+"""Run six-category cloud PAPER with performance-ranked TOP 6 selection."""
+import datetime
+import importlib.util
+import json
+from pathlib import Path
+
+import category_top6_policy
+
+ROOT = Path(__file__).resolve().parent
+CATEGORY_PATH = ROOT / 'trader-discovery' / 'category_paper.py'
+OUT = ROOT / 'trader-discovery' / 'category-paper.json'
+
+spec = importlib.util.spec_from_file_location('btcflow_category_paper_cloud', CATEGORY_PATH)
+category = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(category)
+
+
+def main():
+    state = json.loads(OUT.read_text(encoding='utf-8')) if OUT.exists() else {}
+    cohort = json.loads((ROOT / 'trader-discovery' / 'latest.json').read_text(encoding='utf-8'))
+    feed = json.loads((ROOT / 'trader-discovery' / 'current-positions.json').read_text(encoding='utf-8'))
+    ranked = category_top6_policy.apply_top6_policy(cohort)
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    state = category.advance(state, ranked, feed, now)
+    state['selection_policy'] = ranked.get('selection_policy')
+    state['selection_rankings'] = ranked.get('selection_rankings')
+    OUT.write_text(json.dumps(state, indent=2) + '\n', encoding='utf-8')
+    print('CATEGORY TOP6 PAPER PASS', ranked['selection_policy']['candidate_catalog_count'])
+
+
+if __name__ == '__main__':
+    main()
