@@ -33,12 +33,13 @@ class PaperAccountContractTests(unittest.TestCase):
         self.assertIs(state["real_trading_enabled"], False)
         self.assertEqual(state["account_count"], 6)
         self.assertEqual(set(state["accounts"]), expected)
-        self.assertEqual(state["max_positions_per_category"], 6)
+        self.assertEqual(category.MAX_POSITIONS, 6)
+        self.assertEqual(state["max_positions_per_account"], category.MAX_POSITIONS)
 
         for account in state["accounts"].values():
             self.assertEqual(account["starting_equity_krw"], 3000000)
             self.assertEqual(account["leverage"], 10)
-            self.assertLessEqual(account["open_count"], 6)
+            self.assertLessEqual(account["open_count"], category.MAX_POSITIONS)
             self.assertGreater(account["total_notional_krw"], 29500000)
             self.assertLess(account["total_notional_krw"], 30000000)
 
