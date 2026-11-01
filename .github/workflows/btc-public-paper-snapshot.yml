@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:
@@ -34,6 +35,14 @@ jobs:
           git add btc-flow-monitor/data/public-market.json
           if ! git diff --cached --quiet; then
             git commit -m "data: refresh public BTC PAPER snapshot"
-            git pull --rebase
-            git push
+            for attempt in 1 2 3 4; do
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+              echo "push race detected; rebasing attempt ${attempt}/4"
+              git pull --rebase origin main
+              sleep 2
+            done
+            echo "snapshot publish failed after retries"
+            exit 1
           fi
