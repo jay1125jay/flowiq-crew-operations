@@ -11,6 +11,7 @@ EPS=1e-12
 CATALOG_TTL_SECONDS=90*60
 FORWARD_MIN_DAYS=7
 FORWARD_MIN_CLOSES=20
+CLASSIFIER_VERSION=4
 
 
 def query(payload):
@@ -54,9 +55,10 @@ def classify(rank,fills,now):
         forward_gate=bool(upstream_eligible) and forward_stress>0
     skill_ok=history_gate and forward_gate
     cats={'WHALE':skill_ok and notional>=20000 and closes>=20,'HIGH_WIN_RATE':skill_ok and closes>=50 and win is not None and float(win)>=65,'HIGH_PROFIT':skill_ok and closes>=50 and pnl>=10000,'CONSISTENT':skill_ok and forward_closes>=20 and fwd>0 and pf>=1.5 and conc<=20 and dd<=max(500,abs(fwd)*0.25),'SCALPER':skill_ok and len(holds)>=10 and med is not None and med<=900 and short_share>=.60,'SWING':skill_ok and len(holds)>=5 and med is not None and med>=14400 and long_share>=.60}
-    return {'address':rank['address'],'last_scanned_at':now,'categories':[k for k,v in cats.items() if v],'category_flags':cats,'skill_gate_passed':skill_ok,'history_gate_passed':history_gate,'forward_gate_passed':forward_gate,'forward_mature':forward_mature,'history':{'fills_returned':len(btc),'history_capped':len(fills)>=2000,'closes':closes,'win_rate_pct':win,'net_pnl_usd':pnl,'profit_factor':hist_pf,'avg_fill_notional_usd':notional},'holding':{'complete_episodes':len(holds),'median_seconds':round(med,1) if med is not None else None,'p90_seconds':round(pct(holds,.9),1) if holds else None,'within_1h_share':round(short_share,3) if holds else None,'at_least_1h_share':round(long_share,3) if holds else None},'forward':{'days':forward_days,'closes':forward_closes,'net_pnl_usd':fwd,'stress_net_pnl_usd':forward_stress,'drawdown_usd':dd,'eligible_for_paper_observation':upstream_eligible},'verified':bool(rank.get('verified_whale',False))}
+    return {'classifier_version':CLASSIFIER_VERSION,'address':rank['address'],'last_scanned_at':now,'categories':[k for k,v in cats.items() if v],'category_flags':cats,'skill_gate_passed':skill_ok,'history_gate_passed':history_gate,'forward_gate_passed':forward_gate,'forward_mature':forward_mature,'history':{'fills_returned':len(btc),'history_capped':len(fills)>=2000,'closes':closes,'win_rate_pct':win,'net_pnl_usd':pnl,'profit_factor':hist_pf,'avg_fill_notional_usd':notional},'holding':{'complete_episodes':len(holds),'median_seconds':round(med,1) if med is not None else None,'p90_seconds':round(pct(holds,.9),1) if holds else None,'within_1h_share':round(short_share,3) if holds else None,'at_least_1h_share':round(long_share,3) if holds else None},'forward':{'days':forward_days,'closes':forward_closes,'net_pnl_usd':fwd,'stress_net_pnl_usd':forward_stress,'drawdown_usd':dd,'eligible_for_paper_observation':upstream_eligible},'verified':bool(rank.get('verified_whale',False))}
 
 def _fresh(row,now_dt):
+    if int(row.get('classifier_version') or 0)!=CLASSIFIER_VERSION:return False
     try:
         stamp=dt.datetime.fromisoformat(str(row.get('last_scanned_at') or '').replace('Z','+00:00'))
         return 0 <= (now_dt-stamp).total_seconds() <= CATALOG_TTL_SECONDS
@@ -73,7 +75,7 @@ def main():
             fills=query({'type':'userFills','user':r['address'],'aggregateByTime':False}); row=classify(r,fills,now); old[row['address']]=row; scanned.append(row['address'])
         except Exception as e:errors.append({'address':r.get('address'),'error':type(e).__name__})
     rows=sorted((x for x in old.values() if _fresh(x,now_dt)),key=lambda x:x.get('last_scanned_at',''),reverse=True); names=('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING'); counts={n:sum(bool(x.get('category_flags',{}).get(n)) for x in rows) for n in names}
-    out={'schema_version':3,'paper_only':True,'real_trading_enabled':False,'generated_at':now,'source_ranking_updated_at':data.get('updated_at'),'catalog_ttl_seconds':CATALOG_TTL_SECONDS,'catalog_wallet_count':len(rows),'scanned_this_run':len(scanned),'scanned_addresses':scanned,'errors':errors,'candidate_counts':counts,'verification_note':'PAPER research only. Historical candidates may enter while forward evidence is immature; after 7 days and 20 forward closes, a trader must remain eligible under forward verification with positive stress PnL. Catalog rows expire after 90 minutes; Hyperliquid userFills is capped at 2000 recent fills.','wallets':rows}
+    out={'schema_version':4,'classifier_version':CLASSIFIER_VERSION,'paper_only':True,'real_trading_enabled':False,'generated_at':now,'source_ranking_updated_at':data.get('updated_at'),'catalog_ttl_seconds':CATALOG_TTL_SECONDS,'catalog_wallet_count':len(rows),'scanned_this_run':len(scanned),'scanned_addresses':scanned,'errors':errors,'candidate_counts':counts,'verification_note':'PAPER research only. Historical candidates may enter while forward evidence is immature; after 7 days and 20 forward closes, a trader must remain eligible under forward verification with positive stress PnL. Cached rows from older classifier versions are invalidated immediately; current rows still expire after 90 minutes. Hyperliquid userFills is capped at 2000 recent fills.','wallets':rows}
     OUT.write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n',encoding='utf-8'); print(json.dumps({'catalog_wallets':len(rows),'scanned':len(scanned),'errors':len(errors),'candidate_counts':counts},ensure_ascii=False))
     if errors:raise RuntimeError('one or more wallet fetches failed')
 

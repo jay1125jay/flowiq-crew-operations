@@ -1,4 +1,4 @@
-import importlib.util, pathlib, unittest
+import datetime as dt, importlib.util, pathlib, unittest
 P=pathlib.Path(__file__).with_name('trader_discovery.py'); S=importlib.util.spec_from_file_location('td',P); td=importlib.util.module_from_spec(S); S.loader.exec_module(td)
 NOW='2026-10-17T00:00:00+00:00'
 
@@ -19,7 +19,7 @@ class TraderDiscoveryTests(unittest.TestCase):
   fills=[]
   for i in range(10):
    t=i*120000; fills += [f(t,0,1,'B'),f(t+60000,1,1,'A')]
-  x=td.classify(rank(),fills,NOW); self.assertTrue(x['skill_gate_passed']); self.assertTrue(x['forward_gate_passed']); self.assertTrue(x['category_flags']['SCALPER']); self.assertTrue(x['category_flags']['WHALE']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE']); self.assertTrue(x['category_flags']['HIGH_PROFIT']); self.assertTrue(x['category_flags']['CONSISTENT'])
+  x=td.classify(rank(),fills,NOW); self.assertTrue(x['skill_gate_passed']); self.assertTrue(x['forward_gate_passed']); self.assertEqual(x['classifier_version'],td.CLASSIFIER_VERSION); self.assertTrue(x['category_flags']['SCALPER']); self.assertTrue(x['category_flags']['WHALE']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE']); self.assertTrue(x['category_flags']['HIGH_PROFIT']); self.assertTrue(x['category_flags']['CONSISTENT'])
  def test_unprofitable_trader_cannot_enter_any_category(self):
   fills=[]
   for i in range(10):
@@ -37,6 +37,12 @@ class TraderDiscoveryTests(unittest.TestCase):
    t=i*120000; fills += [f(t,0,1,'B'),f(t+60000,1,1,'A')]
   x=td.classify(rank(forward_observed_days=2,forward_closes=5,eligible_for_paper_observation=False,verified_whale=False,forward_net_pnl_usd=-50,forward_stress_net_pnl_usd=-100),fills,NOW)
   self.assertFalse(x['forward_mature']); self.assertTrue(x['forward_gate_passed']); self.assertTrue(x['skill_gate_passed']); self.assertTrue(x['category_flags']['HIGH_WIN_RATE'])
+ def test_classifier_version_invalidates_old_cached_rows(self):
+  now=dt.datetime.fromisoformat(NOW)
+  current={'classifier_version':td.CLASSIFIER_VERSION,'last_scanned_at':NOW}
+  old={'classifier_version':td.CLASSIFIER_VERSION-1,'last_scanned_at':NOW}
+  legacy={'last_scanned_at':NOW}
+  self.assertTrue(td._fresh(current,now)); self.assertFalse(td._fresh(old,now)); self.assertFalse(td._fresh(legacy,now))
  def test_swing(self):
   fills=[]
   for i in range(5):
