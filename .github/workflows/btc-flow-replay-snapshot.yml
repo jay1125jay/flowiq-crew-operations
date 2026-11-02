@@ -1,0 +1,51 @@
+name: BTC FLOW replay snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btc-flow-replay-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Observe current classified trader positions
+        run: python btc-flow-monitor/trader-discovery/current_positions.py
+      - name: Append cloud replay snapshot
+        run: python btc-flow-monitor/cloud_replay_log.py
+      - name: Persist replay snapshot safely
+        shell: bash
+        run: |
+          set -e
+          git config user.name btc-flow-replay-bot
+          git config user.email actions@users.noreply.github.com
+          git add btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/cloud-replay-log.json
+          if git diff --cached --quiet; then
+            echo "NO_CHANGES"
+            exit 0
+          fi
+          git commit -m "chore(btc-flow): record 5-minute replay snapshot"
+          for n in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "REPLAY_SNAPSHOT_PASS"
+              exit 0
+            fi
+            git pull --rebase origin main
+          done
+          echo "REPLAY_SNAPSHOT_PUSH_FAILED"
+          exit 1
