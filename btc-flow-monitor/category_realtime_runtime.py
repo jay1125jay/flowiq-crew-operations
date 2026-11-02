@@ -12,8 +12,10 @@ import copy
 import importlib.util
 import json
 import os
+import shutil
 from pathlib import Path
 
+import cloud_gap_recovery
 import realtime_runtime as base
 
 ROOT = Path(__file__).resolve().parent
@@ -78,6 +80,14 @@ class CategoryState:
         with tmp.open('w',encoding='utf-8') as fh:
             json.dump(payload,fh,allow_nan=False,separators=(',',':'));fh.flush();os.fsync(fh.fileno())
         os.replace(tmp,self.path)
+    def backup_before_replay(self):
+        if not self.path.exists(): return None
+        stamp=str(int(base.time.time()))
+        backup=self.path.with_name(f'category-paper-realtime.pre-gap-{stamp}.json')
+        shutil.copy2(self.path,backup)
+        backups=sorted(self.path.parent.glob('category-paper-realtime.pre-gap-*.json'),key=lambda p:p.stat().st_mtime,reverse=True)
+        for old in backups[5:]: old.unlink(missing_ok=True)
+        return str(backup)
 
 
 def _mark_only(state, price, now):
@@ -119,6 +129,18 @@ class CombinedRunner(base.Runner):
         super().__init__(store);self.category_store=CategoryState(store);self.category_state,self.category_source_id=self.category_store.read()
         if not self.category_state:
             self.category_state=_blank_category_state(base.iso(base.time.time()));self.category_store.save(self.category_state,None)
+            self.gap_recovery_status={'status':'NEW_LOCAL_STATE','replayed':0}
+        else:
+            now_iso=base.iso(base.time.time())
+            recovered,replay_source,meta=cloud_gap_recovery.recover(self.category_state,self.category_source_id,category,now_iso)
+            self.gap_recovery_status=meta
+            if meta.get('status')=='REPLAYED':
+                backup=self.category_store.backup_before_replay()
+                recovered.setdefault('gap_recovery',{})['backup_path']=backup
+                self.category_state=recovered;self.category_source_id=replay_source
+                self.category_store.save(self.category_state,self.category_source_id)
+            else:
+                self.category_state.setdefault('gap_recovery',meta)
         self.category_source_events=0
     def tick(self,quotes,bundle,now,source_error=None):
         advanced=super().tick(quotes,bundle,now,source_error)
@@ -135,6 +157,7 @@ class CombinedRunner(base.Runner):
         payload=super().public(quotes,bundle,now);state=copy.deepcopy(self.category_state)
         payload.update(category_mode='PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE',category_healthy=bool(payload.get('healthy') and state and self.category_source_id),
             category_source_at=self.category_source_id,category_source_events=self.category_source_events,
+            category_gap_recovery=self.gap_recovery_status,
             category_account_count=len(state.get('accounts',{})),category_initial_capital_krw=3000000,category_leverage=10,
             category_competition=state,category_rows=[dict(account=key,category=a.get('category'),leverage=a.get('leverage'),
                 equity_krw=a.get('equity_krw'),net_pnl_krw=a.get('net_pnl_krw'),return_pct=a.get('return_pct'),
