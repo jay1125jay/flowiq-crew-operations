@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-02T10:23:25+09:00",
+  "generated_at": "2026-11-02T10:43:30+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -7,19 +7,21 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 303,
+    "horse": 557,
     "ksports": 0,
     "bull": 0
   },
   "usage_before_run": {
-    "horse": 0,
+    "horse": 303,
     "ksports": 0,
     "bull": 0
   },
   "checkpoints": {
     "horse": {
-      "cursor_date": "2016-03-19",
-      "complete": false
+      "cursor_date": "2016-03-04",
+      "complete": false,
+      "resume_meet_idx": 0,
+      "resume_race_no": 2
     },
     "cycle": {
       "cursor_mode": "DETAIL_ROUTE_V3",
@@ -40,10 +42,10 @@
     }
   },
   "new": {
-    "horse_records": 146,
-    "horse_dates": 9,
-    "horse_retry_attempted": 40,
-    "horse_retry_recovered": 7,
+    "horse_records": 127,
+    "horse_dates": 7,
+    "horse_retry_attempted": 25,
+    "horse_retry_recovered": 13,
     "horse_official_snapshot_recovered": 0,
     "cycle_records": 0,
     "cycle_dates": 0,
@@ -52,40 +54,38 @@
     "bull_records": 0,
     "bull_cards": 0,
     "errors": [
-      "HORSE 2016-04-09 M2 R5 URLError:<urlopen error timed out>",
-      "HORSE 2016-04-08 M2 R5 URLError:<urlopen error timed out>",
-      "HORSE 2016-04-03 M1 R3 URLError:<urlopen error timed out>",
-      "HORSE 2016-04-02 M1 R4 URLError:<urlopen error timed out>",
-      "HORSE 2016-04-01 M2 R4 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-27 M1 R11 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-27 M4 R1 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-26 M1 R7 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-26 M2 R1 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-26 M2 R7 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-25 M2 R1 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-25 M3 R5 URLError:<urlopen error timed out>",
-      "HORSE 2016-03-20 M1 R13 URLError:<urlopen error timed out>"
+      "HORSE 2016-03-19 M1 R5 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-19 M1 R14 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-18 M3 R11 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-13 M3 R4 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-12 M1 R8 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-11 M2 R4 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-11 M3 R2 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-11 M3 R11 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-06 M3 R5 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-05 M1 R6 URLError:<urlopen error timed out>",
+      "HORSE 2016-03-04 M1 R1 RuntimeError:TIME_BUDGET_EXHAUSTED"
     ]
   },
   "records_total": {
-    "horse": 24825,
+    "horse": 24965,
     "cycle": 26723,
     "boat": 9250,
     "bull": 14322
   },
   "retry_metrics": {
     "horse": {
-      "attempted_this_run": 40,
-      "recovered_this_run": 7,
-      "remaining": 1184,
-      "deferred": 1163,
-      "due": 21,
+      "attempted_this_run": 25,
+      "recovered_this_run": 13,
+      "remaining": 1182,
+      "deferred": 1171,
+      "due": 11,
       "duplicates_removed": 0,
       "already_saved_removed": 0,
       "by_classification": {
-        "TRANSIENT_FETCH_FAILURE": 158,
-        "UNRESOLVED_NO_RACE_METADATA": 430,
-        "UNTRIED": 13,
+        "UNTRIED": 11,
+        "UNRESOLVED_NO_RACE_METADATA": 432,
+        "TRANSIENT_FETCH_FAILURE": 156,
         "UNRESOLVED_PARSER_REJECTED": 5,
         "UNRESOLVED_PAGE_OR_PARSER": 578
       },
@@ -110,7 +110,7 @@
     "rejected_total": 0,
     "by_sport": {
       "horse": {
-        "kept": 24825,
+        "kept": 24965,
         "rejected": 0
       },
       "cycle": {
