@@ -51,7 +51,6 @@ def classify(rank,fills,now):
     closes=int(rank.get('history_sample_closes') or 0); win=rank.get('history_sample_win_rate_pct'); pnl=float(rank.get('history_sample_net_pnl_usd') or 0); notional=float(rank.get('history_avg_fill_notional_usd') or 0); hist_pf=float(rank.get('history_profit_factor') or 0)
     fwd=float(rank.get('forward_net_pnl_usd') or 0); dd=float(rank.get('forward_drawdown_usd') or 0); pf=float(rank.get('forward_profit_factor') or 0); conc=float(rank.get('forward_largest_win_share_pct') or 100); forward_days=float(rank.get('forward_observed_days') or 0); forward_closes=int(rank.get('forward_closes') or 0)
     stress_raw=rank.get('forward_stress_net_pnl_usd'); forward_stress=float(fwd if stress_raw is None else stress_raw)
-    history_gate=bool(rank.get('paper_candidate')) or (closes>=20 and win is not None and float(win)>=45 and pnl>0 and hist_pf>=1.05)
     forward_mature=forward_days>=FORWARD_MIN_DAYS and forward_closes>=FORWARD_MIN_CLOSES
     upstream_eligible=rank.get('eligible_for_paper_observation')
     if not forward_mature:
@@ -60,9 +59,23 @@ def classify(rank,fills,now):
         forward_gate=forward_stress>0 and pf>=1.05 and conc<=65
     else:
         forward_gate=bool(upstream_eligible) and forward_stress>0
+    # Hyperliquid userFills returns a capped recent history across *all* coins.
+    # Recent BTC closes can be few even when our monotonic BTC-only forward
+    # cursor has verified hundreds of closes over weeks. Use that independent
+    # evidence only when VERIFIED, forward-profitable, and recent BTC sample is positive.
+    verified_forward=bool(rank.get('verified_whale')) and forward_mature and forward_gate and pf>=1.05 and conc<=65 and closes>=3 and pnl>0
+    history_gate=bool(rank.get('paper_candidate')) or (closes>=20 and win is not None and float(win)>=45 and pnl>0 and hist_pf>=1.05) or verified_forward
     skill_ok=history_gate and forward_gate
-    cats={'WHALE':skill_ok and notional>=20000 and closes>=20,'HIGH_WIN_RATE':skill_ok and closes>=50 and win is not None and float(win)>=65,'HIGH_PROFIT':skill_ok and closes>=50 and pnl>=10000,'CONSISTENT':skill_ok and forward_closes>=20 and fwd>0 and pf>=1.5 and conc<=20 and dd<=max(500,abs(fwd)*0.25),'SCALPER':skill_ok and len(holds)>=10 and med is not None and med<=900 and short_share>=.60,'SWING':skill_ok and len(holds)>=5 and med is not None and med>=14400 and long_share>=.60}
-    return {'classifier_version':CLASSIFIER_VERSION,'address':rank['address'],'last_scanned_at':now,'categories':[k for k,v in cats.items() if v],'category_flags':cats,'skill_gate_passed':skill_ok,'history_gate_passed':history_gate,'forward_gate_passed':forward_gate,'forward_mature':forward_mature,'history':{'fills_returned':len(btc),'history_capped':len(fills)>=2000,'closes':closes,'win_rate_pct':win,'net_pnl_usd':pnl,'profit_factor':hist_pf,'avg_fill_notional_usd':notional},'holding':{'complete_episodes':len(holds),'median_seconds':round(med,1) if med is not None else None,'p90_seconds':round(pct(holds,.9),1) if holds else None,'within_1h_share':round(short_share,3) if holds else None,'at_least_1h_share':round(long_share,3) if holds else None},'forward':{'days':forward_days,'closes':forward_closes,'net_pnl_usd':fwd,'stress_net_pnl_usd':forward_stress,'drawdown_usd':dd,'eligible_for_paper_observation':upstream_eligible},'verified':bool(rank.get('verified_whale',False))}
+    category_closes=max(closes,forward_closes) if verified_forward else closes
+    category_win=float(rank.get('forward_win_rate_pct') or 0) if verified_forward else (float(win) if win is not None else 0)
+    category_profit=forward_stress if verified_forward else pnl
+    cats={'WHALE':skill_ok and notional>=20000 and category_closes>=20,
+          'HIGH_WIN_RATE':skill_ok and category_closes>=50 and category_win>=65,
+          'HIGH_PROFIT':skill_ok and category_closes>=50 and category_profit>=10000,
+          'CONSISTENT':skill_ok and forward_closes>=20 and fwd>0 and pf>=1.5 and conc<=20 and dd<=max(500,abs(fwd)*0.25),
+          'SCALPER':skill_ok and len(holds)>=10 and med is not None and med<=900 and short_share>=.60,
+          'SWING':skill_ok and len(holds)>=5 and med is not None and med>=14400 and long_share>=.60}
+    return {'classifier_version':CLASSIFIER_VERSION,'address':rank['address'],'last_scanned_at':now,'categories':[k for k,v in cats.items() if v],'category_flags':cats,'skill_gate_passed':skill_ok,'history_gate_passed':history_gate,'forward_gate_passed':forward_gate,'forward_mature':forward_mature,'verified_forward_evidence_used':verified_forward,'category_stat_source':'VERIFIED_BTC_FORWARD' if verified_forward else 'RECENT_BTC_HISTORY','history':{'fills_returned':len(btc),'history_capped':len(fills)>=2000,'closes':closes,'win_rate_pct':win,'net_pnl_usd':pnl,'profit_factor':hist_pf,'avg_fill_notional_usd':notional},'holding':{'complete_episodes':len(holds),'median_seconds':round(med,1) if med is not None else None,'p90_seconds':round(pct(holds,.9),1) if holds else None,'within_1h_share':round(short_share,3) if holds else None,'at_least_1h_share':round(long_share,3) if holds else None},'forward':{'days':forward_days,'closes':forward_closes,'win_rate_pct':rank.get('forward_win_rate_pct'),'net_pnl_usd':fwd,'stress_net_pnl_usd':forward_stress,'drawdown_usd':dd,'eligible_for_paper_observation':upstream_eligible},'verified':bool(rank.get('verified_whale',False))}
 
 def _fresh(row,now_dt):
     if int(row.get('classifier_version') or 0)!=CLASSIFIER_VERSION:return False
