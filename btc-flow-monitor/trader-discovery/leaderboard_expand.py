@@ -34,15 +34,31 @@ def select(rows,watch):
     chosen={}
     for a in watch:
         match=next((r for r in rows if r['address']==a),None)
-        chosen[a]=dict(match or {'address':a,'display_name':None,'account_value_usd':0,'windows':{}}); chosen[a]['seed']='existing_watchlist'
+        chosen[a]=dict(match or {'address':a,'display_name':None,'account_value_usd':0,'windows':{}})
+        chosen[a]['seed']='existing_watchlist'
+    # Draw fairly from every time window. The previous greedy selection filled
+    # the whole pool with daily leaders before ever reaching monthly/all-time.
+    buckets=[]
     for w in WINDOWS:
         profitable=[r for r in eligible if r['windows'][w]['pnl_usd']>0]
         for metric in ('pnl_usd','roi'):
             ranked=sorted(profitable,key=lambda r:r['windows'][w][metric],reverse=True)[:PER_BUCKET]
-            for r in ranked:
-                if len(chosen)>=POOL_LIMIT:break
-                if r['address'] not in chosen:
-                    x=dict(r); x['seed']=f'{w}_{metric}'; chosen[r['address']]=x
+            buckets.append((w,metric,ranked))
+    for rank in range(PER_BUCKET):
+        for w,metric,ranked in buckets:
+            if len(chosen)>=POOL_LIMIT:break
+            if rank>=len(ranked):continue
+            row=ranked[rank]
+            if row['address'] not in chosen:
+                picked=dict(row);picked['seed']=f'{w}_{metric}'
+                chosen[row['address']]=picked
+        if len(chosen)>=POOL_LIMIT:break
+    # Ensure a full pool even when the same trader ranks in many buckets.
+    for row in sorted(eligible,key=lambda r:(r['windows']['allTime']['pnl_usd'],r['windows']['month']['volume_usd']),reverse=True):
+        if len(chosen)>=POOL_LIMIT:break
+        if row['address'] not in chosen:
+            picked=dict(row);picked['seed']='allTime_diversity_backfill'
+            chosen[row['address']]=picked
     return list(chosen.values())[:POOL_LIMIT]
 
 def main():
