@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import json
+import datetime as dt
 from pathlib import Path
 import category_top6_policy
+from replay_snapshot_merge import _coverage
 
 ROOT=Path(__file__).resolve().parent
 OUT=ROOT/'trader-discovery'/'cloud-replay-log.json'
@@ -33,6 +35,7 @@ def main():
     payload['updated_at']=source_id
     payload['cadence_seconds']=300
     payload['max_events']=MAX_EVENTS
+    payload['capture_health']=_coverage(payload['events'],dt.datetime.now(dt.timezone.utc).timestamp())
     OUT.write_text(json.dumps(payload,indent=2)+'\n',encoding='utf-8')
     print('CLOUD REPLAY LOG PASS',len(payload['events']))
 
