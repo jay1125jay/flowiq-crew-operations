@@ -20,7 +20,7 @@ def stamp(s):
 def summary(records):
     rows=list(records);done=[r for r in rows if isinstance(r.get('hit'),bool)];settled=[r for r in done if r.get('settlement')=='SETTLED']
     stake=len(settled)*STAKE;ret=sum(r['return_krw'] for r in settled)
-    return {'picks':len(rows),'evaluated':len(done),'hits':sum(r['hit'] for r in done),'hit_rate':sum(r['hit'] for r in done)/len(done) if done else None,'pending':sum(r.get('settlement')=='PENDING' for r in rows),'void':sum(r.get('settlement')=='VOID' for r in rows),'settled':len(settled),'excluded_no_odds':sum(r.get('settlement')=='NO_OFFICIAL_ODDS' for r in done),'stake_krw':stake,'return_krw':ret,'net_krw':ret-stake,'roi':(ret-stake)/stake if stake else None}
+    return {'picks':len(rows),'evaluated':len(done),'hits':sum(r['hit'] for r in done),'hit_rate':sum(r['hit'] for r in done)/len(done) if done else None,'pending':sum(r.get('settlement')=='PENDING' for r in rows),'result_mismatch':sum(r.get('settlement_hold_reason')=='WINNER_NOT_IN_LOCKED_RUNNERS' for r in rows),'void':sum(r.get('settlement')=='VOID' for r in rows),'settled':len(settled),'excluded_no_odds':sum(r.get('settlement')=='NO_OFFICIAL_ODDS' for r in done),'stake_krw':stake,'return_krw':ret,'net_krw':ret-stake,'roi':(ret-stake)/stake if stake else None}
 
 def settle(rec,e):
     if rec.get('settlement') in ('SETTLED','VOID'):return
@@ -35,7 +35,14 @@ def settle(rec,e):
         if len(first)==1:win='N'+first[0]
         elif result.get('winner_number') is not None:win='N'+str(result['winner_number'])
         else:return
-    if win not in rec['runner_keys']:return
+    if win not in rec['runner_keys']:
+        # A winner outside the pre-start runner set signals incomplete source data.
+        # Preserve the original pick; do not invent a loss, void, or investment.
+        rec['settlement_hold_reason']='WINNER_NOT_IN_LOCKED_RUNNERS'
+        rec['result_source']=result['source']
+        rec['result_url']=result.get('source_url')
+        return
+    rec.pop('settlement_hold_reason',None)
     odds=None
     for m in result.get('markets',[]):
         if m.get('market') not in ('단승','단승식'):continue
