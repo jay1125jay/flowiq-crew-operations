@@ -49,4 +49,46 @@ class TraderDiscoveryTests(unittest.TestCase):
    t=i*20000000; fills += [f(t,0,1,'B'),f(t+18000000,1,1,'A')]
   self.assertTrue(td.classify(rank(),fills,NOW)['category_flags']['SWING'])
 
+
+ def test_verified_forward_evidence_recovers_capped_recent_btc_history(self):
+  r=rank(history_sample_closes=4,history_sample_win_rate_pct=100,
+         history_sample_net_pnl_usd=912.66,history_profit_factor=99,
+         history_avg_fill_notional_usd=16994.5,paper_candidate=False,
+         verified_whale=True,forward_observed_days=19.89,
+         forward_closes=1084,forward_win_rate_pct=69.5,
+         forward_net_pnl_usd=110305.06,forward_stress_net_pnl_usd=104448.59,
+         forward_profit_factor=26.21,forward_largest_win_share_pct=2.8,
+         forward_drawdown_usd=10990.97,eligible_for_paper_observation=True)
+  got=td.classify(r,[],NOW)
+  self.assertTrue(got['verified_forward_evidence_used'])
+  self.assertEqual(got['category_stat_source'],'VERIFIED_BTC_FORWARD')
+  self.assertTrue(got['category_flags']['HIGH_WIN_RATE'])
+  self.assertTrue(got['category_flags']['HIGH_PROFIT'])
+  self.assertTrue(got['category_flags']['CONSISTENT'])
+  self.assertFalse(got['category_flags']['WHALE'])
+
+ def test_verified_forward_never_overrides_recent_negative_btc_sample(self):
+  r=rank(history_sample_closes=4,history_sample_win_rate_pct=0,
+         history_sample_net_pnl_usd=-73.07,history_profit_factor=0,
+         paper_candidate=False,verified_whale=True,
+         forward_observed_days=19.89,forward_closes=141,
+         forward_win_rate_pct=67.4,forward_stress_net_pnl_usd=8002.14,
+         forward_profit_factor=3.93,forward_largest_win_share_pct=8.2,
+         eligible_for_paper_observation=True)
+  got=td.classify(r,[],NOW)
+  self.assertFalse(got['verified_forward_evidence_used'])
+  self.assertFalse(got['skill_gate_passed'])
+  self.assertFalse(any(got['category_flags'].values()))
+
+ def test_verified_forward_win_rate_is_used_not_small_sample_win_rate(self):
+  r=rank(history_sample_closes=4,history_sample_win_rate_pct=100,
+         history_sample_net_pnl_usd=200,history_profit_factor=2,
+         paper_candidate=False,verified_whale=True,
+         forward_observed_days=15,forward_closes=200,forward_win_rate_pct=55,
+         forward_stress_net_pnl_usd=20000,forward_profit_factor=2,
+         eligible_for_paper_observation=True)
+  got=td.classify(r,[],NOW)
+  self.assertTrue(got['verified_forward_evidence_used'])
+  self.assertFalse(got['category_flags']['HIGH_WIN_RATE'])
+
 if __name__=='__main__': unittest.main()
