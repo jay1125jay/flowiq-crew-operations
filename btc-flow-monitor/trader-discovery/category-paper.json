@@ -183,7 +183,7 @@
       "closed_count": 11,
       "win_rate_pct": 36.36,
       "open_count": 0,
-      "eligible_observed": 0,
+      "eligible_observed": 1,
       "profit_factor": 0.703,
       "closed_pnl_usd": -189.9292,
       "total_notional_usd": 0,
@@ -1029,7 +1029,7 @@
       "closed_count": 5,
       "win_rate_pct": 0.0,
       "open_count": 0,
-      "eligible_observed": 0,
+      "eligible_observed": 1,
       "profit_factor": 0.0,
       "closed_pnl_usd": -139.8386,
       "total_notional_usd": 0,
@@ -1125,13 +1125,13 @@
   },
   "paper_only": true,
   "real_trading_enabled": false,
-  "updated_at": "2026-11-05T11:48:45.523623+00:00",
+  "updated_at": "2026-11-05T11:51:33.820842+00:00",
   "limitation": "PAPER only. 10x isolated-style simulations; fixed test FX KRW 1500 per USD for all category displays; sampled mark liquidation approximation; funding not modeled; no same-cycle re-entry after liquidation; no real orders.",
   "follower_mode": "COHORT_SPECIFIC_EXECUTION",
   "max_positions_per_category": 6,
   "notional_per_position_usd": 150,
   "feed_mode": "FULL_CLASSIFIED_TRADER_CATALOG",
-  "observed_wallet_count": 23,
+  "observed_wallet_count": 30,
   "feed_errors": 0,
   "schema_version": 8,
   "legacy_unleveraged_accounts": {
@@ -5140,15 +5140,31 @@
   "selection_policy": {
     "mode": "ALL_FRESH_CANDIDATES_TRACKED_TOP6_BY_PERFORMANCE_SCORE",
     "top_n_per_category": 6,
-    "candidate_catalog_count": 23,
+    "candidate_catalog_count": 30,
     "note": "All fresh classified traders remain tracked; only the highest-scoring six per category are eligible for PAPER positions."
   },
   "selection_rankings": {
-    "WHALE": [],
+    "WHALE": [
+      {
+        "rank": 1,
+        "address": "0x57b3abae7e7392571396a4a91bc1ae35bbdd19d7",
+        "score": 56.313,
+        "verified": false,
+        "forward_mature": false
+      }
+    ],
     "HIGH_WIN_RATE": [],
     "HIGH_PROFIT": [],
     "CONSISTENT": [],
-    "SCALPER": [],
+    "SCALPER": [
+      {
+        "rank": 1,
+        "address": "0x57b3abae7e7392571396a4a91bc1ae35bbdd19d7",
+        "score": 68.05,
+        "verified": false,
+        "forward_mature": false
+      }
+    ],
     "SWING": []
   },
   "capital_reset_history": [
