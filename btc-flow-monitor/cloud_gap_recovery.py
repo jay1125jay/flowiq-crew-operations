@@ -2,6 +2,7 @@
 """Replay persisted cloud PAPER events into a stale local PC category ledger."""
 import copy
 import datetime as dt
+import math
 import json
 import urllib.request
 
@@ -37,19 +38,42 @@ def recover(state,source_id,category_module,now_iso):
     if not pending:
         return state,source_id,{'status':'NO_CLOUD_EVENTS','replayed':0}
     recovered=copy.deepcopy(state)
-    first_at=pending[0].get('at');last_at=None
+    first_at=None;last_at=None;applied_at=[]
     for event in pending:
         at=str(event.get('at') or '')
         price=float(event.get('btc_mid_usd') or 0)
-        if not at or not 1000<price<1000000: continue
+        stamp=_ts(at)
+        if not at or not 1000<price<1000000 or stamp<=0:
+            continue
         cohort={'paper_only':True,'real_trading_enabled':False,'wallets':copy.deepcopy(event.get('cohort_wallets') or [])}
         wallets=copy.deepcopy(event.get('wallets') or {})
         feed={'paper_only':True,'real_trading_enabled':False,'generated_at':at,'btc_mid_usd':price,
               'wallets':wallets,'observed_wallet_count':len(wallets),'errors':[]}
         recovered=category_module.advance(recovered,cohort,feed,at)
+        if first_at is None:first_at=at
         last_at=at
-    replayed=sum(1 for e in pending if _ts(e.get('at'))>0)
-    recovered['gap_recovery']={'status':'REPLAYED','mode':'CLOUD_5_MINUTE_PAPER_REPLAY','replayed_events':replayed,
-        'from_local_at':state.get('updated_at'),'first_replay_at':first_at,'last_replay_at':last_at,
-        'completed_at':now_iso,'limitation':'5-minute cloud snapshots; not tick-level reconstruction'}
+        applied_at.append(stamp)
+    if not applied_at:
+        return state,source_id,{'status':'INVALID_CLOUD_EVENTS','replayed_events':0}
+    expected=max(0,int((now_ts-local_ts)//300))
+    missing=max(0,expected-len(applied_at))
+    check_points=[local_ts]+applied_at+[now_ts]
+    max_gap=round(max(b-a for a,b in zip(check_points,check_points[1:])),1)
+    # GitHub scheduled jobs can be delayed or dropped. Never claim full
+    # gap recovery when the underlying snapshots were not collected.
+    complete=(max_gap<=900 and (expected==0 or len(applied_at)>=max(1,int(expected*0.8))))
+    recovered['gap_recovery']={
+        'status':'REPLAYED' if complete else 'PARTIAL_REPLAY',
+        'mode':'CLOUD_5_MINUTE_PAPER_REPLAY',
+        'replayed_events':len(applied_at),
+        'expected_5m_events':expected,
+        'missing_5m_events_estimate':missing,
+        'coverage_pct':round(100*min(1.0,len(applied_at)/max(1,expected)),1),
+        'max_gap_seconds':max_gap,
+        'from_local_at':state.get('updated_at'),
+        'first_replay_at':first_at,'last_replay_at':last_at,
+        'completed_at':now_iso,
+        'limitation':'Saved cloud snapshots only; skipped 5-minute windows cannot be reconstructed as actual trader positions',
+    }
+
     return recovered,(last_at or source_id),recovered['gap_recovery']
