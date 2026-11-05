@@ -3,7 +3,13 @@ name: BTC FLOW replay snapshot
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    # GitHub may delay/drop scheduled jobs. Offset from the busy :00 minute.
+    - cron: '3-58/5 * * * *'
+  workflow_run:
+    workflows:
+      - BTC whale + trader cohorts + adaptive PAPER
+      - BTC public PAPER snapshot
+    types: [completed]
   push:
     paths:
       - '.github/workflows/btc-flow-replay-snapshot.yml'
@@ -13,7 +19,7 @@ permissions:
 
 concurrency:
   group: btc-flow-replay-snapshot
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   snapshot:
@@ -31,24 +37,34 @@ jobs:
         run: python btc-flow-monitor/trader-discovery/current_positions.py
       - name: Append cloud replay snapshot
         run: python btc-flow-monitor/cloud_replay_log.py
-      - name: Persist replay snapshot safely
+      - name: Hold observed source for collision-safe retries
         shell: bash
         run: |
-          set -e
+          cp btc-flow-monitor/trader-discovery/current-positions.json "$RUNNER_TEMP/btc-positions.json"
+          cp btc-flow-monitor/trader-discovery/cloud-replay-log.json "$RUNNER_TEMP/btc-events.json"
+      - name: Merge with latest main and persist safely
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name btc-flow-replay-bot
           git config user.email actions@users.noreply.github.com
-          git add btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/cloud-replay-log.json
-          if git diff --cached --quiet; then
-            echo "NO_CHANGES"
-            exit 0
-          fi
-          git commit -m "chore(btc-flow): record 5-minute replay snapshot"
-          for n in 1 2 3; do
+          for n in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            python btc-flow-monitor/replay_snapshot_merge.py \
+              --snapshot-log "$RUNNER_TEMP/btc-events.json" \
+              --snapshot-positions "$RUNNER_TEMP/btc-positions.json"
+            git add btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/cloud-replay-log.json
+            if git diff --cached --quiet; then
+              echo "REPLAY_SNAPSHOT_NO_CHANGES"
+              exit 0
+            fi
+            git commit -m "chore(btc-flow): merge collision-safe 5-minute replay snapshot"
             if git push origin HEAD:main; then
               echo "REPLAY_SNAPSHOT_PASS"
               exit 0
             fi
-            git pull --rebase origin main
+            sleep 1
           done
           echo "REPLAY_SNAPSHOT_PUSH_FAILED"
           exit 1
