@@ -85,7 +85,8 @@ def main():
     changed = patch()
     txt = LIVE.read_text(encoding="utf-8")
     if args.check:
-        for token in [MARKER, 'id="refreshBtn"', 'function renderTop3Board()', "domain==='SPORTS'?renderTop3Board():''"]:
+        # Accept both original SPORTS-only board and the newer SPORTS/racing-paper switch.
+        for token in [MARKER, 'id="refreshBtn"', 'function renderTop3Board()', "domain==='SPORTS'?renderTop3Board()"]:
             if token not in txt:
                 raise SystemExit("SPORTS_TOP3_UI_CHECK_FAIL:" + token)
     print("SPORTS_TOP3_UI_PATCH=" + ("CHANGED" if changed else "ALREADY_APPLIED"))
