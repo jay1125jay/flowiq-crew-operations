@@ -134,7 +134,7 @@ class CombinedRunner(base.Runner):
             now_iso=base.iso(base.time.time())
             recovered,replay_source,meta=cloud_gap_recovery.recover(self.category_state,self.category_source_id,category,now_iso)
             self.gap_recovery_status=meta
-            if meta.get('status')=='REPLAYED':
+            if meta.get('status') in ('REPLAYED','PARTIAL_REPLAY'):
                 backup=self.category_store.backup_before_replay()
                 recovered.setdefault('gap_recovery',{})['backup_path']=backup
                 self.category_state=recovered;self.category_source_id=replay_source
