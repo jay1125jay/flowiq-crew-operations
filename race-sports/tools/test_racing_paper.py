@@ -34,6 +34,19 @@ class PaperTest(unittest.TestCase):
    d=update({},self.snap(e),[],self.now)
    e['status']='FINAL';e['result']={'official':True,'status':'CONFIRMED','source':source,'top3':[{'rank':1,'number':1}],'winner':{'key':'RED'},'markets':[{'market':'단승식','winner':'홍' if sport=='BULL' else '1','odds':2.5}]}
    update(d,self.snap(e),[],self.now);self.assertEqual(d['summary']['overall']['net_krw'],150000)
+ def test_official_winner_outside_locked_lineup_needs_review(self):
+  d=update({},self.snap(self.e),[],self.now)
+  e=self.final();e['result']['top3']=[{'rank':1,'number':3}]
+  e['result']['markets']=[{'market':'단승식','winner':'3','odds':9}]
+  update(d,self.snap(e),[],self.now)
+  rec=d['records']['test'];overall=d['summary']['overall']
+  self.assertEqual(rec['pick_key'],'N1')
+  self.assertEqual(rec['settlement'],'PENDING')
+  self.assertEqual(rec['settlement_hold_reason'],'WINNER_NOT_IN_LOCKED_RUNNERS')
+  self.assertEqual(overall['result_mismatch'],1)
+  self.assertEqual(overall['stake_krw'],0)
+  update(d,self.snap(e),[],self.now)
+  self.assertEqual(d['summary']['overall']['picks'],1)
  def test_unofficial(self):
   d=update({},self.snap(self.e),[],self.now);e=self.final();e['result']['official']=False
   update(d,self.snap(e),[],self.now);self.assertEqual(d['summary']['overall']['pending'],1)
