@@ -63,7 +63,7 @@ def classify(rank,fills,now):
     # Recent BTC closes can be few even when our monotonic BTC-only forward
     # cursor has verified hundreds of closes over weeks. Use that independent
     # evidence only when VERIFIED, forward-profitable, and recent BTC sample is positive.
-    verified_forward=bool(rank.get('verified_whale')) and forward_mature and forward_gate and pf>=1.05 and conc<=65 and closes>=3 and pnl>0
+    verified_forward=bool(rank.get('verified_whale')) and forward_mature and forward_gate and pf>=1.05 and conc<=65 and 3<=closes<20 and pnl>0 and rank.get('forward_win_rate_pct') is not None
     history_gate=bool(rank.get('paper_candidate')) or (closes>=20 and win is not None and float(win)>=45 and pnl>0 and hist_pf>=1.05) or verified_forward
     skill_ok=history_gate and forward_gate
     category_closes=max(closes,forward_closes) if verified_forward else closes
