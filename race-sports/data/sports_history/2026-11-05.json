@@ -2499,7 +2499,7 @@
       "start_label": "19:00",
       "start_timestamp": 1793872800,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "울산 현대모비스 vs 서울 삼성",
       "home": "울산 현대모비스",
       "away": "서울 삼성",
@@ -2536,7 +2536,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 55,
+        "away": 64
+      }
     },
     {
       "id": "SPORTS-SOCCER-401912759",
@@ -2551,7 +2555,7 @@
       "start_label": "19:00",
       "start_timestamp": 1793872800,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Kitchee SC vs Phnom Penh Crown FC",
       "home": "Kitchee SC",
       "away": "Phnom Penh Crown FC",
@@ -2615,7 +2619,11 @@
         "min_team_games": 5
       },
       "model_validated": false,
-      "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+      "model_state": "INSUFFICIENT_LEAGUE_HISTORY",
+      "score": {
+        "home": 1,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401912760",
@@ -2630,7 +2638,7 @@
       "start_label": "19:00",
       "start_timestamp": 1793872800,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Machida Zelvia vs Shanghai Shenhua FC",
       "home": "Machida Zelvia",
       "away": "Shanghai Shenhua FC",
@@ -2694,7 +2702,11 @@
         "min_team_games": 5
       },
       "model_validated": false,
-      "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+      "model_state": "INSUFFICIENT_LEAGUE_HISTORY",
+      "score": {
+        "home": 1,
+        "away": 1
+      }
     },
     {
       "id": "SPORTS-SOCCER-401912761",
@@ -2788,7 +2800,7 @@
       "start_label": "19:10",
       "start_timestamp": 1793873400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "부산KCC vs 마카오 호우촌",
       "home": "부산KCC",
       "away": "마카오 호우촌",
@@ -2823,7 +2835,11 @@
         "min_team_games": 5
       },
       "model_validated": false,
-      "model_state": "INSUFFICIENT_LEAGUE_HISTORY"
+      "model_state": "INSUFFICIENT_LEAGUE_HISTORY",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401912756",
@@ -3237,7 +3253,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-05T18:51:31+09:00",
+      "updated_at": "2026-11-05T20:26:31+09:00",
       "summary": {
         "overall": {
           "picks": 23,
@@ -3623,7 +3639,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-05T18:51:31+09:00",
+      "generated_at": "2026-11-05T20:26:31+09:00",
       "overall": {
         "observed": 195,
         "evaluated": 159,
@@ -4220,5 +4236,31 @@
     "errors": [],
     "updated_at": "2026-11-05T18:55:43.342686+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-05T20:26:25+09:00",
+    "polled_sports": [
+      "SOCCER",
+      "BASKETBALL"
+    ],
+    "field_changes": 8,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 6,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 2,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
