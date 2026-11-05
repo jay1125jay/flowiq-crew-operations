@@ -1,56 +1,56 @@
 {
   "version": "HORSE_WIN_QUINELLA_COMPARE_V3_DATE_BATCH_OOS",
-  "generated_at": "2026-11-05T05:16:47+09:00",
+  "generated_at": "2026-11-06T05:31:49+09:00",
   "model_source": "horse_empirical_bayes_v0.2",
   "method": "DATE_BATCH_WALK_FORWARD; FIRST_30PCT_WARMUP_ROUNDED_TO_FULL_DATE; NO_POSTRACE_FIELDS_IN_PREDICTION",
-  "input_races": 28671,
-  "warmup_races": 8601,
+  "input_races": 30000,
+  "warmup_races": 9004,
   "win": {
     "definition": "MODEL_TOP1_EQUALS_OFFICIAL_1ST",
-    "tested": 20070,
-    "hits": 4609,
-    "hit_rate": 0.22964624,
+    "tested": 20996,
+    "hits": 4844,
+    "hit_rate": 0.23071061,
     "paper_100k_at_official_final_win_odds": {
-      "odds_available_races": 20064,
-      "total_staked_krw": 2006400000,
-      "total_return_krw": 40792930000,
-      "net_profit_krw": 38786530000,
-      "roi": 19.33140451,
+      "odds_available_races": 20990,
+      "total_staked_krw": 2099000000,
+      "total_return_krw": 39908730000,
+      "net_profit_krw": 37809730000,
+      "roi": 18.01321105,
       "warning": "USES_OFFICIAL_FINAL_TOTE_WIN_ODDS; NOT PRE-RACE_LOCKED_ODDS"
     }
   },
   "quinella": {
     "definition": "MODEL_TOP2_PAIR_EQUALS_OFFICIAL_1ST_AND_2ND; ORDER_IGNORED",
-    "tested": 20068,
-    "hits": 1590,
-    "hit_rate": 0.07923062
+    "tested": 20993,
+    "hits": 1650,
+    "hit_rate": 0.07859763
   },
   "fair_same_sample_roi": {
     "state": "PASS_SAME_SAMPLE_OFFICIAL_FINAL_TOTE_ODDS",
-    "sample_races": 19306,
+    "sample_races": 20231,
     "stake_per_race_krw_each_strategy": 100000,
     "win": {
-      "hits": 4447,
-      "hit_rate": 0.2303429,
-      "total_staked_krw": 1930600000,
-      "total_return_krw": 34736400000,
-      "net_profit_krw": 32805800000,
-      "roi": 16.99254118
+      "hits": 4679,
+      "hit_rate": 0.23127873,
+      "total_staked_krw": 2023100000,
+      "total_return_krw": 34849740000,
+      "net_profit_krw": 32826640000,
+      "roi": 16.22591073
     },
     "quinella": {
-      "hits": 1530,
-      "hit_rate": 0.07924997,
-      "total_staked_krw": 1930600000,
-      "total_return_krw": 2030560000,
-      "net_profit_krw": 99960000,
-      "roi": 0.05177665
+      "hits": 1576,
+      "hit_rate": 0.07790025,
+      "total_staked_krw": 2023100000,
+      "total_return_krw": 1670060000,
+      "net_profit_krw": -353040000,
+      "roi": -0.17450447
     },
     "winner_by_roi": "WIN",
     "warning": "OFFICIAL FINAL TOTE SETTLEMENT ODDS; THIS IS SETTLEMENT-REFERENCE BACKTEST, NOT PRE-RACE PRICE-LOCKED EXECUTION"
   },
   "comparison": {
     "easier_by_observed_hit_rate": "WIN",
-    "hit_rate_gap_percentage_points_win_minus_quinella": 15.0416,
+    "hit_rate_gap_percentage_points_win_minus_quinella": 15.2113,
     "fair_profit_comparison_state": "PASS_SAME_SAMPLE_OFFICIAL_FINAL_TOTE_ODDS"
   },
   "policy": "HIT_RATE_USES_FULL_WALK_FORWARD; ROI_COMPARE_USES_EXACT_SAME_RACES_WITH_OFFICIAL_KRA_FINAL_TOTE_ODDS; NO_SYNTHETIC_ODDS"
