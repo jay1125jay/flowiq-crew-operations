@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 """BTC trader skill screening with strict forward-only fill cursor. PAPER ONLY."""
-import datetime as dt, hashlib, json, math, pathlib, re, urllib.request
+import datetime as dt, hashlib, json, math, pathlib, re, time, urllib.error, urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]; DATA=ROOT/"data"; API="https://api.hyperliquid.xyz/info"; ADDRESS=re.compile(r"^0x[a-fA-F0-9]{40}$")
-SCAN_BATCH=12; POOL_LIMIT=64; MIN_VERIFIED_CLOSES=20; MIN_VERIFIED_DAYS=7; SLIPPAGE_BPS=3.0; MIN_CANDIDATE_CLOSES=20; MIN_CANDIDATE_WIN_RATE=.45; MIN_CANDIDATE_PF=1.05
+SCAN_BATCH=8; POOL_LIMIT=64; MIN_VERIFIED_CLOSES=20; MIN_VERIFIED_DAYS=7; SLIPPAGE_BPS=3.0; MIN_CANDIDATE_CLOSES=20; MIN_CANDIDATE_WIN_RATE=.45; MIN_CANDIDATE_PF=1.05
 
 def query(p):
  r=urllib.request.Request(API,data=json.dumps(p).encode(),headers={"Content-Type":"application/json","User-Agent":"BTC-Flow-Paper-Research/3.0"},method="POST")
- with urllib.request.urlopen(r,timeout=25) as x:return json.load(x)
+ for attempt in range(3):
+  try:
+   with urllib.request.urlopen(r,timeout=20) as x:return json.load(x)
+  except urllib.error.HTTPError as exc:
+   if exc.code not in (429,500,502,503,504) or attempt==2:raise
+  except (urllib.error.URLError,TimeoutError):
+   if attempt==2:raise
+  time.sleep(1.5*(attempt+1))
 def key(f):
  raw="|".join(str(f.get(k,"")) for k in ("tid","hash","time","coin","px","sz","side","dir","closedPnl")); return hashlib.sha256(raw.encode()).hexdigest()[:32]
 def blank(now):return {"baseline_at":now.isoformat(),"last_observed_at":now.isoformat(),"last_fill_time_ms":0,"seen_at_cursor":[],"new_fills":0,"close_count":0,"win_count":0,"realized_pnl":0.0,"fees":0.0,"notional":0.0,"running_net":0.0,"peak_net":0.0,"max_drawdown":0.0,"close_pnls":[],"initialized":False}
@@ -44,6 +51,7 @@ def main():
   try:
    fills=query({"type":"userFills","user":a,"aggregateByTime":False}); btc=[x for x in fills if x.get("coin")=="BTC"]; o=st["wallets"].get(a) or blank(now); o,n=update(o,btc,now); st["wallets"][a]=o; rr.append(score(a,fills,o,now))
   except Exception as e:errors.append({"address":a,"error":type(e).__name__})
+  time.sleep(0.12)
  st["updated_at"]=now.isoformat(); st["pool_size"]=len(pool); st["last_batch"]=aa; op.write_text(json.dumps(st,indent=2)+"\n"); rr.sort(key=lambda x:(x["verified_whale"],x["paper_candidate"],x["skill_score"],x["history_sample_net_pnl_usd"]),reverse=True); out={"schema_version":5,"updated_at":now.isoformat(),"paper_only":True,"real_trading_enabled":False,"data_quality":{"dedup_schema":2,"method":"MONOTONIC_FILL_TIME_CURSOR_PLUS_IDS","legacy_forward_counters_reset":True},"scan":{"pool_size":len(pool),"batch_size":len(aa),"rotation_cursor_next":st["rotation_cursor"],"estimated_full_rotation_minutes":round((len(pool)/max(1,SCAN_BATCH))*5,1)},"candidate_rule":{"min_history_closes":20,"min_history_win_rate_pct":45,"min_profit_factor":1.05,"max_largest_win_share_pct":80},"verification_rule":{"min_forward_days":7,"min_forward_closes":20,"stress_slippage_bps":3,"min_profit_factor":1.05,"max_largest_win_share_pct":65},"ranked_wallets":rr,"errors":errors,"watchlist_count":len(pool),"paper_candidate_count":sum(x["paper_candidate"] for x in rr),"verified_count":sum(x["verified_whale"] for x in rr),"status":"NEEDS_WATCHLIST" if not pool else ("PARTIAL" if errors else "OK")}; (DATA/"whale-ranking.json").write_text(json.dumps(out,indent=2)+"\n"); print("Whale ranking",out["status"],"pool",len(pool),"batch",len(aa),"candidates",out["paper_candidate_count"],"verified",out["verified_count"])
  if errors:raise RuntimeError("wallet API errors")
 if __name__=="__main__":main()
