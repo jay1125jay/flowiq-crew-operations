@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Public Hyperliquid BTC trader cohort research. PAPER ONLY; never places orders."""
 import datetime as dt
-import json, math, pathlib, statistics, urllib.request
+import json, math, pathlib, statistics, time, urllib.error, urllib.request
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 RANK=ROOT/'data'/'whale-ranking.json'
@@ -16,7 +16,14 @@ CLASSIFIER_VERSION=4
 
 def query(payload):
     req=urllib.request.Request(API,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json','User-Agent':'BTC-Flow-Trader-Research/2.0'},method='POST')
-    with urllib.request.urlopen(req,timeout=25) as res:return json.load(res)
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req,timeout=20) as res:return json.load(res)
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (429,500,502,503,504) or attempt==2:raise
+        except (urllib.error.URLError,TimeoutError):
+            if attempt==2:raise
+        time.sleep(1.5*(attempt+1))
 
 def signed_after(fill):
     start=float(fill.get('startPosition') or 0); sz=abs(float(fill.get('sz') or 0)); side=fill.get('side')
@@ -74,6 +81,7 @@ def main():
         try:
             fills=query({'type':'userFills','user':r['address'],'aggregateByTime':False}); row=classify(r,fills,now); old[row['address']]=row; scanned.append(row['address'])
         except Exception as e:errors.append({'address':r.get('address'),'error':type(e).__name__})
+        time.sleep(.12)
     rows=sorted((x for x in old.values() if _fresh(x,now_dt)),key=lambda x:x.get('last_scanned_at',''),reverse=True); names=('WHALE','HIGH_WIN_RATE','HIGH_PROFIT','CONSISTENT','SCALPER','SWING'); counts={n:sum(bool(x.get('category_flags',{}).get(n)) for x in rows) for n in names}
     out={'schema_version':4,'classifier_version':CLASSIFIER_VERSION,'paper_only':True,'real_trading_enabled':False,'generated_at':now,'source_ranking_updated_at':data.get('updated_at'),'catalog_ttl_seconds':CATALOG_TTL_SECONDS,'catalog_wallet_count':len(rows),'scanned_this_run':len(scanned),'scanned_addresses':scanned,'errors':errors,'candidate_counts':counts,'candidate_diagnostics':{'catalog_wallets':len(rows),'with_btc_closes':sum(x['history']['closes']>0 for x in rows),'history_gate_passed':sum(bool(x['history_gate_passed']) for x in rows),'forward_gate_passed':sum(bool(x['forward_gate_passed']) for x in rows),'qualified_any_category':sum(any(x['category_flags'].values()) for x in rows),'no_btc_closes':sum(x['history']['closes']==0 for x in rows),'nonprofitable_btc_history':sum(x['history']['closes']>0 and x['history']['net_pnl_usd']<=0 for x in rows)},'verification_note':'PAPER research only. Historical candidates may enter while forward evidence is immature; after 7 days and 20 forward closes, a trader must remain eligible under forward verification with positive stress PnL. Cached rows from older classifier versions are invalidated immediately; current rows expire after 6 hours. Hyperliquid userFills is capped at 2000 recent fills.','wallets':rows}
     OUT.write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n',encoding='utf-8'); print(json.dumps({'catalog_wallets':len(rows),'scanned':len(scanned),'errors':len(errors),'candidate_counts':counts},ensure_ascii=False))
