@@ -1,0 +1,119 @@
+name: BTC FLOW GitHub capture window
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every 30 minutes, away from the top-of-hour crowd.
+    - cron: '17,47 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/btc-flow-github-capture-window.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btc-flow-capture-window
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 32
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect and commit genuine 5-minute PAPER observations
+        shell: bash
+        env:
+          # The push-triggered smoke test takes one genuine sample;
+          # scheduled/manual runs collect six genuine samples over ~25 minutes.
+          CAPTURE_SAMPLES: ${{ github.event_name == 'push' && '1' || '6' }}
+        run: |
+          set -euo pipefail
+          git config user.name btc-flow-github-capture
+          git config user.email actions@users.noreply.github.com
+          last_slot=0
+          successes=0
+          errors=0
+          for slot in $(seq 1 "$CAPTURE_SAMPLES"); do
+            # Wait from the START of the previous sample. Never invent observations.
+            if [ "$last_slot" -ne 0 ]; then
+              now=$(date +%s)
+              due=$((last_slot + 300))
+              if [ "$due" -gt "$now" ]; then
+                sleep "$((due - now))"
+              fi
+            fi
+            last_slot=$(date +%s)
+            echo "CAPTURE_ATTEMPT slot=$slot/$CAPTURE_SAMPLES at_utc=$(date -u +%FT%TZ)"
+            # Refresh the cohort from main. This job NEVER edits strategy/ledger.
+            git fetch origin main
+            git reset --hard origin/main
+            if ! python btc-flow-monitor/trader-discovery/current_positions.py; then
+              echo "CAPTURE_SOURCE_FAILURE slot=$slot"
+              errors=$((errors+1))
+              continue
+            fi
+            # Do not persist incomplete position feeds as genuine observations.
+            if ! python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path("btc-flow-monitor/trader-discovery/current-positions.json").read_text())
+          assert p.get("paper_only") is True and p.get("real_trading_enabled") is False
+          assert not p.get("errors"), "INCOMPLETE_POSITION_FEED"
+          assert p.get("observed_wallet_count")==p.get("catalog_wallet_count"), "UNOBSERVED_WALLETS"
+          assert 1000<float(p.get("btc_mid_usd") or 0)<1000000
+          print("CAPTURE_SOURCE_PASS",p["observed_wallet_count"])
+          PY
+            then
+              echo "CAPTURE_QUALITY_FAILURE slot=$slot"
+              errors=$((errors+1))
+              continue
+            fi
+            if ! python btc-flow-monitor/cloud_replay_log.py; then
+              echo "CAPTURE_LOG_FAILURE slot=$slot"
+              errors=$((errors+1))
+              continue
+            fi
+            # Hold the genuine samples outside the git checkout before each rebase.
+            cp btc-flow-monitor/trader-discovery/current-positions.json "$RUNNER_TEMP/btc-capture-positions.json"
+            cp btc-flow-monitor/trader-discovery/cloud-replay-log.json "$RUNNER_TEMP/btc-capture-log.json"
+            saved=0
+            for retry in 1 2 3 4 5; do
+              git fetch origin main
+              git reset --hard origin/main
+              python btc-flow-monitor/replay_snapshot_merge.py \
+                --snapshot-log "$RUNNER_TEMP/btc-capture-log.json" \
+                --snapshot-positions "$RUNNER_TEMP/btc-capture-positions.json"
+              git add btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/cloud-replay-log.json
+              if git diff --cached --quiet; then
+                echo "CAPTURE_ALREADY_RECORDED slot=$slot"
+                saved=1
+                break
+              fi
+              git commit -m "chore(btc-flow): persist genuine GitHub capture window snapshot"
+              if git push origin HEAD:main; then
+                echo "CAPTURE_PERSIST_PASS slot=$slot at_utc=$(date -u +%FT%TZ)"
+                saved=1
+                break
+              fi
+              sleep 2
+            done
+            if [ "$saved" -eq 1 ]; then
+              successes=$((successes+1))
+            else
+              echo "CAPTURE_PERSIST_FAIL slot=$slot"
+              errors=$((errors+1))
+            fi
+          done
+          echo "CAPTURE_WINDOW_RESULT success=$successes failed=$errors expected=$CAPTURE_SAMPLES"
+          if [ "$successes" -ne "$CAPTURE_SAMPLES" ]; then
+            exit 1
+          fi
