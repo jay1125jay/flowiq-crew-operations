@@ -126,13 +126,14 @@ def apply_top6_policy(cohort):
 
 
 def rotate_out_non_top6(state, ranked_cohort, feed, now, category_module):
-    """Close positions that no longer belong to the selected TOP 6 for that category."""
+    """Restrict *new entries* to TOP6, never force-close a live PAPER position.
+
+    A changed score, expired catalog entry or missing observation is not evidence
+    that a tracked trader closed their BTC position. Existing positions remain
+    monitored until a genuinely observed FLAT/flip or liquidation.
+    """
     if not state or not state.get('accounts'):
         return state
-    price = _num((feed or {}).get('btc_mid_usd'))
-    if not 1000 < price < 1000000:
-        return state
-
     selected = {
         cat: {
             row.get('address')
@@ -141,23 +142,13 @@ def rotate_out_non_top6(state, ranked_cohort, feed, now, category_module):
         }
         for cat in CATS
     }
-    events = state.setdefault('selection_rotation_events', [])
-
-    for account_key, account in state.get('accounts', {}).items():
-        cat = account.get('category')
-        if cat not in selected:
-            continue
-        for wallet, position in list((account.get('positions') or {}).items()):
-            if wallet in selected[cat]:
-                continue
-            category_module._close(account, wallet, position, price, now, 'TOP6_ROTATION_OUT')
-            account.setdefault('pending_reversals', {}).pop(wallet, None)
-            events.append({
-                'at': now,
-                'account': account_key,
-                'category': cat,
-                'wallet': wallet,
-                'reason': 'TOP6_ROTATION_OUT',
-            })
-    state['selection_rotation_events'] = events[-300:]
+    held_outside_top6 = [
+        {'account': key, 'category': a.get('category'), 'wallet': wallet}
+        for key, a in state.get('accounts', {}).items()
+        for wallet in (a.get('positions') or {})
+        if a.get('category') in selected and wallet not in selected[a['category']]
+    ]
+    state['selection_rotation_policy'] = 'ENTRY_ONLY_HOLD_UNTIL_VERIFIED_SOURCE_EXIT'
+    state['selection_rotation_deferred_count'] = len(held_outside_top6)
+    state['selection_rotation_deferred'] = held_outside_top6[:300]
     return state
