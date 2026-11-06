@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Resilient PC source collector for slower Windows/home-network environments."""
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -47,6 +48,7 @@ def collect_sources(directory, shared, stop):
                 proc = subprocess.Popen(
                     [sys.executable, str(work / script)],
                     cwd=work,
+                    env={**os.environ, 'BTC_FLOW_PC_CATEGORY_STATE': str(directory / 'category-paper-realtime.json')},
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.PIPE,
                     text=True,
