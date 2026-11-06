@@ -22,7 +22,7 @@ def main():
     for r in ranked.get('wallets',[]):
         flags={k:bool(v) for k,v in (r.get('category_flags') or {}).items() if v}
         if flags and r.get('address'): rows.append({'address':r['address'],'category_flags':flags})
-    event={'id':source_id,'at':source_id,'btc_mid_usd':price,'cohort_wallets':rows,'wallets':pos.get('wallets',{})}
+    event={'id':source_id,'at':source_id,'btc_mid_usd':price,'cohort_wallets':rows,'wallets':{**pos.get('wallets',{}),**pos.get('held_wallets',{})},'realtime_wallet_observations_only':True}
     payload={'schema_version':1,'paper_only':True,'real_trading_enabled':False,'events':[]}
     if OUT.exists():
         try:
