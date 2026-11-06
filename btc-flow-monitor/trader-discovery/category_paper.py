@@ -44,7 +44,7 @@ def advance(state,coh,feed,now):
  if not coh.get('paper_only') or not feed.get('paper_only') or coh.get('real_trading_enabled') or feed.get('real_trading_enabled'):raise ValueError('paper-only flags required')
  price=float(feed.get('btc_mid_usd') or 0)
  if not 1000<price<1000000:raise ValueError('invalid BTC price')
- signals=feed.get('wallets',{})
+ signals=dict(feed.get('wallets',{}));signals.update(feed.get('held_wallets') or {})
  if 'legacy_unleveraged_accounts' not in state and state.get('accounts'):state['legacy_unleveraged_accounts']=state['accounts']
  for key,account in list(state.get('accounts',{}).items()):
   if key.endswith('_5X'):
