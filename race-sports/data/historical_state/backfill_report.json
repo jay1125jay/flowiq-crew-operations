@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-05T13:54:07+09:00",
+  "generated_at": "2026-11-06T11:09:57+09:00",
   "mode": "OFFICIAL_READONLY_HISTORICAL_BACKFILL_FAIR_RUNTIME_HARDENED",
   "caps": {
     "horse": 2500,
@@ -7,21 +7,21 @@
     "bull": 4500
   },
   "usage_today": {
-    "horse": 2500,
+    "horse": 319,
     "ksports": 0,
     "bull": 0
   },
   "usage_before_run": {
-    "horse": 2500,
+    "horse": 0,
     "ksports": 0,
     "bull": 0
   },
   "checkpoints": {
     "horse": {
-      "cursor_date": "2014-06-07",
+      "cursor_date": "2014-05-16",
       "complete": false,
-      "resume_meet_idx": 2,
-      "resume_race_no": 2
+      "resume_meet_idx": 1,
+      "resume_race_no": 5
     },
     "cycle": {
       "cursor_mode": "DETAIL_ROUTE_V3",
@@ -42,10 +42,10 @@
     }
   },
   "new": {
-    "horse_records": 0,
-    "horse_dates": 0,
-    "horse_retry_attempted": 0,
-    "horse_retry_recovered": 0,
+    "horse_records": 165,
+    "horse_dates": 10,
+    "horse_retry_attempted": 40,
+    "horse_retry_recovered": 12,
     "horse_official_snapshot_recovered": 0,
     "cycle_records": 0,
     "cycle_dates": 0,
@@ -53,28 +53,38 @@
     "boat_dates": 0,
     "bull_records": 0,
     "bull_cards": 0,
-    "errors": []
+    "errors": [
+      "HORSE 2014-05-30 M2 R1 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-25 M1 R8 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-24 M1 R4 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-24 M2 R2 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-23 M3 R6 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-18 M1 R2 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-18 M1 R12 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-17 M3 R2 URLError:<urlopen error timed out>",
+      "HORSE 2014-05-16 M2 R4 RuntimeError:TIME_BUDGET_EXHAUSTED"
+    ]
   },
   "records_total": {
-    "horse": 29799,
+    "horse": 29976,
     "cycle": 26723,
     "boat": 9250,
     "bull": 14322
   },
   "retry_metrics": {
     "horse": {
-      "attempted_this_run": 0,
-      "recovered_this_run": 0,
-      "remaining": 1332,
-      "deferred": 1317,
-      "due": 15,
+      "attempted_this_run": 40,
+      "recovered_this_run": 12,
+      "remaining": 1329,
+      "deferred": 683,
+      "due": 646,
       "duplicates_removed": 0,
       "already_saved_removed": 0,
       "by_classification": {
-        "UNTRIED": 10,
-        "UNRESOLVED_NO_RACE_METADATA": 545,
+        "UNRESOLVED_PAGE_OR_PARSER": 559,
         "TRANSIENT_FETCH_FAILURE": 193,
-        "UNRESOLVED_PAGE_OR_PARSER": 578,
+        "UNRESOLVED_NO_RACE_METADATA": 562,
+        "UNTRIED": 9,
         "UNRESOLVED_PARSER_REJECTED": 6
       },
       "policy": "NO_ABSENCE_INFERENCE_KEEP_UNRESOLVED_BACKOFF_1_TO_14_DAYS"
@@ -98,7 +108,7 @@
     "rejected_total": 0,
     "by_sport": {
       "horse": {
-        "kept": 29799,
+        "kept": 29976,
         "rejected": 0
       },
       "cycle": {
