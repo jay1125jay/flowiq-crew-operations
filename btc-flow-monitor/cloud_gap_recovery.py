@@ -37,6 +37,28 @@ def recover(state,source_id,category_module,now_iso):
     pending.sort(key=lambda e:_ts(e.get('at')))
     if not pending:
         return state,source_id,{'status':'NO_CLOUD_EVENTS','replayed':0}
+    # Historical snapshots may include synthetic retired-wallet FLAT signals.
+    # Only samples created by the genuine-position observer are safe to replay.
+    trusted=[e for e in pending if e.get('realtime_wallet_observations_only') is True]
+    expected=max(0,int((now_ts-local_ts)//300))
+    stamps=[_ts(e.get('at')) for e in trusted if _ts(e.get('at'))>0]
+    checks=[local_ts]+stamps+[now_ts]
+    max_gap=round(max(b-a for a,b in zip(checks,checks[1:])),1)
+    complete=(bool(stamps) and max_gap<=900 and
+              (expected==0 or len(stamps)>=max(1,int(expected*.8))))
+    if not complete:
+        return state,source_id,{
+            'status':'PARTIAL_REPLAY_SKIPPED',
+            'replayed_events':0,
+            'available_verified_events':len(stamps),
+            'ignored_legacy_events':len(pending)-len(trusted),
+            'expected_5m_events':expected,
+            'missing_5m_events_estimate':max(0,expected-len(stamps)),
+            'coverage_pct':round(100*min(1.,len(stamps)/max(1,expected)),1),
+            'max_gap_seconds':max_gap,
+            'reason':'SPARSE_OR_UNVERIFIED_CLOUD_OBSERVATIONS_NO_HISTORICAL_TRADES',
+        }
+    pending=trusted
     recovered=copy.deepcopy(state)
     first_at=None;last_at=None;applied_at=[]
     for event in pending:
