@@ -26,7 +26,16 @@ def main():
         category_gap_recovery={'status':'REPLAYED','replayed_events':3},
         category_account_count=6,category_initial_capital_krw=3000000,category_leverage=10,
         category_competition=category)
-    view.update(payload); server=category_server.serve(view,'127.0.0.1',0); evidence={}
+    view.update(payload)
+    class FixturePhone:
+        def snapshot(self):
+            from phone_share import DASHBOARD
+            from urllib.parse import urlencode
+            return {'status': 'LINK_READY', 'url': DASHBOARD+'#'+urlencode({
+                'pc': 'https://btc-test-fixture.trycloudflare.com', 'key': 'a'*43})}
+        def qr(self):
+            return b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>'
+    server=category_server.serve(view,'127.0.0.1',0,phone=FixturePhone()); evidence={}
     try:
         with sync_playwright() as p:
             browser=p.chromium.launch()
@@ -40,6 +49,10 @@ def main():
                 assert 'PC 실시간' in page.locator('#modeChip').inner_text()
                 assert '복구 완료 · 3건' in page.locator('#recoveryState').inner_text()
                 assert page.locator('#accountGrid .account-card').count()==6
+                page.wait_for_function("document.querySelector('#phoneShareCopy').disabled===false")
+                assert page.locator('#phoneSharePanel').is_visible()
+                assert page.locator('#phoneShareQr').is_visible()
+                assert 'https://jay1125jay.github.io' in page.locator('#phoneShareLink').input_value()
                 assert '실제 주문 없음' in page.locator('body').inner_text()
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 page.screenshot(path=str(out/f'realtime-{name}.png'),full_page=True)

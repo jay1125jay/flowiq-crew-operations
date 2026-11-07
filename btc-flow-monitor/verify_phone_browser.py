@@ -37,6 +37,7 @@ def main():
             assert 'PC 실시간' in page.locator('#modeChip').inner_text()
             assert '복구 완료 · 5건' in page.locator('#recoveryState').inner_text()
             assert keys and all(k=='Bearer '+token for k in keys)
+            assert page.locator('#phoneSharePanel').is_hidden()
             assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
             mode['value']='stale'; page.wait_for_function("document.querySelector('#engineState').textContent.includes('대기')")
             mode['value']='offline'; page.wait_for_function("document.querySelector('#engineState').textContent.includes('확인 불가')")
