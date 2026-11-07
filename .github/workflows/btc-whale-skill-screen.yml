@@ -67,11 +67,46 @@ jobs:
       - name: Validate safety and competition
         run: python btc-flow-monitor/validate_research.py --outputs
       - name: Persist validated research state
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name github-actions-bot
           git config user.email github-actions-bot@users.noreply.github.com
-          git add btc-flow-monitor/dashboard.html btc-flow-monitor/data/*.json btc-flow-monitor/trader-discovery/*.json
-          python btc-flow-monitor/persist_research.py
+          # The capture worker writes current positions AND the category PAPER
+          # ledger. A conventional git rebase would conflict on these JSON files.
+          # Recompute against the latest authoritative ledger on every retry.
+          # Never resolve conflicts with "ours", force-push, or reset capital.
+          for attempt in 1 2 3 4 5; do
+            echo "PAPER_PERSIST_ATTEMPT=$attempt"
+            git fetch origin main
+            git reset --hard origin/main
+            python btc-flow-monitor/trader-discovery/leaderboard_expand.py
+            python btc-flow-monitor/scripts/whale_ranker.py
+            python btc-flow-monitor/trader-discovery/trader_discovery.py
+            python btc-flow-monitor/collect_adaptive_market.py
+            python btc-flow-monitor/trader-discovery/current_positions.py
+            python btc-flow-monitor/cloud_replay_log.py
+            python btc-flow-monitor/validate_research.py
+            python btc-flow-monitor/scripts/whale_paper_follow.py
+            python btc-flow-monitor/category_top6_cloud.py
+            python btc-flow-monitor/adaptive_run.py
+            python btc-flow-monitor/scripts/build_engine_status.py
+            python btc-flow-monitor/validate_research.py --outputs
+            git add btc-flow-monitor/dashboard.html btc-flow-monitor/data/*.json btc-flow-monitor/trader-discovery/*.json
+            if git diff --cached --quiet; then
+              echo "PAPER_PERSIST_NO_CHANGE"
+              exit 0
+            fi
+            git commit -m "data: persist validated BTC PAPER competition"
+            if git push origin HEAD:main; then
+              echo "PAPER_PERSIST_PASS recomputed_from_latest_main=true"
+              exit 0
+            fi
+            # A concurrent capture won the race; replay on newest ledger.
+            sleep "$((attempt * 2))"
+          done
+          echo "PAPER_PERSIST_FAIL conflict_retries_exhausted=5"
+          exit 1
 
   dashboard_check:
     if: github.event_name != 'schedule'
