@@ -616,7 +616,7 @@
       "start_label": "09:00",
       "start_timestamp": 1794009600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Atlanta Hawks vs Washington Wizards",
       "home": "Atlanta Hawks",
       "away": "Washington Wizards",
@@ -816,7 +816,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 18,
+        "away": 8
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909288",
@@ -831,7 +835,7 @@
       "start_label": "09:00",
       "start_timestamp": 1794009600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Charlotte Hornets vs Boston Celtics",
       "home": "Charlotte Hornets",
       "away": "Boston Celtics",
@@ -1031,7 +1035,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 4,
+        "away": 9
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909289",
@@ -3852,7 +3860,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-07T08:31:22+09:00",
+      "updated_at": "2026-11-07T09:18:50+09:00",
       "summary": {
         "overall": {
           "picks": 26,
@@ -4203,7 +4211,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-07T08:31:22+09:00",
+      "generated_at": "2026-11-07T09:18:50+09:00",
       "overall": {
         "observed": 224,
         "evaluated": 170,
@@ -4798,5 +4806,23 @@
     "errors": [],
     "updated_at": "2026-11-07T08:12:34.111995+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-07T09:18:46+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 4,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 12,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
