@@ -2591,7 +2591,7 @@
   "sports_top3": {
     "version": "SPORTS_TOP3_V6_UNBIASED_OOS_CALIBRATED",
     "date": "2026-11-07",
-    "generated_at": "2026-11-07T08:31:22+09:00",
+    "generated_at": "2026-11-07T12:13:54+09:00",
     "selection_state": "HIGH_PRECISION_WITH_CIRCUIT_AND_UNBIASED_OOS_CALIBRATION",
     "policy": "MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; BASE_GATES_ARE_FLOORS; UNBIASED_PRE_EVENT_OOS_POOL_CAN_TIGHTEN_NEW_PICKS_ONLY; EXISTING_LOCKED_PICKS_GRANDFATHERED; CIRCUIT_BREAKER; NO_FORCED_FILL",
     "thresholds": {
@@ -2634,7 +2634,7 @@
           },
           "selection_score": 84.239,
           "confidence": "HIGH_PRECISION",
-          "status": "SCHEDULED",
+          "status": "LIVE",
           "locked_at": "2026-11-07T01:56:06+09:00",
           "rank": 1,
           "current_state": "FRESH",
@@ -2722,11 +2722,23 @@
           },
           "selection_score": 69.464,
           "confidence": "HIGH_PRECISION",
-          "status": "SCHEDULED",
+          "status": "FINAL",
           "locked_at": "2026-11-07T01:56:06+09:00",
           "rank": 3,
           "current_state": "FRESH",
-          "result": null,
+          "result": {
+            "official": false,
+            "status": "CONFIRMED",
+            "home_score": 139,
+            "away_score": 132,
+            "winner_key": "HOME",
+            "source": "ESPN_PUBLIC",
+            "updated_at": "2026-11-07T12:11:25.156655+09:00"
+          },
+          "evaluation": {
+            "winner_key": "HOME",
+            "hit": true
+          },
           "precision_gate": {
             "top_p": 0.7962172,
             "margin": 0.59243439,
@@ -2789,7 +2801,7 @@
     },
     "performance_safety": {
       "version": "SPORTS_TOP3_CIRCUIT_V1",
-      "generated_at": "2026-11-07T08:31:22+09:00",
+      "generated_at": "2026-11-07T12:13:54+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "LEARNING",
@@ -2824,16 +2836,16 @@
         "BASKETBALL": {
           "state": "LEARNING",
           "allow_new_picks": 3,
-          "evaluated": 17,
-          "pending": 3,
-          "hits": 9,
-          "hit_rate": 0.529412,
-          "wilson95_lower": 0.309629,
-          "wilson95_upper": 0.738352,
-          "recent_n": 17,
-          "recent_hit_rate": 0.529412,
+          "evaluated": 18,
+          "pending": 2,
+          "hits": 10,
+          "hit_rate": 0.555556,
+          "wilson95_lower": 0.337161,
+          "wilson95_upper": 0.754408,
+          "recent_n": 18,
+          "recent_hit_rate": 0.555556,
           "evidence": [],
-          "latest_evaluated_at": "2026-10-25T22:58:01+09:00",
+          "latest_evaluated_at": "2026-11-07T12:13:54+09:00",
           "cooldown_hours": 24
         },
         "VOLLEYBALL": {
@@ -2855,7 +2867,7 @@
     },
     "calibration": {
       "version": "SPORTS_TOP3_CALIBRATION_V2_UNBIASED_OOS_POOL",
-      "generated_at": "2026-11-07T08:31:22+09:00",
+      "generated_at": "2026-11-07T12:13:54+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "HOLD_INSUFFICIENT_COVERAGE",
@@ -2889,25 +2901,25 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-07T09:18:50+09:00",
+      "updated_at": "2026-11-07T12:13:54+09:00",
       "summary": {
         "overall": {
           "picks": 26,
-          "evaluated": 23,
-          "pending": 3,
-          "hits": 13,
+          "evaluated": 24,
+          "pending": 2,
+          "hits": 14,
           "misses": 10,
-          "hit_rate": 0.565217,
+          "hit_rate": 0.583333,
           "paper_roi": {
             "stake_per_pick_krw": 100000,
             "odds_locked_picks": 20,
-            "settled": 18,
-            "pending": 2,
+            "settled": 19,
+            "pending": 1,
             "excluded_no_locked_odds": 6,
-            "total_staked_krw": 1800000,
-            "total_return_krw": 1658570,
-            "net_profit_krw": -141430,
-            "roi": -0.078572
+            "total_staked_krw": 1900000,
+            "total_return_krw": 1792240,
+            "net_profit_krw": -107760,
+            "roi": -0.056716
           }
         },
         "by_sport": {
@@ -2951,21 +2963,21 @@
           },
           "BASKETBALL": {
             "picks": 20,
-            "evaluated": 17,
-            "pending": 3,
-            "hits": 9,
+            "evaluated": 18,
+            "pending": 2,
+            "hits": 10,
             "misses": 8,
-            "hit_rate": 0.529412,
+            "hit_rate": 0.555556,
             "paper_roi": {
               "stake_per_pick_krw": 100000,
               "odds_locked_picks": 14,
-              "settled": 12,
-              "pending": 2,
+              "settled": 13,
+              "pending": 1,
               "excluded_no_locked_odds": 6,
-              "total_staked_krw": 1200000,
-              "total_return_krw": 981920,
-              "net_profit_krw": -218080,
-              "roi": -0.181733
+              "total_staked_krw": 1300000,
+              "total_return_krw": 1115590,
+              "net_profit_krw": -184410,
+              "roi": -0.141854
             }
           },
           "VOLLEYBALL": {
@@ -3002,7 +3014,7 @@
         },
         "BASKETBALL": {
           "state": "HOLD_SAMPLE",
-          "evaluated": 17,
+          "evaluated": 18,
           "required": 30
         },
         "VOLLEYBALL": {
@@ -3059,12 +3071,23 @@
           "model_p": 0.7962172,
           "locked_odds": 1.3367,
           "locked_odds_provider": "draftkings",
-          "resolution_state": "PENDING_RESULT",
+          "resolution_state": "RESOLVED_BOARD",
+          "evaluation": {
+            "winner_key": "HOME",
+            "hit": true,
+            "evaluated_at": "2026-11-07T12:13:54+09:00",
+            "source": "LOCKED_BOARD",
+            "source_snapshot_date": "2026-11-07"
+          },
           "virtual_bet": {
-            "state": "PENDING_RESULT",
+            "state": "SETTLED",
             "stake_krw": 100000,
             "locked_decimal_odds": 1.3367,
-            "odds_provider": "draftkings"
+            "odds_provider": "draftkings",
+            "hit": true,
+            "return_krw": 133670,
+            "profit_krw": 33670,
+            "settled_at": "2026-11-07T12:13:54+09:00"
           }
         },
         {
@@ -3221,7 +3244,7 @@
       "carryover": {
         "resolved_from_history": 0,
         "conflicts": 0,
-        "pending_within_window": 3,
+        "pending_within_window": 2,
         "unresolved_after_window": 0,
         "window_days": 3
       },
@@ -3240,18 +3263,18 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-07T09:18:50+09:00",
+      "generated_at": "2026-11-07T12:13:54+09:00",
       "overall": {
         "observed": 224,
-        "evaluated": 170,
-        "pending": 54,
-        "hits": 94,
+        "evaluated": 172,
+        "pending": 52,
+        "hits": 96,
         "misses": 76,
-        "hit_rate": 0.552941,
-        "mean_model_p": 0.582638,
-        "calibration_gap": -0.029696,
-        "wilson95_lower": 0.477854,
-        "wilson95_upper": 0.625689
+        "hit_rate": 0.55814,
+        "mean_model_p": 0.584363,
+        "calibration_gap": -0.026224,
+        "wilson95_lower": 0.483458,
+        "wilson95_upper": 0.630281
       },
       "bins": {
         "UNDER_50": {
@@ -3304,15 +3327,15 @@
         },
         "65_70": {
           "observed": 24,
-          "evaluated": 18,
-          "pending": 6,
-          "hits": 12,
+          "evaluated": 19,
+          "pending": 5,
+          "hits": 13,
           "misses": 6,
-          "hit_rate": 0.666667,
-          "mean_model_p": 0.671998,
-          "calibration_gap": -0.005331,
-          "wilson95_lower": 0.437495,
-          "wilson95_upper": 0.837212
+          "hit_rate": 0.684211,
+          "mean_model_p": 0.671674,
+          "calibration_gap": 0.012536,
+          "wilson95_lower": 0.460104,
+          "wilson95_upper": 0.846356
         },
         "70_75": {
           "observed": 21,
@@ -3328,15 +3351,15 @@
         },
         "75_PLUS": {
           "observed": 15,
-          "evaluated": 11,
-          "pending": 4,
-          "hits": 9,
+          "evaluated": 12,
+          "pending": 3,
+          "hits": 10,
           "misses": 2,
-          "hit_rate": 0.818182,
-          "mean_model_p": 0.78276,
-          "calibration_gap": 0.035422,
-          "wilson95_lower": 0.523019,
-          "wilson95_upper": 0.948632
+          "hit_rate": 0.833333,
+          "mean_model_p": 0.783881,
+          "calibration_gap": 0.049452,
+          "wilson95_lower": 0.551969,
+          "wilson95_upper": 0.953035
         }
       },
       "by_sport": {
@@ -3543,15 +3566,15 @@
         "BASKETBALL": {
           "overall": {
             "observed": 106,
-            "evaluated": 92,
-            "pending": 14,
-            "hits": 46,
+            "evaluated": 94,
+            "pending": 12,
+            "hits": 48,
             "misses": 46,
-            "hit_rate": 0.5,
-            "mean_model_p": 0.634592,
-            "calibration_gap": -0.134592,
-            "wilson95_lower": 0.399898,
-            "wilson95_upper": 0.600102
+            "hit_rate": 0.510638,
+            "mean_model_p": 0.636644,
+            "calibration_gap": -0.126005,
+            "wilson95_lower": 0.411169,
+            "wilson95_upper": 0.609272
           },
           "bins": {
             "UNDER_50": {
@@ -3604,15 +3627,15 @@
             },
             "65_70": {
               "observed": 16,
-              "evaluated": 11,
-              "pending": 5,
-              "hits": 6,
+              "evaluated": 12,
+              "pending": 4,
+              "hits": 7,
               "misses": 5,
-              "hit_rate": 0.545455,
-              "mean_model_p": 0.673169,
-              "calibration_gap": -0.127715,
-              "wilson95_lower": 0.280092,
-              "wilson95_upper": 0.787287
+              "hit_rate": 0.583333,
+              "mean_model_p": 0.672559,
+              "calibration_gap": -0.089226,
+              "wilson95_lower": 0.319511,
+              "wilson95_upper": 0.80674
             },
             "70_75": {
               "observed": 17,
@@ -3628,15 +3651,15 @@
             },
             "75_PLUS": {
               "observed": 13,
-              "evaluated": 10,
-              "pending": 3,
-              "hits": 8,
+              "evaluated": 11,
+              "pending": 2,
+              "hits": 9,
               "misses": 2,
-              "hit_rate": 0.8,
-              "mean_model_p": 0.785466,
-              "calibration_gap": 0.014534,
-              "wilson95_lower": 0.490162,
-              "wilson95_upper": 0.943318
+              "hit_rate": 0.818182,
+              "mean_model_p": 0.786444,
+              "calibration_gap": 0.031738,
+              "wilson95_lower": 0.523019,
+              "wilson95_upper": 0.948632
             }
           }
         },
@@ -3748,8 +3771,7 @@
         "state": "READABLE"
       },
       "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
-    },
-    "snapshot_preserved_at": "2026-11-07T12:11:22.594302+09:00"
+    }
   },
   "team_name_localization": {
     "language": "ko",

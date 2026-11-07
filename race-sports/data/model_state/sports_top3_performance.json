@@ -1179,6 +1179,11 @@
         "stake_krw": 100000,
         "locked_decimal_odds": 1.5882,
         "odds_provider": "draftkings"
+      },
+      "result_recheck": {
+        "checked_at": "2026-11-07T12:13:53+09:00",
+        "state": "NOT_FINAL",
+        "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909291"
       }
     },
     "SPORTS-BASKETBALL-KBL-S49G01N56": {
@@ -1246,40 +1251,51 @@
       "away": "Washington Wizards",
       "home_ko": "애틀랜타 호크스",
       "away_ko": "워싱턴 위저즈",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_BOARD",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 1.3367,
-        "odds_provider": "draftkings"
+        "odds_provider": "draftkings",
+        "hit": true,
+        "return_krw": 133670,
+        "profit_krw": 33670,
+        "settled_at": "2026-11-07T12:13:54+09:00"
       },
       "result_recheck": {
-        "checked_at": "2026-11-07T09:18:49+09:00",
-        "state": "NOT_FINAL",
+        "checked_at": "2026-11-07T12:13:53+09:00",
+        "state": "FINAL_VERIFIED",
         "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909287"
+      },
+      "evaluation": {
+        "winner_key": "HOME",
+        "hit": true,
+        "evaluated_at": "2026-11-07T12:13:54+09:00",
+        "source": "LOCKED_BOARD",
+        "source_snapshot_date": "2026-11-07"
       }
     }
   },
   "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-  "updated_at": "2026-11-07T09:18:50+09:00",
+  "updated_at": "2026-11-07T12:13:54+09:00",
   "summary": {
     "overall": {
       "picks": 26,
-      "evaluated": 23,
-      "pending": 3,
-      "hits": 13,
+      "evaluated": 24,
+      "pending": 2,
+      "hits": 14,
       "misses": 10,
-      "hit_rate": 0.565217,
+      "hit_rate": 0.583333,
       "paper_roi": {
         "stake_per_pick_krw": 100000,
         "odds_locked_picks": 20,
-        "settled": 18,
-        "pending": 2,
+        "settled": 19,
+        "pending": 1,
         "excluded_no_locked_odds": 6,
-        "total_staked_krw": 1800000,
-        "total_return_krw": 1658570,
-        "net_profit_krw": -141430,
-        "roi": -0.078572
+        "total_staked_krw": 1900000,
+        "total_return_krw": 1792240,
+        "net_profit_krw": -107760,
+        "roi": -0.056716
       }
     },
     "by_sport": {
@@ -1323,21 +1339,21 @@
       },
       "BASKETBALL": {
         "picks": 20,
-        "evaluated": 17,
-        "pending": 3,
-        "hits": 9,
+        "evaluated": 18,
+        "pending": 2,
+        "hits": 10,
         "misses": 8,
-        "hit_rate": 0.529412,
+        "hit_rate": 0.555556,
         "paper_roi": {
           "stake_per_pick_krw": 100000,
           "odds_locked_picks": 14,
-          "settled": 12,
-          "pending": 2,
+          "settled": 13,
+          "pending": 1,
           "excluded_no_locked_odds": 6,
-          "total_staked_krw": 1200000,
-          "total_return_krw": 981920,
-          "net_profit_krw": -218080,
-          "roi": -0.181733
+          "total_staked_krw": 1300000,
+          "total_return_krw": 1115590,
+          "net_profit_krw": -184410,
+          "roi": -0.141854
         }
       },
       "VOLLEYBALL": {
@@ -1374,7 +1390,7 @@
     },
     "BASKETBALL": {
       "state": "HOLD_SAMPLE",
-      "evaluated": 17,
+      "evaluated": 18,
       "required": 30
     },
     "VOLLEYBALL": {
@@ -1387,7 +1403,7 @@
   "carryover": {
     "resolved_from_history": 0,
     "conflicts": 0,
-    "pending_within_window": 3,
+    "pending_within_window": 2,
     "unresolved_after_window": 0,
     "window_days": 3
   },
