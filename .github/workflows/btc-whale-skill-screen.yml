@@ -84,7 +84,13 @@ jobs:
             python btc-flow-monitor/scripts/whale_ranker.py
             python btc-flow-monitor/trader-discovery/trader_discovery.py
             python btc-flow-monitor/collect_adaptive_market.py
-            python btc-flow-monitor/trader-discovery/current_positions.py
+            if ! python btc-flow-monitor/trader-discovery/current_positions.py; then
+              # Public API can temporarily fail for one wallet. Never persist
+              # an incomplete source; restart the whole cycle from latest main.
+              echo "PAPER_SOURCE_RETRY incomplete_wallet_observation attempt=$attempt"
+              sleep "$((attempt * 3))"
+              continue
+            fi
             python btc-flow-monitor/cloud_replay_log.py
             python btc-flow-monitor/validate_research.py
             python btc-flow-monitor/scripts/whale_paper_follow.py
