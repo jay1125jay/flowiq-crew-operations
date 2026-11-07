@@ -30,6 +30,10 @@ def main():
                 assert page.locator('#modeChip').inner_text().startswith('● 클라우드 5분')
                 assert page.locator('#accountGrid .account-card').count()==6
                 assert page.locator('#engineState').inner_text()
+                page.route('**/trader-discovery/category-paper.json*',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps({**json.loads((ROOT/'trader-discovery/category-paper.json').read_text()),'updated_at':'2026-10-01T00:00:00+00:00'})))
+                page.get_by_role('button',name='새로고침',exact=True).click()
+                page.wait_for_function("document.querySelector('#engineState').textContent.includes('엔진 지연')")
+                page.unroute('**/trader-discovery/category-paper.json*')
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert not errors,errors
                 page.screenshot(path=str(OUT/f'{name}.png'),full_page=True)

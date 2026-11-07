@@ -20,7 +20,7 @@ concurrency:
 jobs:
   capture:
     runs-on: ubuntu-24.04
-    timeout-minutes: 32
+    timeout-minutes: 62
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,8 +33,8 @@ jobs:
         shell: bash
         env:
           # The push-triggered smoke test takes one genuine sample;
-          # scheduled/manual runs collect six genuine samples over ~25 minutes.
-          CAPTURE_SAMPLES: ${{ github.event_name == 'push' && '1' || '6' }}
+          # scheduled/manual runs collect twelve genuine samples over ~55 minutes.
+          CAPTURE_SAMPLES: ${{ github.event_name == 'push' && '1' || '12' }}
         run: |
           set -euo pipefail
           git config user.name btc-flow-github-capture
@@ -92,7 +92,16 @@ jobs:
               python btc-flow-monitor/replay_snapshot_merge.py \
                 --snapshot-log "$RUNNER_TEMP/btc-capture-log.json" \
                 --snapshot-positions "$RUNNER_TEMP/btc-capture-positions.json"
-              git add btc-flow-monitor/trader-discovery/current-positions.json btc-flow-monitor/trader-discovery/cloud-replay-log.json
+              # The snapshot and the six-account PAPER ledger advance atomically.
+              # A failed Git push retries against the latest main: no duplicate trades.
+              python btc-flow-monitor/cloud_capture_paper.py \
+                --snapshot-log "$RUNNER_TEMP/btc-capture-log.json" \
+                --snapshot-positions "$RUNNER_TEMP/btc-capture-positions.json"
+              python btc-flow-monitor/scripts/build_engine_status.py
+              git add btc-flow-monitor/trader-discovery/current-positions.json \
+                btc-flow-monitor/trader-discovery/cloud-replay-log.json \
+                btc-flow-monitor/trader-discovery/category-paper.json \
+                btc-flow-monitor/data/engine-status.json
               if git diff --cached --quiet; then
                 echo "CAPTURE_ALREADY_RECORDED slot=$slot"
                 saved=1
