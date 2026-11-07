@@ -1712,7 +1712,7 @@
       "start_label": "21:30",
       "start_timestamp": 1794054600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Leeds United vs Tottenham Hotspur",
       "home": "Leeds United",
       "away": "Tottenham Hotspur",
@@ -1783,7 +1783,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401882812",
@@ -1798,7 +1802,7 @@
       "start_label": "22:00",
       "start_timestamp": 1794056400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Málaga vs Racing Santander",
       "home": "Málaga",
       "away": "Racing Santander",
@@ -1865,7 +1869,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401874791",
@@ -2721,7 +2729,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-07T19:16:49+09:00",
+      "updated_at": "2026-11-07T22:21:29+09:00",
       "summary": {
         "overall": {
           "picks": 26,
@@ -2859,7 +2867,7 @@
           "evaluation": {
             "winner_key": "AWAY",
             "hit": true,
-            "evaluated_at": "2026-11-07T19:16:49+09:00",
+            "evaluated_at": "2026-11-07T22:21:29+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-07"
           },
@@ -2871,7 +2879,7 @@
             "hit": true,
             "return_krw": 158820,
             "profit_krw": 58820,
-            "settled_at": "2026-11-07T19:16:49+09:00"
+            "settled_at": "2026-11-07T22:21:29+09:00"
           }
         },
         {
@@ -2889,7 +2897,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-11-07T19:16:49+09:00",
+            "evaluated_at": "2026-11-07T22:21:29+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-07"
           },
@@ -2913,7 +2921,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-11-07T19:16:49+09:00",
+            "evaluated_at": "2026-11-07T22:21:29+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-07"
           },
@@ -2925,7 +2933,7 @@
             "hit": true,
             "return_krw": 133670,
             "profit_krw": 33670,
-            "settled_at": "2026-11-07T19:16:49+09:00"
+            "settled_at": "2026-11-07T22:21:29+09:00"
           }
         },
         {
@@ -3101,7 +3109,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-07T19:16:49+09:00",
+      "generated_at": "2026-11-07T22:21:29+09:00",
       "overall": {
         "observed": 224,
         "evaluated": 183,
@@ -3681,5 +3689,23 @@
     "errors": [],
     "updated_at": "2026-11-07T19:09:00.702709+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-07T22:21:23+09:00",
+    "polled_sports": [
+      "SOCCER"
+    ],
+    "field_changes": 4,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 8,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
