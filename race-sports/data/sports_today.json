@@ -1308,8 +1308,8 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261107",
       "score": {
-        "home": 19,
-        "away": 33
+        "home": 27,
+        "away": 37
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -3970,7 +3970,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-08T08:59:20+09:00",
+      "updated_at": "2026-11-08T10:08:05+09:00",
       "summary": {
         "overall": {
           "picks": 28,
@@ -4326,18 +4326,18 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-08T08:59:21+09:00",
+      "generated_at": "2026-11-08T10:08:05+09:00",
       "overall": {
         "observed": 256,
-        "evaluated": 194,
-        "pending": 62,
-        "hits": 114,
+        "evaluated": 195,
+        "pending": 61,
+        "hits": 115,
         "misses": 80,
-        "hit_rate": 0.587629,
-        "mean_model_p": 0.58438,
-        "calibration_gap": 0.003249,
-        "wilson95_lower": 0.517312,
-        "wilson95_upper": 0.654542
+        "hit_rate": 0.589744,
+        "mean_model_p": 0.585259,
+        "calibration_gap": 0.004485,
+        "wilson95_lower": 0.51962,
+        "wilson95_upper": 0.6564
       },
       "bins": {
         "UNDER_50": {
@@ -4414,15 +4414,15 @@
         },
         "75_PLUS": {
           "observed": 20,
-          "evaluated": 15,
-          "pending": 5,
-          "hits": 13,
+          "evaluated": 16,
+          "pending": 4,
+          "hits": 14,
           "misses": 2,
-          "hit_rate": 0.866667,
-          "mean_model_p": 0.786772,
-          "calibration_gap": 0.079895,
-          "wilson95_lower": 0.62118,
-          "wilson95_upper": 0.962639
+          "hit_rate": 0.875,
+          "mean_model_p": 0.78483,
+          "calibration_gap": 0.09017,
+          "wilson95_lower": 0.639772,
+          "wilson95_upper": 0.965023
         }
       },
       "by_sport": {
@@ -4629,15 +4629,15 @@
         "BASKETBALL": {
           "overall": {
             "observed": 116,
-            "evaluated": 104,
-            "pending": 12,
-            "hits": 57,
+            "evaluated": 105,
+            "pending": 11,
+            "hits": 58,
             "misses": 47,
-            "hit_rate": 0.548077,
-            "mean_model_p": 0.637901,
-            "calibration_gap": -0.089824,
-            "wilson95_lower": 0.452418,
-            "wilson95_upper": 0.640311
+            "hit_rate": 0.552381,
+            "mean_model_p": 0.639023,
+            "calibration_gap": -0.086642,
+            "wilson95_lower": 0.457097,
+            "wilson95_upper": 0.643967
           },
           "bins": {
             "UNDER_50": {
@@ -4714,15 +4714,15 @@
             },
             "75_PLUS": {
               "observed": 17,
-              "evaluated": 13,
-              "pending": 4,
-              "hits": 11,
+              "evaluated": 14,
+              "pending": 3,
+              "hits": 12,
               "misses": 2,
-              "hit_rate": 0.846154,
-              "mean_model_p": 0.78689,
-              "calibration_gap": 0.059264,
-              "wilson95_lower": 0.577654,
-              "wilson95_upper": 0.956742
+              "hit_rate": 0.857143,
+              "mean_model_p": 0.784662,
+              "calibration_gap": 0.07248,
+              "wilson95_lower": 0.600586,
+              "wilson95_upper": 0.959906
             }
           }
         },
@@ -4924,5 +4924,23 @@
     "errors": [],
     "updated_at": "2026-11-08T10:03:04.112962+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-08T10:08:02+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 1,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 9,
+        "field_changes": 1,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
