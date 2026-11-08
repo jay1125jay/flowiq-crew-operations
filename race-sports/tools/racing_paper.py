@@ -18,7 +18,7 @@ def stamp(s):
     except ValueError:return None
 
 def summary(records):
-    rows=list(records);done=[r for r in rows if isinstance(r.get('hit'),bool)];settled=[r for r in done if r.get('settlement')=='SETTLED']
+    rows=list(records);done=[r for r in rows if isinstance(r.get('hit'),bool)];settled=[r for r in done if r.get('settlement')=='SETTLED' and not r.get('paper_archived_at')]
     stake=len(settled)*STAKE;ret=sum(r['return_krw'] for r in settled)
     return {'picks':len(rows),'evaluated':len(done),'hits':sum(r['hit'] for r in done),'hit_rate':sum(r['hit'] for r in done)/len(done) if done else None,'pending':sum(r.get('settlement')=='PENDING' for r in rows),'result_mismatch':sum(r.get('settlement_hold_reason')=='WINNER_NOT_IN_LOCKED_RUNNERS' for r in rows),'void':sum(r.get('settlement')=='VOID' for r in rows),'settled':len(settled),'excluded_no_odds':sum(r.get('settlement')=='NO_OFFICIAL_ODDS' for r in done),'stake_krw':stake,'return_krw':ret,'net_krw':ret-stake,'roi':(ret-stake)/stake if stake else None}
 

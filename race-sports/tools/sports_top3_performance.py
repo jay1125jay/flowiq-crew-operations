@@ -47,6 +47,7 @@ def _is_final(event: dict) -> bool:
 
 
 def _paper_summary(rows):
+    rows=[r for r in rows if not r.get('paper_archived_at')]
     eligible=[r for r in rows if _f(r.get('locked_odds')) is not None and _f(r.get('locked_odds')) > 1]
     settled=[r for r in eligible if isinstance((r.get('virtual_bet') or {}).get('profit_krw'), (int,float))]
     pending=len(eligible)-len(settled)
