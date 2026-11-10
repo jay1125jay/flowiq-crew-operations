@@ -1,7 +1,7 @@
 {
   "date": "2026-11-10",
-  "time": "07:16:37",
-  "generated_at": "2026-11-10T07:16:37.455125+09:00",
+  "time": "12:23:28",
+  "generated_at": "2026-11-10T12:23:28.939792+09:00",
   "domain": "SPORTS",
   "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
   "enabled_sports": [
@@ -62,10 +62,10 @@
     {
       "provider": "SPORTS_ODDS_MULTIBOOK",
       "sport": "ALL",
-      "status": "PASS",
+      "status": "NO_ELIGIBLE_LEAGUE",
       "plan_mode": "AMATEUR_LEAGUE_AWARE",
-      "events_enriched": 8,
-      "outcomes_enriched": 16,
+      "events_enriched": 0,
+      "outcomes_enriched": 0,
       "meta": [
         {
           "sport": "SOCCER",
@@ -87,21 +87,16 @@
         },
         {
           "sport": "BASKETBALL",
-          "status": "PASS",
-          "events": 8,
-          "next_cursor": null,
-          "league_ids": [
-            "NBA"
-          ],
-          "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
-          "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
           "local_scheduled_competitions": [
-            "KBL",
-            "NBA"
+            "KBL"
           ],
           "unsupported_on_amateur": [
             "KBL"
-          ]
+          ],
+          "league_ids": [],
+          "events": 0
         },
         {
           "sport": "VOLLEYBALL",
@@ -114,7 +109,7 @@
         }
       ],
       "errors": [],
-      "updated_at": "2026-11-10T07:16:47.208332+09:00",
+      "updated_at": "2026-11-10T12:23:36.658391+09:00",
       "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
     }
   ],
@@ -141,78 +136,13 @@
         {
           "key": "HOME",
           "name": "Atlanta Hawks",
-          "odds": 1.8333,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.6944,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.640482+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "애틀랜타 호크스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.8333,
-              "american_odds": "-120",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978842?outcomes=0ML87138320_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.7692,
-              "american_odds": "-130",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451072&selectionId=237490"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.8,
-              "american_odds": "-125",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050882?options=20050882-1571898492-2333277593"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.8,
-              "american_odds": "-125",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=33bcd074-7c09-3649-b70d-b6adc7603856"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.7692,
-              "american_odds": "-130",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=452ac586-e5c9-4370-9acd-bd6cfab9fe7f&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.7692,
-              "american_odds": "-130",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.7692,
-              "american_odds": "-130",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.8,
-              "american_odds": "-125",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.8,
-              "american_odds": "-125",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.49615481419377205,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -220,78 +150,13 @@
         {
           "key": "AWAY",
           "name": "Los Angeles Lakers",
-          "odds": 2.02,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 2.21,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.640482+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "LA 레이커스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 2.02,
-              "american_odds": "+102",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978842?outcomes=0ML87138320_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 2.1,
-              "american_odds": "+110",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451072&selectionId=5368712"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 2.05,
-              "american_odds": "+105",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050882?options=20050882-1571898492-2333277592"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 2.05,
-              "american_odds": "+105",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=2cd21fdd-2009-337d-93f4-e09afbf619d1"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 2.1,
-              "american_odds": "+110",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=b0615151-2b50-4943-ac39-279283f4d871&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 2.1,
-              "american_odds": "+110",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 2.08,
-              "american_odds": "+108",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 2.05,
-              "american_odds": "+105",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 2.0,
-              "american_odds": "+100",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.503845185806228,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -301,26 +166,22 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 114,
+        "away_score": 124,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-10T12:23:31.538517+09:00"
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909952",
       "home_ko": "애틀랜타 호크스",
       "away_ko": "LA 레이커스",
-      "odds_event_id": "TyCOXaF3CkhvWxlwAwx4",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -332,16 +193,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 114,
-        "away_score": 124,
-        "winner_key": "AWAY",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-11-10T11:47:17.453823+09:00"
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909953",
@@ -365,78 +217,13 @@
         {
           "key": "HOME",
           "name": "Charlotte Hornets",
-          "odds": 3.7,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 3.61,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.645123+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "샬럿 호네츠",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 3.7,
-              "american_odds": "+270",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978845?outcomes=0ML87138337_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 3.75,
-              "american_odds": "+275",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451075&selectionId=8622709"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 3.75,
-              "american_odds": "+275",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050883?options=20050883-1571898496-2333277595"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 3.7,
-              "american_odds": "+270",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=c27807da-495d-3381-8386-1781bc085aed"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 3.7,
-              "american_odds": "+270",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=37506932-de78-41e1-aa02-da517a164cc6&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 3.85,
-              "american_odds": "+285",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 3.55,
-              "american_odds": "+255",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 3.8,
-              "american_odds": "+280",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 3.6,
-              "american_odds": "+260",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.42838494985556025,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -444,78 +231,13 @@
         {
           "key": "AWAY",
           "name": "Cleveland Cavaliers",
-          "odds": 1.2967,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.3086,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.645123+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "클리블랜드 캐벌리어스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.2967,
-              "american_odds": "-337",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978845?outcomes=0ML87138337_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.2941,
-              "american_odds": "-340",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451075&selectionId=60424"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.2857,
-              "american_odds": "-350",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050883?options=20050883-1571898496-2333277594"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.2899,
-              "american_odds": "-345",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=6946bc02-5817-388c-94c6-149f5a531e9f"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.2941,
-              "american_odds": "-340",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=dab6150b-6b9c-4622-a653-e38901a8213d&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.2703,
-              "american_odds": "-370",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.3003,
-              "american_odds": "-333",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.2899,
-              "american_odds": "-345",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.2857,
-              "american_odds": "-350",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.5716150501444398,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -525,26 +247,22 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 124,
+        "away_score": 112,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-10T12:23:31.538548+09:00"
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909953",
       "home_ko": "샬럿 호네츠",
       "away_ko": "클리블랜드 캐벌리어스",
-      "odds_event_id": "sNeOqoXz5s0HbR3FOYO6",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -556,16 +274,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 124,
-        "away_score": 112,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-11-10T11:47:17.453864+09:00"
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909954",
@@ -589,78 +298,13 @@
         {
           "key": "HOME",
           "name": "Detroit Pistons",
-          "odds": 1.1931,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.2433,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.684193+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "디트로이트 피스턴스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.1931,
-              "american_odds": "-518",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978849?outcomes=0ML87138365_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.2174,
-              "american_odds": "-460",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451060&selectionId=237474"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.2,
-              "american_odds": "-500",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050884?options=20050884-1571898501-2333277601"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.2083,
-              "american_odds": "-480",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=d6f6c5a0-3b99-3d6d-9d7d-47817cff7513"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.2,
-              "american_odds": "-500",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=9dbed300-4e8e-4388-9182-9dd0cbf88a19&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.1818,
-              "american_odds": "-550",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.2,
-              "american_odds": "-500",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.2,
-              "american_odds": "-500",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.2,
-              "american_odds": "-500",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.8347341615319325,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -668,78 +312,13 @@
         {
           "key": "AWAY",
           "name": "Washington Wizards",
-          "odds": 4.94,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 4.23,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.684193+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "워싱턴 위저즈",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 4.94,
-              "american_odds": "+394",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978849?outcomes=0ML87138365_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 4.6,
-              "american_odds": "+360",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451060&selectionId=237485"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 4.75,
-              "american_odds": "+375",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050884?options=20050884-1571898501-2333277600"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 4.6,
-              "american_odds": "+360",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=0a55ce32-3df1-3d2a-a9a5-bec2328dc007"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 4.6,
-              "american_odds": "+360",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=162c650b-69d0-455d-a038-7bbbf91814f1&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 4.9,
-              "american_odds": "+390",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 4.6,
-              "american_odds": "+360",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 4.75,
-              "american_odds": "+375",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 4.5,
-              "american_odds": "+350",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.16526583846806753,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -749,26 +328,22 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 122,
+        "away_score": 111,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-10T12:23:31.538562+09:00"
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909954",
       "home_ko": "디트로이트 피스턴스",
       "away_ko": "워싱턴 위저즈",
-      "odds_event_id": "W9lJjjTktenUmQ1ww9T3",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -780,16 +355,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "result": {
-        "official": false,
-        "status": "CONFIRMED",
-        "home_score": 122,
-        "away_score": 111,
-        "winner_key": "HOME",
-        "source": "ESPN_PUBLIC",
-        "updated_at": "2026-11-10T11:47:17.453901+09:00"
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909955",
@@ -804,7 +370,7 @@
       "start_label": "09:30",
       "start_timestamp": 1794270600,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Toronto Raptors vs Memphis Grizzlies",
       "home": "Toronto Raptors",
       "away": "Memphis Grizzlies",
@@ -813,78 +379,13 @@
         {
           "key": "HOME",
           "name": "Toronto Raptors",
-          "odds": 1.7407,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 2.01,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.648998+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "토론토 랩터스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.7407,
-              "american_odds": "-135",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978850?outcomes=0ML87138366_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.7463,
-              "american_odds": "-134",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451069&selectionId=237476"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.7407,
-              "american_odds": "-135",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050885?options=20050885-1571898505-2333277605"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.7407,
-              "american_odds": "-135",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=0d99cdac-7908-37ab-8e9e-e2920f369b95"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.7407,
-              "american_odds": "-135",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=81de0311-2fc1-4d82-85b5-a88110c2f06f&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.7407,
-              "american_odds": "-135",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.6993,
-              "american_odds": "-143",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.7407,
-              "american_odds": "-135",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.6993,
-              "american_odds": "-143",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.711460904769591,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -892,78 +393,13 @@
         {
           "key": "AWAY",
           "name": "Memphis Grizzlies",
-          "odds": 2.14,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.8403,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.648998+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "멤피스 그리즐리스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 2.14,
-              "american_odds": "+114",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978850?outcomes=0ML87138366_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 2.14,
-              "american_odds": "+114",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451069&selectionId=237491"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 2.1,
-              "american_odds": "+110",
-              "updated_at": "2026-11-09T22:16:44.885Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050885?options=20050885-1571898505-2333277604"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 2.15,
-              "american_odds": "+115",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=921e855d-3c84-37eb-b651-172daeef9dcb"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 2.15,
-              "american_odds": "+115",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=8b620356-6bf2-40de-a73c-3af5af6d23eb&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 2.15,
-              "american_odds": "+115",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 2.18,
-              "american_odds": "+118",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 2.15,
-              "american_odds": "+115",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 2.15,
-              "american_odds": "+115",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.288539095230409,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -973,26 +409,22 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 102,
+        "away_score": 118,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-10T12:23:31.538574+09:00"
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909955",
       "home_ko": "토론토 랩터스",
       "away_ko": "멤피스 그리즐리스",
-      "odds_event_id": "MDgL3At5aXMOhw1mWPdj",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1004,11 +436,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "score": {
-        "home": 97,
-        "away": 113
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909956",
@@ -1032,78 +460,13 @@
         {
           "key": "HOME",
           "name": "Dallas Mavericks",
-          "odds": 1.5882,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.5236,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.612827+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "댈러스 매버릭스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.5882,
-              "american_odds": "-170",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978851?outcomes=0ML87138367_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.5952,
-              "american_odds": "-168",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451063&selectionId=237472"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.5405,
-              "american_odds": "-185",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050886?options=20050886-1571898508-2333277607"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.5618,
-              "american_odds": "-178",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=763a7048-f7f2-3312-9e28-45efddcafbce"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.6061,
-              "american_odds": "-165",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=855d8ac3-d412-44b4-b000-d8af1c4d322c&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.5814,
-              "american_odds": "-172",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.678526240291835,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1111,78 +474,13 @@
         {
           "key": "AWAY",
           "name": "Indiana Pacers",
-          "odds": 2.43,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 2.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.612827+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "인디애나 페이서스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 2.43,
-              "american_odds": "+143",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978851?outcomes=0ML87138367_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 2.42,
-              "american_odds": "+142",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451063&selectionId=237481"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 2.5,
-              "american_odds": "+150",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050886?options=20050886-1571898508-2333277606"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 2.5,
-              "american_odds": "+150",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=778df960-bccd-3dac-b6bc-7c5306b73bd9"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 2.4,
-              "american_odds": "+140",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=1e21cce5-a91c-4e7c-9393-73d7d0358e43&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 2.5,
-              "american_odds": "+150",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 2.43,
-              "american_odds": "+143",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 2.45,
-              "american_odds": "+145",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 2.38,
-              "american_odds": "+138",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.32147375970816505,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1192,26 +490,17 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "score": {
+        "home": 116,
+        "away": 110
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909956",
       "home_ko": "댈러스 매버릭스",
       "away_ko": "인디애나 페이서스",
-      "odds_event_id": "pQKPBuYJINPiRbTMEYCq",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1223,11 +512,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "score": {
-        "home": 84,
-        "away": 85
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909957",
@@ -1251,78 +536,13 @@
         {
           "key": "HOME",
           "name": "Houston Rockets",
-          "odds": 1.578,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.5236,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.780558+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "휴스턴 로키츠",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.578,
-              "american_odds": "-173",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978852?outcomes=0ML87138368_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.5682,
-              "american_odds": "-176",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451081&selectionId=237488"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050887?options=20050887-1571898512-2333277611"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=41480b4d-5d6b-330c-9ff2-30bd0aec0426"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.6061,
-              "american_odds": "-165",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=dcddd01a-2489-4ccf-b2d1-46533e65c165&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.5291,
-              "american_odds": "-189",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.5714,
-              "american_odds": "-175",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.5319,
-              "american_odds": "-188",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.5570680324054121,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1330,78 +550,13 @@
         {
           "key": "AWAY",
           "name": "Denver Nuggets",
-          "odds": 2.46,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 2.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.780558+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "덴버 너기츠",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 2.46,
-              "american_odds": "+146",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978852?outcomes=0ML87138368_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 2.48,
-              "american_odds": "+148",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451081&selectionId=237492"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 2.45,
-              "american_odds": "+145",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050887?options=20050887-1571898512-2333277610"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 2.48,
-              "american_odds": "+148",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=43567e93-1f37-3c25-acd2-53ce717149e0"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 2.4,
-              "american_odds": "+140",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=d920cb63-59ec-47cb-ae5a-4320041fec1d&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 2.5,
-              "american_odds": "+150",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 2.55,
-              "american_odds": "+155",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 2.45,
-              "american_odds": "+145",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 2.5,
-              "american_odds": "+150",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.44293196759458786,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1411,26 +566,17 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "score": {
+        "home": 82,
+        "away": 76
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909957",
       "home_ko": "휴스턴 로키츠",
       "away_ko": "덴버 너기츠",
-      "odds_event_id": "I03UQDCFJhTCzrAvdEVA",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1442,11 +588,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "score": {
-        "home": 54,
-        "away": 40
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909958",
@@ -1470,78 +612,13 @@
         {
           "key": "HOME",
           "name": "Phoenix Suns",
-          "odds": 3.96,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 4.12,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.701427+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "피닉스 선스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 3.96,
-              "american_odds": "+296",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978853?outcomes=0ML87138369_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 4.0,
-              "american_odds": "+300",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451078&selectionId=237487"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 3.9,
-              "american_odds": "+290",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050888?options=20050888-1571898515-2333277614"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 3.78,
-              "american_odds": "+278",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=19fd281c-6167-3c4b-ba45-299fcf256eab"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 3.9,
-              "american_odds": "+290",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=03d05120-6580-4617-a31e-545414dada43&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 3.8,
-              "american_odds": "+280",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 3.75,
-              "american_odds": "+275",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 4.0,
-              "american_odds": "+300",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 4.0,
-              "american_odds": "+300",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.3135306013741619,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1549,78 +626,13 @@
         {
           "key": "AWAY",
           "name": "San Antonio Spurs",
-          "odds": 1.2688,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.2525,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.701427+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "샌안토니오 스퍼스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.2688,
-              "american_odds": "-372",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978853?outcomes=0ML87138369_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.2667,
-              "american_odds": "-375",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451078&selectionId=237471"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.2667,
-              "american_odds": "-375",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050888?options=20050888-1571898515-2333277613"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.2817,
-              "american_odds": "-355",
-              "updated_at": "2026-11-09T22:16:02.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=eab77a71-d898-36ca-bf1b-3fbc8bd23d33"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.2632,
-              "american_odds": "-380",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=1f3b2ad3-c953-4168-914a-a2fd7f10508c&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.2778,
-              "american_odds": "-360",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.2801,
-              "american_odds": "-357",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.2703,
-              "american_odds": "-370",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.25,
-              "american_odds": "-400",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.6864693986258381,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1630,26 +642,17 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "score": {
+        "home": 46,
+        "away": 61
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909958",
       "home_ko": "피닉스 선스",
       "away_ko": "샌안토니오 스퍼스",
-      "odds_event_id": "Nw3WlnQnITP4DwkbMw6K",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1661,11 +664,7 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT",
-      "score": {
-        "home": 27,
-        "away": 43
-      }
+      "model_state": "VALIDATED_HOLDOUT"
     },
     {
       "id": "SPORTS-BASKETBALL-401909959",
@@ -1680,7 +679,7 @@
       "start_label": "12:00",
       "start_timestamp": 1794279600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Golden State Warriors vs New Orleans Pelicans",
       "home": "Golden State Warriors",
       "away": "New Orleans Pelicans",
@@ -1689,78 +688,13 @@
         {
           "key": "HOME",
           "name": "Golden State Warriors",
-          "odds": 1.1757,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 1.1845,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.702677+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "골든스테이트 워리어스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 1.1757,
-              "american_odds": "-569",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978854?outcomes=0ML87138370_1"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 1.1695,
-              "american_odds": "-590",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451066&selectionId=237493"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 1.1667,
-              "american_odds": "-600",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050889?options=20050889-1571898518-2333277616"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 1.1667,
-              "american_odds": "-600",
-              "updated_at": "2026-11-09T22:16:03.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=ba23483c-be36-3061-b4a7-8ed582b70984"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 1.1538,
-              "american_odds": "-650",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=f873d76c-385e-4038-8a01-5eaee110f070&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 1.1739,
-              "american_odds": "-575",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 1.2,
-              "american_odds": "-500",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 1.1701,
-              "american_odds": "-588",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 1.1538,
-              "american_odds": "-650",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.6841715998363606,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1768,78 +702,13 @@
         {
           "key": "AWAY",
           "name": "New Orleans Pelicans",
-          "odds": 5.26,
-          "odds_source": "SPORTSGAMEODDS",
-          "odds_provider": "draftkings",
-          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
-          "odds_updated_at": "2026-11-09T22:16:42.802Z",
+          "odds": 5.09,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "Draft Kings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-10T12:23:31.702677+09:00",
           "odds_data_state": "FRESH",
           "name_ko": "뉴올리언스 펠리컨스",
-          "bookmaker_odds": [
-            {
-              "bookmaker": "draftkings",
-              "odds": 5.26,
-              "american_odds": "+426",
-              "updated_at": "2026-11-09T22:16:42.802Z",
-              "deeplink": "https://sportsbook.draftkings.com/event/34978854?outcomes=0ML87138370_3"
-            },
-            {
-              "bookmaker": "fanduel",
-              "odds": 5.3,
-              "american_odds": "+430",
-              "updated_at": "2026-11-09T22:15:50.268Z",
-              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.623451066&selectionId=7379341"
-            },
-            {
-              "bookmaker": "betmgm",
-              "odds": 5.25,
-              "american_odds": "+425",
-              "updated_at": "2026-11-09T22:16:45.003Z",
-              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050889?options=20050889-1571898518-2333277615"
-            },
-            {
-              "bookmaker": "caesars",
-              "odds": 5.3,
-              "american_odds": "+430",
-              "updated_at": "2026-11-09T22:16:03.000Z",
-              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=d789ec45-7980-378c-8377-2c9cceaada2f"
-            },
-            {
-              "bookmaker": "espnbet",
-              "odds": 5.25,
-              "american_odds": "+425",
-              "updated_at": "2026-11-09T22:15:59.000Z",
-              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=9e040df1-705a-4d0d-a84b-82d62bcf8845&odds_numerator[0]=2&odds_denominator[0]=1"
-            },
-            {
-              "bookmaker": "bovada",
-              "odds": 5.0,
-              "american_odds": "+400",
-              "updated_at": "2026-11-09T22:15:47.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "unibet",
-              "odds": 4.75,
-              "american_odds": "+375",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "pointsbet",
-              "odds": 5.25,
-              "american_odds": "+425",
-              "updated_at": "2026-11-09T22:15:43.000Z",
-              "deeplink": null
-            },
-            {
-              "bookmaker": "williamhill",
-              "odds": 5.2,
-              "american_odds": "+420",
-              "updated_at": "2026-11-09T22:15:24.000Z",
-              "deeplink": null
-            }
-          ],
           "model_p": 0.31582840016363944,
           "model_source": "sports_elo_v0.2",
           "model_state": "VALIDATED_HOLDOUT"
@@ -1849,26 +718,17 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261109",
-      "odds_source": "SPORTSGAMEODDS",
-      "odds_provider": "DraftKings",
-      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "score": {
+        "home": 18,
+        "away": 11
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "Draft Kings",
+      "odds_state": "SOURCE_LABELED_MARKET",
       "odds_data_state": "FRESH",
       "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909959",
       "home_ko": "골든스테이트 워리어스",
       "away_ko": "뉴올리언스 펠리컨스",
-      "odds_event_id": "WLq3Bh6XYeJ6aZy3a8bd",
-      "odds_league_id": "NBA",
-      "odds_books": [
-        "betmgm",
-        "bovada",
-        "caesars",
-        "draftkings",
-        "espnbet",
-        "fanduel",
-        "pointsbet",
-        "unibet",
-        "williamhill"
-      ],
       "model_source": "sports_elo_v0.2",
       "value_enabled": false,
       "model_history_scope": {
@@ -1939,7 +799,7 @@
     "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
     "hard_failures": [],
     "stale_events": 0,
-    "sports_multibook_status": "PASS"
+    "sports_multibook_status": "NO_ELIGIBLE_LEAGUE"
   },
   "sports_top3": {
     "version": "SPORTS_TOP3_V6_UNBIASED_OOS_CALIBRATED",
@@ -3026,7 +1886,8 @@
         "state": "READABLE"
       },
       "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
-    }
+    },
+    "snapshot_preserved_at": "2026-11-10T12:23:28.939792+09:00"
   },
   "team_name_localization": {
     "language": "ko",
@@ -3035,10 +1896,10 @@
   },
   "odds_provider": {
     "provider": "SportsGameOdds",
-    "status": "PASS",
+    "status": "NO_ELIGIBLE_LEAGUE",
     "plan_mode": "AMATEUR_LEAGUE_AWARE",
-    "events_enriched": 8,
-    "outcomes_enriched": 16,
+    "events_enriched": 0,
+    "outcomes_enriched": 0,
     "meta": [
       {
         "sport": "SOCCER",
@@ -3060,21 +1921,16 @@
       },
       {
         "sport": "BASKETBALL",
-        "status": "PASS",
-        "events": 8,
-        "next_cursor": null,
-        "league_ids": [
-          "NBA"
-        ],
-        "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
-        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
         "local_scheduled_competitions": [
-          "KBL",
-          "NBA"
+          "KBL"
         ],
         "unsupported_on_amateur": [
           "KBL"
-        ]
+        ],
+        "league_ids": [],
+        "events": 0
       },
       {
         "sport": "VOLLEYBALL",
@@ -3087,25 +1943,7 @@
       }
     ],
     "errors": [],
-    "updated_at": "2026-11-10T07:16:47.208332+09:00",
+    "updated_at": "2026-11-10T12:23:36.658391+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
-  },
-  "fast_results": {
-    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
-    "updated_at": "2026-11-10T11:47:17+09:00",
-    "polled_sports": [
-      "BASKETBALL"
-    ],
-    "field_changes": 14,
-    "providers": [
-      {
-        "sport": "BASKETBALL",
-        "status": "PASS",
-        "matched": 9,
-        "field_changes": 14,
-        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
-      }
-    ],
-    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
