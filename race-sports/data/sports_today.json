@@ -136,7 +136,7 @@
       "start_label": "09:30",
       "start_timestamp": 1794357000,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "New York Knicks vs Milwaukee Bucks",
       "home": "New York Knicks",
       "away": "Milwaukee Bucks",
@@ -175,10 +175,6 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261110",
-      "score": {
-        "home": 60,
-        "away": 40
-      },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
@@ -197,7 +193,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 117,
+        "away_score": 85,
+        "winner_key": "HOME",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-11T11:58:11.391623+09:00"
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909961",
@@ -252,8 +257,8 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261110",
       "score": {
-        "home": 28,
-        "away": 39
+        "home": 82,
+        "away": 94
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -288,7 +293,7 @@
       "start_label": "11:00",
       "start_timestamp": 1794362400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Phoenix Suns vs LA Clippers",
       "home": "Phoenix Suns",
       "away": "LA Clippers",
@@ -345,7 +350,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 51,
+        "away": 41
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909963",
@@ -360,7 +369,7 @@
       "start_label": "11:00",
       "start_timestamp": 1794362400,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Utah Jazz vs Miami Heat",
       "home": "Utah Jazz",
       "away": "Miami Heat",
@@ -560,7 +569,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 31,
+        "away": 41
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909964",
@@ -1352,7 +1365,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-11T09:35:13+09:00",
+      "updated_at": "2026-11-11T11:58:15+09:00",
       "summary": {
         "overall": {
           "picks": 29,
@@ -1726,18 +1739,18 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-11T09:35:13+09:00",
+      "generated_at": "2026-11-11T11:58:15+09:00",
       "overall": {
         "observed": 280,
-        "evaluated": 222,
-        "pending": 58,
-        "hits": 133,
+        "evaluated": 223,
+        "pending": 57,
+        "hits": 134,
         "misses": 89,
-        "hit_rate": 0.599099,
-        "mean_model_p": 0.592013,
-        "calibration_gap": 0.007086,
-        "wilson95_lower": 0.533475,
-        "wilson95_upper": 0.661352
+        "hit_rate": 0.600897,
+        "mean_model_p": 0.593091,
+        "calibration_gap": 0.007806,
+        "wilson95_lower": 0.535437,
+        "wilson95_upper": 0.662939
       },
       "bins": {
         "UNDER_50": {
@@ -1814,15 +1827,15 @@
         },
         "75_PLUS": {
           "observed": 24,
-          "evaluated": 22,
-          "pending": 2,
-          "hits": 19,
+          "evaluated": 23,
+          "pending": 1,
+          "hits": 20,
           "misses": 3,
-          "hit_rate": 0.863636,
-          "mean_model_p": 0.791938,
-          "calibration_gap": 0.071698,
-          "wilson95_lower": 0.66665,
-          "wilson95_upper": 0.95251
+          "hit_rate": 0.869565,
+          "mean_model_p": 0.793693,
+          "calibration_gap": 0.075872,
+          "wilson95_lower": 0.678725,
+          "wilson95_upper": 0.954623
         }
       },
       "by_sport": {
@@ -2029,15 +2042,15 @@
         "BASKETBALL": {
           "overall": {
             "observed": 139,
-            "evaluated": 130,
-            "pending": 9,
-            "hits": 75,
+            "evaluated": 131,
+            "pending": 8,
+            "hits": 76,
             "misses": 55,
-            "hit_rate": 0.576923,
-            "mean_model_p": 0.642391,
-            "calibration_gap": -0.065467,
-            "wilson95_lower": 0.490987,
-            "wilson95_upper": 0.658444
+            "hit_rate": 0.580153,
+            "mean_model_p": 0.64384,
+            "calibration_gap": -0.063688,
+            "wilson95_lower": 0.494536,
+            "wilson95_upper": 0.661202
           },
           "bins": {
             "UNDER_50": {
@@ -2114,15 +2127,15 @@
             },
             "75_PLUS": {
               "observed": 21,
-              "evaluated": 20,
-              "pending": 1,
-              "hits": 17,
+              "evaluated": 21,
+              "pending": 0,
+              "hits": 18,
               "misses": 3,
-              "hit_rate": 0.85,
-              "mean_model_p": 0.792532,
-              "calibration_gap": 0.057468,
-              "wilson95_lower": 0.639581,
-              "wilson95_upper": 0.947631
+              "hit_rate": 0.857143,
+              "mean_model_p": 0.794426,
+              "calibration_gap": 0.062717,
+              "wilson95_lower": 0.653639,
+              "wilson95_upper": 0.95019
             }
           }
         },
@@ -2305,5 +2318,23 @@
     "errors": [],
     "updated_at": "2026-11-11T10:48:36.986506+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-11T11:58:11+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 8,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 8,
+        "field_changes": 8,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
