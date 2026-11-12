@@ -1,0 +1,2370 @@
+{
+  "date": "2026-11-13",
+  "time": "03:28:16",
+  "generated_at": "2026-11-13T03:28:16.761770+09:00",
+  "domain": "SPORTS",
+  "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
+  "enabled_sports": [
+    "SOCCER",
+    "BASEBALL",
+    "BASKETBALL",
+    "VOLLEYBALL"
+  ],
+  "providers": [
+    {
+      "provider": "SPORTS_SOCCER_ESPN_PUBLIC+KLEAGUE_OFFICIAL",
+      "sport": "SOCCER",
+      "status": "PASS",
+      "requests": 38,
+      "successful_requests": 36,
+      "raw_events": 55,
+      "top_tier_events": 15,
+      "odds_events": 13,
+      "odds_summary_requests": 15,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASEBALL_ESPN_PUBLIC+KBO_OFFICIAL",
+      "sport": "BASEBALL",
+      "status": "PASS",
+      "requests": 3,
+      "successful_requests": 3,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASKETBALL_ESPN_PUBLIC+KBL_OFFICIAL",
+      "sport": "BASKETBALL",
+      "status": "PASS",
+      "requests": 7,
+      "successful_requests": 7,
+      "raw_events": 14,
+      "top_tier_events": 5,
+      "odds_events": 4,
+      "odds_summary_requests": 4,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_VOLLEYBALL_DAUM_SPORTS_PUBLIC_FALLBACK",
+      "sport": "VOLLEYBALL",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_ODDS_MULTIBOOK",
+      "sport": "ALL",
+      "status": "PASS",
+      "plan_mode": "AMATEUR_LEAGUE_AWARE",
+      "events_enriched": 4,
+      "outcomes_enriched": 8,
+      "meta": [
+        {
+          "sport": "SOCCER",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [
+            "International Friendly",
+            "UEFA Nations League"
+          ],
+          "unsupported_on_amateur": [
+            "International Friendly",
+            "UEFA Nations League"
+          ],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASEBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASKETBALL",
+          "status": "PASS",
+          "events": 4,
+          "next_cursor": null,
+          "league_ids": [
+            "NBA"
+          ],
+          "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+          "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+          "local_scheduled_competitions": [
+            "KBL",
+            "NBA"
+          ],
+          "unsupported_on_amateur": [
+            "KBL"
+          ]
+        },
+        {
+          "sport": "VOLLEYBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        }
+      ],
+      "errors": [],
+      "updated_at": "2026-11-13T03:28:27.768093+09:00",
+      "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+    }
+  ],
+  "events": [
+    {
+      "id": "SPORTS-SOCCER-401930962",
+      "provider_event_id": "401930962",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "00:00",
+      "start_label": "00:00",
+      "start_timestamp": 1794495600,
+      "time_known": true,
+      "status": "FINAL",
+      "title": "Uzbekistan vs Russia",
+      "home": "Uzbekistan",
+      "away": "Russia",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Uzbekistan",
+          "name_ko": "우즈베키스탄",
+          "model_p": 0.38393826539713327,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "name_ko": "무승부",
+          "model_p": 0.25706693116493473,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Russia",
+          "name_ko": "러시아",
+          "model_p": 0.358994803437932,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261112",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 2,
+        "away_score": 3,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-13T03:28:17.437576+09:00"
+      },
+      "home_ko": "우즈베키스탄",
+      "away_ko": "러시아",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 48,
+        "away_team_games": 28,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861145",
+      "provider_event_id": "401861145",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "02:00",
+      "start_label": "02:00",
+      "start_timestamp": 1794502800,
+      "time_known": true,
+      "status": "LIVE",
+      "title": "Türkiye vs Belgium",
+      "home": "Türkiye",
+      "away": "Belgium",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Türkiye",
+          "odds": 3.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.628591+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.46267600590795827,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.9,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.628591+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.24113368054480352,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Belgium",
+          "odds": 1.8333,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.628591+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.2961903135472382,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861145",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 25,
+        "away_team_games": 27,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861146",
+      "provider_event_id": "401861146",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "02:00",
+      "start_label": "02:00",
+      "start_timestamp": 1794502800,
+      "time_known": true,
+      "status": "LIVE",
+      "title": "Armenia vs Cyprus",
+      "home": "Armenia",
+      "away": "Cyprus",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Armenia",
+          "odds": 3.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.853970+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.43521800971087726,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.15,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.853970+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.24660283322899096,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Cyprus",
+          "odds": 2.3,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.853970+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.31817915706013183,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861146",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 27,
+        "away_team_games": 27,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401933115",
+      "provider_event_id": "401933115",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "02:00",
+      "start_label": "02:00",
+      "start_timestamp": 1794502800,
+      "time_known": true,
+      "status": "LIVE",
+      "title": "Lithuania vs Suriname",
+      "home": "Lithuania",
+      "away": "Suriname",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Lithuania",
+          "odds": 3.15,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.738802+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "리투아니아",
+          "model_p": 0.21933415816879054,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.15,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.738802+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.22202321093272814,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Suriname",
+          "odds": 2.4,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.738802+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.5586426308984813,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261112",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/summary?event=401933115",
+      "home_ko": "리투아니아",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 21,
+        "away_team_games": 9,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401931296",
+      "provider_event_id": "401931296",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "02:30",
+      "start_label": "02:30",
+      "start_timestamp": 1794504600,
+      "time_known": true,
+      "status": "LIVE",
+      "title": "Malta vs Eswatini",
+      "home": "Malta",
+      "away": "Eswatini",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Malta",
+          "odds": 1.4878,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.663365+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "몰타",
+          "model_p": 0.4057368906831371,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 4.2,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.663365+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.252565254070301,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Eswatini",
+          "odds": 6.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.663365+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.34169785524656193,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261112",
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/summary?event=401931296",
+      "home_ko": "몰타",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 21,
+        "away_team_games": 11,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861147",
+      "provider_event_id": "401861147",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1794512700,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Albania vs Finland",
+      "home": "Albania",
+      "away": "Finland",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Albania",
+          "odds": 2.05,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.736071+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.5625146205052695,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 2.95,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.736071+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.22123470732215117,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Finland",
+          "odds": 4.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.736071+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.21625067217257932,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861147",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 21,
+        "away_team_games": 25,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861148",
+      "provider_event_id": "401861148",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1794512700,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Czechia vs Spain",
+      "home": "Czechia",
+      "away": "Spain",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Czechia",
+          "odds": 10.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.763382+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "체코",
+          "model_p": 0.25852679192544537,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 6.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.763382+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23184208734579795,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Spain",
+          "odds": 1.2222,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.763382+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "스페인",
+          "model_p": 0.5096311207287567,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861148",
+      "home_ko": "체코",
+      "away_ko": "스페인",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 24,
+        "away_team_games": 30,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861149",
+      "provider_event_id": "401861149",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1794512700,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "San Marino vs Belarus",
+      "home": "San Marino",
+      "away": "Belarus",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "San Marino",
+          "name_ko": "산마리노",
+          "model_p": 0.1898940535631559,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "name_ko": "무승부",
+          "model_p": 0.2143422247523955,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Belarus",
+          "name_ko": "벨라루스",
+          "model_p": 0.5957637216844487,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "home_ko": "산마리노",
+      "away_ko": "벨라루스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 20,
+        "away_team_games": 26,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861150",
+      "provider_event_id": "401861150",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1794512700,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "England vs Croatia",
+      "home": "England",
+      "away": "Croatia",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "England",
+          "odds": 1.2353,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.864679+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "잉글랜드",
+          "model_p": 0.5104724993594435,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 6.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.864679+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23167525528391222,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Croatia",
+          "odds": 10.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.864679+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "크로아티아",
+          "model_p": 0.25785224535664436,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861150",
+      "home_ko": "잉글랜드",
+      "away_ko": "크로아티아",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 26,
+        "away_team_games": 28,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861151",
+      "provider_event_id": "401861151",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1794512700,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Italy vs France",
+      "home": "Italy",
+      "away": "France",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Italy",
+          "odds": 3.55,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.895475+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.443819718070884,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.895475+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.24488300826639897,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "France",
+          "odds": 1.9524,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.895475+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.31129727366271703,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861151",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 29,
+        "away_team_games": 27,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401861152",
+      "provider_event_id": "401861152",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "UEFA Nations League",
+      "event_date": "2026-11-13",
+      "start_time": "04:45",
+      "start_label": "04:45",
+      "start_timestamp": 1794512700,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Montenegro vs Latvia",
+      "home": "Montenegro",
+      "away": "Latvia",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Montenegro",
+          "odds": 1.2353,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.952005+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.4958102776656145,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 5.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.952005+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23457851455195414,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Latvia",
+          "odds": 11.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.952005+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.2696112077824314,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/scoreboard?dates=20261112",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.nations/summary?event=401861152",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "UEFA Nations League",
+        "competition_games": 685,
+        "home_team_games": 25,
+        "away_team_games": 25,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909976",
+      "provider_event_id": "401909976",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-13",
+      "start_time": "09:00",
+      "start_label": "09:00",
+      "start_timestamp": 1794528000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Philadelphia 76ers vs Toronto Raptors",
+      "home": "Philadelphia 76ers",
+      "away": "Toronto Raptors",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Philadelphia 76ers",
+          "odds": 1.3509,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "필라델피아 세븐티식서스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.3509,
+              "american_odds": "-285",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003210?outcomes=0ML87200729_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.3226,
+              "american_odds": "-310",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200496&selectionId=40274538"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.3509,
+              "american_odds": "-285",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050403?options=20050403-1571885005-2333238680"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.3509,
+              "american_odds": "-285",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=dc51e134-ef60-3ce8-9e1b-39434fe40deb"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.3571,
+              "american_odds": "-280",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=7106012a-ca44-416f-a30d-9e5dce1adac1&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.3571,
+              "american_odds": "-280",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.3401,
+              "american_odds": "-294",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.3597,
+              "american_odds": "-278",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.3333,
+              "american_odds": "-300",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.6553015369833668,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Toronto Raptors",
+          "odds": 3.32,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "토론토 랩터스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 3.32,
+              "american_odds": "+232",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003210?outcomes=0ML87200729_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 3.5,
+              "american_odds": "+250",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200496&selectionId=237476"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 3.25,
+              "american_odds": "+225",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050403?options=20050403-1571885005-2333238679"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 3.28,
+              "american_odds": "+228",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=5f8030c6-eafe-3ab4-801d-5fa741c9c543"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=2c68d354-c01b-4c35-a753-66caf4cd180b&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 3.35,
+              "american_odds": "+235",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 3.3,
+              "american_odds": "+230",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.3446984630166332,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261112",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909976",
+      "home_ko": "필라델피아 세븐티식서스",
+      "away_ko": "토론토 랩터스",
+      "odds_event_id": "GooCbrgiRHcJUdKfs4Ds",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11809,
+        "home_team_games": 812,
+        "away_team_games": 796,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909977",
+      "provider_event_id": "401909977",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-13",
+      "start_time": "09:00",
+      "start_label": "09:00",
+      "start_timestamp": 1794528000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Washington Wizards vs Detroit Pistons",
+      "home": "Washington Wizards",
+      "away": "Detroit Pistons",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Washington Wizards",
+          "odds": 4.6,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "워싱턴 위저즈",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 4.6,
+              "american_odds": "+360",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003213?outcomes=0ML87200732_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 4.8,
+              "american_odds": "+380",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200491&selectionId=237485"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 4.6,
+              "american_odds": "+360",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050404?options=20050404-1571885008-2333238682"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 4.5,
+              "american_odds": "+350",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=6d5cd163-dc75-3fee-afbd-7ebc34457fda"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 4.6,
+              "american_odds": "+360",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=43f0ec8e-cb08-4182-a140-6a12ecca1f91&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 4.45,
+              "american_odds": "+345",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 4.5,
+              "american_odds": "+350",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 4.5,
+              "american_odds": "+350",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 4.5,
+              "american_odds": "+350",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.19764601283736516,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Detroit Pistons",
+          "odds": 1.2141,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "디트로이트 피스턴스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.2141,
+              "american_odds": "-467",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003213?outcomes=0ML87200732_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.2041,
+              "american_odds": "-490",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200491&selectionId=237474"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.2105,
+              "american_odds": "-475",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050404?options=20050404-1571885008-2333238681"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.2083,
+              "american_odds": "-480",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=877baeb4-63b1-342f-8375-42255c7c1818"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.2,
+              "american_odds": "-500",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=844c1580-d22b-4df9-8272-270381108542&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.2128,
+              "american_odds": "-470",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.2101,
+              "american_odds": "-476",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.2198,
+              "american_odds": "-455",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.2,
+              "american_odds": "-500",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.8023539871626348,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261112",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909977",
+      "home_ko": "워싱턴 위저즈",
+      "away_ko": "디트로이트 피스턴스",
+      "odds_event_id": "zYWeeTgz33wFbjbXdlsm",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11809,
+        "home_team_games": 743,
+        "away_team_games": 750,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909978",
+      "provider_event_id": "401909978",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-13",
+      "start_time": "10:00",
+      "start_label": "10:00",
+      "start_timestamp": 1794531600,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Minnesota Timberwolves vs Dallas Mavericks",
+      "home": "Minnesota Timberwolves",
+      "away": "Dallas Mavericks",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Minnesota Timberwolves",
+          "odds": 1.4484,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "미네소타 팀버울브스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.4484,
+              "american_odds": "-223",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003214?outcomes=0ML87200733_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.4348,
+              "american_odds": "-230",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200488&selectionId=237478"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.4444,
+              "american_odds": "-225",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050405?options=20050405-1571885011-2333238684"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.4255,
+              "american_odds": "-235",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=608ba99c-a75b-37f1-8260-07d5bb46dbd2"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.4651,
+              "american_odds": "-215",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=74644f0c-7793-44b9-b152-17716d3d7e7c&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.4545,
+              "american_odds": "-220",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.4808,
+              "american_odds": "-208",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.4405,
+              "american_odds": "-227",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.4,
+              "american_odds": "-250",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.7578715235762222,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Dallas Mavericks",
+          "odds": 2.85,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "댈러스 매버릭스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 2.85,
+              "american_odds": "+185",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003214?outcomes=0ML87200733_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 2.9,
+              "american_odds": "+190",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200488&selectionId=237472"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 2.85,
+              "american_odds": "+185",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050405?options=20050405-1571885011-2333238683"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 2.92,
+              "american_odds": "+192",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=37397312-61d6-3d2f-9822-81d610cc4b54"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 2.8,
+              "american_odds": "+180",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=194875f5-4b2c-46c1-bd2c-c4da67a9ef04&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 2.8,
+              "american_odds": "+180",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 2.7,
+              "american_odds": "+170",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 2.85,
+              "american_odds": "+185",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 2.9,
+              "american_odds": "+190",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.24212847642377777,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261112",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909978",
+      "home_ko": "미네소타 팀버울브스",
+      "away_ko": "댈러스 매버릭스",
+      "odds_event_id": "qyRGv34UwQKC6G1Kax86",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11809,
+        "home_team_games": 790,
+        "away_team_games": 784,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401909979",
+      "provider_event_id": "401909979",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-13",
+      "start_time": "11:00",
+      "start_label": "11:00",
+      "start_timestamp": 1794535200,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Phoenix Suns vs Charlotte Hornets",
+      "home": "Phoenix Suns",
+      "away": "Charlotte Hornets",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Phoenix Suns",
+          "odds": 1.4098,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "피닉스 선스",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 1.4098,
+              "american_odds": "-244",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003219?outcomes=0ML87200779_1"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 1.4167,
+              "american_odds": "-240",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200485&selectionId=237487"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 1.4255,
+              "american_odds": "-235",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050406?options=20050406-1571885014-2333238686"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 1.4444,
+              "american_odds": "-225",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=31ec0b1c-2cfd-374f-9b3b-c72e87b5757f"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 1.4348,
+              "american_odds": "-230",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=fa13ae42-eb8a-4138-bae1-219cd3e0bd16&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 1.4545,
+              "american_odds": "-220",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 1.4292,
+              "american_odds": "-233",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 1.4405,
+              "american_odds": "-227",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 1.3636,
+              "american_odds": "-275",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.5498126875609519,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Charlotte Hornets",
+          "odds": 3.01,
+          "odds_source": "SPORTSGAMEODDS",
+          "odds_provider": "draftkings",
+          "odds_capture_mode": "PRE_GAME_MULTI_BOOK",
+          "odds_updated_at": "2026-11-12T18:28:02.712Z",
+          "odds_data_state": "FRESH",
+          "name_ko": "샬럿 호네츠",
+          "bookmaker_odds": [
+            {
+              "bookmaker": "draftkings",
+              "odds": 3.01,
+              "american_odds": "+201",
+              "updated_at": "2026-11-12T18:28:02.712Z",
+              "deeplink": "https://sportsbook.draftkings.com/event/35003219?outcomes=0ML87200779_3"
+            },
+            {
+              "bookmaker": "fanduel",
+              "odds": 2.98,
+              "american_odds": "+198",
+              "updated_at": "2026-11-12T18:27:07.320Z",
+              "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.624200485&selectionId=8622709"
+            },
+            {
+              "bookmaker": "betmgm",
+              "odds": 2.9,
+              "american_odds": "+190",
+              "updated_at": "2026-11-12T18:28:20.481Z",
+              "deeplink": "https://www.nj.betmgm.com/en/sports/events/20050406?options=20050406-1571885014-2333238685"
+            },
+            {
+              "bookmaker": "caesars",
+              "odds": 2.85,
+              "american_odds": "+185",
+              "updated_at": "2026-11-12T18:25:30.000Z",
+              "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=7f6eb328-cfc4-32e5-bd09-e4c63282a636"
+            },
+            {
+              "bookmaker": "espnbet",
+              "odds": 2.95,
+              "american_odds": "+195",
+              "updated_at": "2026-11-12T18:27:21.000Z",
+              "deeplink": "https://espnbet.app.link/?market_selection_id[0]=a1827201-915a-493a-bd72-ed596a99cda6&odds_numerator[0]=2&odds_denominator[0]=1"
+            },
+            {
+              "bookmaker": "bovada",
+              "odds": 2.8,
+              "american_odds": "+180",
+              "updated_at": "2026-11-12T18:28:04.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "unibet",
+              "odds": 2.9,
+              "american_odds": "+190",
+              "updated_at": "2026-11-12T18:28:02.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "pointsbet",
+              "odds": 2.85,
+              "american_odds": "+185",
+              "updated_at": "2026-11-12T18:27:42.000Z",
+              "deeplink": null
+            },
+            {
+              "bookmaker": "williamhill",
+              "odds": 3.1,
+              "american_odds": "+210",
+              "updated_at": "2026-11-12T18:27:22.000Z",
+              "deeplink": null
+            }
+          ],
+          "model_p": 0.4501873124390481,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261112",
+      "odds_source": "SPORTSGAMEODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "MULTI_BOOK_SOURCE_LABELED",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401909979",
+      "home_ko": "피닉스 선스",
+      "away_ko": "샬럿 호네츠",
+      "odds_event_id": "qYQYMC2IlSMiW7lPrCTz",
+      "odds_league_id": "NBA",
+      "odds_books": [
+        "betmgm",
+        "bovada",
+        "caesars",
+        "draftkings",
+        "espnbet",
+        "fanduel",
+        "pointsbet",
+        "unibet",
+        "williamhill"
+      ],
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11809,
+        "home_team_games": 787,
+        "away_team_games": 732,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-KBL-S49G01N66",
+      "provider_event_id": "S49G01N66",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "KBL_OFFICIAL",
+      "provider_kind": "OFFICIAL_JSON_API",
+      "competition": "KBL",
+      "event_date": "2026-11-13",
+      "start_time": "19:00",
+      "start_label": "19:00",
+      "start_timestamp": 1794564000,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "원주 DB vs 수원 KT",
+      "home": "원주 DB",
+      "away": "수원 KT",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "원주 DB",
+          "model_p": 0.5156611177225885,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "수원 KT",
+          "model_p": 0.48433888227741145,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "KBL_SEASON_GRADE_1",
+      "data_state": "FRESH",
+      "source_url": "https://api.kbl.or.kr/match/list?fromDate=20261113&toDate=20261113&tcodeList=all&seasonGrade=1",
+      "venue": "원주DB프로미아레나",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "KBL",
+        "competition_games": 2230,
+        "home_team_games": 243,
+        "away_team_games": 269,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401916338",
+      "provider_event_id": "401916338",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "21:00",
+      "start_label": "21:00",
+      "start_timestamp": 1794571200,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Singapore vs Paraguay",
+      "home": "Singapore",
+      "away": "Paraguay",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Singapore",
+          "odds": 23.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.039786+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.38903511374688976,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 12.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.039786+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.2560057241932336,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Paraguay",
+          "odds": 1.0714,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.039786+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.3549591620598766,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261113",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/summary?event=401916338",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 27,
+        "away_team_games": 25,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401931957",
+      "provider_event_id": "401931957",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "23:15",
+      "start_label": "23:15",
+      "start_timestamp": 1794579300,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "United Arab Emirates vs Honduras",
+      "home": "United Arab Emirates",
+      "away": "Honduras",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "United Arab Emirates",
+          "odds": 2.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.949343+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "아랍에미리트",
+          "model_p": 0.5444747144198978,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.25,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.949343+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.22488893289894807,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Honduras",
+          "odds": 3.7,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:17.949343+09:00",
+          "odds_data_state": "FRESH",
+          "model_p": 0.23063635268115412,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261113",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/summary?event=401931957",
+      "home_ko": "아랍에미리트",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 32,
+        "away_team_games": 27,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401931476",
+      "provider_event_id": "401931476",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "23:30",
+      "start_label": "23:30",
+      "start_timestamp": 1794580200,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Saudi Arabia vs South Korea",
+      "home": "Saudi Arabia",
+      "away": "South Korea",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Saudi Arabia",
+          "odds": 4.4,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.099514+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "사우디아라비아",
+          "model_p": 0.2610454104346299,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.55,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.099514+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23246463545379048,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "South Korea",
+          "odds": 1.8333,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.099514+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "대한민국",
+          "model_p": 0.5064899541115797,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261113",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/summary?event=401931476",
+      "home_ko": "사우디아라비아",
+      "away_ko": "대한민국",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 42,
+        "away_team_games": 44,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-SOCCER-401919978",
+      "provider_event_id": "401919978",
+      "domain": "SPORTS",
+      "sport": "SOCCER",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "International Friendly",
+      "event_date": "2026-11-13",
+      "start_time": "23:45",
+      "start_label": "23:45",
+      "start_timestamp": 1794581100,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Qatar vs Australia",
+      "home": "Qatar",
+      "away": "Australia",
+      "market_type": "THREE_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Qatar",
+          "odds": 3.5,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.036107+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "카타르",
+          "model_p": 0.4941394364698268,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "DRAW",
+          "name": "무승부",
+          "odds": 3.35,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.036107+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "무승부",
+          "model_p": 0.23490896228905564,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Australia",
+          "odds": 2.1,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-13T03:28:18.036107+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "호주",
+          "model_p": 0.27095160124111756,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/scoreboard?dates=20261113",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.friendly/summary?event=401919978",
+      "home_ko": "카타르",
+      "away_ko": "호주",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "International Friendly",
+        "competition_games": 2130,
+        "home_team_games": 49,
+        "away_team_games": 19,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    }
+  ],
+  "integrity": {
+    "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
+    "hard_failures": [],
+    "stale_events": 0,
+    "sports_multibook_status": "PASS"
+  },
+  "team_name_localization": {
+    "language": "ko",
+    "translated_fields": 23,
+    "missing_team_names": [
+      "Albania",
+      "Armenia",
+      "Belgium",
+      "Cyprus",
+      "Eswatini",
+      "Finland",
+      "France",
+      "Honduras",
+      "Italy",
+      "Latvia",
+      "Montenegro",
+      "Paraguay",
+      "Singapore",
+      "Suriname",
+      "Türkiye"
+    ]
+  },
+  "odds_provider": {
+    "provider": "SportsGameOdds",
+    "status": "PASS",
+    "plan_mode": "AMATEUR_LEAGUE_AWARE",
+    "events_enriched": 4,
+    "outcomes_enriched": 8,
+    "meta": [
+      {
+        "sport": "SOCCER",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [
+          "International Friendly",
+          "UEFA Nations League"
+        ],
+        "unsupported_on_amateur": [
+          "International Friendly",
+          "UEFA Nations League"
+        ],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "events": 4,
+        "next_cursor": null,
+        "league_ids": [
+          "NBA"
+        ],
+        "bookmaker_filter": "PLAN_ACCESSIBLE_BOOKMAKERS",
+        "query_mode": "AMATEUR_LEAGUE_AWARE_MAIN_MONEYLINE",
+        "local_scheduled_competitions": [
+          "KBL",
+          "NBA"
+        ],
+        "unsupported_on_amateur": [
+          "KBL"
+        ]
+      },
+      {
+        "sport": "VOLLEYBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      }
+    ],
+    "errors": [],
+    "updated_at": "2026-11-13T03:28:27.768093+09:00",
+    "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  }
+}
