@@ -136,7 +136,7 @@
       "start_label": "09:00",
       "start_timestamp": 1794441600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Indiana Pacers vs Washington Wizards",
       "home": "Indiana Pacers",
       "away": "Washington Wizards",
@@ -336,7 +336,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 29,
+        "away": 34
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909967",
@@ -351,7 +355,7 @@
       "start_label": "09:00",
       "start_timestamp": 1794441600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "New York Knicks vs Cleveland Cavaliers",
       "home": "New York Knicks",
       "away": "Cleveland Cavaliers",
@@ -551,7 +555,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 23,
+        "away": 33
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909968",
@@ -566,7 +574,7 @@
       "start_label": "09:00",
       "start_timestamp": 1794441600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Toronto Raptors vs Boston Celtics",
       "home": "Toronto Raptors",
       "away": "Boston Celtics",
@@ -766,7 +774,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 38,
+        "away": 29
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909969",
@@ -2628,7 +2640,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-12T07:59:32+09:00",
+      "updated_at": "2026-11-12T09:43:24+09:00",
       "summary": {
         "overall": {
           "picks": 30,
@@ -2991,7 +3003,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-12T07:59:32+09:00",
+      "generated_at": "2026-11-12T09:43:24+09:00",
       "overall": {
         "observed": 292,
         "evaluated": 228,
@@ -3570,5 +3582,23 @@
     "errors": [],
     "updated_at": "2026-11-12T08:36:16.765925+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-12T09:43:20+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 6,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 11,
+        "field_changes": 6,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
