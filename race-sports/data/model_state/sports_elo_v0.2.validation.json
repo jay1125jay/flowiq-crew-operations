@@ -1,6 +1,24 @@
 {
   "model": "sports_elo_v0.2",
   "validation": {
+    "BASKETBALL": {
+      "games": 14039,
+      "holdout_rows": 4212,
+      "walk_forward_rows": 4212,
+      "accuracy": 0.646486,
+      "log_loss": 0.62773,
+      "brier": 0.218973,
+      "uniform_log_loss": 0.693147,
+      "log_loss_edge": 0.065417,
+      "validated": true,
+      "selected_params": {
+        "k": 28.0,
+        "home_adv": 50.0,
+        "scale": 430.0,
+        "shrink": 0.8
+      },
+      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
+    },
     "BASEBALL": {
       "games": 29728,
       "holdout_rows": 8919,
@@ -19,20 +37,20 @@
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     },
-    "BASKETBALL": {
-      "games": 14039,
-      "holdout_rows": 4212,
-      "walk_forward_rows": 4212,
-      "accuracy": 0.646486,
-      "log_loss": 0.62773,
-      "brier": 0.218973,
+    "VOLLEYBALL": {
+      "games": 1856,
+      "holdout_rows": 557,
+      "walk_forward_rows": 557,
+      "accuracy": 0.644524,
+      "log_loss": 0.638831,
+      "brier": 0.223622,
       "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.065417,
+      "log_loss_edge": 0.054316,
       "validated": true,
       "selected_params": {
-        "k": 28.0,
-        "home_adv": 50.0,
-        "scale": 430.0,
+        "k": 36.0,
+        "home_adv": 20.0,
+        "scale": 320.0,
         "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
@@ -52,24 +70,6 @@
         "home_adv": 60.0,
         "scale": 350.0,
         "shrink": 1.0
-      },
-      "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
-    },
-    "VOLLEYBALL": {
-      "games": 1856,
-      "holdout_rows": 557,
-      "walk_forward_rows": 557,
-      "accuracy": 0.644524,
-      "log_loss": 0.638831,
-      "brier": 0.223622,
-      "uniform_log_loss": 0.693147,
-      "log_loss_edge": 0.054316,
-      "validated": true,
-      "selected_params": {
-        "k": 36.0,
-        "home_adv": 20.0,
-        "scale": 320.0,
-        "shrink": 0.8
       },
       "validation_contract": "CHRONOLOGICAL_70_30_HOLDOUT_NO_FUTURE_LEAKAGE"
     }
