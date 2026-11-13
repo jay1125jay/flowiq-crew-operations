@@ -26,6 +26,10 @@ def main():
                 errors=[]; page.on('pageerror',lambda error:errors.append(str(error)))
                 page.goto(url,wait_until='domcontentloaded')
                 page.wait_for_function("document.querySelectorAll('#accountGrid .account-card').length===6")
+                # Both cloud legacy positions and PC live positions must show PnL.
+                assert page.evaluate("posPnl({side:'LONG',entry:70000,qty:0.1,notional_usd:7000},71000)") == 150000
+                assert page.evaluate("posPnl({side:'SHORT',entry_price:70000,notional_usd:7000},69000)") == 150000
+                assert page.evaluate("posPnl({side:'LONG',entry:0,qty:0},69000)") is None
                 assert '18,000,000원' in page.locator('#totalPnl').inner_text()
                 assert page.locator('#modeChip').inner_text().startswith('● 클라우드 5분')
                 assert page.locator('#accountGrid .account-card').count()==6
