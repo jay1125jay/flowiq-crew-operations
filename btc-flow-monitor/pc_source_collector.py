@@ -26,7 +26,7 @@ def _short_error(exc):
     return f'{type(exc).__name__}: {text[:180]}' if text else type(exc).__name__
 
 
-def collect_sources(directory, shared, stop):
+def collect_sources(directory, shared, stop, *, position_interval=TARGET_REFRESH_SECONDS):
     """Collect public sources without marking freshly completed slow cycles as stale."""
     work = directory / 'collector'
     if not work.exists():
@@ -37,11 +37,13 @@ def collect_sources(directory, shared, stop):
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
 
+    next_catalog_refresh = 0.0
     while not stop.is_set():
+        refresh_catalog = time.monotonic() >= next_catalog_refresh
         cycle_started = time.time()
         failed = False
         try:
-            for script in SCRIPTS:
+            for script in (SCRIPTS if refresh_catalog else SCRIPTS[-1:]):
                 remaining = COLLECTION_DEADLINE_SECONDS - (time.time() - cycle_started)
                 if remaining <= 0 or stop.is_set():
                     raise TimeoutError(f'collection deadline before {script}')
@@ -90,6 +92,8 @@ def collect_sources(directory, shared, stop):
                 bundle['cohorts'], bundle['positions'], bundle['market'], bundle['ranking'], base.iso(completed_at)
             )
             shared.set(bundle, None)
+            if refresh_catalog:
+                next_catalog_refresh = time.monotonic() + TARGET_REFRESH_SECONDS if position_interval < TARGET_REFRESH_SECONDS else 0.0
         except Exception as exc:
             failed = True
             shared.set(None, _short_error(exc))
@@ -98,4 +102,4 @@ def collect_sources(directory, shared, stop):
         if failed:
             stop.wait(RETRY_DELAY_SECONDS)
         else:
-            stop.wait(max(1, TARGET_REFRESH_SECONDS - elapsed))
+            stop.wait(max(1, position_interval - elapsed))
