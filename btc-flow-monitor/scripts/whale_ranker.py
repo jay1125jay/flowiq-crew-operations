@@ -2,7 +2,7 @@
 """BTC trader skill screening with strict forward-only fill cursor. PAPER ONLY."""
 import datetime as dt, hashlib, json, math, pathlib, re, time, urllib.error, urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]; DATA=ROOT/"data"; API="https://api.hyperliquid.xyz/info"; ADDRESS=re.compile(r"^0x[a-fA-F0-9]{40}$")
-SCAN_BATCH=8; POOL_LIMIT=64; MIN_VERIFIED_CLOSES=20; MIN_VERIFIED_DAYS=7; SLIPPAGE_BPS=3.0; MIN_CANDIDATE_CLOSES=20; MIN_CANDIDATE_WIN_RATE=.45; MIN_CANDIDATE_PF=1.05
+SCAN_BATCH=8; POOL_LIMIT=176; MIN_VERIFIED_CLOSES=20; MIN_VERIFIED_DAYS=7; SLIPPAGE_BPS=3.0; MIN_CANDIDATE_CLOSES=20; MIN_CANDIDATE_WIN_RATE=.45; MIN_CANDIDATE_PF=1.05
 
 def query(p):
  r=urllib.request.Request(API,data=json.dumps(p).encode(),headers={"Content-Type":"application/json","User-Agent":"BTC-Flow-Paper-Research/3.0"},method="POST")
