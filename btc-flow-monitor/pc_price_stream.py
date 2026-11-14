@@ -12,13 +12,12 @@ import urllib.request
 import realtime_runtime as base
 
 INFO_URL = 'https://api.hyperliquid.xyz/info'
-REST_FALLBACK_SECONDS = 30
 REST_INTERVAL_SECONDS = 1.0
 WS_SILENCE_SECONDS = 5
 
 
-def _rest_btc_mid():
-    body = json.dumps({'type': 'allMids'}).encode('utf-8')
+def _rest_book():
+    body = json.dumps({'type': 'l2Book', 'coin': 'BTC'}).encode('utf-8')
     request = urllib.request.Request(
         INFO_URL,
         data=body,
@@ -27,42 +26,35 @@ def _rest_btc_mid():
     )
     with urllib.request.urlopen(request, timeout=6) as response:
         payload = json.loads(response.read().decode('utf-8'))
-    price = float(payload['BTC'])
-    if not 1000 < price < 1000000:
-        raise ValueError('invalid REST BTC mid')
-    return price
+    bids, asks = payload['levels']
+    return {'channel': 'bbo', 'data': {
+        'coin': payload['coin'], 'time': payload['time'], 'bbo': [bids[0], asks[0]],
+    }}
 
 
-def _accept_rest_quote(quotes, price):
-    now = time.time()
-    ms = int(now * 1000)
-    if ms <= quotes.highwater:
-        ms = quotes.highwater + 1
-    quotes.highwater = ms
+def _publish(quotes, message, source):
+    if not quotes.receive(message, time.time()):
+        return False
+    quotes.latest['source'] = source
     quotes.connected = True
-    quotes.latest = {
-        'ms': ms,
-        'received_at': now,
-        'price': price,
-        'source': 'HYPERLIQUID_REST_ALL_MIDS',
-    }
+    return True
 
 
 async def _rest_fallback(quotes, stop):
-    end = time.monotonic() + REST_FALLBACK_SECONDS
-    while not stop.is_set() and time.monotonic() < end:
-        try:
-            price = await asyncio.to_thread(_rest_btc_mid)
-            _accept_rest_quote(quotes, price)
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            quotes.reconnects += 1
-            quotes.disconnect()
+    while not stop.is_set():
+        latest = quotes.latest
+        if not latest or latest.get('source') != 'HYPERLIQUID_WS_BBO' or (
+            time.time() - latest['ms'] / 1000 >= REST_INTERVAL_SECONDS * 2
+        ):
+            try:
+                book = await asyncio.to_thread(_rest_book)
+                _publish(quotes, book, 'HYPERLIQUID_REST_L2_BOOK')
+            except (OSError, ValueError, KeyError, IndexError, TypeError):
+                pass  # The normal quote TTL expires the last verified price.
         await asyncio.sleep(REST_INTERVAL_SECONDS)
 
 
-async def stream(quotes, stop):
+async def _websocket_stream(quotes, stop):
     """Prefer BBO WebSocket; automatically fall back to public REST on PC networks."""
     from websockets.asyncio.client import connect
 
@@ -77,8 +69,6 @@ async def stream(quotes, stop):
                 max_size=65536,
                 max_queue=4,
             ) as ws:
-                quotes.disconnect()
-                quotes.connected = True
                 await ws.send(json.dumps({'method': 'subscribe', 'subscription': {'type': 'bbo', 'coin': 'BTC'}}))
                 last_valid = time.monotonic()
                 while not stop.is_set():
@@ -88,22 +78,27 @@ async def stream(quotes, stop):
                         if time.monotonic() - last_valid >= WS_SILENCE_SECONDS:
                             raise TimeoutError('Hyperliquid BBO stream silent')
                         continue
-                    if quotes.receive(json.loads(raw), time.time()):
-                        quotes.latest['source'] = 'HYPERLIQUID_WS_BBO'
+                    if _publish(quotes, json.loads(raw), 'HYPERLIQUID_WS_BBO'):
                         last_valid = time.monotonic()
                         delay = 1
         except asyncio.CancelledError:
             raise
         except Exception:
             quotes.reconnects += 1
-        finally:
-            quotes.disconnect()
 
         if stop.is_set():
             break
 
-        await _rest_fallback(quotes, stop)
-        if stop.is_set():
-            break
         await asyncio.sleep(delay + random.random())
         delay = min(30, delay * 2)
+
+async def stream(quotes, stop):
+    tasks = [asyncio.create_task(worker(quotes, stop))
+             for worker in (_rest_fallback, _websocket_stream)]
+    try:
+        await asyncio.gather(*tasks)
+    finally:
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        quotes.disconnect()
