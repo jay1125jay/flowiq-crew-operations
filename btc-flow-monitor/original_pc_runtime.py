@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import json
+from functools import partial
 from pathlib import Path
 
 import category_realtime_runtime as categories
@@ -35,6 +36,9 @@ def main():
     if Path(args.state_dir).name != 'original-dashboard-state':
         parser.error('Use the dedicated original-dashboard-state directory')
     categories.CategoryState = OriginalState
+    categories.base.SOURCE_REFRESH_SECONDS = 10
+    collector = pc_runtime.pc_source_collector
+    collector.collect_sources = partial(collector.collect_sources, position_interval=categories.base.SOURCE_REFRESH_SECONDS)
     asyncio.run(pc_runtime.run(args))
 
 
