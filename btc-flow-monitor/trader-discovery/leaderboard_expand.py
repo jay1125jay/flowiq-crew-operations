@@ -8,7 +8,9 @@ OUT=pathlib.Path(__file__).resolve().parent/'candidate-pool.json'
 WATCH=ROOT/'data'/'whale-watchlist.json'
 URL='https://stats-data.hyperliquid.xyz/Mainnet/leaderboard'
 ADDRESS=re.compile(r'^0x[a-fA-F0-9]{40}$')
-POOL_LIMIT=48
+DIVERSIFIED_LIMIT=48
+PROFIT_LEADERS=128
+POOL_LIMIT=DIVERSIFIED_LIMIT+PROFIT_LEADERS
 PER_BUCKET=16
 MIN_ACCOUNT_VALUE=10_000.0
 WINDOWS=('day','week','month','allTime')
@@ -46,19 +48,22 @@ def select(rows,watch):
             buckets.append((w,metric,ranked))
     for rank in range(PER_BUCKET):
         for w,metric,ranked in buckets:
-            if len(chosen)>=POOL_LIMIT:break
+            if len(chosen)>=DIVERSIFIED_LIMIT:break
             if rank>=len(ranked):continue
             row=ranked[rank]
             if row['address'] not in chosen:
                 picked=dict(row);picked['seed']=f'{w}_{metric}'
                 chosen[row['address']]=picked
-        if len(chosen)>=POOL_LIMIT:break
+        if len(chosen)>=DIVERSIFIED_LIMIT:break
     # Ensure a full pool even when the same trader ranks in many buckets.
     for row in sorted(eligible,key=lambda r:(r['windows']['allTime']['pnl_usd'],r['windows']['month']['volume_usd']),reverse=True):
-        if len(chosen)>=POOL_LIMIT:break
+        if len(chosen)>=DIVERSIFIED_LIMIT:break
         if row['address'] not in chosen:
             picked=dict(row);picked['seed']='allTime_diversity_backfill'
             chosen[row['address']]=picked
+    for row in sorted(eligible, key=lambda r: (-r['windows']['allTime']['pnl_usd'], r['address']))[:PROFIT_LEADERS]:
+        if row['address'] not in chosen:
+            chosen[row['address']] = dict(row, seed='allTime_profit_leader')
     return list(chosen.values())[:POOL_LIMIT]
 
 def main():
