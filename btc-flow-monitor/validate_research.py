@@ -21,20 +21,20 @@ def validate(outputs=False):
         assert p['paper_only'] is True and p['real_trading_enabled'] is False
         assert p['feed_errors']==0 and p['observed_wallet_count']==raw_feed['observed_wallet_count']
         policy=p['all_accounts_capital_policy']
-        assert policy['capital_krw']==3000000 and policy['fixed_krw_per_usd']==1500
+        assert policy['capital_krw']==1000000 and policy['fixed_krw_per_usd']==1500
         for key,account in p['accounts'].items():
-            assert account['starting_equity_krw']==3000000 and account['starting_equity_usd']==2000
-            assert account['leverage']==10 and 0<=account['total_notional_krw']<=30000000.1
+            assert account['starting_equity_krw']==1000000 and account['starting_equity_usd']==1000000/1500
+            assert account['leverage']==10 and 0<=account['total_notional_krw']<=10000000.1
             assert account['capital_epoch']==policy['capital_epoch']
             assert account['krw_per_usd']==1500 and account['fx_mode']=='FIXED_SIMULATION_NOT_LIVE_FX'
-            assert account['margin_used_krw']+account['cost_buffer_krw']<=3000000.1
-        for leverage,target_notional in ((10,30000000),):
+            assert account['margin_used_krw']+account['cost_buffer_krw']<=1000000.1
+        for leverage,target_notional in ((10,10000000),):
             a=p['accounts'][f'SWING_{leverage}X']
-            assert a['starting_equity_krw']==3000000 and a['starting_equity_usd']==2000
+            assert a['starting_equity_krw']==1000000 and a['starting_equity_usd']==1000000/1500
             assert a['krw_per_usd']==1500 and a['fx_mode']=='FIXED_SIMULATION_NOT_LIVE_FX'
             assert a['capital_epoch']==policy['capital_epoch']
             assert a['allocation_mode']=='EQUAL_ACROSS_CURRENT_TARGETS_FEE_AND_SLIPPAGE_SAFE'
-            assert a['margin_used_krw']+a['cost_buffer_krw']<=3000000.10
+            assert a['margin_used_krw']+a['cost_buffer_krw']<=1000000.10
             assert 0<=a['total_notional_krw']<=target_notional+0.10
             assert abs(a['net_pnl_usd']-(a['equity_usd']-a['starting_equity_usd']))<0.0002
             assert abs(a['equity_krw']-a['equity_usd']*1500)<0.2

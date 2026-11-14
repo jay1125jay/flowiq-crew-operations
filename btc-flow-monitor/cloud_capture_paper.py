@@ -21,6 +21,8 @@ spec = importlib.util.spec_from_file_location(
 )
 category = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(category)
+category.SWING_CAPITAL_KRW = 1_000_000
+category.SWING_CAPITAL_EPOCH = 'ORIGINAL_1M_10X_V3'
 
 
 def timestamp(value):
@@ -73,7 +75,7 @@ def apply_event(state, event):
     result["observed_source_at"] = at
     result["cloud_update_source"] = "VERIFIED_GITHUB_CAPTURE"
     assert result["account_count"] == 6 and all(
-        account["starting_equity_krw"] == 3000000 and account["leverage"] == 10
+        account["starting_equity_krw"] == 1000000 and account["leverage"] == 10
         for account in result["accounts"].values()
     )
     return result, True

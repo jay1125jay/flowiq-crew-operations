@@ -14,6 +14,8 @@ OUT = ROOT / 'trader-discovery' / 'category-paper.json'
 spec = importlib.util.spec_from_file_location('btcflow_category_paper_cloud', CATEGORY_PATH)
 category = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(category)
+category.SWING_CAPITAL_KRW = 1_000_000
+category.SWING_CAPITAL_EPOCH = 'ORIGINAL_1M_10X_V3'
 
 
 def main():

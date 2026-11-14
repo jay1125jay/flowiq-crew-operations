@@ -31,7 +31,7 @@ class CapturePaperTests(unittest.TestCase):
         new, applied = bridge.apply_event(ledger, event(T1, "SHORT"))
         self.assertTrue(applied)
         self.assertEqual(new["accounts"]["SWING_10X"]["open_count"], 1)
-        self.assertEqual(new["accounts"]["SWING_10X"]["starting_equity_krw"], 3000000)
+        self.assertEqual(new["accounts"]["SWING_10X"]["starting_equity_krw"], 1000000)
         _, applied = bridge.apply_event(new, event(T0))
         self.assertFalse(applied)
 
