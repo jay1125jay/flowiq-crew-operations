@@ -59,7 +59,7 @@ def _blank_category_state(now):
         all_accounts_capital_policy={'capital_krw':category.SWING_CAPITAL_KRW,
             'fixed_krw_per_usd':category.SWING_KRW_PER_USD,'capital_epoch':category.SWING_CAPITAL_EPOCH},
         runtime_mode='PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE',runtime_mark_interval_seconds=1,
-        runtime_source_refresh_seconds=60,runtime_source_id=None,runtime_source_event=False,
+        runtime_source_refresh_seconds=base.SOURCE_REFRESH_SECONDS,runtime_source_id=None,runtime_source_event=False,
         adaptive_accounts_separate=True,
         control='Six category ledgers are separate from Adaptive PAPER accounts. Waiting for first live source. No real orders.')
     _validate_category_state(state); return state
@@ -149,7 +149,7 @@ class CombinedRunner(base.Runner):
         if source_id!=self.category_source_id:new_category=category.advance(copy.deepcopy(self.category_state),bundle['cohorts'],feed,stamp);source_event=True
         else:new_category=_mark_only(self.category_state,quotes.latest['price'],stamp);source_event=False
         if new_category:
-            new_category['runtime_mode']='PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE';new_category['runtime_mark_interval_seconds']=1;new_category['runtime_source_refresh_seconds']=60;new_category['runtime_source_id']=source_id;new_category['runtime_source_event']=source_event;new_category['adaptive_accounts_separate']=True;new_category['control']='Six category ledgers are separate from Adaptive PAPER accounts. No real orders.'
+            new_category['runtime_mode']='PC_REALTIME_6_CATEGORY_PAPER_SEPARATE_FROM_ADAPTIVE';new_category['runtime_mark_interval_seconds']=1;new_category['runtime_source_refresh_seconds']=base.SOURCE_REFRESH_SECONDS;new_category['runtime_source_id']=source_id;new_category['runtime_source_event']=source_event;new_category['adaptive_accounts_separate']=True;new_category['control']='Six category ledgers are separate from Adaptive PAPER accounts. No real orders.'
             self.category_store.save(new_category,source_id);self.category_state=new_category
             if source_event:self.category_source_id=source_id;self.category_source_events+=1
         return True
