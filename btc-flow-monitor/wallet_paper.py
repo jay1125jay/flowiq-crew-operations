@@ -2,6 +2,8 @@
 import datetime as dt
 import json
 import math
+import time
+from concurrent.futures import ThreadPoolExecutor
 import pathlib
 import urllib.request
 
@@ -56,13 +58,17 @@ def advance(a, side, price, at):
             if liquidated and side == sign:
                 a['blocked_side'] = side
     if side and not a.get('position') and a.get('blocked_side') != side and a['cash'] > 0:
-        nominal = a['cash'] * LEV
+        nominal = min(CAPITAL, a['cash']) * LEV
         fee = nominal * FEE
         a['cash'] -= fee
         a['position'] = dict(side=side, entry=price*(1+side*SLIP), notional=nominal, fee=fee, at=at)
     pos = a.get('position')
     unreal = pos['side']*(price/pos['entry']-1)*pos['notional'] if pos else 0
     a.update(equity_krw=max(0,a['cash']+unreal), last_at=at, price=price, error=None)
+
+def now():
+    return dt.datetime.now(dt.timezone.utc)
+
 
 def main():
     ledger = json.loads(OUT.read_text()) if OUT.exists() else dict(paper_only=True,
@@ -76,27 +82,51 @@ def main():
         addresses.update(r['address'].lower() for r in research['results'] if r.get('whale_history_pass'))
     for address in sorted(addresses):
         accounts.setdefault(address, dict(cash=CAPITAL,equity_krw=CAPITAL,position=None,closed=[]))
-    signals = {}
-    for address, a in accounts.items():
+    started = now()
+    def sample(address):
         try:
-            signals[address] = direction(info(dict(type='clearinghouseState',user=address)))
-        except (OSError,ValueError,KeyError,TypeError) as exc:
-            a['error'] = type(exc).__name__
-    book = info(dict(type='l2Book',coin='BTC'))
-    bid, ask = (float(rows[0]['px']) for rows in book['levels'])
-    stamp = dt.datetime.fromtimestamp(book['time']/1000,dt.timezone.utc)
-    if not (book['coin']=='BTC' and 0<bid<=ask<=bid*1.005 and
-            0 <= (dt.datetime.now(dt.timezone.utc)-stamp).total_seconds() <= 15):
-        raise ValueError('invalid market quote')
-    at = stamp.isoformat()
-    for address, side in signals.items():
-        advance(accounts[address],side,(bid+ask)/2,at)
-    ledger['updated_at']=at
-    ledger['observed_count']=len(signals)
+            begin = time.monotonic()
+            state = info(dict(type='clearinghouseState',user=address))
+            side = direction(state)
+            received = now()
+            book = info(dict(type='l2Book',coin='BTC'))
+            bid, ask = (float(rows[0]['px']) for rows in book['levels'])
+            quote = dt.datetime.fromtimestamp(book['time']/1000,dt.timezone.utc)
+            if not (book['coin']=='BTC' and 0<bid<=ask<=bid*1.005 and
+                    0 <= (now()-quote).total_seconds() <= 15 and
+                    abs((received-quote).total_seconds()) <= 15 and time.monotonic()-begin <= 15):
+                raise ValueError('stale signal or quote')
+            return side,(bid+ask)/2,quote.isoformat(),received.isoformat(),None
+        except (OSError,ValueError,KeyError,IndexError,TypeError) as exc:
+            return None,None,None,None,str(exc)[:120]
+    successes = 0
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        for a, result in zip(accounts.values(),pool.map(sample,accounts)):
+            side,price,stamp,received,error = result
+            a['attempts'] = a.get('attempts',0)+1
+            if error is not None or stamp <= a.get('last_at',''):
+                a['error'] = error or 'old quote'
+                a['misses'] = a.get('misses',0)+1
+                continue
+            advance(a,side,price,stamp)
+            a['signal_received_at'] = received
+            peak = max(a.get('peak_krw',CAPITAL),a['equity_krw'])
+            a['peak_krw'] = peak
+            a['max_drawdown_pct'] = max(a.get('max_drawdown_pct',0),100*(1-a['equity_krw']/peak))
+            successes += 1
+    ended = now()
+    ledger['updated_at']=ended.isoformat()
+    ledger['observed_count']=successes
+    cycles=ledger.setdefault('cycles',[])
+    cycles.append(dict(start=started.isoformat(),end=ended.isoformat(),ok=successes,total=len(accounts)))
+    cutoff=(ended-dt.timedelta(days=1)).isoformat()
+    ledger['cycles']=[c for c in cycles if c['end']>=cutoff]
     temp=OUT.with_suffix('.tmp')
     temp.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n')
     temp.replace(OUT)
-    print('observed',len(signals),'accounts',len(accounts))
+    print('observed',successes,'accounts',len(accounts))
+    if not successes:
+        raise SystemExit(2)
 
 if __name__=='__main__':
     main()
