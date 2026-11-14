@@ -1,0 +1,33 @@
+name: BTC FLOW individual whale PAPER
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: btc-flow-individual-whale-paper
+  cancel-in-progress: false
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Observe public positions and persist paper ledgers
+        run: |
+          set -e
+          python btc-flow-monitor/wallet_paper.py
+          git config user.name github-actions
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add btc-flow-monitor/trader-discovery/wallet-paper.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: individual whale paper observations"
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
