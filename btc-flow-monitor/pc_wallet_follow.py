@@ -23,12 +23,17 @@ def observe(root):
         git(root, 'fetch', '--depth=1', 'origin', 'main')
         git(root, 'reset', '--hard', 'origin/main')
         runner = root/'btc-flow-monitor/wallet_paper.py'
-        subprocess.run([sys.executable,str(runner)],check=True,timeout=240)
+        cycle = subprocess.run([sys.executable,str(runner)],timeout=240)
+        if cycle.returncode == 2:
+            ledger = json.loads((root/LEDGER).read_text(encoding='utf-8'))
+            return sorted(ledger['accounts']), 0
+        cycle.check_returncode()
         git(root,'add','--',LEDGER)
         git(root,'-c','user.name=BTC FLOW PAPER','-c','user.email=btc-flow@users.noreply.github.com','commit','-m','data: PC whale PAPER observation')
         try:
             git(root,'push','origin','HEAD:main')
-            return sorted(json.loads((root/LEDGER).read_text())['accounts'])
+            ledger = json.loads((root/LEDGER).read_text(encoding='utf-8'))
+            return sorted(ledger['accounts']), ledger['observed_count']
         except subprocess.CalledProcessError as exc:
             if not any(x in exc.stderr for x in ('fetch first','non-fast-forward','remote contains work')):
                 raise
@@ -63,7 +68,7 @@ async def run(root):
     try:
         while True:
             wake.clear()
-            accounts=await asyncio.to_thread(observe,root)
+            accounts, observed=await asyncio.to_thread(observe,root)
             # Exchange user subscription cap. Every account is still polled.
             if accounts[:10]!=watched:
                 if listener:
@@ -71,7 +76,12 @@ async def run(root):
                     await asyncio.gather(listener,return_exceptions=True)
                 watched=accounts[:10]
                 listener=asyncio.create_task(listen(watched,wake))
-            print('PAPER saved:',len(accounts),'wallets; streaming:',len(watched),flush=True)
+            if observed:
+                print('PAPER saved:',observed,'/',len(accounts),'wallets; streaming:',len(watched),flush=True)
+            else:
+                print('NO VALID OBSERVATIONS; balances unchanged; retry in 15 seconds',flush=True)
+                await asyncio.sleep(15)
+                continue
             try:
                 await asyncio.wait_for(wake.wait(),timeout=60)
             except TimeoutError:
