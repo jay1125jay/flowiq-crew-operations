@@ -78,6 +78,14 @@ def score_wallet(row, category):
     return round(score, 3)
 
 
+def observed_net_profit(row):
+    try:
+        value = float((row.get('history') or {}).get('net_pnl_usd'))
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) else None
+
+
 def apply_top6_policy(cohort):
     """Return a copied cohort where each category flag is true only for its TOP 6."""
     out = copy.deepcopy(cohort)
@@ -91,11 +99,16 @@ def apply_top6_policy(cohort):
             key=lambda r: (score_wallet(r, cat), str(r.get('address'))),
             reverse=True,
         )
+        if cat == 'WHALE':
+            # Stable sort retains the performance score as a tie-breaker.
+            ranked = [row for row in ranked if observed_net_profit(row) is not None]
+            ranked.sort(key=observed_net_profit, reverse=True)
         selected = ranked[:TOP_N]
         selected_addresses = {r['address'] for r in selected}
         rankings[cat] = [
             {
                 'rank': i + 1,
+                **({'observed_net_profit_usd': observed_net_profit(r)} if cat == 'WHALE' else {}),
                 'address': r['address'],
                 'score': score_wallet(r, cat),
                 'verified': bool(r.get('verified')),
@@ -119,7 +132,8 @@ def apply_top6_policy(cohort):
         'mode': 'ALL_FRESH_CANDIDATES_TRACKED_TOP6_BY_PERFORMANCE_SCORE',
         'top_n_per_category': TOP_N,
         'candidate_catalog_count': len(rows),
-        'note': 'All fresh classified traders remain tracked; only the highest-scoring six per category are eligible for PAPER positions.',
+        'whale_primary_metric': 'history.net_pnl_usd',
+        'note': 'WHALE ranks observed BTC history net profit first, then performance score. Other categories use performance score.',
     }
     out['selection_rankings'] = rankings
     return out
