@@ -23,6 +23,7 @@ import adaptive_meta as engine
 ROOT = Path(__file__).resolve().parent
 WS_URL = 'wss://api.hyperliquid.xyz/ws'
 SOURCE_TTL = 120
+SOURCE_REFRESH_SECONDS = 60
 QUOTE_TTL = 5
 
 
@@ -190,7 +191,7 @@ class Runner:
             quote_at=iso(quotes.latest['ms']/1000) if quotes.latest else None,
             source_at=bundle['positions']['generated_at'] if bundle else None,
             reconnects=quotes.reconnects, ticks=self.state['ticks'],
-            target_interval_seconds=1, source_refresh_seconds=60,
+            target_interval_seconds=1, source_refresh_seconds=SOURCE_REFRESH_SECONDS,
             btc_mid_usd=competition.get('btc_mid_usd'), profitability='UNPROVEN',
             epoch='REALTIME_PAPER_SEPARATE_EPOCH', error=self.last_error,
             competition=copy.deepcopy(competition),
