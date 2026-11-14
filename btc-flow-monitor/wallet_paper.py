@@ -1,0 +1,102 @@
+"""Forward-only BTC paper tracking, one independent KRW account per observed whale."""
+import datetime as dt
+import json
+import math
+import pathlib
+import urllib.request
+
+ROOT = pathlib.Path(__file__).resolve().parent
+DATA = ROOT / 'trader-discovery'
+OUT = DATA / 'wallet-paper.json'
+CAPITAL = 1_000_000
+LEV = 10
+FEE = .0005
+SLIP = .0003
+
+def info(payload):
+    req = urllib.request.Request('https://api.hyperliquid.xyz/info',
+        data=json.dumps(payload).encode(), headers={'Content-Type':'application/json'})
+    with urllib.request.urlopen(req, timeout=15) as response:
+        return json.load(response)
+
+def direction(state):
+    positions = state['assetPositions']
+    if not isinstance(positions, list):
+        raise ValueError('invalid positions')
+    for asset in positions:
+        position = asset['position']
+        if position['coin'] == 'BTC':
+            size = float(position['szi'])
+            if not math.isfinite(size):
+                raise ValueError('invalid size')
+            return (size > 0) - (size < 0)
+    return 0
+
+def advance(a, side, price, at):
+    if a.get('last_at', '') >= at:
+        return
+    pos = a.get('position')
+    blocked = a.get('blocked_side')
+    if side != blocked:
+        a.pop('blocked_side', None)
+    if pos:
+        sign = pos['side']
+        move = sign * (price / pos['entry'] - 1)
+        liquidated = move <= -(1 / LEV - .005)
+        if side != sign or liquidated:
+            exit_price = price * (1 - sign * SLIP)
+            gross = sign * (exit_price / pos['entry'] - 1) * pos['notional']
+            exit_fee = pos['notional'] * exit_price / pos['entry'] * FEE
+            before = a['cash']
+            a['cash'] = max(0, before + gross - exit_fee)
+            a['closed'].append(dict(opened=pos['at'], closed=at, side=sign,
+                entry=pos['entry'], exit=exit_price, net_krw=a['cash']-before-pos['fee'],
+                reason='liquidation' if liquidated else 'source_change'))
+            a['position'] = None
+            if liquidated and side == sign:
+                a['blocked_side'] = side
+    if side and not a.get('position') and a.get('blocked_side') != side and a['cash'] > 0:
+        nominal = a['cash'] * LEV
+        fee = nominal * FEE
+        a['cash'] -= fee
+        a['position'] = dict(side=side, entry=price*(1+side*SLIP), notional=nominal, fee=fee, at=at)
+    pos = a.get('position')
+    unreal = pos['side']*(price/pos['entry']-1)*pos['notional'] if pos else 0
+    a.update(equity_krw=max(0,a['cash']+unreal), last_at=at, price=price, error=None)
+
+def main():
+    ledger = json.loads(OUT.read_text()) if OUT.exists() else dict(paper_only=True,
+        real_trading_enabled=False,initial_krw=CAPITAL,leverage=LEV,accounts={})
+    assert ledger['paper_only'] is True and ledger['real_trading_enabled'] is False
+    accounts = ledger['accounts']
+    catalog = json.loads((DATA/'latest.json').read_text())
+    addresses = {r['address'].lower() for r in catalog['wallets'] if r['category_flags'].get('WHALE')}
+    for path in (DATA/'research').glob('*public-profit-screen.json'):
+        research = json.loads(path.read_text())
+        addresses.update(r['address'].lower() for r in research['results'] if r.get('whale_history_pass'))
+    for address in sorted(addresses):
+        accounts.setdefault(address, dict(cash=CAPITAL,equity_krw=CAPITAL,position=None,closed=[]))
+    signals = {}
+    for address, a in accounts.items():
+        try:
+            signals[address] = direction(info(dict(type='clearinghouseState',user=address)))
+        except (OSError,ValueError,KeyError,TypeError) as exc:
+            a['error'] = type(exc).__name__
+    book = info(dict(type='l2Book',coin='BTC'))
+    bid, ask = (float(rows[0]['px']) for rows in book['levels'])
+    stamp = dt.datetime.fromtimestamp(book['time']/1000,dt.timezone.utc)
+    if not (book['coin']=='BTC' and 0<bid<=ask<=bid*1.005 and
+            0 <= (dt.datetime.now(dt.timezone.utc)-stamp).total_seconds() <= 15):
+        raise ValueError('invalid market quote')
+    at = stamp.isoformat()
+    for address, side in signals.items():
+        advance(accounts[address],side,(bid+ask)/2,at)
+    ledger['updated_at']=at
+    ledger['observed_count']=len(signals)
+    temp=OUT.with_suffix('.tmp')
+    temp.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n')
+    temp.replace(OUT)
+    print('observed',len(signals),'accounts',len(accounts))
+
+if __name__=='__main__':
+    main()
