@@ -14,6 +14,7 @@ CAPITAL = 1_000_000
 LEV = 10
 FEE = .0005
 SLIP = .0003
+MAX_CLOCK_LEAD_SECONDS = 2.0
 
 def info(payload):
     req = urllib.request.Request('https://api.hyperliquid.xyz/info',
@@ -99,7 +100,7 @@ def main():
             elapsed = time.monotonic()-begin
             if book['coin'] != 'BTC' or not 0 < bid <= ask <= bid*1.005:
                 raise ValueError('invalid BTC book')
-            if not 0 <= age <= 15 or lag > 15 or elapsed > 15:
+            if not -MAX_CLOCK_LEAD_SECONDS <= age <= 15 or lag > 15 or elapsed > 15:
                 raise ValueError(f'quote_age={age:.2f}s signal_gap={lag:.2f}s request_time={elapsed:.2f}s')
             return side,(bid+ask)/2,quote.isoformat(),received.isoformat(),None
         except (OSError,ValueError,KeyError,IndexError,TypeError) as exc:
