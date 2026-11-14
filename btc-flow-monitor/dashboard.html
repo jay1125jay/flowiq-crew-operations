@@ -14,7 +14,7 @@
 <section class="section" id="phoneSharePanel" hidden><div class="head"><h2>휴대폰으로 PC 실시간 계좌 보기</h2><p>PC에서만 QR과 조회용 링크가 표시됩니다. 실제 주문은 불가능합니다.</p></div><div class="pad"><div class="phone-layout"><img id="phoneShareQr" class="phone-qr" alt="휴대폰 연결 QR 코드" hidden><div class="phone-content"><div id="phoneShareStatus" class="phone-status">보안 연결 준비 중</div><input id="phoneShareLink" class="phone-link" aria-label="휴대폰 연결 링크" readonly placeholder="연결 준비 중"><div class="phone-actions"><button class="btn" id="phoneShareCopy" type="button" disabled>연결 링크 복사</button><a class="btn" id="phoneShareOpen" target="_blank" rel="noopener noreferrer" hidden>연결 화면 열기</a></div><div class="phone-note">휴대폰 카메라로 QR을 스캔하세요. 링크에 비밀 조회 키가 포함되므로 공개하지 마세요. PC 종료 시 연결이 끊깁니다.</div></div></div></div></section>
 <section class="hero" id="hero"><div class="hero-label">전체 PAPER 자산 · 6개 계좌 합계</div><div class="hero-value" id="totalEquity">—</div><div class="hero-pnl" id="totalPnl">—</div><div class="statusbar"><span class="chip" id="modeChip">연결 확인 중</span><span class="chip" id="recoveryChip">공백 복구 확인 중</span><span class="chip" id="syncChip">동기화 확인 중</span></div></section>
 <section class="section"><div class="head"><h2>지금 따라가는 고래</h2><p>현재 실제로 PAPER 포지션이 열린 고래만 표시합니다.</p></div><div class="pad"><div class="follow-list" id="followList"><div class="empty">불러오는 중…</div></div></div></section>
-<section class="section" id="whaleProfitPanel" hidden><div class="head"><h2>고래별 BTC 순이익</h2><p>고래 지갑의 관찰된 BTC 체결 손익 · 수수료 차감 · 미국 달러 기준. 막대 길이는 손익의 절댓값입니다.</p></div><div class="pad whale-scroll"><div class="meta" id="whaleDate"></div><table class="whale-table"><thead><tr><th>지갑</th><th>분류</th><th>BTC 순이익</th><th>모의손익 (100만원·10배)</th></tr></thead><tbody id="whaleProfits"></tbody></table></div></section>
+<section class="section" id="whaleProfitPanel" hidden><div class="head"><h2>고래별 BTC 순이익</h2><p>고래 지갑의 관찰된 BTC 체결 손익 · 수수료 차감 · 미국 달러 기준. 막대 길이는 손익의 절댓값입니다.</p></div><div class="pad whale-scroll"><div class="meta" id="whaleDate"></div><table class="whale-table"><thead><tr><th>지갑</th><th>분류</th><th>BTC 순이익</th><th>모의손익 (100만원·10배)</th><th>실현 / 미실현</th><th>종료 / 최대낙폭</th><th>조회 누락 / 마지막 성공</th></tr></thead><tbody id="whaleProfits"></tbody></table></div></section>
 <section class="section"><div class="head"><h2>6개 PAPER 계좌</h2><p>각 100만원 · 10배. 고래가 교체돼도 계좌 잔액은 이어집니다.</p></div><div class="pad"><div class="grid" id="accountGrid"></div></div></section>
 <section class="section"><div class="head"><h2>시스템 상태</h2><p>여기 세 가지만 정상이면 됩니다.</p></div><div class="pad"><div class="status-grid"><div class="status-item"><div class="status-title">엔진</div><div class="status-value" id="engineState">—</div></div><div class="status-item"><div class="status-title">공백 복구</div><div class="status-value" id="recoveryState">—</div></div><div class="status-item"><div class="status-title">클라우드 기록</div><div class="status-value" id="cloudState">—</div></div><div class="status-item"><div class="status-title">실거래 안전장치</div><div class="status-value green">실제 주문 없음</div></div></div></div></section>
 <section class="section"><div class="pad"><details><summary>엔진 상세 보기</summary><div class="details" id="details">—</div></details></div></section>
@@ -134,10 +134,11 @@ if (!local && !remote) {
     if (busy) return;
     busy = true;
     try {
-      const [catalog, research, paper] = await Promise.all([
+      const [catalog, research, paper, replay] = await Promise.all([
         fetchJson('./trader-discovery/latest.json'),
         fetchJson('./trader-discovery/research/2026-11-14-public-profit-screen.json'),
-        fetchJson('./trader-discovery/wallet-paper.json')
+        fetchJson('./trader-discovery/wallet-paper.json'),
+        fetchJson('./trader-discovery/cloud-replay-log.json').catch(()=>null)
       ]);
       const rows = new Map();
       function add(address, value, label) {
@@ -168,10 +169,15 @@ if (!local && !remote) {
         track.append(bar);cell.append(track);
         const a=paper.accounts[address], result=tr.insertCell();
         result.textContent=a ? won(a.equity_krw-paper.initial_krw)+' · '+(a.error?'조회 지연':a.position?.side===1?'롱':a.position?.side===-1?'숏':'대기') : '첫 관찰 대기';
+        const pos=a?.position;
+        const open=pos && a.price ? pos.side*(a.price/pos.entry-1)*pos.notional : 0;
+        tr.insertCell().textContent=a ? won(a.cash-paper.initial_krw)+' / '+won(open) : '—';
+        tr.insertCell().textContent=a ? a.closed.length+'건 / '+(a.max_drawdown_pct?.toFixed(2)??'—')+'%' : '—';
+        tr.insertCell().textContent=a ? ((a.attempts ? (100*(a.misses||0)/a.attempts).toFixed(1)+'%' : '—')+' / '+(a.last_at?new Date(a.last_at).toLocaleTimeString('ko-KR'):'—')):'—';
       }
       document.getElementById('whaleProfits').replaceChildren(...Array.from(body.children));
       document.getElementById('whaleDate').textContent = ordered.length
-        ? '현재 후보 갱신 '+new Date(catalog.generated_at).toLocaleString('ko-KR')+' · 지갑별 관찰 기간은 다를 수 있습니다.'
+        ? '개별 조회 '+paper.observed_count+'/'+Object.keys(paper.accounts).length+' · 회차 '+new Date(paper.updated_at).toLocaleString('ko-KR')+' · 원본 24시간 기록률 '+(replay?.capture_health?.coverage_pct_24h??'—')+'% · 최장 공백 '+(replay?.capture_health ? Math.round(replay.capture_health.max_gap_seconds_24h/60)+'분':'—')
         : '표시할 고래 후보가 없습니다.';
     } catch {
       document.getElementById('whaleDate').textContent='고래 수익 자료 갱신 실패';
