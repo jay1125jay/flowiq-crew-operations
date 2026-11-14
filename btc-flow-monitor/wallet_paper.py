@@ -85,20 +85,25 @@ def main():
     started = now()
     def sample(address):
         try:
+            stage = 'position'
             begin = time.monotonic()
             state = info(dict(type='clearinghouseState',user=address))
             side = direction(state)
             received = now()
+            stage = 'quote'
             book = info(dict(type='l2Book',coin='BTC'))
             bid, ask = (float(rows[0]['px']) for rows in book['levels'])
             quote = dt.datetime.fromtimestamp(book['time']/1000,dt.timezone.utc)
-            if not (book['coin']=='BTC' and 0<bid<=ask<=bid*1.005 and
-                    0 <= (now()-quote).total_seconds() <= 15 and
-                    abs((received-quote).total_seconds()) <= 15 and time.monotonic()-begin <= 15):
-                raise ValueError('stale signal or quote')
+            age = (now()-quote).total_seconds()
+            lag = abs((received-quote).total_seconds())
+            elapsed = time.monotonic()-begin
+            if book['coin'] != 'BTC' or not 0 < bid <= ask <= bid*1.005:
+                raise ValueError('invalid BTC book')
+            if not 0 <= age <= 15 or lag > 15 or elapsed > 15:
+                raise ValueError(f'quote_age={age:.2f}s signal_gap={lag:.2f}s request_time={elapsed:.2f}s')
             return side,(bid+ask)/2,quote.isoformat(),received.isoformat(),None
         except (OSError,ValueError,KeyError,IndexError,TypeError) as exc:
-            return None,None,None,None,str(exc)[:120]
+            return None,None,None,None,f'{stage}: {type(exc).__name__}: {exc}'[:200]
     successes = 0
     with ThreadPoolExecutor(max_workers=4) as pool:
         for a, result in zip(accounts.values(),pool.map(sample,accounts)):
@@ -125,6 +130,9 @@ def main():
     temp.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n')
     temp.replace(OUT)
     print('observed',successes,'accounts',len(accounts))
+    for address, account in accounts.items():
+        if account.get('error'):
+            print('OBSERVATION_MISSED',address[:10],account['error'],flush=True)
     if not successes:
         raise SystemExit(2)
 
