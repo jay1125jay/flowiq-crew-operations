@@ -16,6 +16,32 @@
 #recordsPanel[hidden]{display:none}
 .trade-records{display:grid;gap:10px}.trade-record{background:#101923;border:1px solid #253545;border-radius:10px;padding:12px}.trade-record h3{font-size:15px;margin:0 0 8px}.trade-record p{margin:3px 0;font-size:13px;color:#ced9e5;overflow-wrap:anywhere}
 [hidden]{display:none!important}.app{max-width:1020px;padding:24px 20px}.top{align-items:center}.top .actions{flex-direction:row;align-items:center}.views{display:flex;gap:4px;margin:24px 0 18px;border-bottom:1px solid #273441}.views button{flex:1;max-width:150px;background:none;color:#adbdcb;border:0;border-bottom:3px solid transparent;padding:12px 4px;font:inherit;font-weight:650;cursor:pointer}.views button[aria-pressed=true]{color:#79f2c2;border-color:#79f2c2}.balance{border:1px solid #28433d;border-radius:18px;padding:clamp(18px,4vw,34px);background:linear-gradient(125deg,#112823,#0e181e 70%)}.balance h1{font-size:15px;color:#cedeD6;margin:0 0 8px}.balance>strong{display:block;font-size:clamp(32px,6vw,56px);letter-spacing:-.045em;font-variant-numeric:tabular-nums}.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #32453e;margin-top:22px;padding-top:15px;font-size:13px;color:#a9bdba}.metrics b{display:block;font-size:19px;color:#ecf6f1;margin-top:3px}.healthline{font-size:13px;line-height:1.6;color:#aab9c7}.healthline[data-warning=true]{color:#ffd287}.trade-records{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}.views button:focus-visible,.btn:focus-visible{outline:2px solid #79f2c2;outline-offset:2px}@media(max-width:600px){.app{padding:14px 12px}.views{margin-top:14px}.views button{font-size:14px;min-height:44px}.top .actions{gap:4px}.top .btn,.top .badge{padding:7px}.brand{font-size:20px}.brand img{width:30px;height:30px}.metrics{font-size:12px}}
+
+/* Cash Flow dashboard */
+:root{color-scheme:dark;--bg:#0a1015;--panel:#121b22;--panel2:#18232c;--line:#30404c;--muted:#a6b6c2;--green:#71e9bc;--red:#ff95a0}
+body{font-variant-numeric:tabular-nums;line-height:1.5;word-break:keep-all}
+.app{max-width:1120px;padding:32px clamp(14px,4vw,46px) 48px}
+.brand{letter-spacing:-.055em}.brand img{border-radius:11px}.sub{margin-left:44px;font-size:13px}
+.top .btn,.top .badge{font-size:12px;padding:9px 14px}.top .btn:hover{background:#20313b}
+.views{margin:22px 0;gap:5px;padding:5px;background:#121c23;border:1px solid var(--line);border-radius:14px;width:max-content;max-width:100%}
+.views button{border:0;border-radius:9px;padding:10px 23px;white-space:nowrap;font-size:14px}
+.views button[aria-pressed=true]{background:#cefae9;color:#11372b}
+.balance,.hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(115deg,#163a34,#122b2b 65%,#18282c);border:1px solid #34534d;border-radius:22px}
+.balance::before,.hero::before{content:"";position:absolute;z-index:-1;inset:0 0 0 53%;background:repeating-radial-gradient(ellipse at 120% -15%,transparent 0 18px,#81e0bb1a 19px,transparent 20px 30px);pointer-events:none}
+.balance h1,.hero-label{font-size:14px;letter-spacing:.02em;color:#c8e0d7}.balance>strong,.hero-value{letter-spacing:-.055em;line-height:1.18;margin:6px 0 10px}
+.metrics{border-color:#60827a69}.metrics>div+div{border-left:1px solid #60827a69;padding-left:16px}.metrics b{font-size:22px}
+.healthline{padding:10px 14px;border-left:3px solid #648a7f;background:#15201f;border-radius:4px;margin:12px 0 20px}.healthline[data-warning=true]{border-color:#dfad65;background:#252119}
+.section{border-radius:18px}.head,.pad{padding:clamp(15px,2.3vw,24px)}.head h2{font-size:19px;letter-spacing:-.035em}.head p,.meta,.status-title{font-size:12px;line-height:1.65}.empty,#closeStatus:not(:empty){padding:20px 10px;text-align:center;color:var(--muted)}
+.whale-table{font-size:13px}.whale-table th{color:var(--muted);font-size:12px}.whale-table td,.whale-table th{padding:12px 6px}.whale-track,.whale-track i{border-radius:8px}.whale-track{height:4px}.trade-record{background:var(--panel2);border-radius:14px;padding:16px}.trade-record p{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;margin:0}.trade-record p span:first-child{color:var(--muted)}.trade-record p span:last-child{text-align:right}.trade-record .profit-line{border-top:1px solid var(--line);margin-top:6px;font-weight:700}
+.pnl-summary{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.pnl-summary>div{flex:1;min-width:110px;padding:12px 16px;background:var(--panel2);border-radius:10px;font-size:12px;color:var(--muted)}.pnl-summary strong{display:block;font-size:22px}
+@media(max-width:760px){
+.app{padding:16px 12px 32px}.top{gap:6px}.top .btn,.top .badge{padding:8px;font-size:11px}.sub{margin-left:0}.views{width:100%;margin:14px 0}.views button{max-width:none;padding:8px 2px;min-height:42px}
+.whale-table,.whale-table tbody{display:block}.whale-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.whale-table tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 12px;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
+.whale-table td,.whale-table td:last-child{display:block;border:0;padding:0;text-align:left;white-space:normal;overflow-wrap:anywhere}.whale-table td::before{content:attr(data-label);display:block;color:var(--muted);font-size:11px}.whale-table td:first-child{font-family:ui-monospace,monospace;font-weight:700}.whale-table td:nth-child(3){font-size:17px;font-weight:700}.whale-table td:last-child{grid-column:1/-1}
+.metrics>div+div{padding-left:10px}.metrics b{font-size:19px}.healthline{font-size:12px}.phone-content{min-width:0;width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -33,7 +59,7 @@
 <section class="section"><div class="head"><h2>보유 포지션</h2><p>최근 수집 가격 기준 평가손익</p></div><div class="pad"><div class="follow-list" id="followList"><div class="empty">불러오는 중…</div></div></div></section>
 </div>
 <div id="whales" class="view" hidden><section class="section" id="whaleProfitPanel" hidden><div class="head"><h2>고래별 BTC 순이익</h2><p>고래 지갑의 관찰된 BTC 체결 손익 · 수수료 차감 · 미국 달러 기준. 막대 길이는 손익의 절댓값입니다.</p></div><div class="pad whale-scroll"><div class="meta" id="whaleDate"></div><table class="whale-table"><thead><tr><th>지갑</th><th>분류</th><th>BTC 순이익</th><th>모의손익 (100만원·10배)</th><th>실현 / 미실현</th><th>종료 / 최대낙폭</th><th>조회 누락 / 마지막 성공</th></tr></thead><tbody id="whaleProfits"></tbody></table></div></section></div>
-<div id="records" class="view" hidden><section class="section" id="recordsPanel"><div class="head"><h2>거래 기록</h2><p>누적 이익금 <strong class="green" id="recordsGain">—</strong> · 누적 손실금 <strong class="red" id="recordsLoss">—</strong></p><p>고래별 모의계좌 · 진입·청산 수수료 차감 · 신규 진입은 계좌 전액 기준 10배 · 시각은 한국시간, 가격은 미국 달러</p></div><div class="pad whale-scroll"><div id="walletCloses" class="trade-records"></div><div class="meta" id="closeStatus" aria-live="polite">조회 중…</div></div></section></div>
+<div id="records" class="view" hidden><section class="section" id="recordsPanel"><div class="head"><h2>거래 기록</h2><div class="pnl-summary"><div>누적 이익금<strong class="green" id="recordsGain">—</strong></div><div>누적 손실금<strong class="red" id="recordsLoss">—</strong></div></div><p>고래별 모의계좌 · 진입·청산 수수료 차감 · 신규 진입은 계좌 전액 기준 10배 · 시각은 한국시간, 가격은 미국 달러</p></div><div class="pad whale-scroll"><div id="walletCloses" class="trade-records"></div><div class="meta" id="closeStatus" aria-live="polite">조회 중…</div></div></section></div>
 <div id="strategies" class="view" hidden><section class="hero" id="hero"><div class="hero-label">전략 비교용 모의자산 · 6개 전략 합계</div><div class="hero-value" id="totalEquity">—</div><div class="hero-pnl" id="totalPnl">—</div><div class="statusbar"><span class="chip" id="modeChip">연결 확인 중</span><span class="chip" id="recoveryChip">공백 복구 확인 중</span><span class="chip" id="syncChip">동기화 확인 중</span></div></section><section class="section"><div class="head"><h2>전략별 성과</h2><p>각 100만원 · 10배. 고래가 교체돼도 계좌 잔액은 이어집니다.</p></div><div class="pad"><div class="grid" id="accountGrid"></div></div></section><section class="section"><div class="head"><h2>시스템 상태</h2><p>전략 비교 엔진의 수집 상태</p></div><div class="pad"><div class="status-grid"><div class="status-item"><div class="status-title">엔진</div><div class="status-value" id="engineState">—</div></div><div class="status-item"><div class="status-title">공백 복구</div><div class="status-value" id="recoveryState">—</div></div><div class="status-item"><div class="status-title">클라우드 기록</div><div class="status-value" id="cloudState">—</div></div><div class="status-item"><div class="status-title">실거래 안전장치</div><div class="status-value green">실제 주문 없음</div></div></div></div></section><section class="section"><div class="pad"><details><summary>엔진 상세 보기</summary><div class="details" id="details">—</div></details></div></section><section class="section" id="phoneSharePanel" hidden><div class="head"><h2>휴대폰으로 PC 실시간 계좌 보기</h2><p>PC에서만 QR과 조회용 링크가 표시됩니다. 실제 주문은 불가능합니다.</p></div><div class="pad"><div class="phone-layout"><img id="phoneShareQr" class="phone-qr" alt="휴대폰 연결 QR 코드" hidden><div class="phone-content"><div id="phoneShareStatus" class="phone-status">보안 연결 준비 중</div><input id="phoneShareLink" class="phone-link" aria-label="휴대폰 연결 링크" readonly placeholder="연결 준비 중"><div class="phone-actions"><button class="btn" id="phoneShareCopy" type="button" disabled>연결 링크 복사</button><a class="btn" id="phoneShareOpen" target="_blank" rel="noopener noreferrer" hidden>연결 화면 열기</a></div><div class="phone-note">휴대폰 카메라로 QR을 스캔하세요. 링크에 비밀 조회 키가 포함되므로 공개하지 마세요. PC 종료 시 연결이 끊깁니다.</div></div></div></div></section></div>
 </main>
 <script>
@@ -187,7 +213,9 @@ function renderWalletCloses(paper) {
     card.append(title);
     function line(label,value) {
       const p=document.createElement('p');
-      p.textContent=label+' '+value;
+      const name=document.createElement('span'), amount=document.createElement('span');
+      name.textContent=label; amount.textContent=value; p.append(name,amount);
+      if(label.includes('손익')) p.className='profit-line';
       card.append(p);
     }
     line('고래', short(address));
@@ -271,6 +299,7 @@ function renderWalletPositions(paper) {
       }
       const ordered = [...rows.values()].sort((a,b) => b.value-a.value);
       const max = Math.max(1,...ordered.map(r => Math.abs(r.value)));
+      const labels = Array.from(document.querySelectorAll('.whale-table th'), th => th.textContent);
       const body = document.createElement('tbody');
       for (const {address,value,label} of ordered) {
         const tr = body.insertRow();
@@ -291,6 +320,7 @@ function renderWalletPositions(paper) {
         tr.insertCell().textContent=a ? won(a.cash-paper.initial_krw)+' / '+won(open) : '—';
         tr.insertCell().textContent=a ? a.closed.length+'건 / '+(a.max_drawdown_pct?.toFixed(2)??'—')+'%' : '—';
         tr.insertCell().textContent=a ? ((a.attempts ? (100*(a.misses||0)/a.attempts).toFixed(1)+'%' : '—')+' / '+(a.last_at?new Date(a.last_at).toLocaleTimeString('ko-KR'):'—')):'—';
+        Array.from(tr.cells).forEach((td,i) => { td.dataset.label=labels[i]; });
       }
       document.getElementById('whaleProfits').replaceChildren(...Array.from(body.children));
       document.getElementById('whaleDate').textContent = ordered.length
