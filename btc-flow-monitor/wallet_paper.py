@@ -53,7 +53,8 @@ def close_part(a, fraction, price, at, reason):
     before = a['cash']
     a['cash'] = max(0, before + sign * (proceeds-cost) - proceeds * FEE)
     a['closed'].append(dict(opened=pos['at'], closed=at, side=sign, entry=pos['entry'],
-                            exit=exit_price, net_krw=a['cash']-before-entry_fee, reason=reason))
+                            exit=exit_price, net_krw=a['cash']-before-entry_fee, reason=reason,
+                            close_fraction=fraction, cash_after_krw=a['cash']))
     if fraction >= 1:
         a['position'] = None
     else:
@@ -89,13 +90,15 @@ def apply_fill(a, row, source_equity):
     if opening > 1e-12:
         if pos and pos['side'] != sign:
             raise ValueError('fill direction mismatch')
-        if source_equity <= 0:
-            raise ValueError('invalid source equity for sizing')
         mark(a, price, at)
         pos = a.get('position')
         used = pos['notional'] * price / pos['entry'] if pos else 0
         budget = a['equity_krw']
-        nominal = min(opening*price/source_equity*budget, max(0, budget*LEV-used))
+        nominal = max(0, budget*LEV-used)
+        if pos:
+            if source_equity <= 0:
+                raise ValueError('invalid source equity for sizing')
+            nominal = min(nominal, opening*price/source_equity*budget)
         if nominal > 0:
             entry = price*(1+sign*SLIP)
             fee = nominal*FEE
