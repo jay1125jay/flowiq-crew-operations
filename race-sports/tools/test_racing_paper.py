@@ -47,7 +47,15 @@ class PaperTest(unittest.TestCase):
   self.assertEqual(overall['stake_krw'],0)
   update(d,self.snap(e),[],self.now)
   self.assertEqual(d['summary']['overall']['picks'],1)
+ def test_overdue_reason_clears_on_official_settlement(self):
+  d=update({},self.snap(self.e),[],self.now);later=self.now+timedelta(days=1)
+  update(d,{'events':[]},[],later)
+  self.assertEqual(d['records']['test']['settlement_hold_reason'],'OFFICIAL_RESULT_UNCONFIRMED')
+  update(d,{'events':[]},[self.snap(self.final())],later)
+  self.assertNotIn('settlement_hold_reason',d['records']['test'])
+  self.assertEqual(d['summary']['overall']['settled'],1)
  def test_unofficial(self):
   d=update({},self.snap(self.e),[],self.now);e=self.final();e['result']['official']=False
   update(d,self.snap(e),[],self.now);self.assertEqual(d['summary']['overall']['pending'],1)
 if __name__=='__main__':unittest.main()
+

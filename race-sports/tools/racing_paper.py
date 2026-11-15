@@ -79,6 +79,12 @@ def update(ledger,snapshot,history,now):
             skipped[reason]=skipped.get(reason,0)+1;continue
         pick=max(outs,key=lambda o:o['model_p'])
         records[eid]={'id':eid,'sport':sport,'date':e['event_date'],'title':e.get('competition','')+' '+e.get('title',''),'start_at':start.isoformat(),'locked_at':now.isoformat(timespec='seconds'),'snapshot_at':snapshot['generated_at'],'pick_key':pick['key'],'pick_name':pick.get('name',pick['key']),'model_p':pick['model_p'],'model_source':pick.get('model_source',e.get('model_source')),'runner_keys':[o['key'] for o in outs],'stake_per_pick_krw':STAKE,'settlement':'PENDING','source_url':e.get('source_url')}
+    # A past pick stays open until an official source confirms its outcome.
+    for rec in records.values():
+        if rec.get('settlement')=='PENDING' and rec.get('date','') < now.astimezone(KST).date().isoformat():
+            rec.setdefault('settlement_hold_reason','OFFICIAL_RESULT_UNCONFIRMED')
+        elif rec.get('settlement')!='PENDING':
+            rec.pop('settlement_hold_reason',None)
     ledger.update(version='RACING_PAPER_V1',updated_at=now.isoformat(timespec='seconds'),paper_only=True,real_betting=False,auto_betting=False,policy='PRESTART_LOCKED_AI_TOP1_SINGLE_WIN_100K_OFFICIAL_FINAL_TOTE_SETTLEMENT_NO_RETROSPECTIVE_PICKS',skipped_current=skipped)
     ledger['summary']={'overall':summary(records.values()),'by_sport':{s:summary(r for r in records.values() if r['sport']==s) for s in SPORTS}}
     return ledger
@@ -94,3 +100,4 @@ def main():
     OUT.parent.mkdir(parents=True,exist_ok=True);OUT.write_text(json.dumps(ledger,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps({'RACING_PAPER':'PASS','summary':ledger['summary'],'skipped':ledger['skipped_current']},ensure_ascii=False))
 if __name__=='__main__':main()
+
