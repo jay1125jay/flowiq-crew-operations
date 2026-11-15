@@ -94,7 +94,7 @@ def apply_fill(a, row, source_equity):
         mark(a, price, at)
         pos = a.get('position')
         used = pos['notional'] * price / pos['entry'] if pos else 0
-        budget = min(CAPITAL, a['equity_krw'])
+        budget = a['equity_krw']
         nominal = min(opening*price/source_equity*budget, max(0, budget*LEV-used))
         if nominal > 0:
             entry = price*(1+sign*SLIP)
