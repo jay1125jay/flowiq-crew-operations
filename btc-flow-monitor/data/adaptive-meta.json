@@ -6,18 +6,8 @@
   "accounts": {
     "WHALE_COPY": {
       "starting_equity_usd": 1000.0,
-      "cash": 996.5146511051815,
+      "cash": 963.4453852218695,
       "positions": {
-        "0x7b7f72a28fe109fa703eeed7984f2a8a68fedee2": {
-          "side": "LONG",
-          "entry_price": 80798.73234999999,
-          "qty": 0.002062738632392253,
-          "notional_usd": 166.66666666666666,
-          "entry_fee": 0.08333333333333333,
-          "entry_at": "2026-10-24T12:46:24.357928+00:00",
-          "regime": "RANGE",
-          "funding_usd": 0.9246595194280088
-        },
         "0x71d0e11ebb6150cebe20cf62f798be1a50108c26": {
           "side": "LONG",
           "entry_price": 77012.59685,
@@ -26,7 +16,7 @@
           "entry_fee": 0.08112483222329814,
           "entry_at": "2026-11-04T02:14:30.015540+00:00",
           "regime": "RANGE",
-          "funding_usd": 0.4341274294837763
+          "funding_usd": 0.43421834646399965
         },
         "0x7fdafde5cfb5465924316eced2d3715494c517d1": {
           "side": "SHORT",
@@ -36,7 +26,17 @@
           "entry_fee": 0.0818251902076822,
           "entry_at": "2026-11-06T11:30:19.545309+00:00",
           "regime": "RANGE",
-          "funding_usd": -0.3588952976333313
+          "funding_usd": -0.35898810692964117
+        },
+        "0x7b7f72a28fe109fa703eeed7984f2a8a68fedee2": {
+          "side": "SHORT",
+          "entry_price": 64837.04305,
+          "qty": 0.0023910610990731176,
+          "notional_usd": 155.02933141578404,
+          "entry_fee": 0.07751466570789202,
+          "entry_at": "2026-11-15T04:18:42.080967+00:00",
+          "regime": "RANGE",
+          "funding_usd": 0.0
         }
       },
       "closed": [
@@ -54,42 +54,68 @@
           "pnl_usd": -2.2391738877754497,
           "regime": "RANGE",
           "reason": "WHALE_DIRECTION_CHANGED"
+        },
+        {
+          "source": "0x7b7f72a28fe109fa703eeed7984f2a8a68fedee2",
+          "side": "LONG",
+          "entry_at": "2026-10-24T12:46:24.357928+00:00",
+          "exit_at": "2026-11-15T04:18:42.080967+00:00",
+          "entry_price": 80798.73234999999,
+          "exit_price": 64837.04305,
+          "qty": 0.002062738632392253,
+          "entry_fee": 0.08333333333333333,
+          "exit_fee": 0.06687093675465731,
+          "funding_usd": 0.9247485352415721,
+          "pnl_usd": -33.999745962681594,
+          "regime": "RANGE",
+          "reason": "WHALE_DIRECTION_CHANGED"
         }
       ],
       "peak": 1015.363667293098,
       "mdd_pct": 5.493507816683119,
-      "fees_usd": 0.4119556701674259,
-      "funding_usd": 1.084688697541978,
+      "fees_usd": 0.5563412726299752,
+      "funding_usd": 1.084775821039455,
       "liquidations": 0,
-      "equity_usd": 961.9998079666531,
-      "net_pnl_usd": -38.000192033346934,
-      "return_pct": -3.8000192033346925,
-      "unrealized_pnl_usd": -35.761018145571256,
-      "closed_count": 1,
-      "expectancy_usd": -2.2391738877754497,
+      "equity_usd": 961.6106311888142,
+      "net_pnl_usd": -38.38936881118582,
+      "return_pct": -3.838936881118582,
+      "unrealized_pnl_usd": -2.1504489607285207,
+      "closed_count": 2,
+      "expectancy_usd": -18.119459925228522,
       "profit_factor": 0.0,
       "profit_factor_status": "FINITE",
       "win_rate_pct": 0.0,
       "average_win_usd": 0.0,
-      "average_loss_usd": -2.2391738877754497,
-      "return_drawdown_ratio": -0.6917290973527869,
+      "average_loss_usd": -18.119459925228522,
+      "return_drawdown_ratio": -0.6988134010586451,
       "regime_performance": {
         "RANGE": {
-          "n": 1,
-          "expectancy": -2.2391738877754497,
-          "net": -2.2391738877754497,
+          "n": 2,
+          "expectancy": -18.119459925228522,
+          "net": -36.238919850457044,
           "pf": 0.0,
           "pf_status": "FINITE",
           "win_rate": 0.0,
           "average_win": 0.0,
-          "average_loss": -2.2391738877754497
+          "average_loss": -18.119459925228522
         }
       }
     },
     "SMART_MONEY": {
       "starting_equity_usd": 1000.0,
-      "cash": 997.0943553071563,
-      "positions": {},
+      "cash": 996.8450817183295,
+      "positions": {
+        "BTC": {
+          "side": "SHORT",
+          "entry_price": 64837.04305,
+          "qty": 0.007689233718896102,
+          "notional_usd": 498.54717765357816,
+          "entry_fee": 0.24927358882678907,
+          "entry_at": "2026-11-15T04:18:42.080967+00:00",
+          "regime": "RANGE",
+          "funding_usd": 0.0
+        }
+      },
       "closed": [
         {
           "source": "BTC",
@@ -364,13 +390,13 @@
       ],
       "peak": 1000.0,
       "mdd_pct": 2.827668759235587,
-      "fees_usd": 8.885198073384254,
+      "fees_usd": 9.134471662211043,
       "funding_usd": -1.7400993578227653,
       "liquidations": 0,
-      "equity_usd": 997.0943553071563,
-      "net_pnl_usd": -2.90564469284368,
-      "return_pct": -0.2905644692843712,
-      "unrealized_pnl_usd": 0,
+      "equity_usd": 996.296440448453,
+      "net_pnl_usd": -3.7035595515469595,
+      "return_pct": -0.37035595515469977,
+      "unrealized_pnl_usd": -0.7979148587033327,
       "closed_count": 18,
       "expectancy_usd": -0.16142470515802843,
       "profit_factor": 0.9317694986870666,
@@ -378,7 +404,7 @@
       "win_rate_pct": 50.0,
       "average_win_usd": 4.4088967164687265,
       "average_loss_usd": -4.731746126784783,
-      "return_drawdown_ratio": -0.10275760494766029,
+      "return_drawdown_ratio": -0.13097572123504994,
       "regime_performance": {
         "RANGE": {
           "n": 11,
@@ -414,7 +440,7 @@
     },
     "MARKET_STRUCTURE": {
       "starting_equity_usd": 1000.0,
-      "cash": 969.0493808967602,
+      "cash": 969.0497031191979,
       "positions": {
         "BTC": {
           "side": "SHORT",
@@ -424,7 +450,7 @@
           "entry_fee": 0.24232292595567897,
           "entry_at": "2026-11-15T04:15:30.451654+00:00",
           "regime": "RANGE",
-          "funding_usd": 0.0
+          "funding_usd": -0.00032222243773097196
         }
       },
       "closed": [
@@ -987,12 +1013,12 @@
       "peak": 1002.5781296148585,
       "mdd_pct": 4.265861982264119,
       "fees_usd": 18.458779803473465,
-      "funding_usd": -0.04609916919835516,
+      "funding_usd": -0.046421391636086135,
       "liquidations": 0,
-      "equity_usd": 968.5160377598388,
-      "net_pnl_usd": -31.48396224016119,
-      "return_pct": -3.1483962240161145,
-      "unrealized_pnl_usd": -0.7756660628770421,
+      "equity_usd": 969.0394521503956,
+      "net_pnl_usd": -30.96054784960438,
+      "return_pct": -3.0960547849604336,
+      "unrealized_pnl_usd": -0.2522516723202864,
       "closed_count": 37,
       "expectancy_usd": -0.8299539507374094,
       "profit_factor": 0.6492871967273227,
@@ -1000,7 +1026,7 @@
       "win_rate_pct": 27.027027027027028,
       "average_win_usd": 5.6851370566357975,
       "average_loss_usd": -3.2429506201348937,
-      "return_drawdown_ratio": -0.7380445586627005,
+      "return_drawdown_ratio": -0.7257747198181018,
       "regime_performance": {
         "RANGE": {
           "n": 20,
@@ -1602,8 +1628,19 @@
     },
     "FIXED_ENSEMBLE": {
       "starting_equity_usd": 1000.0,
-      "cash": 1004.3861751856,
-      "positions": {},
+      "cash": 1004.1361751856,
+      "positions": {
+        "BTC": {
+          "side": "SHORT",
+          "entry_price": 64837.04305,
+          "qty": 0.007711641007663134,
+          "notional_usd": 500.0,
+          "entry_fee": 0.25,
+          "entry_at": "2026-11-15T04:18:42.080967+00:00",
+          "regime": "RANGE",
+          "funding_usd": 0.0
+        }
+      },
       "closed": [
         {
           "source": "BTC",
@@ -1923,13 +1960,13 @@
       ],
       "peak": 1020.8665520477721,
       "mdd_pct": 2.655125138987892,
-      "fees_usd": 10.457706765869279,
+      "fees_usd": 10.707706765869279,
       "funding_usd": -1.6695174109558673,
       "liquidations": 0,
-      "equity_usd": 1004.3861751856,
-      "net_pnl_usd": 4.3861751855999955,
-      "return_pct": 0.43861751856000275,
-      "unrealized_pnl_usd": 0,
+      "equity_usd": 1003.5859351135784,
+      "net_pnl_usd": 3.5859351135784436,
+      "return_pct": 0.358593511357852,
+      "unrealized_pnl_usd": -0.800240072021603,
       "closed_count": 21,
       "expectancy_usd": 0.2088654850285508,
       "profit_factor": 1.0765277540057205,
@@ -1937,7 +1974,7 @@
       "win_rate_pct": 47.61904761904762,
       "average_win_usd": 6.170100485212422,
       "average_loss_usd": -5.21043906059315,
-      "return_drawdown_ratio": 0.16519655217727308,
+      "return_drawdown_ratio": 0.13505710374711166,
       "regime_performance": {
         "RANGE": {
           "n": 13,
@@ -1973,8 +2010,19 @@
     },
     "ADAPTIVE_META": {
       "starting_equity_usd": 1000.0,
-      "cash": 988.1180024962504,
-      "positions": {},
+      "cash": 987.8709729956263,
+      "positions": {
+        "BTC": {
+          "side": "SHORT",
+          "entry_price": 64837.04305,
+          "qty": 0.007620011308460267,
+          "notional_usd": 494.0590012481252,
+          "entry_fee": 0.2470295006240626,
+          "entry_at": "2026-11-15T04:18:42.080967+00:00",
+          "regime": "RANGE",
+          "funding_usd": 0.0
+        }
+      },
       "closed": [
         {
           "source": "BTC",
@@ -2308,14 +2356,14 @@
         }
       ],
       "peak": 1017.4058220298383,
-      "mdd_pct": 2.954220269251822,
-      "fees_usd": 10.925917255752537,
+      "mdd_pct": 2.9563966023962136,
+      "fees_usd": 11.1729467563766,
       "funding_usd": -1.5530815784931522,
       "liquidations": 0,
-      "equity_usd": 988.1180024962504,
-      "net_pnl_usd": -11.88199750374963,
-      "return_pct": -1.188199750374963,
-      "unrealized_pnl_usd": 0,
+      "equity_usd": 987.3272708747669,
+      "net_pnl_usd": -12.672729125233104,
+      "return_pct": -1.2672729125233095,
+      "unrealized_pnl_usd": -0.7907316214834419,
       "closed_count": 22,
       "expectancy_usd": -0.5400907956249562,
       "profit_factor": 0.8232386892706148,
@@ -2323,7 +2371,7 @@
       "win_rate_pct": 40.90909090909091,
       "average_win_usd": 6.148731184153821,
       "average_loss_usd": -5.170813704702571,
-      "return_drawdown_ratio": -0.4022041831958195,
+      "return_drawdown_ratio": -0.4286545693822546,
       "regime_performance": {
         "RANGE": {
           "n": 13,
@@ -2437,7 +2485,7 @@
     "0x0fd468a73084daa6ea77a9261e40fdec3e67e0c7": "SHORT",
     "0xee07c83ba75cdaabc9f11812e09a4cdb447e7773": "LONG",
     "0x2cffce91b4e0c81df18726ff66b31b2b1545e1ad": "LONG",
-    "0x7b7f72a28fe109fa703eeed7984f2a8a68fedee2": "LONG",
+    "0x7b7f72a28fe109fa703eeed7984f2a8a68fedee2": "SHORT",
     "0xaf0fdd39e5d92499b0ed9f68693da99c0ec1e92e": "FLAT",
     "0x4e14fc11f58b64740e66e4b1aa188a4b007c0eab": "FLAT",
     "0x605fcdd348ccc60bc8ba7b4c51a9fe5146508011": "FLAT",
@@ -2475,7 +2523,9 @@
     "0x939f95036d2e7b6d7419ec072bf9d967352204d2": "SHORT",
     "0x418aa6bf98a2b2bc93779f810330d88cde488888": "SHORT",
     "0xff4cd3826ecee12acd4329aada4a2d3419fc463c": "FLAT",
-    "0xbf49647d017805fcc576ac10f33a788e636f4258": "FLAT"
+    "0xbf49647d017805fcc576ac10f33a788e636f4258": "FLAT",
+    "0x469e9a7f624b04c24f0e64edf8d8a277e6bf58a5": "SHORT",
+    "0x5db201ae15f9702f0a0ff9f00b8c1c18355373d0": "FLAT"
   },
   "history": [
     {
@@ -3217,27 +3267,32 @@
       "at": "2026-11-15T04:15:30.451654+00:00",
       "price": 64926.5,
       "regime": "RANGE"
+    },
+    {
+      "at": "2026-11-15T04:18:42.080967+00:00",
+      "price": 64856.5,
+      "regime": "RANGE"
     }
   ],
   "engine_weights": {
-    "SMART_MONEY": 0.3407828881428221,
-    "MARKET_STRUCTURE": 0.3264701850618567,
-    "DERIVATIVES": 0.3327469267953212
+    "SMART_MONEY": 0.3415970914541213,
+    "MARKET_STRUCTURE": 0.32719058924400146,
+    "DERIVATIVES": 0.3312123193018772
   },
   "weight_sample_counts": {
     "SMART_MONEY": 18,
-    "MARKET_STRUCTURE": 36,
-    "DERIVATIVES": 33
+    "MARKET_STRUCTURE": 37,
+    "DERIVATIVES": 34
   },
-  "updated_at": "2026-11-15T04:15:30.954388+00:00",
-  "last_observation_at": "2026-11-15T04:15:30.451654+00:00",
-  "btc_mid_usd": 64926.5,
+  "updated_at": "2026-11-15T04:18:43.025785+00:00",
+  "last_observation_at": "2026-11-15T04:18:42.080967+00:00",
+  "btc_mid_usd": 64856.5,
   "regime": "RANGE",
   "decisions": {
     "SMART_MONEY": {
-      "score": 0.0,
-      "signal": "WAIT",
-      "confidence": 0.0,
+      "score": -1.0,
+      "signal": "SHORT",
+      "confidence": 100.0,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "MARKET_STRUCTURE": {
@@ -3247,34 +3302,34 @@
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "DERIVATIVES": {
-      "score": -0.11360739155471108,
+      "score": -0.03393005699318878,
       "signal": "WAIT",
-      "confidence": 11.360739155471109,
+      "confidence": 3.393005699318878,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "FIXED_ENSEMBLE": {
-      "score": -0.1033007783145659,
-      "signal": "WAIT",
-      "confidence": 10.33007783145659,
+      "score": -0.48736531140226147,
+      "signal": "SHORT",
+      "confidence": 48.73653114022615,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "ADAPTIVE_META": {
-      "score": -0.10356935786190757,
-      "signal": "WAIT",
-      "confidence": 10.356935786190757,
+      "score": -0.41874711594751723,
+      "signal": "SHORT",
+      "confidence": 41.87471159475172,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     },
     "WHALE_COPY": {
-      "score": 0.0,
-      "signal": "WAIT",
-      "confidence": 0.0,
+      "score": -0.6666666666666666,
+      "signal": "SHORT",
+      "confidence": 66.66666666666666,
       "confidence_kind": "SIGNAL_STRENGTH_NOT_WIN_PROBABILITY"
     }
   },
   "previous_market": {
     "funding_rate": 1.25e-05,
-    "open_interest_btc": 37721.31656,
-    "reference_price": 64909.5
+    "open_interest_btc": 37745.78028,
+    "reference_price": 64854.5
   },
   "paper_rules": {
     "starting_equity_usd": 1000.0,
@@ -3289,16 +3344,16 @@
   "profitability": "UNPROVEN",
   "data_quality": {
     "feed_errors": 0,
-    "source_at": "2026-11-15T04:15:30.451654+00:00",
+    "source_at": "2026-11-15T04:18:42.080967+00:00",
     "continuity": {
       "target_interval_seconds": 300,
       "tolerance_seconds": 900,
-      "last_gap_seconds": 4636.622543,
+      "last_gap_seconds": 191.629313,
       "max_gap_seconds": 319346.336582,
       "gap_count": 108,
       "approximate_missed_intervals": 7234,
       "status": "GAPPED",
-      "window_observations": 148,
+      "window_observations": 149,
       "note": "Observed intervals only; GitHub cron is not a guaranteed five-minute clock."
     },
     "unavailable": [
@@ -3315,8 +3370,8 @@
   "leaderboard": [
     {
       "engine": "FIXED_ENSEMBLE",
-      "equity_usd": 1004.3861751856,
-      "net_pnl_usd": 4.3861751855999955,
+      "equity_usd": 1003.5859351135784,
+      "net_pnl_usd": 3.5859351135784436,
       "profit_factor": 1.0765277540057205,
       "mdd_pct": 2.655125138987892,
       "closed_count": 21,
@@ -3324,8 +3379,8 @@
     },
     {
       "engine": "SMART_MONEY",
-      "equity_usd": 997.0943553071563,
-      "net_pnl_usd": -2.90564469284368,
+      "equity_usd": 996.296440448453,
+      "net_pnl_usd": -3.7035595515469595,
       "profit_factor": 0.9317694986870666,
       "mdd_pct": 2.827668759235587,
       "closed_count": 18,
@@ -3333,10 +3388,10 @@
     },
     {
       "engine": "ADAPTIVE_META",
-      "equity_usd": 988.1180024962504,
-      "net_pnl_usd": -11.88199750374963,
+      "equity_usd": 987.3272708747669,
+      "net_pnl_usd": -12.672729125233104,
       "profit_factor": 0.8232386892706148,
-      "mdd_pct": 2.954220269251822,
+      "mdd_pct": 2.9563966023962136,
       "closed_count": 22,
       "expectancy_usd": -0.5400907956249562
     },
@@ -3351,8 +3406,8 @@
     },
     {
       "engine": "MARKET_STRUCTURE",
-      "equity_usd": 968.5160377598388,
-      "net_pnl_usd": -31.48396224016119,
+      "equity_usd": 969.0394521503956,
+      "net_pnl_usd": -30.96054784960438,
       "profit_factor": 0.6492871967273227,
       "mdd_pct": 4.265861982264119,
       "closed_count": 37,
@@ -3360,12 +3415,12 @@
     },
     {
       "engine": "WHALE_COPY",
-      "equity_usd": 961.9998079666531,
-      "net_pnl_usd": -38.000192033346934,
+      "equity_usd": 961.6106311888142,
+      "net_pnl_usd": -38.38936881118582,
       "profit_factor": 0.0,
       "mdd_pct": 5.493507816683119,
-      "closed_count": 1,
-      "expectancy_usd": -2.2391738877754497
+      "closed_count": 2,
+      "expectancy_usd": -18.119459925228522
     }
   ]
 }
