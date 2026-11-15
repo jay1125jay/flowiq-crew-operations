@@ -8,13 +8,21 @@ if ($Install) {
     Copy-Item -LiteralPath $PSCommandPath -Destination $launcher -Force
     $shell = New-Object -ComObject WScript.Shell
     foreach ($folder in @('Desktop','Startup')) {
-        $shortcut = $shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath($folder)) 'BTC FLOW 1.lnk'))
+        $folderPath = [Environment]::GetFolderPath($folder)
+        $displayName = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('7LqQ7ImsIO2UjOuhnOyasA=='))
+        $shortcut = $shell.CreateShortcut((Join-Path $folderPath ($displayName + '.lnk')))
         $shortcut.TargetPath = (Get-Command powershell.exe).Source
         $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $launcher + '"'
         if ($folder -eq 'Startup') { $shortcut.Arguments += ' -Background' }
         $shortcut.WorkingDirectory = $root
         $shortcut.WindowStyle = 7
         $shortcut.Save()
+        $oldLink = Join-Path $folderPath 'BTC FLOW 1.lnk'
+        if (Test-Path -LiteralPath $oldLink) {
+            if ($shell.CreateShortcut($oldLink).Arguments -like ('*' + $launcher + '*')) {
+                Remove-Item -LiteralPath $oldLink
+            }
+        }
     }
 }
 $mutex = New-Object System.Threading.Mutex($false,'Local\BTCFlowOriginalDashboard')
