@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>거래 기록 · 캐쉬 플로우</title><link rel="icon" href="./cash-whale-192.png">
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080d13;color:#eef4fb;font:16px/1.5 system-ui,sans-serif}main{max-width:950px;margin:auto;padding:22px 16px}header,.totals,article{display:flex;gap:12px;justify-content:space-between;align-items:center}h1{margin:12px 0;font-size:28px}a{color:#70e5bc}small,time,#status{color:#a7b5c5}section,article{background:#101923;border:1px solid #253545;border-radius:12px;padding:14px}.totals{margin:10px 0 18px}.totals section{flex:1}strong,time,b{display:block}.gain{color:#57dfa8}.loss{color:#ff8995}article{margin:8px 0}.amount{text-align:right}time,small{font-size:13px}
+*{box-sizing:border-box}body{margin:0;background:#080d13;color:#eef4fb;font:16px/1.5 system-ui,sans-serif}main{max-width:950px;margin:auto;padding:22px 16px}header,.totals,article{display:flex;gap:12px;justify-content:space-between;align-items:center}h1{margin:12px 0;font-size:28px}a{color:#70e5bc}small,time,#status{color:#a7b5c5}section,article{background:#101923;border:1px solid #253545;border-radius:12px;padding:14px}.totals{margin:10px 0 18px}.totals section{flex:1}strong,time,b,article small{display:block}.gain{color:#57dfa8}.loss{color:#ff8995}article{margin:8px 0}.amount{text-align:right}time,small{font-size:13px}
 </style>
 <main><header><h1>거래 기록</h1><a href="./dashboard.html">대시보드</a></header>
 <p>고래별 모의계좌 · 수수료 차감 후 확정 손익 · 한국시간</p>
@@ -30,7 +30,11 @@ function render(paper){
     const type=trade.reason==='liquidation'?'강제 청산':trade.close_fraction==null?'청산':trade.close_fraction<1?'부분 청산':'전량 청산';
     const when=node('time',fmt.format(new Date(trade.closed)));when.dateTime=trade.closed;
     const who=node('small',wallet.slice(0,8)+'…'+wallet.slice(-4));who.title=wallet;
-    left.append(when,node('b',(trade.side===1?'롱 ':'숏 ')+type),who);
+    when.textContent='청산 '+when.textContent;
+    const price=v=>Number.isFinite(v)?v.toLocaleString('ko-KR',{style:'currency',currency:'USD'}):'—';
+    const opened=Number.isFinite(Date.parse(trade.opened))?fmt.format(new Date(trade.opened)):'—';
+    left.append(node('b','BTC (비트코인) · '+(trade.side===1?'롱 ':'숏 ')+type),who,node('small','최초 진입 '+opened),node('small','평균 진입가 '+price(trade.entry)),when,node('small','청산가 '+price(trade.exit)));
+    if(Number.isFinite(trade.close_fraction))left.append(node('small','직전 보유량 대비 청산 '+(trade.close_fraction*100).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%'));
     right.append(node('strong',(net>0?'이익 +':net<0?'손실 −':'손익 ')+money(Math.abs(net)),net>0?'gain':net<0?'loss':''));
     if(Number.isFinite(trade.cash_after_krw))right.append(node('small','청산 후 현금 '+money(trade.cash_after_krw)));
     card.append(left,right);list.append(card);
