@@ -880,7 +880,7 @@
       "start_label": "09:00",
       "start_timestamp": 1794700800,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "New Orleans Pelicans vs Denver Nuggets",
       "home": "New Orleans Pelicans",
       "away": "Denver Nuggets",
@@ -1080,7 +1080,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 39,
+        "away": 44
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909981",
@@ -1095,7 +1099,7 @@
       "start_label": "09:30",
       "start_timestamp": 1794702600,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Cleveland Cavaliers vs Dallas Mavericks",
       "home": "Cleveland Cavaliers",
       "away": "Dallas Mavericks",
@@ -1295,7 +1299,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 25,
+        "away": 23
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909982",
@@ -2565,7 +2573,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-15T07:59:17+09:00",
+      "updated_at": "2026-11-15T09:57:41+09:00",
       "summary": {
         "overall": {
           "picks": 32,
@@ -2928,7 +2936,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-15T07:59:17+09:00",
+      "generated_at": "2026-11-15T09:57:41+09:00",
       "overall": {
         "observed": 349,
         "evaluated": 281,
@@ -3521,5 +3529,23 @@
     "errors": [],
     "updated_at": "2026-11-15T07:37:31.179967+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-15T09:57:38+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 4,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 8,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
