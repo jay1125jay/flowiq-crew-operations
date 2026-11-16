@@ -145,13 +145,18 @@ def main():
         real_trading_enabled=False,initial_krw=CAPITAL,leverage=LEV,accounts={})
     assert ledger['paper_only'] is True and ledger['real_trading_enabled'] is False
     accounts = ledger['accounts']
-    catalog = json.loads((DATA/'latest.json').read_text())
-    addresses = {r['address'].lower() for r in catalog['wallets'] if r['category_flags'].get('WHALE')}
-    for path in (DATA/'research').glob('*public-profit-screen.json'):
-        research = json.loads(path.read_text())
-        addresses.update(r['address'].lower() for r in research['results'] if r.get('whale_history_pass'))
-    for address in sorted(addresses):
-        accounts.setdefault(address, dict(cash=CAPITAL,equity_krw=CAPITAL,position=None,closed=[]))
+    selected = json.loads((DATA/'selected-whales.json').read_text(encoding='utf-8'))
+    addresses = [row['address'] for row in selected]
+    if len(addresses) != 5 or len(set(addresses)) != 5:
+        raise ValueError('Expected five distinct selected whale addresses')
+    archived = ledger.setdefault('archived_accounts', {})
+    for address in list(accounts):
+        if address not in addresses:
+            archived[address] = accounts.pop(address)
+    for address in addresses:
+        if address not in accounts:
+            accounts[address] = archived.pop(address, dict(cash=CAPITAL,equity_krw=CAPITAL,position=None,closed=[]))
+    ledger['selected_whales'] = selected
     started = now()
     def sample(address):
         try:
@@ -159,6 +164,9 @@ def main():
             begin = time.monotonic()
             state = info(dict(type='clearinghouseState',user=address))
             source_equity = finite(state['marginSummary']['accountValue'])
+            positions = state['assetPositions']
+            source_btc_size = next((finite(item['position']['szi']) for item in positions
+                                    if item['position']['coin'] == 'BTC'), 0.0)
             received = now()
             stage = 'quote'
             book = info(dict(type='l2Book',coin='BTC'))
@@ -179,6 +187,8 @@ def main():
                 raise ValueError('old quote')
             rows = fetch_fills(address, cursor + 1, end) if cursor is not None and cursor < end else []
             process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat())
+            updated['source_btc_size'] = source_btc_size
+            updated['source_position_at'] = received.isoformat()
             return updated,quote.isoformat(),received.isoformat(),None
         except (OSError,ValueError,KeyError,IndexError,TypeError) as exc:
             return None,None,None,f'{stage}: {type(exc).__name__}: {exc}'[:200]

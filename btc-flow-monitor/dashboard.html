@@ -58,72 +58,67 @@ body{font-variant-numeric:tabular-nums;line-height:1.5;word-break:keep-all}
 <p class="healthline" id="ledgerHealth" role="status">최근 수집 확인 중</p>
 <section class="section"><div class="head"><h2>보유 포지션</h2><p>최근 수집 가격 기준 평가손익</p></div><div class="pad"><div class="follow-list" id="followList"><div class="empty">불러오는 중…</div></div></div></section>
 </div>
-<div id="whales" class="view" hidden><section class="section" id="whaleProfitPanel" hidden><div class="head"><h2>고래별 BTC 순이익</h2><p>고래 지갑의 관찰된 BTC 체결 손익 · 수수료 차감 · 미국 달러 기준. 막대 길이는 손익의 절댓값입니다.</p></div><div class="pad whale-scroll"><div class="meta" id="whaleDate"></div><table class="whale-table"><thead><tr><th>지갑</th><th>분류</th><th>BTC 순이익</th><th>모의손익 (100만원·10배)</th><th>실현 / 미실현</th><th>종료 / 최대낙폭</th><th>조회 누락 / 마지막 성공</th></tr></thead><tbody id="whaleProfits"></tbody></table></div></section></div>
+<div id="whales" class="view" hidden><section class="section" id="whaleProfitPanel" hidden><div class="head"><h2>선발 고래 5개 · BTC 누적 순이익</h2><p>선발 시점에 관찰한 고래 지갑의 BTC 체결 손익 · 수수료 차감 · 미국 달러 기준. 막대 길이는 손익의 절댓값입니다.</p></div><div class="pad whale-scroll"><div class="meta" id="whaleDate"></div><table class="whale-table"><thead><tr><th>지갑</th><th>분류</th><th>BTC 순이익</th><th>모의손익 (100만원·10배)</th><th>실현 / 미실현</th><th>종료 / 최대낙폭</th><th>조회 누락 / 마지막 성공</th></tr></thead><tbody id="whaleProfits"></tbody></table></div></section></div>
 <div id="records" class="view" hidden><section class="section" id="recordsPanel"><div class="head"><h2>거래 기록</h2><div class="pnl-summary"><div>누적 이익금<strong class="green" id="recordsGain">—</strong></div><div>누적 손실금<strong class="red" id="recordsLoss">—</strong></div></div><p>고래별 모의계좌 · 진입·청산 수수료 차감 · 신규 진입은 계좌 전액 기준 10배 · 시각은 한국시간, 가격은 미국 달러</p></div><div class="pad whale-scroll"><div id="walletCloses" class="trade-records"></div><div class="meta" id="closeStatus" aria-live="polite">조회 중…</div></div></section></div>
-<div id="strategies" class="view" hidden><section class="hero" id="hero"><div class="hero-label">전략 비교용 모의자산 · 6개 전략 합계</div><div class="hero-value" id="totalEquity">—</div><div class="hero-pnl" id="totalPnl">—</div><div class="statusbar"><span class="chip" id="modeChip">연결 확인 중</span><span class="chip" id="recoveryChip">공백 복구 확인 중</span><span class="chip" id="syncChip">동기화 확인 중</span></div></section><section class="section"><div class="head"><h2>전략별 성과</h2><p>각 100만원 · 10배. 고래가 교체돼도 계좌 잔액은 이어집니다.</p></div><div class="pad"><div class="grid" id="accountGrid"></div></div></section><section class="section"><div class="head"><h2>시스템 상태</h2><p>전략 비교 엔진의 수집 상태</p></div><div class="pad"><div class="status-grid"><div class="status-item"><div class="status-title">엔진</div><div class="status-value" id="engineState">—</div></div><div class="status-item"><div class="status-title">공백 복구</div><div class="status-value" id="recoveryState">—</div></div><div class="status-item"><div class="status-title">클라우드 기록</div><div class="status-value" id="cloudState">—</div></div><div class="status-item"><div class="status-title">실거래 안전장치</div><div class="status-value green">실제 주문 없음</div></div></div></div></section><section class="section"><div class="pad"><details><summary>엔진 상세 보기</summary><div class="details" id="details">—</div></details></div></section><section class="section" id="phoneSharePanel" hidden><div class="head"><h2>휴대폰으로 PC 실시간 계좌 보기</h2><p>PC에서만 QR과 조회용 링크가 표시됩니다. 실제 주문은 불가능합니다.</p></div><div class="pad"><div class="phone-layout"><img id="phoneShareQr" class="phone-qr" alt="휴대폰 연결 QR 코드" hidden><div class="phone-content"><div id="phoneShareStatus" class="phone-status">보안 연결 준비 중</div><input id="phoneShareLink" class="phone-link" aria-label="휴대폰 연결 링크" readonly placeholder="연결 준비 중"><div class="phone-actions"><button class="btn" id="phoneShareCopy" type="button" disabled>연결 링크 복사</button><a class="btn" id="phoneShareOpen" target="_blank" rel="noopener noreferrer" hidden>연결 화면 열기</a></div><div class="phone-note">휴대폰 카메라로 QR을 스캔하세요. 링크에 비밀 조회 키가 포함되므로 공개하지 마세요. PC 종료 시 연결이 끊깁니다.</div></div></div></div></section></div>
+<div id="strategies" class="view" hidden><section class="section"><div class="head"><h2>선발 고래별 성과</h2><p>누적 순이익 선발 순위 · 모의계좌당 100만원 · 10배</p><p id="strategyStatus" role="status">조회 중…</p></div><div class="pad"><div class="grid" id="accountGrid"></div></div></section><section class="section" id="phoneSharePanel" hidden><div class="head"><h2>휴대폰으로 PC 실시간 계좌 보기</h2><p>PC에서만 QR과 조회용 링크가 표시됩니다. 실제 주문은 불가능합니다.</p></div><div class="pad"><div class="phone-layout"><img id="phoneShareQr" class="phone-qr" alt="휴대폰 연결 QR 코드" hidden><div class="phone-content"><div id="phoneShareStatus" class="phone-status">보안 연결 준비 중</div><input id="phoneShareLink" class="phone-link" aria-label="휴대폰 연결 링크" readonly placeholder="연결 준비 중"><div class="phone-actions"><button class="btn" id="phoneShareCopy" type="button" disabled>연결 링크 복사</button><a class="btn" id="phoneShareOpen" target="_blank" rel="noopener noreferrer" hidden>연결 화면 열기</a></div><div class="phone-note">휴대폰 카메라로 QR을 스캔하세요. 링크에 비밀 조회 키가 포함되므로 공개하지 마세요. PC 종료 시 연결이 끊깁니다.</div></div></div></div></section></div>
 </main>
 <script>
 const $=id=>document.getElementById(id),labels={WHALE:'고래',HIGH_WIN_RATE:'고승률',HIGH_PROFIT:'고수익',CONSISTENT:'안정형',SCALPER:'스캘퍼',SWING:'스윙'},won=n=>n==null?'—':Math.round(Number(n)).toLocaleString('ko-KR')+'원',usd=n=>n==null?'—':'$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:2}),pct=n=>n==null?'—':Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%',short=a=>a?a.slice(0,7)+'…'+a.slice(-5):'—',side=s=>s==='LONG'?'롱':s==='SHORT'?'숏':'관망',tone=n=>Number(n)>0?'green':Number(n)<0?'red':'';
 const hash=new URLSearchParams(location.hash.slice(1)),local=window.BTC_LOCAL_RUNTIME===true,remote=!local&&(hash.has('pc')||hash.has('key')),endpoint=hash.get('pc')||'',key=hash.get('key')||'',validRemote=/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(endpoint)&&/^[A-Za-z0-9_-]{43}$/.test(key);let loading=false;
 async function fetchJson(url,opts={}){const r=await fetch(url+(url.includes('?')?'&':'?')+'v='+Date.now(),{cache:'no-store',...opts});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}function safety(d){if(d.paper_only!==true||d.real_trading_enabled!==false)throw Error('PAPER 안전 플래그 불일치')}
-async function source(){if(remote&&!validRemote)throw Error('잘못된 PC 연결 링크');if(local||remote){const r=await fetchJson(remote?endpoint+'/api/status':'/api/status',{credentials:'omit',referrerPolicy:'no-referrer',headers:remote?{Authorization:'Bearer '+key}:{},signal:AbortSignal.timeout(5000)});safety(r);const c=r.category_competition;if(!c||!c.accounts)throw Error('6개 계좌 준비 중');safety(c);return{mode:'PC 실시간',healthy:r.category_healthy!==false&&r.healthy!==false,accounts:c.accounts,updated:c.updated_at||r.updated_at,btc:r.btc_mid_usd,recovery:r.category_gap_recovery||c.gap_recovery||null,replayUpdated:null,sourceAt:r.category_source_at||r.source_at}}const[c,p,l]=await Promise.all([fetchJson('./trader-discovery/category-paper.json'),fetchJson('./trader-discovery/current-positions.json'),fetchJson('./trader-discovery/cloud-replay-log.json').catch(()=>null)]);safety(c);safety(p);if(l)safety(l);const at=Date.parse(c.updated_at||'');const ageMinutes=(Date.now()-at)/60000;const fresh=Number.isFinite(ageMinutes)&&ageMinutes>=-1&&ageMinutes<=15;return{mode:'클라우드 5분',healthy:fresh,engineAgeMinutes:ageMinutes,accounts:c.accounts||{},updated:c.updated_at||p.generated_at,btc:p.btc_mid_usd,recovery:null,replayUpdated:l?.updated_at||null,replayCoverage:l?.capture_health||null,sourceAt:p.generated_at}}
-function posPnl(pos,mid,fx=1500){const entry=Number(pos.entry??pos.entry_price??0),notional=Number(pos.notional_usd??0),qty=Number(pos.qty??(entry>0?notional/entry:0)),price=Number(mid);if(!(entry>0&&qty>0&&price>0)||!['LONG','SHORT'].includes(pos.side))return null;return(pos.side==='SHORT'?entry-price:price-entry)*qty*fx}
-function render(d){const rows=Object.entries(d.accounts||{}).filter(([,a])=>Number(a.leverage)===10);if(rows.length!==6)throw Error('6개 계좌 확인 실패');if(rows.some(([,a])=>Number(a.starting_equity_krw)!==(local||remote?Number(rows[0][1].starting_equity_krw):1000000)))throw Error('시작자금 설정 불일치');const start=rows.reduce((s,[,a])=>s+Number(a.starting_equity_krw||0),0),equity=rows.reduce((s,[,a])=>s+Number(a.equity_krw||a.starting_equity_krw||0),0),pnl=equity-start;$('totalEquity').textContent=won(equity);$('totalPnl').className='hero-pnl '+tone(pnl);$('totalPnl').textContent=(pnl>=0?'+':'')+won(pnl)+' · 시작 '+won(start);$('modeChip').textContent='● '+d.mode;const rec=d.recovery;$('recoveryChip').textContent=rec?.status==='PARTIAL_REPLAY'?'공백 일부만 복구 · '+(rec.replayed_events||0)+'건 / 예상 누락 '+(rec.missing_5m_events_estimate||0)+'건':rec?.status==='REPLAYED'?'공백 복구 완료 · '+(rec.replayed_events||0)+'건':(local||remote?'공백 복구 대기/정상':'PC 재실행 시 자동 복구');$('syncChip').textContent='최근 '+(d.updated?new Date(d.updated).toLocaleString('ko-KR'):'—');$('accountGrid').innerHTML=rows.map(([,a])=>{const n=Number(a.net_pnl_krw||0);return`<div class="account-card"><div class="account-name">${labels[a.category]||a.category}</div><div class="account-equity">${won(a.equity_krw)}</div><div class="meta ${tone(n)}">누적손익 ${(n>=0?'+':'')+won(n)} · ${pct(a.return_pct)}</div><div class="meta">현재 포지션 ${Number(a.open_count??Object.keys(a.positions||{}).length)}개 · 종료 ${Number(a.closed_count||0)}건</div></div>`}).join('');$('engineState').textContent=d.healthy?'정상 작동':Number.isFinite(d.engineAgeMinutes)?'엔진 지연 · '+Math.max(0,Math.round(d.engineAgeMinutes))+'분 전':'연결/데이터 대기';$('engineState').className='status-value '+(d.healthy?'green':'red');$('recoveryState').textContent=rec?.status==='PARTIAL_REPLAY'?'부분복구 · 누락 '+(rec.missing_5m_events_estimate||0)+'건':rec?.status==='REPLAYED'?'복구 완료 · '+(rec.replayed_events||0)+'건':(local||remote?'자동 복구 준비됨':'PC 켜면 자동 복구');if(d.replayUpdated){const age=(Date.now()-new Date(d.replayUpdated).getTime())/60000;const bad=d.replayCoverage?.status==='PARTIAL'||age>15;$('cloudState').textContent=d.replayCoverage?.status==='PARTIAL'?'기록 일부 누락 · 24시간 '+(d.replayCoverage.coverage_pct_24h??'—')+'%':age<=15?'최근 기록 · '+Math.max(0,Math.round(age))+'분 전':'기록 지연 · '+Math.round(age)+'분 전';$('cloudState').className='status-value '+(bad?'red':'green')}else{$('cloudState').textContent=local||remote?'PC 실시간 사용 중':'확인 중'}$('details').innerHTML=`모드: ${d.mode}<br>BTC 기준가격: ${usd(d.btc)}<br>계좌 수: ${rows.length}개<br>최근 계좌 갱신: ${d.updated?new Date(d.updated).toLocaleString('ko-KR'):'—'}<br>최근 소스: ${d.sourceAt?new Date(d.sourceAt).toLocaleString('ko-KR'):'—'}${rec?'<br>공백복구 상태: '+(rec.status||'—')+' / '+(rec.replayed_events||0)+'건':''}`}
-let cloudSnapshot, liveQuote, quoteSocket, retryTimer;
-function markedSnapshot(snapshot, quote) {
-  const accounts = {};
-  for (const [key, account] of Object.entries(snapshot.accounts)) {
-    const fx = Number(account.krw_per_usd);
-    let equity = Number(account.cash);
-    for (const position of Object.values(account.positions || {})) {
-      const pnl = posPnl(position, quote.price, fx);
-      if (pnl === null) return snapshot;
-      equity += pnl / fx;
-    }
-    if (!(fx > 0) || !Number.isFinite(equity)) return snapshot;
-    const krw = equity * fx;
-    const net = krw - account.starting_equity_krw;
-    accounts[key] = {...account, equity_krw: krw, net_pnl_krw: net,
-      return_pct: 100 * net / account.starting_equity_krw};
+let strategyLedger, feed, feedTimer, feedUsers='', liveSides=new Map();
+function timeKst(ms){return new Date(ms).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false});}
+function sizeSide(n){return n>0?'롱':n<0?'숏':'무포지션';}
+function paintStrategies(){
+  const paper=strategyLedger;
+  if(!paper)return;
+  const grid=$('accountGrid'), nodes=[];
+  for(const [i,row] of (paper.selected_whales||[]).entries()){
+    const a=paper.accounts[row.address]||{}, at=Date.parse(a.source_position_at);
+    const tick=liveSides.get(row.address);
+    const useTick=tick && (!Number.isFinite(at)||tick.at>at);
+    const stamp=useTick?tick.at:at;
+    const size=useTick?tick.size:a.source_btc_size;
+    const valid=a.fill_cursor!=null && Number.isFinite(a.equity_krw);
+    const net=valid?a.equity_krw-paper.initial_krw:null;
+    const card=document.createElement('article'); card.className='account-card';card.title=row.address;
+    function field(text,cls){const node=document.createElement('div');node.className=cls;node.textContent=text;card.append(node);}
+    field((i+1)+'위 · '+short(row.address),'account-name');
+    field('BTC · '+(Number.isFinite(size)?sizeSide(size):'방향 확인 대기'),'account-equity');
+    field('고래 방향 확인 '+(Number.isFinite(stamp)?timeKst(stamp):'대기'),'meta');
+    field('모의 포지션 '+(valid?(a.position?sizeSide(a.position.side):'무포지션'):'대기'),'meta');
+    field('모의 누적손익 '+(net>0?'+':'')+won(net)+' · '+pct(valid?100*net/paper.initial_krw:null),'meta '+tone(net));
+    field('평가액 '+won(valid?a.equity_krw:null)+' · '+(a.last_at?timeKst(Date.parse(a.last_at)):'평가 대기'),'meta');
+    nodes.push(card);
   }
-  return {...snapshot, accounts, btc: quote.price, mode: '실시간 평가 · 고래 신호 5분'};
+  grid.replaceChildren(...nodes);
 }
-function showCloud() {
-  if (!cloudSnapshot) return;
-  const fresh = liveQuote && Date.now() - liveQuote.time <= 5000;
-  render(fresh ? markedSnapshot(cloudSnapshot, liveQuote) : cloudSnapshot);
-  $('recoveryChip').textContent = fresh ? '호가 ' + new Date(liveQuote.time).toLocaleTimeString('ko-KR') : '실시간 호가 대기';
-}
-function openQuoteStream() {
-  if (document.hidden || quoteSocket) return;
-  const socket = new WebSocket('wss://api.hyperliquid.xyz/ws');
-  quoteSocket = socket;
-  socket.onopen = () => socket.send(JSON.stringify({method:'subscribe',subscription:{type:'bbo',coin:'BTC'}}));
-  socket.onmessage = event => {
-    let message;
-    try { message = JSON.parse(event.data); } catch { return; }
-    const book = message.data;
-    if (message.channel !== 'bbo' || book?.coin !== 'BTC') return;
-    const bid = Number(book.bbo?.[0]?.px), ask = Number(book.bbo?.[1]?.px);
-    const time = Number(book.time), age = Date.now() - time;
-    if (!(bid > 0 && ask >= bid && ask/bid <= 1.005 && age >= 0 && age <= 5000)) return;
-    if (!liveQuote || time > liveQuote.time) liveQuote = {price:(bid+ask)/2, time};
+function connectWhales(){
+  if(feed||document.hidden||!feedUsers)return;
+  const ws=new WebSocket('wss://api.hyperliquid.xyz/ws');feed=ws;
+  ws.onopen=()=>{for(const user of feedUsers.split(','))ws.send(JSON.stringify({method:'subscribe',subscription:{type:'userFills',user}}));};
+  ws.onmessage=e=>{
+    let msg;try{msg=JSON.parse(e.data)}catch{return}
+    const data=msg.data,user=data?.user?.toLowerCase();
+    if(msg.channel!=='userFills'||!data||data.isSnapshot||!strategyLedger.accounts[user])return;
+    for(const fill of data.fills||[]){
+      if(fill.coin!=='BTC'||!['B','A'].includes(fill.side))continue;
+      const at=Number(fill.time),size=Number(fill.startPosition)+(fill.side==='B'?1:-1)*Number(fill.sz);
+      if(Number.isFinite(size)&&Number.isFinite(at)&&at>=(liveSides.get(user)?.at||0))liveSides.set(user,{at,size:Math.abs(size)<1e-9?0:size});
+    }
+    paintStrategies();
   };
-  socket.onclose = () => { quoteSocket = null; liveQuote = null; clearTimeout(retryTimer); retryTimer = setTimeout(openQuoteStream, 3000); };
-  const opened = Date.now();
-  const watch = setInterval(() => {
-    if (socket !== quoteSocket) { clearInterval(watch); return; }
-    if (document.hidden || Date.now() - (liveQuote?.time || opened) > 15000) socket.close();
-  }, 3000);
+  ws.onclose=()=>{if(feed!==ws)return;feed=null;clearTimeout(feedTimer);feedTimer=setTimeout(connectWhales,4000);};
 }
-if (!local && !remote) {
-  openQuoteStream();
-  setInterval(() => { if (!document.hidden) showCloud(); }, 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) openQuoteStream(); });
+function renderStrategies(paper){
+  strategyLedger=paper;
+  const users=(paper.selected_whales||[]).map(r=>r.address).join(',');
+  if(users!==feedUsers){feedUsers=users;if(feed){feed.onclose=null;feed.close();feed=null;}liveSides.clear();}
+  $('strategyStatus').textContent='고래 방향은 BTC 체결 수신 시 갱신 · 모의손익은 마지막 계좌 평가 기준';
+  paintStrategies();connectWhales();
 }
-
-async function load(manual=false){if(loading)return;loading=true;const b=$('refreshBtn');if(manual){b.disabled=true;b.textContent='갱신 중…'}try{const data=await source();if(local||remote){render(data)}else{cloudSnapshot=data;showCloud()}$('hero').classList.remove('error')}catch(e){cloudSnapshot=null;$('engineState').textContent='확인 불가: '+e.message;$('engineState').className='status-value red';$('modeChip').textContent='● 연결 오류';$('hero').classList.add('error')}finally{loading=false;b.disabled=false;b.textContent='새로고침'}}$('refreshBtn').onclick=()=>load(true);load();setInterval(load,(local||remote)?3000:60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
-
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(feed)feed.close();}else{connectWhales();refreshOnReturn();}});
+let refreshOnReturn=()=>{};
 if(local){
   const panel=$('phoneSharePanel'),qr=$('phoneShareQr'),status=$('phoneShareStatus'),link=$('phoneShareLink'),copy=$('phoneShareCopy'),open=$('phoneShareOpen');
   panel.hidden=false;
@@ -282,6 +277,7 @@ function renderWalletPositions(paper) {
         fetchJson(publicData+'trader-discovery/cloud-replay-log.json').catch(()=>null)
       ]);
       safety(paper);
+      renderStrategies(paper);
       renderOverview(paper);
       renderWalletPositions(paper);
       renderWalletCloses(paper);
@@ -297,7 +293,9 @@ function renderWalletPositions(paper) {
       for (const address of Object.keys(paper.accounts)) {
         if (!rows.has(address)) rows.set(address,{address,value:null,label:'계속 관찰'});
       }
-      const ordered = [...rows.values()].sort((a,b) => b.value-a.value);
+      const ordered = paper.selected_whales
+        ? paper.selected_whales.map((r,i) => ({address:r.address,value:r.net_pnl_usd,label:'선발 '+(i+1)+'위'}))
+        : [...rows.values()].sort((a,b) => b.value-a.value);
       const max = Math.max(1,...ordered.map(r => Math.abs(r.value)));
       const labels = Array.from(document.querySelectorAll('.whale-table th'), th => th.textContent);
       const body = document.createElement('tbody');
@@ -329,12 +327,14 @@ function renderWalletPositions(paper) {
     } catch {
       $('ledgerHealth').dataset.warning='true';
       $('ledgerHealth').textContent='최신 계좌 조회 실패 · 새로고침으로 다시 확인하세요.';
+      $('strategyStatus').textContent='모의계좌 갱신 실패 · 마지막 확인 시각을 확인하세요';
       $('closeStatus').textContent='거래 내역 갱신 실패';
       document.getElementById('followList').textContent='지갑별 체결 자료 갱신 실패';
       document.getElementById('whaleDate').textContent='고래 수익 자료 갱신 실패';
     } finally { busy=false; }
   }
   $('refreshBtn').addEventListener('click',refreshWhaleProfits);
+  refreshOnReturn=refreshWhaleProfits;
   refreshWhaleProfits();
   setInterval(refreshWhaleProfits,60000);
 }
