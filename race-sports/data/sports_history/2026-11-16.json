@@ -1459,7 +1459,7 @@
       "start_label": "19:00",
       "start_timestamp": 1794823200,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "FINAL",
       "title": "서울 SK vs 울산 현대모비스",
       "home": "서울 SK",
       "away": "울산 현대모비스",
@@ -1496,7 +1496,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": true,
+        "status": "CONFIRMED",
+        "home_score": 92,
+        "away_score": 76,
+        "winner_key": "HOME",
+        "source": "KBL_OFFICIAL",
+        "updated_at": "2026-11-17T01:21:20.232808+09:00"
+      }
     }
   ],
   "integrity": {
@@ -1730,7 +1739,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-16T18:45:38+09:00",
+      "updated_at": "2026-11-17T01:21:22+09:00",
       "summary": {
         "overall": {
           "picks": 33,
@@ -1868,7 +1877,7 @@
           "evaluation": {
             "winner_key": "HOME",
             "hit": true,
-            "evaluated_at": "2026-11-16T18:45:38+09:00",
+            "evaluated_at": "2026-11-17T01:21:22+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-16"
           },
@@ -1880,7 +1889,7 @@
             "hit": true,
             "return_krw": 132890,
             "profit_krw": 32890,
-            "settled_at": "2026-11-16T18:45:38+09:00"
+            "settled_at": "2026-11-17T01:21:22+09:00"
           }
         },
         {
@@ -2110,18 +2119,18 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-16T18:45:38+09:00",
+      "generated_at": "2026-11-17T01:21:22+09:00",
       "overall": {
         "observed": 366,
-        "evaluated": 306,
-        "pending": 60,
-        "hits": 186,
+        "evaluated": 307,
+        "pending": 59,
+        "hits": 187,
         "misses": 120,
-        "hit_rate": 0.607843,
-        "mean_model_p": 0.596867,
-        "calibration_gap": 0.010976,
-        "wilson95_lower": 0.552127,
-        "wilson95_upper": 0.660886
+        "hit_rate": 0.609121,
+        "mean_model_p": 0.597183,
+        "calibration_gap": 0.011937,
+        "wilson95_lower": 0.553511,
+        "wilson95_upper": 0.662033
       },
       "bins": {
         "UNDER_50": {
@@ -2174,15 +2183,15 @@
         },
         "65_70": {
           "observed": 46,
-          "evaluated": 43,
-          "pending": 3,
-          "hits": 30,
+          "evaluated": 44,
+          "pending": 2,
+          "hits": 31,
           "misses": 13,
-          "hit_rate": 0.697674,
-          "mean_model_p": 0.673292,
-          "calibration_gap": 0.024382,
-          "wilson95_lower": 0.548946,
-          "wilson95_upper": 0.81398
+          "hit_rate": 0.704545,
+          "mean_model_p": 0.673761,
+          "calibration_gap": 0.030785,
+          "wilson95_lower": 0.557798,
+          "wilson95_upper": 0.818445
         },
         "70_75": {
           "observed": 26,
@@ -2413,15 +2422,15 @@
         "BASKETBALL": {
           "overall": {
             "observed": 185,
-            "evaluated": 180,
-            "pending": 5,
-            "hits": 108,
+            "evaluated": 181,
+            "pending": 4,
+            "hits": 109,
             "misses": 72,
-            "hit_rate": 0.6,
-            "mean_model_p": 0.652677,
-            "calibration_gap": -0.052677,
-            "wilson95_lower": 0.527064,
-            "wilson95_upper": 0.668757
+            "hit_rate": 0.60221,
+            "mean_model_p": 0.652905,
+            "calibration_gap": -0.050695,
+            "wilson95_lower": 0.529495,
+            "wilson95_upper": 0.670676
           },
           "bins": {
             "UNDER_50": {
@@ -2474,15 +2483,15 @@
             },
             "65_70": {
               "observed": 36,
-              "evaluated": 34,
-              "pending": 2,
-              "hits": 22,
+              "evaluated": 35,
+              "pending": 1,
+              "hits": 23,
               "misses": 12,
-              "hit_rate": 0.647059,
-              "mean_model_p": 0.675041,
-              "calibration_gap": -0.027982,
-              "wilson95_lower": 0.47914,
-              "wilson95_upper": 0.785121
+              "hit_rate": 0.657143,
+              "mean_model_p": 0.67558,
+              "calibration_gap": -0.018437,
+              "wilson95_lower": 0.491519,
+              "wilson95_upper": 0.791683
             },
             "70_75": {
               "observed": 21,
@@ -2685,5 +2694,23 @@
     "errors": [],
     "updated_at": "2026-11-16T17:50:20.116062+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-17T01:21:18+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 2,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 1,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
