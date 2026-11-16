@@ -124,7 +124,7 @@ def process_batch(a, rows, source_equity, end, price, stamp, observed_ms=None):
         a.clear()
         a.update(legacy_direction_account=legacy, cash=CAPITAL, closed=[], position=None,
                  equity_krw=CAPITAL, fill_cursor=end, fill_count=0, peak_krw=CAPITAL)
-    seen = set()
+    seen = {tuple(key) for key in a.get('stream_keys', [])}
     # The API returns newest first. Its trade IDs identify fills, not chronology.
     for row in sorted(reversed(rows), key=lambda r: int(r['time'])):
         key = (int(row['time']), int(row['tid']))
@@ -138,6 +138,7 @@ def process_batch(a, rows, source_equity, end, price, stamp, observed_ms=None):
         a['source_size'] = before + (1 if row['side'] == 'B' else -1)*finite(row['sz'])
     mark(a, price, stamp)
     a.update(fill_cursor=end, last_at=stamp, price=price, error=None)
+    a['stream_keys'] = [key for key in a.get('stream_keys', []) if key[0] > end]
 
 def follow_snapshot(account, size, entry, bid, ask, quote):
     account.pop('follow_wait_gap_pct', None)
@@ -212,7 +213,7 @@ def main():
             updated = copy.deepcopy(accounts[address])
             stage = 'fills'
             cursor = updated.get('fill_cursor')
-            if cursor is not None and cursor > end:
+            if cursor is not None and (cursor > end or any(key[0] > end for key in updated.get('stream_keys', []))):
                 raise ValueError('old quote')
             try:
                 rows = fetch_fills(address, cursor + 1, end) if cursor is not None and cursor < end else []
@@ -235,6 +236,7 @@ def main():
             follow_snapshot(updated, source_btc_size, source_entry, bid, ask, quote)
             updated['source_size'] = source_btc_size
             updated['source_entry_px'] = source_entry
+            updated['source_equity_usd'] = source_equity
             updated['source_btc_size'] = source_btc_size
             updated['source_position_at'] = received.isoformat()
             return updated,quote.isoformat(),received.isoformat(),None

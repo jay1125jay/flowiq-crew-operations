@@ -1,6 +1,10 @@
-"""Wake the original PAPER observer on public BTC fills. No exchange credentials."""
+"""Apply public BTC fills locally on arrival; synchronize the same PAPER ledger in background."""
 import asyncio
+import copy
+import datetime as dt
 import json
+import math
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -13,83 +17,170 @@ LEDGER = 'btc-flow-monitor/trader-discovery/wallet-paper.json'
 
 
 def git(root, *args):
-    return subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True, text=True, timeout=120).stdout.strip()
+    return subprocess.run(['git', '-C', str(root), *args], check=True, capture_output=True,
+                          text=True, timeout=120).stdout.strip()
 
 
-def observe(root):
-    # This checkout is created solely for this process. Discard a conflicting
-    # unpublished sample and collect fresh data from the canonical balance.
-    for _ in range(3):
-        git(root, 'fetch', '--depth=1', 'origin', 'main')
-        git(root, 'reset', '--hard', 'origin/main')
-        runner = root/'btc-flow-monitor/wallet_paper.py'
-        cycle = subprocess.run([sys.executable,str(runner)],timeout=240)
-        if cycle.returncode == 2:
-            ledger = json.loads((root/LEDGER).read_text(encoding='utf-8'))
-            return sorted(ledger['accounts']), 0
-        cycle.check_returncode()
-        git(root,'add','--',LEDGER)
-        git(root,'-c','user.name=BTC FLOW PAPER','-c','user.email=btc-flow@users.noreply.github.com','commit','-m','data: PC whale PAPER observation')
-        try:
-            git(root,'push','origin','HEAD:main')
-            ledger = json.loads((root/LEDGER).read_text(encoding='utf-8'))
-            return sorted(ledger['accounts']), ledger['observed_count']
-        except subprocess.CalledProcessError as exc:
-            if not any(x in exc.stderr for x in ('fetch first','non-fast-forward','remote contains work')):
-                raise
-    raise RuntimeError('Concurrent writer; retry with fresh ledger')
+def verified(ledger):
+    if ledger.get('paper_only') is not True or ledger.get('real_trading_enabled') is not False:
+        raise ValueError('Expected PAPER ledger')
+    return ledger
 
 
-def btc_event(message, addresses):
-    data=message.get('data')
-    return (message.get('channel')=='userFills' and isinstance(data,dict)
-            and not data.get('isSnapshot') and data.get('user','').lower() in addresses
-            and any(row.get('coin')=='BTC' for row in data.get('fills',[])))
-
-
-async def listen(addresses, wake):
-    while True:
-        try:
-            async with connect('wss://api.hyperliquid.xyz/ws',open_timeout=10) as ws:
-                for wallet in addresses:
-                    await ws.send(json.dumps({'method':'subscribe','subscription':{'type':'userFills','user':wallet}}))
-                async for message in ws:
-                    if btc_event(json.loads(message), addresses):
-                        wake.set()
-        except Exception as exc:
-            print('Feed reconnect:',type(exc).__name__,flush=True)
-            await asyncio.sleep(3)
-
-
-async def run(root):
-    wake=asyncio.Event()
-    listener=None
-    watched=[]
+def apply_event(ledger, event, paper):
+    address, row, received = event
+    account = ledger['accounts'].get(address)
+    if account is None:
+        return 'retired'
+    ms, tid = int(row['time']), int(row['tid'])
+    if 'fill_cursor' not in account:
+        return 'recover'
+    if ms <= account['fill_cursor'] or [ms, tid] in account.get('stream_keys', []):
+        return 'covered'
+    if 'source_size' not in account or not math.isclose(float(row['startPosition']), account['source_size'], abs_tol=1e-8):
+        return 'recover'
+    updated = copy.deepcopy(account)
+    at = dt.datetime.fromtimestamp(received/1000, dt.timezone.utc).isoformat()
     try:
+        paper.apply_fill(updated, row, updated.get('source_equity_usd', 0),
+                         allow_open=-2000 <= received-ms <= paper.FRESH_FILL_MS)
+    except ValueError:
+        return 'recover'
+    price = float(row['px'])
+    paper.mark(updated, price, at)
+    size = float(row['startPosition']) + (1 if row['side']=='B' else -1)*float(row['sz'])
+    updated.update(source_size=size, source_btc_size=size, source_position_at=at,
+                   last_at=at, price=price, fill_cursor=ms-1, error=None)
+    updated['stream_keys'] = [key for key in updated.get('stream_keys', []) if key[0]==ms] + [[ms,tid]]
+    updated['last_fill'].update(received_at=at, receive_delay_ms=received-ms)
+    peak = max(updated.get('peak_krw', paper.CAPITAL), updated['equity_krw'])
+    updated['peak_krw'] = peak
+    if peak:
+        updated['max_drawdown_pct'] = max(updated.get('max_drawdown_pct',0),100*(1-updated['equity_krw']/peak))
+    ledger['accounts'][address] = updated
+    return 'applied'
+
+
+def synchronize(root, batch, repair, paper):
+    git(root,'fetch','--depth=1','origin','main')
+    git(root,'reset','--hard','origin/main')
+    path = root/LEDGER
+    ledger = verified(json.loads(path.read_text(encoding='utf-8')))
+    done, blocked = [], set()
+    changed = False
+    for seq,event in batch:
+        if event[0] in blocked:
+            continue
+        status = apply_event(ledger,event,paper)
+        if status=='recover':
+            blocked.add(event[0])
+            continue
+        done.append(seq)
+        changed |= status=='applied'
+    if changed:
+        path.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+    if repair or blocked:
+        result = subprocess.run([sys.executable,str(root/'btc-flow-monitor/wallet_paper.py')],timeout=240)
+        if result.returncode not in (0,2):
+            result.check_returncode()
+        ledger = verified(json.loads(path.read_text(encoding='utf-8')))
+    git(root,'add','--',LEDGER)
+    if git(root,'diff','--cached','--name-only'):
+        git(root,'-c','user.name=Cash Flow PAPER','-c','user.email=btc-flow@users.noreply.github.com',
+            'commit','-m','data: synchronize PC PAPER fills')
+        git(root,'push','origin','HEAD:main')
+    return ledger,done
+
+
+class Observer:
+    def __init__(self,root,paper,db):
+        self.root,self.paper,self.db=root,paper,db
+        self.ledger=verified(json.loads((root/LEDGER).read_text(encoding='utf-8')))
+        self.repair=True
+        self.wake=asyncio.Event()
+        db.execute('CREATE TABLE IF NOT EXISTS pending (seq INTEGER PRIMARY KEY, wallet TEXT, tid TEXT, payload TEXT, received INTEGER, UNIQUE(wallet,tid))')
+
+    def pending(self):
+        return [(seq,(wallet,json.loads(payload),ms)) for seq,wallet,payload,ms in
+                self.db.execute('SELECT seq,wallet,payload,received FROM pending ORDER BY seq')]
+
+    def receive(self,message):
+        data=message.get('data')
+        if message.get('channel')!='userFills' or not isinstance(data,dict) or data.get('isSnapshot'):
+            return
+        wallet=data.get('user','').lower()
+        if wallet not in self.ledger['accounts']:
+            return
+        ms=int(dt.datetime.now(dt.timezone.utc).timestamp()*1000)
+        fills=sorted((r for r in data.get('fills',[]) if r.get('coin')=='BTC'),key=lambda r:int(r['time']))
+        with self.db:
+            for row in fills:
+                inserted=self.db.execute('INSERT OR IGNORE INTO pending(wallet,tid,payload,received) VALUES(?,?,?,?)',
+                                         (wallet,str(row['tid']),json.dumps(row),ms)).rowcount
+                if inserted:
+                    status=apply_event(self.ledger,(wallet,row,ms),self.paper)
+                    print('PAPER fill',wallet[:10],row['tid'],status,'delay_ms',ms-int(row['time']),flush=True)
+        if fills:
+            self.wake.set()
+
+    async def publish(self):
+        loop=asyncio.get_running_loop()
+        next_check=0
         while True:
-            wake.clear()
-            accounts, observed=await asyncio.to_thread(observe,root)
-            # Exchange user subscription cap. Every account is still polled.
-            if accounts[:10]!=watched:
-                if listener:
-                    listener.cancel()
-                    await asyncio.gather(listener,return_exceptions=True)
-                watched=accounts[:10]
-                listener=asyncio.create_task(listen(watched,wake))
-            if observed:
-                print('PAPER saved:',observed,'/',len(accounts),'wallets; streaming:',len(watched),flush=True)
-            else:
-                print('NO VALID OBSERVATIONS; balances unchanged; retry in 15 seconds',flush=True)
-                await asyncio.sleep(15)
+            self.wake.clear()
+            repair=self.repair or loop.time()>=next_check
+            self.repair=False
+            batch=self.pending()
+            try:
+                ledger,done=await asyncio.to_thread(synchronize,self.root,batch,repair,self.paper)
+                with self.db:
+                    self.db.executemany('DELETE FROM pending WHERE seq=?',[(seq,) for seq in done])
+                self.ledger=ledger
+                for _,event in self.pending():
+                    apply_event(ledger,event,self.paper)
+                if repair:
+                    next_check=loop.time()+60
+                if batch and not done:
+                    await asyncio.sleep(3)
+            except Exception as exc:
+                print('PAPER sync retry:',exc,flush=True)
+                self.repair |= repair
+                await asyncio.sleep(4)
+                continue
+            if self.pending() or self.repair:
                 continue
             try:
-                await asyncio.wait_for(wake.wait(),timeout=60)
+                await asyncio.wait_for(self.wake.wait(),timeout=max(.1,next_check-loop.time()))
             except TimeoutError:
                 pass
-    finally:
-        if listener:
-            listener.cancel()
-            await asyncio.gather(listener,return_exceptions=True)
+
+    async def listen(self):
+        while True:
+            try:
+                async with connect('wss://api.hyperliquid.xyz/ws',open_timeout=10) as ws:
+                    addresses=set(self.ledger['accounts'])
+                    self.repair=True
+                    self.wake.set()
+                    for wallet in addresses:
+                        await ws.send(json.dumps({'method':'subscribe','subscription':{'type':'userFills','user':wallet}}))
+                    print('PAPER direct stream:',len(addresses),'wallets',flush=True)
+                    while addresses==set(self.ledger['accounts']):
+                        try:
+                            message=await asyncio.wait_for(ws.recv(),timeout=25)
+                        except TimeoutError:
+                            await ws.send('{"method":"ping"}')
+                            continue
+                        self.receive(json.loads(message))
+            except Exception as exc:
+                print('Feed reconnect:',exc,flush=True)
+                await asyncio.sleep(3)
+
+
+async def run(root,db):
+    sys.path.insert(0,str(root/'btc-flow-monitor'))
+    import wallet_paper
+    observer=Observer(root,wallet_paper,db)
+    await asyncio.gather(observer.listen(),observer.publish())
 
 
 if __name__=='__main__':
@@ -97,4 +188,5 @@ if __name__=='__main__':
         root=Path(directory)
         git(root,'clone','--depth=1','--filter=blob:none','--sparse',REPO,'.')
         git(root,'sparse-checkout','set','btc-flow-monitor')
-        asyncio.run(run(root))
+        with sqlite3.connect(Path(__file__).with_name('pending-paper.sqlite3')) as db:
+            asyncio.run(run(root,db))
