@@ -1,6 +1,7 @@
 """Forward-only BTC paper tracking, one independent KRW account per observed whale."""
 import copy
 import datetime as dt
+import itertools
 import json
 import math
 import time
@@ -125,17 +126,26 @@ def process_batch(a, rows, source_equity, end, price, stamp, observed_ms=None):
         a.update(legacy_direction_account=legacy, cash=CAPITAL, closed=[], position=None,
                  equity_krw=CAPITAL, fill_cursor=end, fill_count=0, peak_krw=CAPITAL)
     seen = {tuple(key) for key in a.get('stream_keys', [])}
-    # The API returns newest first. Its trade IDs identify fills, not chronology.
-    for row in sorted(reversed(rows), key=lambda r: int(r['time'])):
+    pending = []
+    for row in rows:
         key = (int(row['time']), int(row['tid']))
-        if key in seen or key[0] <= a['fill_cursor']:
-            continue
-        seen.add(key)
-        before = finite(row['startPosition'])
-        if 'source_size' in a and not math.isclose(before, a['source_size'], abs_tol=1e-8):
-            raise ValueError('BTC fill history gap or order mismatch')
-        apply_fill(a, row, source_equity, allow_open=observed_ms is None or observed_ms-key[0] <= FRESH_FILL_MS)
-        a['source_size'] = before + (1 if row['side'] == 'B' else -1)*finite(row['sz'])
+        if key not in seen and a['fill_cursor'] < key[0] <= end:
+            seen.add(key)
+            pending.append(row)
+    pending.sort(key=lambda row: int(row['time']))
+    for ms, group in itertools.groupby(pending, key=lambda row: int(row['time'])):
+        remaining = list(group)
+        while remaining:
+            expected = a.get('source_size')
+            index = next((i for i, row in enumerate(remaining)
+                          if expected is None or math.isclose(finite(row['startPosition']), expected,
+                                                              rel_tol=0, abs_tol=1e-8)), None)
+            if index is None:
+                raise ValueError('BTC fill history gap or order mismatch')
+            row = remaining.pop(index)
+            before = finite(row['startPosition'])
+            apply_fill(a, row, source_equity, allow_open=observed_ms is None or observed_ms-ms <= FRESH_FILL_MS)
+            a['source_size'] = before + (1 if row['side'] == 'B' else -1)*finite(row['sz'])
     mark(a, price, stamp)
     a.update(fill_cursor=end, last_at=stamp, price=price, error=None)
     a['stream_keys'] = [key for key in a.get('stream_keys', []) if key[0] > end]
@@ -226,10 +236,24 @@ def main():
             try:
                 process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat(), quote_ms)
             except ValueError as exc:
-                if accounts[address].get('position') or str(exc) != 'BTC fill history gap or order mismatch':
+                if str(exc) != 'BTC fill history gap or order mismatch':
                     raise
                 updated = copy.deepcopy(accounts[address])
+                pos = updated.get('position')
+                if pos:
+                    # Retry recent gaps so late fills can arrive before using a snapshot.
+                    if end - cursor < 300_000:
+                        raise
+                    prior = finite(updated['source_size'])
+                    if not prior or prior * pos['side'] <= 0:
+                        raise
+                    retained = max(0.0, min(1.0, source_btc_size / prior))
+                    if retained < 1:
+                        exit_quote = bid if pos['side'] > 0 else ask
+                        close_part(updated, 1-retained, exit_quote, quote.isoformat(), 'snapshot_gap_recovery')
                 updated['history_gap_at'] = quote.isoformat()
+                updated['history_gap_reason'] = 'Missing source fills; reconciled at observed quote'
+                updated['history_gap_start_ms'] = cursor
                 process_batch(updated, [], source_equity, end, (bid+ask)/2, quote.isoformat(), quote_ms)
             if now().timestamp()*1000 - quote_ms > FRESH_FILL_MS:
                 raise ValueError('stale quote after fill lookup')
