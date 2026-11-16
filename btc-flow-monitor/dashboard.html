@@ -268,6 +268,23 @@ function renderWalletPositions(paper) {
   const panel = document.getElementById('whaleProfitPanel');
   panel.hidden = false;
   let busy = false;
+  let latestLedger = null;
+  async function loadLedger() {
+    const path = 'trader-discovery/wallet-paper.json';
+    const sources = [publicData, 'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/main/btc-flow-monitor/'];
+    const results = await Promise.allSettled(sources.map(async base => {
+      const ledger = await fetchJson(base + path, {signal: AbortSignal.timeout(10000)});
+      safety(ledger);
+      return ledger;
+    }));
+    const available = results.filter(result => result.status === 'fulfilled')
+      .map(result => result.value).filter(ledger => Number.isFinite(Date.parse(ledger.updated_at)));
+    if (!available.length) throw Error('계좌 자료 조회 실패');
+    for (const ledger of available) {
+      if (!latestLedger || Date.parse(ledger.updated_at) >= Date.parse(latestLedger.updated_at)) latestLedger = ledger;
+    }
+    return latestLedger;
+  }
   async function refreshWhaleProfits() {
     if (busy) return;
     busy = true;
@@ -275,7 +292,7 @@ function renderWalletPositions(paper) {
       const [catalog, research, paper, replay] = await Promise.all([
         fetchJson(publicData+'trader-discovery/latest.json').catch(()=>null),
         fetchJson(publicData+'trader-discovery/research/2026-11-14-public-profit-screen.json').catch(()=>null),
-        fetchJson(publicData+'trader-discovery/wallet-paper.json'),
+        loadLedger(),
         fetchJson(publicData+'trader-discovery/cloud-replay-log.json').catch(()=>null)
       ]);
       safety(paper);
