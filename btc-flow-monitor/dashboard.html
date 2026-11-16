@@ -86,6 +86,8 @@ function paintStrategies(){
     field((i+1)+'위 · '+short(row.address),'account-name');
     field('BTC · '+(Number.isFinite(size)?sizeSide(size):'방향 확인 대기'),'account-equity');
     field('고래 방향 확인 '+(Number.isFinite(stamp)?timeKst(stamp):'대기'),'meta');
+    if(a.position?.reason==='snapshot_follow')field('늦은 발견 · 현재 호가로 추종 진입','meta');
+    if(Number.isFinite(a.follow_wait_gap_pct))field('진입가 차이 '+a.follow_wait_gap_pct.toFixed(2)+'% · 0.30% 이내 재확인','meta');
     field('모의 포지션 '+(valid?(a.position?sizeSide(a.position.side):'무포지션'):'대기'),'meta');
     field('모의 누적손익 '+(net>0?'+':'')+won(net)+' · '+pct(valid?100*net/paper.initial_krw:null),'meta '+tone(net));
     field('평가액 '+won(valid?a.equity_krw:null)+' · '+(a.last_at?timeKst(Date.parse(a.last_at)):'평가 대기'),'meta');
@@ -259,7 +261,7 @@ function renderWalletPositions(paper) {
     list.append(row);
   }
   if (!active.length) list.textContent = entries.some(([,a]) => a.fill_cursor !== undefined)
-    ? '신규 BTC 진입 체결 대기 중' : '지갑별 체결 추적 초기화 대기 중';
+    ? (entries.some(([,a])=>Number.isFinite(a.follow_wait_gap_pct))?'고래 진입가와 0.30% 이내가 되면 추종 · 전략 비교에서 가격 차이 확인':'신규 체결 또는 고래 보유 포지션 확인 대기') : '지갑별 체결 추적 초기화 대기 중';
 }
 {
   const publicData = local ? 'https://jay1125jay.github.io/flowiq-crew-operations/btc-flow-monitor/' : './';

@@ -6,6 +6,7 @@ import math
 import time
 from concurrent.futures import ThreadPoolExecutor
 import pathlib
+import urllib.error
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -16,6 +17,8 @@ LEV = 10
 FEE = .0005
 SLIP = .0003
 MAX_CLOCK_LEAD_SECONDS = 2.0
+MAX_FOLLOW_GAP = 0.003
+FRESH_FILL_MS = 15_000
 
 def info(payload):
     req = urllib.request.Request('https://api.hyperliquid.xyz/info',
@@ -74,7 +77,7 @@ def mark(a, price, at):
     a['equity_krw'] = max(0, a['cash'] + unreal)
 
 
-def apply_fill(a, row, source_equity):
+def apply_fill(a, row, source_equity, allow_open=True):
     price, size, before = map(finite, (row['px'], row['sz'], row['startPosition']))
     if min(price, size) <= 0 or row['side'] not in ('B','A'):
         raise ValueError('invalid fill price, size or side')
@@ -87,7 +90,7 @@ def apply_fill(a, row, source_equity):
         close_part(a, reduction / abs(before), price, at, 'source_fill')
     opening = size - reduction
     pos = a.get('position')
-    if opening > 1e-12:
+    if allow_open and opening > 1e-12:
         if pos and pos['side'] != sign:
             raise ValueError('fill direction mismatch')
         mark(a, price, at)
@@ -114,7 +117,7 @@ def apply_fill(a, row, source_equity):
     a['fill_count'] += 1
 
 
-def process_batch(a, rows, source_equity, end, price, stamp):
+def process_batch(a, rows, source_equity, end, price, stamp, observed_ms=None):
     if 'fill_cursor' not in a:
         # Preserve the old direction-only experiment, including its open positions.
         legacy = dict(a)
@@ -131,10 +134,29 @@ def process_batch(a, rows, source_equity, end, price, stamp):
         before = finite(row['startPosition'])
         if 'source_size' in a and not math.isclose(before, a['source_size'], abs_tol=1e-8):
             raise ValueError('BTC fill history gap or order mismatch')
-        apply_fill(a, row, source_equity)
+        apply_fill(a, row, source_equity, allow_open=observed_ms is None or observed_ms-key[0] <= FRESH_FILL_MS)
         a['source_size'] = before + (1 if row['side'] == 'B' else -1)*finite(row['sz'])
     mark(a, price, stamp)
     a.update(fill_cursor=end, last_at=stamp, price=price, error=None)
+
+def follow_snapshot(account, size, entry, bid, ask, quote):
+    account.pop('follow_wait_gap_pct', None)
+    if account['position'] or not size or account['cash'] <= 0:
+        return
+    side = 1 if size > 0 else -1
+    execution = (ask if side > 0 else bid) * (1 + side * SLIP)
+    gap = abs(execution - entry) / entry
+    if gap > MAX_FOLLOW_GAP:
+        account['follow_wait_gap_pct'] = 100 * gap
+        return
+    nominal = account['cash'] * LEV
+    fee = nominal * FEE
+    account['cash'] -= fee
+    account['position'] = dict(side=side, entry=execution, notional=nominal, fee=fee,
+                               at=quote.isoformat(), reason='snapshot_follow',
+                               source_entry=entry, entry_gap_pct=100*gap)
+    mark(account, (bid+ask)/2, quote.isoformat())
+
 
 def now():
     return dt.datetime.now(dt.timezone.utc)
@@ -165,8 +187,11 @@ def main():
             state = info(dict(type='clearinghouseState',user=address))
             source_equity = finite(state['marginSummary']['accountValue'])
             positions = state['assetPositions']
-            source_btc_size = next((finite(item['position']['szi']) for item in positions
-                                    if item['position']['coin'] == 'BTC'), 0.0)
+            btc = next((item['position'] for item in positions if item['position']['coin']=='BTC'), {})
+            source_btc_size = finite(btc.get('szi', 0))
+            source_entry = finite(btc['entryPx']) if source_btc_size else None
+            if source_btc_size and source_entry <= 0:
+                raise ValueError('invalid source entry')
             received = now()
             stage = 'quote'
             book = info(dict(type='l2Book',coin='BTC'))
@@ -179,14 +204,37 @@ def main():
                 raise ValueError('invalid BTC book')
             if not -MAX_CLOCK_LEAD_SECONDS <= age <= 15 or lag > 15 or elapsed > 15:
                 raise ValueError(f'quote_age={age:.2f}s signal_gap={lag:.2f}s request_time={elapsed:.2f}s')
-            end = int(book['time']) - (3000 if 'fill_cursor' in accounts[address] else 0)
+            # Align the cursor to the position snapshot, not to a later book.
+            end = int(state['time'])
+            quote_ms = int(book['time'])
+            if abs(end-quote_ms) > FRESH_FILL_MS:
+                raise ValueError('stale position snapshot')
             updated = copy.deepcopy(accounts[address])
             stage = 'fills'
             cursor = updated.get('fill_cursor')
             if cursor is not None and cursor > end:
                 raise ValueError('old quote')
-            rows = fetch_fills(address, cursor + 1, end) if cursor is not None and cursor < end else []
-            process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat())
+            try:
+                rows = fetch_fills(address, cursor + 1, end) if cursor is not None and cursor < end else []
+            except urllib.error.HTTPError as exc:
+                if exc.code != 429 or updated.get('position') or not source_btc_size:
+                    raise
+                rows = []
+                updated['history_gap_at'] = quote.isoformat()
+                updated['history_gap_reason'] = 'fill query rate limited; resumed from position snapshot'
+            try:
+                process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat(), quote_ms)
+            except ValueError as exc:
+                if accounts[address].get('position') or str(exc) != 'BTC fill history gap or order mismatch':
+                    raise
+                updated = copy.deepcopy(accounts[address])
+                updated['history_gap_at'] = quote.isoformat()
+                process_batch(updated, [], source_equity, end, (bid+ask)/2, quote.isoformat(), quote_ms)
+            if now().timestamp()*1000 - quote_ms > FRESH_FILL_MS:
+                raise ValueError('stale quote after fill lookup')
+            follow_snapshot(updated, source_btc_size, source_entry, bid, ask, quote)
+            updated['source_size'] = source_btc_size
+            updated['source_entry_px'] = source_entry
             updated['source_btc_size'] = source_btc_size
             updated['source_position_at'] = received.isoformat()
             return updated,quote.isoformat(),received.isoformat(),None

@@ -1,5 +1,8 @@
 name: BTC FLOW individual whale PAPER
 on:
+  push:
+    branches: [main]
+    paths: [btc-flow-monitor/wallet_paper.py]
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
