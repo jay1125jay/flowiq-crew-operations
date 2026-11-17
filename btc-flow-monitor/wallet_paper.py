@@ -233,8 +233,10 @@ def main():
                 rows = []
                 updated['history_gap_at'] = quote.isoformat()
                 updated['history_gap_reason'] = 'fill query rate limited; resumed from position snapshot'
+            # Archive the verified snapshot at its original timestamp even when replay is slow.
+            replay_ms = max(quote_ms, int(now().timestamp()*1000))
             try:
-                process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat(), quote_ms)
+                process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat(), replay_ms)
             except ValueError as exc:
                 if str(exc) != 'BTC fill history gap or order mismatch':
                     raise
@@ -255,9 +257,8 @@ def main():
                 updated['history_gap_reason'] = 'Missing source fills; reconciled at observed quote'
                 updated['history_gap_start_ms'] = cursor
                 process_batch(updated, [], source_equity, end, (bid+ask)/2, quote.isoformat(), quote_ms)
-            if now().timestamp()*1000 - quote_ms > FRESH_FILL_MS:
-                raise ValueError('stale quote after fill lookup')
-            follow_snapshot(updated, source_btc_size, source_entry, bid, ask, quote)
+            if now().timestamp()*1000 - quote_ms <= FRESH_FILL_MS:
+                follow_snapshot(updated, source_btc_size, source_entry, bid, ask, quote)
             updated['source_size'] = source_btc_size
             updated['source_entry_px'] = source_entry
             updated['source_equity_usd'] = source_equity
