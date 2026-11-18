@@ -295,6 +295,13 @@ def main(only_addresses=None):
             updated['source_size'] = source_btc_size
             updated['source_entry_px'] = source_entry
             updated['source_equity_usd'] = source_equity
+            updated['source_snapshot_at'] = received.isoformat()
+            updated['source_positions'] = [dict(
+                coin=p.get('coin'),size=p.get('szi'),entry=p.get('entryPx'),
+                value_usd=p.get('positionValue'),margin_usd=p.get('marginUsed'),
+                unrealized_usd=p.get('unrealizedPnl'),roe=p.get('returnOnEquity'),
+                leverage=(p.get('leverage') or {}).get('value'))
+                for item in state.get('assetPositions',[]) for p in [item.get('position',{})]]
             updated['source_btc_size'] = source_btc_size
             updated['source_position_at'] = received.isoformat()
             return updated,quote.isoformat(),received.isoformat(),None
