@@ -203,7 +203,7 @@ def now():
     return dt.datetime.now(dt.timezone.utc)
 
 
-def main():
+def main(only_addresses=None):
     ledger = json.loads(OUT.read_text()) if OUT.exists() else dict(paper_only=True,
         real_trading_enabled=False,initial_krw=CAPITAL,leverage=LEV,accounts={})
     assert ledger['paper_only'] is True and ledger['real_trading_enabled'] is False
@@ -220,6 +220,9 @@ def main():
         if address not in accounts:
             accounts[address] = archived.pop(address, dict(cash=CAPITAL,equity_krw=CAPITAL,position=None,closed=[]))
     ledger['selected_whales'] = selected
+    targets = list(only_addresses) if only_addresses else list(accounts)
+    if not targets or not set(targets).issubset(accounts):
+        raise ValueError('Recovery target must be a selected whale')
     started = now()
     def sample(address):
         try:
@@ -299,7 +302,8 @@ def main():
             return None,None,None,f'{stage}: {type(exc).__name__}: {exc}'[:200]
     successes = 0
     with ThreadPoolExecutor(max_workers=1) as pool:
-        for a, result in zip(accounts.values(),pool.map(sample,accounts)):
+        for address, result in zip(targets,pool.map(sample,targets)):
+            a = accounts[address]
             updated,stamp,received,error = result
             a['attempts'] = a.get('attempts',0)+1
             if error is not None or stamp <= a.get('last_at',''):
@@ -316,22 +320,26 @@ def main():
             successes += 1
     ended = now()
     ledger['updated_at']=ended.isoformat()
-    ledger['observed_count']=successes
+    ledger['observed_count']=sum(not a.get('error') and 'fill_cursor' in a for a in accounts.values())
     cycles=ledger.setdefault('cycles',[])
-    cycles.append(dict(start=started.isoformat(),end=ended.isoformat(),ok=successes,total=len(accounts)))
+    cycles.append(dict(start=started.isoformat(),end=ended.isoformat(),ok=successes,total=len(targets)))
     cutoff=(ended-dt.timedelta(days=1)).isoformat()
     ledger['cycles']=[c for c in cycles if c['end']>=cutoff]
     temp=OUT.with_suffix('.tmp')
     temp.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n')
     temp.replace(OUT)
-    print('observed',successes,'accounts',len(accounts))
-    for address, account in accounts.items():
+    print('observed',successes,'accounts',len(targets))
+    for address in targets:
+        account = accounts[address]
         if account.get('error'):
             print('OBSERVATION_MISSED',address[:10],account['error'],flush=True)
     if not successes:
         raise SystemExit(2)
 
 if __name__=='__main__':
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--wallet', action='append', help='Reconcile only this selected wallet')
+    main(parser.parse_args().wallet)
 
 
