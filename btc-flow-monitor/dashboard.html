@@ -128,7 +128,7 @@ if(local){
   function isValidShareUrl(value){
     try{
       const u=new URL(value),p=new URLSearchParams(u.hash.slice(1));
-      return u.origin==='https://jay1125jay.github.io'&&u.pathname==='/flowiq-crew-operations/btc-flow-monitor/dashboard.html'&&/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(p.get('pc')||'')&&/^[A-Za-z0-9_-]{43}$/.test(p.get('key')||'');
+      return ((u.origin==='https://jay1125jay.github.io'&&u.pathname==='/flowiq-crew-operations/btc-flow-monitor/dashboard.html')||(u.origin===p.get('pc')&&u.pathname==='/dashboard.html'))&&/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(p.get('pc')||'')&&/^[A-Za-z0-9_-]{43}$/.test(p.get('key')||'');
     }catch{return false}
   }
   async function refreshPhoneShare(){
