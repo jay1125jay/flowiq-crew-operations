@@ -3,6 +3,10 @@ import io
 import json
 import tempfile
 import unittest
+import asyncio
+import sqlite3
+import threading
+import time
 import urllib.error
 from pathlib import Path
 from unittest.mock import patch
@@ -130,6 +134,148 @@ class ReliabilityTests(unittest.TestCase):
         merged, applied, conflicts = merge_observations(base, candidate, latest)
         self.assertEqual(merged, latest)
         self.assertEqual(applied, [])
+
+    def test_live_same_timestamp_reordering_is_applied_without_rest(self):
+        second = dict(self.row, tid=2, startPosition='1')
+        done, statuses, blocked = pc.apply_ordered(self.ledger,
+            [(1, ('whale',second,200)), (2, ('whale',self.row,200))],paper,210)
+        self.assertEqual(set(done),{1,2})
+        self.assertEqual(blocked,set())
+        self.assertEqual(self.ledger['accounts']['whale']['source_size'],2)
+        self.assertEqual(self.ledger['accounts']['whale']['last_fill']['apply_delay_ms'],110)
+
+    def test_waiting_fill_cannot_use_original_receipt_as_execution_time(self):
+        pc.apply_event(self.ledger,('whale',self.row,200),paper,20_000)
+        self.assertIsNone(self.ledger['accounts']['whale']['position'])
+        self.assertEqual(self.ledger['accounts']['whale']['last_fill']['processing_delay_ms'],19_800)
+
+    def test_blocked_wallet_does_not_block_other_wallet(self):
+        self.ledger['accounts']['other']=copy.deepcopy(self.account)
+        broken=dict(self.row,startPosition='8')
+        done,_,blocked=pc.apply_ordered(self.ledger,
+            [(1,('whale',broken,200)),(2,('other',self.row,200))],paper,210)
+        self.assertEqual(done,[2])
+        self.assertEqual(blocked,{'whale'})
+        self.assertIsNotNone(self.ledger['accounts']['other']['position'])
+
+    def test_publication_never_runs_slow_rest_even_on_heartbeat(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            path=root/pc.LEDGER
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.ledger))
+            with patch.object(pc,'git',return_value=''),patch.object(pc.subprocess,'run') as run:
+                pc.synchronize(root,[],True,paper)
+            run.assert_not_called()
+
+    def test_snapshot_missing_fill_unblocks_buffered_live_fill(self):
+        with tempfile.TemporaryDirectory() as folder, sqlite3.connect(':memory:') as db:
+            root=Path(folder)
+            path=root/pc.LEDGER
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.ledger))
+            observer=pc.Observer(root,paper,db)
+            now=int(time.time()*1000)
+            first=dict(self.row,time=now,tid=11)
+            second=dict(first,tid=12,startPosition='1')
+            def message(rows,snapshot=False):
+                return dict(channel='userFills',data=dict(user='whale',fills=rows,isSnapshot=snapshot))
+            observer.receive(message([second]))
+            self.assertIn('whale',observer.blocked_wallets)
+            observer.receive(message([first],True))
+            self.assertEqual(observer.ledger['accounts']['whale']['source_size'],2)
+            self.assertEqual(observer.blocked_wallets,set())
+            observer.receive(message([first,second],True))
+            self.assertEqual(observer.ledger['accounts']['whale']['fill_count'],2)
+            self.assertEqual(len(observer.pending()),2)
+            self.assertTrue(all('_paper_applied_ms' in event[1] for _,event in observer.pending()))
+
+    def test_live_close_has_actual_application_timestamp(self):
+        pc.apply_event(self.ledger,('whale',self.row,200),paper,210)
+        closing=dict(self.row,time=300,tid=2,side='A',startPosition='1')
+        pc.apply_event(self.ledger,('whale',closing,350),paper,360)
+        account=self.ledger['accounts']['whale']
+        self.assertIsNone(account['position'])
+        self.assertEqual(account['closed'][-1]['apply_delay_ms'],60)
+        self.assertEqual(account['closed'][-1]['processing_delay_ms'],10)
+
+    def test_recovery_merges_after_already_applied_local_events(self):
+        event=('whale',dict(self.row,_paper_applied_ms=210),200)
+        base=copy.deepcopy(self.ledger)
+        pc.apply_event(base,event,paper)
+        candidate=copy.deepcopy(base)
+        candidate['accounts']['whale']['error']=None
+        candidate['accounts']['whale']['fill_cursor']=150
+        candidate['accounts']['whale']['last_at']='recovered'
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            path=root/pc.LEDGER
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.ledger))
+            with patch.object(pc,'git',return_value=''):
+                result,done=pc.synchronize(root,[(1,event)],False,paper,[(1,base,candidate)])
+        self.assertEqual(result['accounts']['whale']['fill_cursor'],150)
+        self.assertEqual(result['accounts']['whale']['fill_count'],1)
+        self.assertEqual(done,[1])
+
+    def test_targeted_recovery_does_not_modify_other_accounts(self):
+        import datetime as dt
+        with tempfile.TemporaryDirectory() as folder:
+            data=Path(folder)
+            ledger=copy.deepcopy(self.ledger)
+            ledger['accounts']={str(i):copy.deepcopy(self.account) for i in range(5)}
+            out=data/'wallet-paper.json'
+            out.write_text(json.dumps(ledger))
+            (data/'selected-whales.json').write_text(json.dumps([{'address':str(i)} for i in range(5)]))
+            def info(payload):
+                if payload['type']=='clearinghouseState':
+                    self.assertEqual(payload['user'],'1')
+                    return dict(time=100,marginSummary={'accountValue':'10000'},
+                        assetPositions=[{'position':{'coin':'BTC','szi':'1','entryPx':'100'}}])
+                if payload['type']=='l2Book':
+                    return dict(coin='BTC',time=100,levels=[[{'px':'100'}],[{'px':'100'}]])
+                return [self.row]
+            with patch.object(paper,'DATA',data),patch.object(paper,'OUT',out), \
+                 patch.object(paper,'info',side_effect=info), \
+                 patch.object(paper,'now',return_value=dt.datetime.fromtimestamp(.1,dt.timezone.utc)):
+                paper.main(['1'])
+            result=json.loads(out.read_text())
+            for address in ('0','2','3','4'):
+                self.assertEqual(result['accounts'][address],ledger['accounts'][address])
+            self.assertEqual(result['accounts']['1']['fill_count'],1)
+
+
+class AsyncStreamTests(unittest.IsolatedAsyncioTestCase):
+    async def test_slow_recovery_does_not_pause_live_execution(self):
+        with tempfile.TemporaryDirectory() as folder, sqlite3.connect(':memory:') as db:
+            root=Path(folder)
+            path=root/pc.LEDGER
+            path.parent.mkdir(parents=True)
+            ledger=dict(paper_only=True,real_trading_enabled=False,accounts={
+                'whale':dict(cash=1_000_000,equity_krw=1_000_000,position=None,closed=[],
+                             fill_count=0,fill_cursor=0,source_size=0,source_equity_usd=100_000)})
+            path.write_text(json.dumps(ledger))
+            observer=pc.Observer(root,paper,db)
+            started,release=threading.Event(),threading.Event()
+            def slow_recovery(*args):
+                started.set()
+                if not release.wait(3):
+                    raise TimeoutError('test recovery not released')
+                return copy.deepcopy(ledger)
+            with patch.object(pc,'reconcile_wallet',side_effect=slow_recovery):
+                task=asyncio.create_task(observer.recover())
+                try:
+                    self.assertTrue(await asyncio.to_thread(started.wait,2))
+                    ms=int(time.time()*1000)
+                    row=dict(time=ms,tid=1,px='100',sz='1',startPosition='0',side='B',coin='BTC')
+                    observer.receive(dict(channel='userFills',data=dict(user='whale',fills=[row])))
+                    self.assertIsNotNone(observer.ledger['accounts']['whale']['position'])
+                    self.assertFalse(release.is_set())
+                finally:
+                    release.set()
+                    task.cancel()
+                    with self.assertRaises(asyncio.CancelledError):
+                        await task
 
 
 if __name__ == '__main__':
