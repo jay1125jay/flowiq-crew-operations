@@ -1,0 +1,80 @@
+import copy
+import io
+import json
+import tempfile
+import unittest
+import urllib.error
+from pathlib import Path
+from unittest.mock import patch
+
+import wallet_paper as paper
+import pc_wallet_follow as pc
+
+
+class ReliabilityTests(unittest.TestCase):
+    def setUp(self):
+        paper._next_request = 0
+        paper._rate_limited_until = 0
+        self.account = dict(cash=1_000_000, equity_krw=1_000_000,
+                            position=None, closed=[], fill_count=0,
+                            fill_cursor=99, source_size=0, source_equity_usd=100_000)
+        self.ledger = dict(paper_only=True, real_trading_enabled=False,
+                           accounts={'whale': self.account})
+        self.row = dict(time=100, tid=1, px='100', sz='1', startPosition='0', side='B', coin='BTC')
+
+    def test_rate_limit_stops_other_workers_requests(self):
+        error = urllib.error.HTTPError('url', 429, 'Too Many Requests', None, None)
+        with patch.object(paper.urllib.request, 'urlopen', side_effect=error) as request:
+            for _ in range(3):
+                with self.assertRaises(urllib.error.HTTPError):
+                    paper.info({'type':'l2Book'})
+            self.assertEqual(request.call_count, 1)
+
+    def test_duplicate_fill_is_not_charged_twice(self):
+        event = ('whale', self.row, 200)
+        self.assertEqual(pc.apply_event(self.ledger, event, paper), 'applied')
+        after = copy.deepcopy(self.ledger)
+        self.assertEqual(pc.apply_event(self.ledger, event, paper), 'covered')
+        self.assertEqual(self.ledger, after)
+
+    def test_stale_fill_does_not_open_position(self):
+        pc.apply_event(self.ledger, ('whale', self.row, 20_000), paper)
+        self.assertIsNone(self.ledger['accounts']['whale']['position'])
+
+    def test_blocked_fill_cannot_bypass_recovery_schedule(self):
+        self.row['startPosition'] = '3'
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            path = root / pc.LEDGER
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.ledger))
+            with patch.object(pc, 'git', return_value=''), patch.object(pc.subprocess, 'run') as run:
+                result, done = pc.synchronize(root, [(1, ('whale', self.row, 200))], False, paper)
+            run.assert_not_called()
+            self.assertEqual(done, [])
+            self.assertEqual(result, self.ledger)
+
+    def test_failed_push_does_not_acknowledge_pending_events(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            path = root / pc.LEDGER
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.ledger))
+            def git(_root, *args):
+                if args[0] == 'push':
+                    raise RuntimeError('push rejected')
+                return pc.LEDGER if args[0] == 'diff' else ''
+            with patch.object(pc, 'git', side_effect=git):
+                with self.assertRaisesRegex(RuntimeError, 'push rejected'):
+                    pc.synchronize(root, [(1, ('whale', self.row, 200))], False, paper)
+
+    def test_same_millisecond_fills_follow_position_chain(self):
+        a = copy.deepcopy(self.account)
+        second = dict(self.row, tid=2, startPosition='1')
+        paper.process_batch(a, [second, self.row], 100_000, 100, 100, 'stamp', 200)
+        self.assertEqual(a['fill_count'], 2)
+        self.assertEqual(a['source_size'], 2)
+
+
+if __name__ == '__main__':
+    unittest.main()
