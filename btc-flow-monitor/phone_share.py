@@ -1,5 +1,6 @@
 """Read-only authenticated phone bridge. No orders, credentials or ledger mutation."""
 import hashlib
+import gzip
 import json
 import os
 from pathlib import Path
@@ -9,7 +10,7 @@ import subprocess
 import threading
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode, urlsplit, parse_qs
 
 DASHBOARD = 'https://jay1125jay.github.io/flowiq-crew-operations/btc-flow-monitor/dashboard.html'
 ORIGIN = 'https://jay1125jay.github.io'
@@ -52,11 +53,16 @@ def bridge(view, token):
     class Handler(BaseHTTPRequestHandler):
         def reply(self, code, payload=None):
             body = json.dumps(payload or {}, allow_nan=False).encode()
+            compressed = 'gzip' in self.headers.get('Accept-Encoding','') and len(body)>1024
+            if compressed:
+                body=gzip.compress(body,compresslevel=3)
             self.send_response(code)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Cache-Control', 'no-store')
             self.send_header('Referrer-Policy', 'no-referrer')
             self.send_header('X-Content-Type-Options', 'nosniff')
+            if compressed:
+                self.send_header('Content-Encoding','gzip')
             if self.headers.get('Origin') == ORIGIN:
                 self.send_header('Access-Control-Allow-Origin', ORIGIN)
                 self.send_header('Vary', 'Origin')
@@ -78,7 +84,8 @@ def bridge(view, token):
             elif not secrets.compare_digest(self.headers.get('Authorization', ''), 'Bearer '+token):
                 self.reply(401)
             else:
-                self.reply(200, view.read())
+                revision=parse_qs(urlsplit(self.path).query).get('since',[None])[0]
+                self.reply(200, view.read_since(revision) if hasattr(view,'read_since') else view.read())
 
         def log_message(self, *args):
             pass
