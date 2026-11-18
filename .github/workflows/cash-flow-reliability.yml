@@ -3,6 +3,11 @@ on:
   push:
     paths:
       - 'btc-flow-monitor/pc_wallet_follow.py'
+      - 'btc-flow-monitor/wallet_phone.py'
+      - 'btc-flow-monitor/phone_share.py'
+      - 'btc-flow-monitor/test_wallet_phone.py'
+      - 'btc-flow-monitor/verify_wallet_phone_browser.py'
+      - 'btc-flow-monitor/dashboard.html'
       - 'btc-flow-monitor/publish_wallet_paper.py'
       - 'btc-flow-monitor/wallet_paper.py'
       - 'btc-flow-monitor/test_wallet_reliability.py'
@@ -24,7 +29,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install websockets==15.0.1
-      - run: python -m unittest discover -s btc-flow-monitor -p test_wallet_reliability.py -v
+      - run: python -m unittest discover -s btc-flow-monitor -p 'test_wallet*.py' -v
       - name: Validate Windows updater syntax
         if: runner.os == 'Windows'
         shell: powershell
@@ -33,3 +38,12 @@ jobs:
           $tokens = $null
           [System.Management.Automation.Language.Parser]::ParseFile("$pwd/btc-flow-monitor/UPDATE_CASH_FLOW.ps1", [ref]$tokens, [ref]$errors) | Out-Null
           if ($errors.Count) { $errors | Format-List; exit 1 }
+      - run: python -m unittest discover -s btc-flow-monitor -p test_phone_share.py -v
+      - name: Install mobile browser verification
+        if: runner.os == 'Linux'
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Verify mobile live dashboard
+        if: runner.os == 'Linux'
+        run: python btc-flow-monitor/verify_wallet_phone_browser.py
