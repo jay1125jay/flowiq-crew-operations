@@ -8,12 +8,15 @@ if (!(Test-Path $python) -or !(Test-Path $engine)) {
     throw 'Existing CASH FLOW installation not found. Nothing was changed.'
 }
 $download = Join-Path $root 'pc_wallet_follow.download.py'
-$url = 'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/1b326d018f10dba45c5c947912279710b636f032/btc-flow-monitor/pc_wallet_follow.py'
+$url = 'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/a185683616a39d74086709ee75809e904aa885af/btc-flow-monitor/pc_wallet_follow.py'
 Invoke-WebRequest -UseBasicParsing $url -OutFile $download
 & $python -m py_compile $download
 if ($LASTEXITCODE -ne 0) { throw 'Downloaded engine failed validation.' }
 & $python -c 'from websockets.asyncio.client import connect'
 if ($LASTEXITCODE -ne 0) { throw 'WebSocket dependency is missing.' }
+
+& $python -m pip install qrcode==8.2
+if ($LASTEXITCODE -ne 0) { throw 'QR dependency installation failed. Existing engine unchanged.' }
 
 # Download and validate first; keep the existing database and account files.
 $backup = "$engine.backup-$(Get-Date -Format yyyyMMdd-HHmmss)"
