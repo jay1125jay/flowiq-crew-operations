@@ -54,6 +54,25 @@ class PhoneBridgeTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
             self.assertEqual(response.headers['Access-Control-Allow-Headers'], 'Authorization')
 
+    def test_direct_dashboard_and_tunnel_origin(self):
+        class View:
+            def read(self): return {'marker':'private-ledger'}
+        server=phone.bridge(View(),'secret','<html>display-only</html>')
+        server.public_origin='https://example.trycloudflare.com'
+        base=f'http://127.0.0.1:{server.server_port}'
+        try:
+            with urllib.request.urlopen(base+'/dashboard.html') as response:
+                self.assertEqual(response.read(),b'<html>display-only</html>')
+            request=urllib.request.Request(base+'/api/status',headers={
+                'Origin':server.public_origin,'Authorization':'Bearer secret'})
+            with urllib.request.urlopen(request) as response:
+                self.assertEqual(json.load(response)['marker'],'private-ledger')
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                urllib.request.urlopen(base+'/api/status')
+            self.assertEqual(error.exception.code,401)
+        finally:
+            server.shutdown();server.server_close()
+
     def test_download_hash_mismatch_never_executes(self):
         import io
         with tempfile.TemporaryDirectory() as directory:
