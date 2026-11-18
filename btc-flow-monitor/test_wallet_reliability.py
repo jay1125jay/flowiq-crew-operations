@@ -75,6 +75,29 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(a['fill_count'], 2)
         self.assertEqual(a['source_size'], 2)
 
+    def test_pagination_overlaps_and_deduplicates_boundary(self):
+        first = [dict(self.row, time=i, tid=i) for i in range(1, 2001)]
+        second = [first[-1], dict(self.row, time=2000, tid=2001),
+                  dict(self.row, time=2002, tid=2002)]
+        with patch.object(paper, 'info', side_effect=[first, second]) as request:
+            result = paper.fetch_fills('whale', 1, 3000)
+        self.assertEqual(len(result), 2002)
+        self.assertEqual(request.call_args_list[1].args[0]['startTime'], 2000)
+
+    def test_full_identical_timestamp_page_fails_without_skipping(self):
+        page = [dict(self.row, time=100, tid=i) for i in range(2000)]
+        with patch.object(paper, 'info', return_value=page) as request:
+            with self.assertRaisesRegex(ValueError, 'pagination stalled'):
+                paper.fetch_fills('whale', 100, 200)
+        self.assertEqual(request.call_count, 1)
+
+    def test_fill_query_reserves_weight_budget(self):
+        with patch.object(paper.time, 'monotonic', return_value=100), \
+             patch.object(paper.time, 'sleep') as sleep, \
+             patch.object(paper.urllib.request, 'urlopen', return_value=io.StringIO('[]')):
+            paper.info({'type':'userFillsByTime'})
+        self.assertEqual(paper._next_request, 112)
+
 
 if __name__ == '__main__':
     unittest.main()
