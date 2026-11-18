@@ -2,6 +2,8 @@ name: Cash Flow reliability tests
 on:
   push:
     paths:
+      - 'btc-flow-monitor/cash_flow_settings.py'
+      - 'btc-flow-monitor/test_cash_flow_settings.py'
       - 'btc-flow-monitor/pc_wallet_follow.py'
       - 'btc-flow-monitor/wallet_phone.py'
       - 'btc-flow-monitor/phone_share.py'
@@ -41,6 +43,7 @@ jobs:
           [System.Management.Automation.Language.Parser]::ParseFile("$pwd/btc-flow-monitor/UPDATE_CASH_FLOW.ps1", [ref]$tokens, [ref]$errors) | Out-Null
           if ($errors.Count) { $errors | Format-List; exit 1 }
       - run: python -m unittest discover -s btc-flow-monitor -p test_phone_share.py -v
+      - run: python -m unittest discover -s btc-flow-monitor -p test_cash_flow_settings.py -v
       - name: Install mobile browser verification
         if: runner.os == 'Linux'
         run: |
