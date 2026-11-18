@@ -37,7 +37,7 @@ def main():
             else:
                 request.fulfill(json={})
         page.route('**/*',route)
-        page.goto('https://jay1125jay.github.io/flowiq-crew-operations/btc-flow-monitor/dashboard.html#pc=https://phone-test.trycloudflare.com&key='+'A'*43)
+        page.goto('https://phone-test.trycloudflare.com/dashboard.html#pc=https://phone-test.trycloudflare.com&key='+'A'*43)
         page.wait_for_function("document.getElementById('walletEquity').textContent.includes('5,000,000')")
         page.wait_for_function("document.getElementById('ledgerHealth').textContent.includes('PC 직접 연결')")
         ledger['accounts'][addresses[0]]['equity_krw']=1_000_100
