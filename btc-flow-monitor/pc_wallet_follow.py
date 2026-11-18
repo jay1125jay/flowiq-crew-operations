@@ -194,14 +194,19 @@ class Observer:
     def drain(self, wallet=None):
         batch=[item for item in self.pending() if wallet is None or item[1][0]==wallet]
         applied_ms=int(dt.datetime.now(dt.timezone.utc).timestamp()*1000)
-        _, statuses, blocked=apply_ordered(self.ledger,batch,self.paper,applied_ms)
+        working=copy.deepcopy(self.ledger)
+        _, statuses, blocked=apply_ordered(working,batch,self.paper,applied_ms)
+        reports=[]
         with self.db:
             for seq, (_,row,received) in batch:
                 if statuses.get(seq)=='applied' and '_paper_applied_ms' not in row:
                     row['_paper_applied_ms']=applied_ms
                     self.db.execute('UPDATE pending SET payload=? WHERE seq=?',(json.dumps(row),seq))
-                    print('PAPER APPLIED',row['tid'],'receive_ms',received-int(row['time']),
-                          'apply_ms',applied_ms-int(row['time']),flush=True)
+                    reports.append((row['tid'],received-int(row['time']),applied_ms-int(row['time'])))
+        # Commit execution timing before exposing the resulting local account.
+        self.ledger=working
+        for tid,receive_delay,apply_delay in reports:
+            print('PAPER APPLIED',tid,'receive_ms',receive_delay,'apply_ms',apply_delay,flush=True)
         for address in blocked:
             # Wake immediately for a new gap; repeated events cannot bypass backoff.
             if address not in self.blocked_wallets:
