@@ -5,6 +5,7 @@ import itertools
 import json
 import math
 import time
+import threading
 from concurrent.futures import ThreadPoolExecutor
 import pathlib
 import urllib.error
@@ -20,12 +21,29 @@ SLIP = .0003
 MAX_CLOCK_LEAD_SECONDS = 2.0
 MAX_FOLLOW_GAP = 0.003
 FRESH_FILL_MS = 15_000
+_request_lock = threading.Lock()
+_next_request = 0.0
+_rate_limited_until = 0.0
 
 def info(payload):
+    global _next_request, _rate_limited_until
+    # One shared budget for the account workers; stop the entire cycle on 429.
+    with _request_lock:
+        if time.monotonic() < _rate_limited_until:
+            raise urllib.error.HTTPError('https://api.hyperliquid.xyz/info', 429,
+                                         'Shared request cooldown', None, None)
+        time.sleep(max(0, _next_request-time.monotonic()))
+        _next_request = time.monotonic() + 0.5
     req = urllib.request.Request('https://api.hyperliquid.xyz/info',
         data=json.dumps(payload).encode(), headers={'Content-Type':'application/json'})
-    with urllib.request.urlopen(req, timeout=15) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(req, timeout=15) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        if exc.code == 429:
+            with _request_lock:
+                _rate_limited_until = time.monotonic() + 120
+        raise
 
 def finite(value):
     result = float(value)
@@ -227,12 +245,9 @@ def main():
                 raise ValueError('old quote')
             try:
                 rows = fetch_fills(address, cursor + 1, end) if cursor is not None and cursor < end else []
-            except urllib.error.HTTPError as exc:
-                if exc.code != 429 or updated.get('position') or not source_btc_size:
-                    raise
-                rows = []
-                updated['history_gap_at'] = quote.isoformat()
-                updated['history_gap_reason'] = 'fill query rate limited; resumed from position snapshot'
+            except urllib.error.HTTPError:
+                # Rate limits must never skip the unprocessed history cursor.
+                raise
             # Archive the verified snapshot at its original timestamp even when replay is slow.
             replay_ms = max(quote_ms, int(now().timestamp()*1000))
             try:
@@ -303,4 +318,5 @@ def main():
 
 if __name__=='__main__':
     main()
+
 
