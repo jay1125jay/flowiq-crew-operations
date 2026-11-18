@@ -1,6 +1,7 @@
 """Mobile direct-ledger refresh and disconnect UI, using explicit synthetic data."""
 import json
 import time
+import shutil
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -16,7 +17,7 @@ def main():
     state={'revision':1,'offline':False,'requests':0}
     errors=[]
     with sync_playwright() as p:
-        browser=p.chromium.launch(headless=True)
+        browser=p.chromium.launch(headless=True, executable_path=shutil.which('google-chrome') or shutil.which('chromium'))
         page=browser.new_page(viewport={'width':390,'height':844},is_mobile=True)
         page.on('pageerror',lambda error:errors.append(str(error)))
         page.add_init_script('window.WebSocket=class {static OPEN=1; readyState=1; send(){} close(){}};')
