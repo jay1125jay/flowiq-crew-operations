@@ -6,6 +6,7 @@ on:
       - 'btc-flow-monitor/wallet_phone.py'
       - 'btc-flow-monitor/phone_share.py'
       - 'btc-flow-monitor/test_wallet_phone.py'
+      - 'btc-flow-monitor/test_phone_share.py'
       - 'btc-flow-monitor/verify_wallet_phone_browser.py'
       - 'btc-flow-monitor/dashboard.html'
       - 'btc-flow-monitor/publish_wallet_paper.py'
@@ -44,7 +45,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           python -m pip install playwright==1.56.0
-          python -m playwright install --with-deps chromium
+          google-chrome --version
       - name: Verify mobile live dashboard
         if: runner.os == 'Linux'
         run: python btc-flow-monitor/verify_wallet_phone_browser.py
