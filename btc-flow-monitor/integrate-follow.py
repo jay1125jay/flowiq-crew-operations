@@ -5,13 +5,16 @@ from pathlib import Path
 p = Path(__file__).with_name('dashboard.html')
 s = p.read_text(encoding='utf-8')
 required = [
-    '전체 PAPER 자산',
-    '지금 따라가는 고래',
-    '6개 PAPER 계좌',
-    '시스템 상태',
+    'id="overview"',
+    'id="whales"',
+    'id="settings"',
+    'id="records"',
+    'id="account"',
+    'id="connectionForm"',
+    'id="whaleStateCards"',
     'id="accountGrid"',
     'id="followList"',
-    'id="engineState"',
+    'id="ledgerHealth"',
 ]
 missing = [x for x in required if x not in s]
 if missing:
