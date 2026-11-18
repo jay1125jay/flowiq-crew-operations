@@ -33,7 +33,10 @@ def info(payload):
             raise urllib.error.HTTPError('https://api.hyperliquid.xyz/info', 429,
                                          'Shared request cooldown', None, None)
         time.sleep(max(0, _next_request-time.monotonic()))
-        _next_request = time.monotonic() + 0.5
+        # Full fill pages cost up to 120 weight, not one request.
+        # Reserve at most 600 weight/minute, leaving headroom for other clients.
+        weight = 120 if payload.get('type') == 'userFillsByTime' else 2
+        _next_request = time.monotonic() + weight / 10
     req = urllib.request.Request('https://api.hyperliquid.xyz/info',
         data=json.dumps(payload).encode(), headers={'Content-Type':'application/json'})
     try:
@@ -53,16 +56,25 @@ def finite(value):
 
 
 def fetch_fills(wallet, start, end):
-    rows = info(dict(type='userFillsByTime', user=wallet, startTime=start,
-                     endTime=end, aggregateByTime=False))
-    if not isinstance(rows, list):
-        raise ValueError('invalid fill response')
-    if len(rows) >= 2000:
-        if start >= end:
-            raise ValueError('too many fills in one millisecond')
-        middle = (start + end) // 2
-        return fetch_fills(wallet, start, middle) + fetch_fills(wallet, middle + 1, end)
-    return [r for r in rows if r['coin'] == 'BTC' and start <= int(r['time']) <= end]
+    result = {}
+    cursor = start
+    # Inclusive overlap preserves fills sharing the page boundary timestamp.
+    # Do not repeatedly download both halves of the same large history.
+    for _ in range(16):
+        rows = info(dict(type='userFillsByTime', user=wallet, startTime=cursor,
+                         endTime=end, aggregateByTime=False))
+        if not isinstance(rows, list):
+            raise ValueError('invalid fill response')
+        for row in rows:
+            if row['coin'] == 'BTC' and start <= int(row['time']) <= end:
+                result[(int(row['time']), int(row['tid']))] = row
+        if len(rows) < 2000:
+            return sorted(result.values(), key=lambda row: int(row['time']))
+        boundary = max(int(row['time']) for row in rows)
+        if boundary <= cursor:
+            raise ValueError('fill pagination stalled; history incomplete')
+        cursor = boundary
+    raise ValueError('fill pagination budget exhausted; history incomplete')
 
 
 def close_part(a, fraction, price, at, reason):
@@ -252,6 +264,9 @@ def main():
             replay_ms = max(quote_ms, int(now().timestamp()*1000))
             try:
                 process_batch(updated, rows, source_equity, end, (bid+ask)/2, quote.isoformat(), replay_ms)
+                if 'source_size' in updated and not math.isclose(updated['source_size'], source_btc_size,
+                                                               rel_tol=0, abs_tol=1e-8):
+                    raise ValueError('BTC fill history gap or order mismatch')
             except ValueError as exc:
                 if str(exc) != 'BTC fill history gap or order mismatch':
                     raise
@@ -283,7 +298,7 @@ def main():
         except (OSError,ValueError,KeyError,IndexError,TypeError) as exc:
             return None,None,None,f'{stage}: {type(exc).__name__}: {exc}'[:200]
     successes = 0
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=1) as pool:
         for a, result in zip(accounts.values(),pool.map(sample,accounts)):
             updated,stamp,received,error = result
             a['attempts'] = a.get('attempts',0)+1
