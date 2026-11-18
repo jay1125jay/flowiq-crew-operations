@@ -199,6 +199,24 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(account['closed'][-1]['apply_delay_ms'],60)
         self.assertEqual(account['closed'][-1]['processing_delay_ms'],10)
 
+    def test_failed_execution_journal_write_does_not_mutate_local_account(self):
+        with tempfile.TemporaryDirectory() as folder, sqlite3.connect(':memory:') as db:
+            root=Path(folder)
+            path=root/pc.LEDGER
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps(self.ledger))
+            observer=pc.Observer(root,paper,db)
+            before=copy.deepcopy(observer.ledger)
+            db.execute("CREATE TRIGGER reject_timing BEFORE UPDATE ON pending BEGIN SELECT RAISE(ABORT, 'disk write failure'); END")
+            row=dict(self.row,time=int(time.time()*1000))
+            with self.assertRaises(sqlite3.IntegrityError):
+                observer.receive(dict(channel='userFills',data=dict(user='whale',fills=[row])))
+            self.assertEqual(observer.ledger,before)
+            self.assertEqual(len(observer.pending()),1)
+            db.execute('DROP TRIGGER reject_timing')
+            observer.drain()
+            self.assertEqual(observer.ledger['accounts']['whale']['fill_count'],1)
+
     def test_recovery_merges_after_already_applied_local_events(self):
         event=('whale',dict(self.row,_paper_applied_ms=210),200)
         base=copy.deepcopy(self.ledger)
