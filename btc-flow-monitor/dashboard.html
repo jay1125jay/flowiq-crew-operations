@@ -219,6 +219,12 @@ function renderWalletCloses(paper) {
     card.title=address;
     line('최초 진입', time(open ? pos.at : pos.opened));
     line('평균 진입가', usd(pos.entry));
+    if (pos.applied_at) {
+      line(open ? '추종 대상 체결' : '청산 대상 체결', time(pos.source_at));
+      line('엔진 수신', time(pos.received_at));
+      line('모의계좌 반영', time(pos.applied_at));
+      if (Number.isFinite(pos.apply_delay_ms)) line('체결 → 반영 지연', pos.apply_delay_ms.toLocaleString('ko-KR')+'ms (밀리초)');
+    }
     if(open) {
       line('최근 평가', time(account.last_at));
       line('평가 가격', usd(account.price));
