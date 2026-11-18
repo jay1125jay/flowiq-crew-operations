@@ -37,7 +37,7 @@ def apply_event(ledger, event, paper):
         return 'recover'
     if ms <= account['fill_cursor'] or [ms, tid] in account.get('stream_keys', []):
         return 'covered'
-    if 'source_size' not in account or not math.isclose(float(row['startPosition']), account['source_size'], abs_tol=1e-8):
+    if 'source_size' not in account or not math.isclose(float(row['startPosition']), account['source_size'], rel_tol=0, abs_tol=1e-8):
         return 'recover'
     updated = copy.deepcopy(account)
     at = dt.datetime.fromtimestamp(received/1000, dt.timezone.utc).isoformat()
@@ -79,11 +79,15 @@ def synchronize(root, batch, repair, paper):
         changed |= status=='applied'
     if changed:
         path.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n',encoding='utf-8')
-    if repair or blocked:
+    if repair:
         result = subprocess.run([sys.executable,str(root/'btc-flow-monitor/wallet_paper.py')],timeout=240)
         if result.returncode not in (0,2):
             result.check_returncode()
         ledger = verified(json.loads(path.read_text(encoding='utf-8')))
+    if changed or repair:
+        ledger['updated_at'] = dt.datetime.now(dt.timezone.utc).isoformat()
+        ledger['pc_sync_at'] = ledger['updated_at']
+        path.write_text(json.dumps(ledger,indent=2,allow_nan=False)+'\n',encoding='utf-8')
     git(root,'add','--',LEDGER)
     if git(root,'diff','--cached','--name-only'):
         git(root,'-c','user.name=Cash Flow PAPER','-c','user.email=btc-flow@users.noreply.github.com',
@@ -126,9 +130,14 @@ class Observer:
     async def publish(self):
         loop=asyncio.get_running_loop()
         next_check=0
+        next_publish=0
+        failures=0
+        rate_backoff=60
         while True:
+            # Socket reception continues while publishing/recovery is throttled.
+            await asyncio.sleep(max(0,next_publish-loop.time()))
             self.wake.clear()
-            repair=self.repair or loop.time()>=next_check
+            repair=loop.time()>=next_check
             self.repair=False
             batch=self.pending()
             try:
@@ -139,13 +148,23 @@ class Observer:
                 for _,event in self.pending():
                     apply_event(ledger,event,self.paper)
                 if repair:
-                    next_check=loop.time()+60
-                if batch and not done:
-                    await asyncio.sleep(3)
+                    limited=any('429' in str(a.get('error','')) for a in ledger['accounts'].values())
+                    rate_backoff=min(900,rate_backoff*2) if limited else 60
+                    next_check=loop.time()+rate_backoff
+                    if limited:
+                        print('HTTP 429: REST cooldown',rate_backoff,'seconds; stream remains active',flush=True)
+                failures=0
+                next_publish=loop.time()+10
+                print('PAPER saved; pending:',len(self.pending()),'next check in:',
+                      max(0,int(next_check-loop.time())),'seconds',flush=True)
             except Exception as exc:
-                print('PAPER sync retry:',exc,flush=True)
-                self.repair |= repair
-                await asyncio.sleep(4)
+                failures+=1
+                delay=min(120,5*2**min(failures,5))
+                detail=getattr(exc,'stderr',None) or str(exc)
+                print('PAPER sync failed; retry in',delay,'seconds:',str(detail)[-1000:],flush=True)
+                if repair:
+                    next_check=loop.time()+max(60,delay)
+                next_publish=loop.time()+delay
                 continue
             if self.pending() or self.repair:
                 continue
@@ -190,3 +209,4 @@ if __name__=='__main__':
         git(root,'sparse-checkout','set','btc-flow-monitor')
         with sqlite3.connect(Path(__file__).with_name('pending-paper.sqlite3')) as db:
             asyncio.run(run(root,db))
+
