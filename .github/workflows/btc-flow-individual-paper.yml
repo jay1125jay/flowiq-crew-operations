@@ -2,7 +2,7 @@ name: BTC FLOW individual whale PAPER
 on:
   push:
     branches: [main]
-    paths: [btc-flow-monitor/wallet_paper.py]
+    paths: [btc-flow-monitor/wallet_paper.py, btc-flow-monitor/publish_wallet_paper.py, .github/workflows/btc-flow-individual-paper.yml]
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
@@ -20,19 +20,4 @@ jobs:
         with:
           ref: main
       - name: Observe public positions and persist paper ledgers
-        run: |
-          set -e
-          result=0
-          python btc-flow-monitor/wallet_paper.py || result=$?
-          if [ "$result" != 0 ] && [ "$result" != 2 ]; then exit "$result"; fi
-          git config user.name github-actions
-          git config user.email github-actions[bot]@users.noreply.github.com
-          git add btc-flow-monitor/trader-discovery/wallet-paper.json
-          git diff --cached --quiet && exit "$result"
-          git commit -m "data: individual whale paper observations"
-          for attempt in 1 2 3 4 5; do
-            git pull --rebase origin main
-            if git push origin HEAD:main; then exit "$result"; fi
-            sleep 2
-          done
-          exit 1
+        run: python btc-flow-monitor/publish_wallet_paper.py
