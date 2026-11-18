@@ -17,7 +17,7 @@ from websockets.asyncio.client import connect
 
 REPO = 'https://github.com/jay1125jay/flowiq-crew-operations.git'
 LEDGER = 'btc-flow-monitor/trader-discovery/wallet-paper.json'
-ENGINE_VERSION = 'stream-20261118-2'
+ENGINE_VERSION = 'stream-phone-20261118-3'
 
 
 def git(root, *args):
@@ -166,6 +166,7 @@ class Observer:
         self.blocked_wallets=set()
         self.recovery_retry_after={}
         self.last_received_ms=0
+        self.stream_connected=False
         db.execute('CREATE TABLE IF NOT EXISTS pending (seq INTEGER PRIMARY KEY, wallet TEXT, tid TEXT, payload TEXT, received INTEGER, UNIQUE(wallet,tid))')
 
     def pending(self):
@@ -311,6 +312,7 @@ class Observer:
         while True:
             try:
                 async with connect('wss://api.hyperliquid.xyz/ws',open_timeout=10) as ws:
+                    self.stream_connected=True
                     addresses=set(self.ledger['accounts'])
                     self.repair=True
                     self.wake.set()
@@ -325,8 +327,11 @@ class Observer:
                             continue
                         self.receive(json.loads(message))
             except Exception as exc:
+                self.stream_connected=False
                 print('Feed reconnect:',exc,flush=True)
                 await asyncio.sleep(3)
+            finally:
+                self.stream_connected=False
 
 
 async def run(root,db):
@@ -335,7 +340,18 @@ async def run(root,db):
     observer=Observer(root,wallet_paper,db)
     observer.drain()
     print('ENGINE VERSION',ENGINE_VERSION,'PAPER ONLY',flush=True)
-    await asyncio.gather(observer.listen(),observer.publish(),observer.recover())
+    from wallet_phone import WalletPhone
+    phone=WalletPhone(root,Path(__file__).resolve().parent)
+    phone.view.update(observer.ledger,False,len(observer.pending()))
+    phone.start()
+    async def update_phone():
+        while True:
+            phone.view.update(observer.ledger,observer.stream_connected,len(observer.pending()))
+            await asyncio.sleep(.25)
+    try:
+        await asyncio.gather(observer.listen(),observer.publish(),observer.recover(),update_phone())
+    finally:
+        await asyncio.to_thread(phone.close)
 
 
 if __name__=='__main__':
