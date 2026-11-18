@@ -50,6 +50,23 @@ def main():
         assert page.locator('#walletEquity').inner_text()=='5,000,100원', 'Last value disappeared'
         assert not errors,errors
         print('PASS: mobile live update, unchanged heartbeat, offline warning, 390px layout')
+        local=browser.new_page()
+        phone_url='https://phone-test.trycloudflare.com/dashboard.html#pc=https://phone-test.trycloudflare.com&key='+'A'*43
+        def local_route(route):
+            url=route.request.url
+            if '/api/phone-share' in url:
+                route.fulfill(json={'status':'LINK_READY','url':phone_url})
+            elif '/api/phone-qr' in url:
+                route.fulfill(body='<svg xmlns="http://www.w3.org/2000/svg"/>',content_type='image/svg+xml')
+            elif '/api/status' in url:
+                route.fulfill(json=dict(ledger,pc_live=dict(revision=2,heartbeat_ms=int(time.time()*1000),connected=True,pending=0)))
+            elif '/dashboard.html' in url:
+                route.fulfill(body=html.replace('<head>','<head><script>window.BTC_LOCAL_RUNTIME=true;</script>',1),content_type='text/html')
+            else: route.fulfill(json={})
+        local.route('**/*',local_route)
+        local.goto('http://127.0.0.1:9988/dashboard.html')
+        local.wait_for_function("!document.getElementById('phoneShareQr').hidden && document.getElementById('phoneShareLink').value.includes('phone-test.trycloudflare.com/dashboard.html')")
+        print('PASS: local dashboard exposes new direct-phone QR link')
         browser.close()
 
 if __name__=='__main__': main()
