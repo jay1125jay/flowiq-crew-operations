@@ -8,7 +8,7 @@ if (!(Test-Path $python) -or !(Test-Path $engine)) {
     throw 'Existing CASH FLOW installation not found. Nothing was changed.'
 }
 $download = Join-Path $root 'pc_wallet_follow.download.py'
-$url = 'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/f205c204cddd167943d1b2e82a3ad7dbb4f0d3ec/btc-flow-monitor/pc_wallet_follow.py'
+$url = 'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/5e6f6774379126ff576affc76aefafed31a143cb/btc-flow-monitor/pc_wallet_follow.py'
 Invoke-WebRequest -UseBasicParsing $url -OutFile $download
 & $python -m py_compile $download
 if ($LASTEXITCODE -ne 0) { throw 'Downloaded engine failed validation.' }
