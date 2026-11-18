@@ -17,7 +17,7 @@ from websockets.asyncio.client import connect
 
 REPO = 'https://github.com/jay1125jay/flowiq-crew-operations.git'
 LEDGER = 'btc-flow-monitor/trader-discovery/wallet-paper.json'
-ENGINE_VERSION = 'stream-phone-20261118-3'
+ENGINE_VERSION = 'mvp-preparation-20261119-4'
 
 
 def git(root, *args):
