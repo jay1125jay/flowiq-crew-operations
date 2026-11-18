@@ -45,6 +45,12 @@ def main():
         state['revision']=2
         page.wait_for_function("document.getElementById('walletEquity').textContent.includes('5,000,100')",timeout=5000)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Mobile horizontal overflow'
+        for view in ('whales','settings','account','records','overview'):
+            page.locator('[data-view="'+view+'"]').click()
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Overflow: '+view
+        page.locator('[data-view="account"]').click()
+        assert page.locator('#apiKeyInput').is_disabled(), 'Remote API input must be disabled'
+        page.locator('[data-view="overview"]').click()
         state['offline']=True
         page.wait_for_function("document.getElementById('ledgerHealth').textContent.includes('연결 끊김')",timeout=5000)
         assert page.locator('#walletEquity').inner_text()=='5,000,100원', 'Last value disappeared'
@@ -54,7 +60,9 @@ def main():
         phone_url='https://phone-test.trycloudflare.com/dashboard.html#pc=https://phone-test.trycloudflare.com&key='+'A'*43
         def local_route(route):
             url=route.request.url
-            if '/api/phone-share' in url:
+            if '/api/settings' in url:
+                route.fulfill(json={'settings':{'budget_krw':5000000,'leverage':3,'compound':False,'capital_cap_krw':5000000,'daily_loss_krw':100000,'max_gap_pct':0.3,'allocation':'equal','enabled_wallets':[]},'credentials_saved':False,'connection':None,'live_enabled':False,'settings_applied':False})
+            elif '/api/phone-share' in url:
                 route.fulfill(json={'status':'LINK_READY','url':phone_url})
             elif '/api/phone-qr' in url:
                 route.fulfill(body='<svg xmlns="http://www.w3.org/2000/svg"/>',content_type='image/svg+xml')
@@ -66,7 +74,13 @@ def main():
         local.route('**/*',local_route)
         local.goto('http://127.0.0.1:9988/dashboard.html')
         local.wait_for_function("!document.getElementById('phoneShareQr').hidden && document.getElementById('phoneShareLink').value.includes('phone-test.trycloudflare.com/dashboard.html')")
-        print('PASS: local dashboard exposes new direct-phone QR link')
+        local.locator('[data-view="account"]').click()
+        assert local.locator('#apiKeyInput').is_enabled(), 'Local API input should be enabled'
+        local.locator('[data-view="settings"]').click()
+        local.locator('#saveSettings').click()
+        local.wait_for_function("document.getElementById('settingsStatus').textContent.includes('준비 설정 저장 완료')")
+        assert 'secret_key' not in local.evaluate('JSON.stringify(localStorage)'), 'No secret browser storage'
+        print('PASS: local QR, preparation settings, local-only credentials, five mobile views')
         browser.close()
 
 if __name__=='__main__': main()
