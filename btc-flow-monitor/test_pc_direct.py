@@ -1,4 +1,5 @@
 import copy
+from contextlib import closing
 import json
 import sqlite3
 import subprocess
@@ -66,13 +67,13 @@ class DirectPaperTests(TestCase):
             journal=tmp/'queue.db'
             wallet,row,_=self.event(1,'B',0)
             msg=dict(channel='userFills',data=dict(user=wallet,fills=[row]))
-            with sqlite3.connect(journal) as db:
+            with closing(sqlite3.connect(journal)) as db:
                 worker=pc.Observer(root,paper,db)
                 worker.receive(msg)
                 worker.receive(msg)
                 self.assertEqual(len(worker.pending()),1)
                 self.assertEqual(worker.ledger['accounts']['w']['position']['side'],1)
-            with sqlite3.connect(journal) as db:
+            with closing(sqlite3.connect(journal)) as db:
                 worker=pc.Observer(root,paper,db)
                 ledger,done=pc.synchronize(root,worker.pending(),False,paper)
                 self.assertEqual(len(done),1)
