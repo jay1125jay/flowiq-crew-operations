@@ -49,7 +49,7 @@ def install_client(directory):
     return target
 
 
-def bridge(view, token):
+def bridge(view, token, dashboard_html=None):
     class Handler(BaseHTTPRequestHandler):
         def reply(self, code, payload=None):
             body = json.dumps(payload or {}, allow_nan=False).encode()
@@ -63,8 +63,8 @@ def bridge(view, token):
             self.send_header('X-Content-Type-Options', 'nosniff')
             if compressed:
                 self.send_header('Content-Encoding','gzip')
-            if self.headers.get('Origin') == ORIGIN:
-                self.send_header('Access-Control-Allow-Origin', ORIGIN)
+            if self.headers.get('Origin') in (ORIGIN, getattr(self.server,'public_origin',ORIGIN)):
+                self.send_header('Access-Control-Allow-Origin', self.headers.get('Origin'))
                 self.send_header('Vary', 'Origin')
                 self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
                 self.send_header('Access-Control-Allow-Headers', 'Authorization')
@@ -74,12 +74,23 @@ def bridge(view, token):
             self.wfile.write(body)
 
         def do_OPTIONS(self):
-            self.reply(200 if self.headers.get('Origin') == ORIGIN and urlsplit(self.path).path == '/api/status' else 403)
+            self.reply(200 if self.headers.get('Origin') in (ORIGIN, getattr(self.server,'public_origin',ORIGIN)) and urlsplit(self.path).path == '/api/status' else 403)
 
         def do_GET(self):
+            if urlsplit(self.path).path == '/dashboard.html' and dashboard_html is not None:
+                body=dashboard_html.encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type','text/html; charset=utf-8')
+                self.send_header('Cache-Control','no-store')
+                self.send_header('Referrer-Policy','no-referrer')
+                self.send_header('X-Content-Type-Options','nosniff')
+                self.send_header('Content-Length',str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             if urlsplit(self.path).path != '/api/status':
                 self.reply(404)
-            elif self.headers.get('Origin') not in (None, ORIGIN):
+            elif self.headers.get('Origin') not in (None, ORIGIN, getattr(self.server,'public_origin',ORIGIN)):
                 self.reply(403)
             elif not secrets.compare_digest(self.headers.get('Authorization', ''), 'Bearer '+token):
                 self.reply(401)
@@ -95,10 +106,11 @@ def bridge(view, token):
 
 
 class PhoneShare:
-    def __init__(self, view, directory):
+    def __init__(self, view, directory, dashboard_html=None):
         self.directory = Path(directory)/'phone'
         self.token = secrets.token_urlsafe(32)
-        self.server = bridge(view, self.token)
+        self.server = bridge(view, self.token, dashboard_html)
+        self.direct_dashboard = dashboard_html is not None
         self.stop = threading.Event()
         self.lock = threading.Lock()
         self.process = None
@@ -137,7 +149,9 @@ class PhoneShare:
                 if match and self.url is None:
                     import qrcode
                     from qrcode.image.svg import SvgPathImage
-                    url = DASHBOARD+'#'+urlencode({'pc': match.group(0), 'key': self.token})
+                    self.server.public_origin = match.group(0)
+                    target = match.group(0)+'/dashboard.html' if self.direct_dashboard else DASHBOARD
+                    url = target+'#'+urlencode({'pc': match.group(0), 'key': self.token})
                     svg = qrcode.make(url, image_factory=SvgPathImage, box_size=4, border=4).to_string()
                     with self.lock:
                         self.url, self.svg, self.status = url, svg, 'LINK_READY'
