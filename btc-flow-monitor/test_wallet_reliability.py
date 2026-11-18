@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import wallet_paper as paper
 import pc_wallet_follow as pc
+from publish_wallet_paper import merge_observations
 
 
 class ReliabilityTests(unittest.TestCase):
@@ -97,6 +98,38 @@ class ReliabilityTests(unittest.TestCase):
              patch.object(paper.urllib.request, 'urlopen', return_value=io.StringIO('[]')):
             paper.info({'type':'userFillsByTime'})
         self.assertEqual(paper._next_request, 112)
+
+    def test_cloud_recovery_preserves_other_wallet_live_fills(self):
+        base = copy.deepcopy(self.ledger)
+        base['accounts']['other'] = copy.deepcopy(self.account)
+        candidate, latest = copy.deepcopy(base), copy.deepcopy(base)
+        candidate['accounts']['whale']['fill_cursor'] = 500
+        candidate['accounts']['whale']['cash'] = 990_000
+        latest['accounts']['other']['fill_cursor'] = 600
+        latest['accounts']['other']['cash'] = 1_010_000
+        merged, applied, conflicts = merge_observations(base, candidate, latest)
+        self.assertEqual(applied, ['whale'])
+        self.assertEqual(merged['accounts']['whale'], candidate['accounts']['whale'])
+        self.assertEqual(merged['accounts']['other'], latest['accounts']['other'])
+        self.assertEqual(base['accounts']['whale']['cash'], 1_000_000)
+
+    def test_same_wallet_concurrent_changes_are_never_overwritten(self):
+        base = copy.deepcopy(self.ledger)
+        candidate, latest = copy.deepcopy(base), copy.deepcopy(base)
+        candidate['accounts']['whale']['fill_cursor'] = 500
+        latest['accounts']['whale']['fill_cursor'] = 600
+        merged, applied, conflicts = merge_observations(base, candidate, latest)
+        self.assertEqual(merged, latest)
+        self.assertEqual(applied, [])
+        self.assertEqual(conflicts, ['whale'])
+
+    def test_selection_change_cannot_restore_retired_whale(self):
+        base = copy.deepcopy(self.ledger)
+        candidate, latest = copy.deepcopy(base), copy.deepcopy(base)
+        latest['accounts'] = {'new': copy.deepcopy(self.account)}
+        merged, applied, conflicts = merge_observations(base, candidate, latest)
+        self.assertEqual(merged, latest)
+        self.assertEqual(applied, [])
 
 
 if __name__ == '__main__':
