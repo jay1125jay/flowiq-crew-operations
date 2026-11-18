@@ -34,8 +34,8 @@
       "peak_krw": 1000000,
       "last_at": "2026-11-18T12:05:19.776000+00:00",
       "price": 64164.5,
-      "error": null,
-      "attempts": 168,
+      "error": "position: HTTPError: HTTP Error 429: Too Many Requests",
+      "attempts": 169,
       "signal_received_at": "2026-11-18T12:05:18.381288+00:00",
       "max_drawdown_pct": 0,
       "source_btc_size": -200.0,
@@ -44,7 +44,7 @@
       "source_entry_px": 67699.6,
       "stream_keys": [],
       "source_equity_usd": 2016162.070185,
-      "misses": 9,
+      "misses": 10,
       "last_fill": {
         "tid": 455468760397268,
         "at": "2026-11-17T18:16:16.824000+00:00",
@@ -13002,11 +13002,11 @@
       "peak_krw": 1093610.4626259846,
       "last_at": "2026-11-17T09:00:17.499000+00:00",
       "price": 64305.5,
-      "error": "fills: HTTPError: HTTP Error 429: Too Many Requests",
-      "attempts": 168,
+      "error": "position: HTTPError: HTTP Error 429: Too Many Requests",
+      "attempts": 169,
       "signal_received_at": "2026-11-17T09:00:17.651381+00:00",
       "max_drawdown_pct": 19.26572539102137,
-      "misses": 32,
+      "misses": 33,
       "reselected_at": "2026-11-16T03:21:27.030Z",
       "previous_fill_cursor": 1794680722455,
       "history_gap_at": "2026-11-16T10:35:09.190000+00:00",
@@ -13059,14 +13059,14 @@
       "peak_krw": 1059271.6632675608,
       "last_at": "2026-11-18T01:06:35.691000+00:00",
       "price": 64653.5,
-      "error": "fills: HTTPError: HTTP Error 429: Shared request cooldown",
+      "error": "position: HTTPError: HTTP Error 429: Too Many Requests",
       "stream_keys": [],
       "source_size": -244.07145,
       "source_entry_px": 64746.3,
       "source_equity_usd": 37678896.144917,
       "source_btc_size": -244.07145,
       "source_position_at": "2026-11-18T01:06:35.970506+00:00",
-      "attempts": 24,
+      "attempts": 25,
       "signal_received_at": "2026-11-18T01:06:35.970506+00:00",
       "max_drawdown_pct": 0.8078259409643351,
       "last_fill": {
@@ -13074,7 +13074,7 @@
         "at": "2026-11-16T22:03:55.254000+00:00",
         "price": 65511.0
       },
-      "misses": 18,
+      "misses": 19,
       "history_gap_at": "2026-11-18T01:06:35.691000+00:00",
       "history_gap_reason": "fill query rate limited; resumed from position snapshot",
       "history_gap_start_ms": 1794866690428
@@ -13267,14 +13267,14 @@
       "peak_krw": 1003831.060684394,
       "last_at": "2026-11-18T12:05:21.431000+00:00",
       "price": 64164.5,
-      "error": null,
+      "error": "position: HTTPError: HTTP Error 429: Too Many Requests",
       "stream_keys": [],
       "source_size": -854.69598,
       "source_entry_px": 67247.1,
       "source_equity_usd": 20070578.937732,
       "source_btc_size": -854.69598,
       "source_position_at": "2026-11-18T12:05:19.735646+00:00",
-      "attempts": 24,
+      "attempts": 25,
       "signal_received_at": "2026-11-18T12:05:19.735646+00:00",
       "max_drawdown_pct": 1.8448002322655532,
       "last_fill": {
@@ -13286,7 +13286,7 @@
       },
       "history_gap_at": "2026-11-17T18:25:00.827000+00:00",
       "history_gap_reason": "fill query rate limited; resumed from position snapshot",
-      "misses": 5
+      "misses": 6
     },
     "0x880ac484a1743862989a441d6d867238c7aa311c": {
       "legacy_direction_account": {
@@ -13295,7 +13295,7 @@
         "position": null,
         "closed": []
       },
-      "cash": 930018.8404452062,
+      "cash": 929890.6189965168,
       "closed": [
         {
           "opened": "2026-11-16T20:28:33.511000+00:00",
@@ -43084,46 +43084,88 @@
           "reason": "source_fill",
           "close_fraction": 0.0007813949833991931,
           "cash_after_krw": 930018.8404452062
+        },
+        {
+          "opened": "2026-11-16T20:28:33.511000+00:00",
+          "closed": "2026-11-18T12:05:49.114000+00:00",
+          "side": 1,
+          "entry": 65183.5492,
+          "exit": 64151.748700000004,
+          "net_krw": -1.401795412669534,
+          "reason": "source_fill",
+          "close_fraction": 1.658614536753055e-05,
+          "cash_after_krw": 930017.4803172146
+        },
+        {
+          "opened": "2026-11-16T20:28:33.511000+00:00",
+          "closed": "2026-11-18T12:05:51.599000+00:00",
+          "side": 1,
+          "entry": 65183.5492,
+          "exit": 64151.748700000004,
+          "net_krw": -64.67295626412937,
+          "reason": "source_fill",
+          "close_fraction": 0.0007652278185805997,
+          "cash_after_krw": 929954.7297208615
+        },
+        {
+          "opened": "2026-11-16T20:28:33.511000+00:00",
+          "closed": "2026-11-18T12:05:51.599000+00:00",
+          "side": 1,
+          "entry": 65183.5492,
+          "exit": 64151.748700000004,
+          "net_krw": -66.07475167691531,
+          "reason": "source_fill",
+          "close_fraction": 0.0007824129632179838,
+          "cash_after_krw": 929890.6189965168
         }
       ],
       "position": {
         "side": 1,
         "entry": 65183.5492,
-        "notional": 5024364.6387013495,
-        "fee": 2512.1823193506384,
+        "notional": 5016508.529372621,
+        "fee": 2508.2542646862744,
         "at": "2026-11-16T20:28:33.511000+00:00",
         "reason": "snapshot_follow",
         "source_entry": 65026.0,
         "entry_gap_pct": 0.24228647002737563
       },
-      "equity_krw": 851547.3478107087,
-      "fill_cursor": 1795003524036,
-      "fill_count": 2708,
+      "equity_krw": 851965.1031178966,
+      "fill_cursor": 1795003551598,
+      "fill_count": 2711,
       "peak_krw": 1033038.8614985084,
-      "last_at": "2026-11-18T12:05:25.154000+00:00",
-      "price": 64165.5,
-      "error": null,
-      "stream_keys": [],
-      "source_size": 97.67188,
+      "last_at": "2026-11-18T12:05:51.810000+00:00",
+      "price": 64171.0,
+      "error": "position: HTTPError: HTTP Error 429: Shared request cooldown",
+      "stream_keys": [
+        [
+          1795003551599,
+          794188295564112
+        ],
+        [
+          1795003551599,
+          183287704392145
+        ]
+      ],
+      "source_size": 97.51916,
       "source_entry_px": 65026.0,
       "source_equity_usd": 628011.354592,
-      "source_btc_size": 97.67188,
-      "source_position_at": "2026-11-18T12:05:24.269199+00:00",
-      "attempts": 24,
+      "source_btc_size": 97.51916,
+      "source_position_at": "2026-11-18T12:05:51.810000+00:00",
+      "attempts": 25,
       "signal_received_at": "2026-11-18T12:05:24.269199+00:00",
       "max_drawdown_pct": 20.336288893795828,
       "last_fill": {
-        "tid": 237901350798312,
-        "at": "2026-11-18T12:04:00.971000+00:00",
-        "price": 64151.0,
-        "received_at": "2026-11-18T12:04:01.222000+00:00",
-        "receive_delay_ms": 251
+        "tid": 183287704392145,
+        "at": "2026-11-18T12:05:51.599000+00:00",
+        "price": 64171.0,
+        "received_at": "2026-11-18T12:05:51.810000+00:00",
+        "receive_delay_ms": 211
       },
-      "misses": 5
+      "misses": 6
     }
   },
-  "updated_at": "2026-11-18T12:05:40.497839+00:00",
-  "observed_count": 3,
+  "updated_at": "2026-11-18T12:05:57.721389+00:00",
+  "observed_count": 0,
   "cycles": [
     {
       "start": "2026-11-17T18:25:01.039047+00:00",
@@ -43231,6 +43273,12 @@
       "start": "2026-11-18T12:05:18.155605+00:00",
       "end": "2026-11-18T12:05:40.497839+00:00",
       "ok": 3,
+      "total": 5
+    },
+    {
+      "start": "2026-11-18T12:05:56.144810+00:00",
+      "end": "2026-11-18T12:05:57.721389+00:00",
+      "ok": 0,
       "total": 5
     }
   ],
