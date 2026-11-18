@@ -81,7 +81,9 @@ def local_portal(view, share, dashboard):
 class WalletPhone:
     def __init__(self, root, directory):
         self.view=WalletView()
-        self.share=PhoneShare(self.view,directory)
+        dashboard=root/'btc-flow-monitor/dashboard.html'
+        html=dashboard.read_text(encoding='utf-8')
+        self.share=PhoneShare(self.view,directory,dashboard_html=html)
         self.portal=local_portal(self.view,self.share,root/'btc-flow-monitor/dashboard.html')
         self.url=f'http://127.0.0.1:{self.portal.server_port}/'
 
