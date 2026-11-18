@@ -1,5 +1,6 @@
 """Read-only phone display of the running wallet engine, independent of Git uploads."""
 import json
+import secrets
 import threading
 import time
 import webbrowser
@@ -39,9 +40,10 @@ class WalletView:
         return self.read()
 
 
-def local_portal(view, share, dashboard):
+def local_portal(view, share, dashboard, settings=None):
+    csrf=secrets.token_urlsafe(32)
     html = dashboard.read_text(encoding='utf-8').replace('<head>',
-        '<head><script>window.BTC_LOCAL_RUNTIME=true;</script>', 1).encode('utf-8')
+        '<head><script>window.BTC_LOCAL_RUNTIME=true;window.CASH_CSRF='+json.dumps(csrf)+';</script>', 1).encode('utf-8')
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             host = f'127.0.0.1:{self.server.server_port}'
@@ -54,6 +56,8 @@ def local_portal(view, share, dashboard):
             elif path == '/api/status':
                 revision=parse_qs(urlsplit(self.path).query).get('since',[None])[0]
                 body, kind = json.dumps(view.read_since(revision),allow_nan=False).encode(), 'application/json'
+            elif path == '/api/settings' and settings is not None:
+                body, kind = json.dumps(settings.read(),allow_nan=False).encode(), 'application/json'
             elif path == '/api/phone-share':
                 body, kind = json.dumps(share.snapshot()).encode(), 'application/json'
             elif path == '/api/phone-qr':
@@ -70,6 +74,36 @@ def local_portal(view, share, dashboard):
             self.end_headers()
             self.wfile.write(body)
 
+        def do_POST(self):
+            host=f'127.0.0.1:{self.server.server_port}'
+            if (self.headers.get('Host')!=host or self.headers.get('Origin')!='http://'+host or
+                not secrets.compare_digest(self.headers.get('X-Cash-CSRF',''),csrf) or
+                self.headers.get('Content-Type')!='application/json'):
+                self.send_error(403);return
+            if settings is None:
+                self.send_error(404);return
+            try:
+                length=int(self.headers.get('Content-Length','0'))
+                if not 0<length<=8192: raise ValueError('Invalid request size')
+                data=json.loads(self.rfile.read(length))
+                if not isinstance(data,dict): raise ValueError('Object required')
+                path=urlsplit(self.path).path
+                if path=='/api/settings': result=settings.save(data)
+                elif path=='/api/binance/test': result=settings.check(data)
+                elif path=='/api/binance/disconnect': result=settings.disconnect()
+                else:
+                    self.send_error(404);return
+                body=json.dumps(result,allow_nan=False).encode();code=200
+            except ValueError as e:
+                body=json.dumps({'error':str(e)}).encode();code=400
+            except Exception:
+                body=b'{"error":"Local configuration operation failed"}';code=500
+            self.send_response(code)
+            self.send_header('Content-Type','application/json')
+            self.send_header('Cache-Control','no-store')
+            self.send_header('Content-Length',str(len(body)))
+            self.end_headers();self.wfile.write(body)
+
         def log_message(self,*args):
             pass
 
@@ -84,7 +118,9 @@ class WalletPhone:
         dashboard=root/'btc-flow-monitor/dashboard.html'
         html=dashboard.read_text(encoding='utf-8')
         self.share=PhoneShare(self.view,directory,dashboard_html=html)
-        self.portal=local_portal(self.view,self.share,root/'btc-flow-monitor/dashboard.html')
+        from cash_flow_settings import SettingsStore
+        self.settings=SettingsStore(directory)
+        self.portal=local_portal(self.view,self.share,root/'btc-flow-monitor/dashboard.html',self.settings)
         self.url=f'http://127.0.0.1:{self.portal.server_port}/'
 
     def start(self):
