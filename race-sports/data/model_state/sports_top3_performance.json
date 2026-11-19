@@ -1841,17 +1841,28 @@
       "away": "Washington Wizards",
       "home_ko": "토론토 랩터스",
       "away_ko": "워싱턴 위저즈",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_CURRENT",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 1.5236,
-        "odds_provider": "DraftKings"
+        "odds_provider": "DraftKings",
+        "hit": false,
+        "return_krw": 0,
+        "profit_krw": -100000,
+        "settled_at": "2026-11-19T13:10:25+09:00"
       },
       "result_recheck": {
-        "checked_at": "2026-11-19T10:27:48+09:00",
-        "state": "NOT_FINAL",
+        "checked_at": "2026-11-19T13:10:25+09:00",
+        "state": "FINAL_VERIFIED",
         "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401910012"
+      },
+      "evaluation": {
+        "winner_key": "AWAY",
+        "hit": false,
+        "evaluated_at": "2026-11-19T13:10:25+09:00",
+        "source": "CURRENT_SNAPSHOT",
+        "source_snapshot_date": "2026-11-19"
       }
     },
     "SPORTS-BASKETBALL-401910013": {
@@ -1886,40 +1897,51 @@
       "away": "Detroit Pistons",
       "home_ko": "뉴올리언스 펠리컨스",
       "away_ko": "디트로이트 피스턴스",
-      "resolution_state": "PENDING_RESULT",
+      "resolution_state": "RESOLVED_CURRENT",
       "virtual_bet": {
-        "state": "PENDING_RESULT",
+        "state": "SETTLED",
         "stake_krw": 100000,
         "locked_decimal_odds": 1.5236,
-        "odds_provider": "DraftKings"
+        "odds_provider": "DraftKings",
+        "hit": true,
+        "return_krw": 152360,
+        "profit_krw": 52360,
+        "settled_at": "2026-11-19T13:10:25+09:00"
       },
       "result_recheck": {
-        "checked_at": "2026-11-19T10:27:48+09:00",
-        "state": "NOT_FINAL",
+        "checked_at": "2026-11-19T13:10:25+09:00",
+        "state": "FINAL_VERIFIED",
         "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401910013"
+      },
+      "evaluation": {
+        "winner_key": "AWAY",
+        "hit": true,
+        "evaluated_at": "2026-11-19T13:10:25+09:00",
+        "source": "CURRENT_SNAPSHOT",
+        "source_snapshot_date": "2026-11-19"
       }
     }
   },
   "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-  "updated_at": "2026-11-19T10:30:36+09:00",
+  "updated_at": "2026-11-19T13:10:25+09:00",
   "summary": {
     "overall": {
       "picks": 37,
-      "evaluated": 35,
-      "pending": 2,
-      "hits": 22,
-      "misses": 13,
-      "hit_rate": 0.628571,
+      "evaluated": 37,
+      "pending": 0,
+      "hits": 23,
+      "misses": 14,
+      "hit_rate": 0.621622,
       "paper_roi": {
         "stake_per_pick_krw": 100000,
         "odds_locked_picks": 9,
-        "settled": 7,
-        "pending": 2,
+        "settled": 9,
+        "pending": 0,
         "excluded_no_locked_odds": 0,
-        "total_staked_krw": 700000,
-        "total_return_krw": 795920,
-        "net_profit_krw": 95920,
-        "roi": 0.137029
+        "total_staked_krw": 900000,
+        "total_return_krw": 948280,
+        "net_profit_krw": 48280,
+        "roi": 0.053644
       }
     },
     "by_sport": {
@@ -1963,21 +1985,21 @@
       },
       "BASKETBALL": {
         "picks": 31,
-        "evaluated": 29,
-        "pending": 2,
-        "hits": 18,
-        "misses": 11,
-        "hit_rate": 0.62069,
+        "evaluated": 31,
+        "pending": 0,
+        "hits": 19,
+        "misses": 12,
+        "hit_rate": 0.612903,
         "paper_roi": {
           "stake_per_pick_krw": 100000,
           "odds_locked_picks": 9,
-          "settled": 7,
-          "pending": 2,
+          "settled": 9,
+          "pending": 0,
           "excluded_no_locked_odds": 0,
-          "total_staked_krw": 700000,
-          "total_return_krw": 795920,
-          "net_profit_krw": 95920,
-          "roi": 0.137029
+          "total_staked_krw": 900000,
+          "total_return_krw": 948280,
+          "net_profit_krw": 48280,
+          "roi": 0.053644
         }
       },
       "VOLLEYBALL": {
@@ -2013,9 +2035,11 @@
       "required": 30
     },
     "BASKETBALL": {
-      "state": "HOLD_SAMPLE",
-      "evaluated": 29,
-      "required": 30
+      "state": "TIGHTEN_REVIEW",
+      "evaluated": 31,
+      "hits": 19,
+      "hit_rate": 0.612903,
+      "target_hit_rate": 0.7
     },
     "VOLLEYBALL": {
       "state": "HOLD_SAMPLE",
@@ -2027,7 +2051,7 @@
   "carryover": {
     "resolved_from_history": 0,
     "conflicts": 0,
-    "pending_within_window": 2,
+    "pending_within_window": 0,
     "unresolved_after_window": 0,
     "window_days": 3
   },
