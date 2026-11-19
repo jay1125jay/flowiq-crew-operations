@@ -168,10 +168,22 @@ class Observer:
         self.last_received_ms=0
         self.stream_connected=False
         db.execute('CREATE TABLE IF NOT EXISTS pending (seq INTEGER PRIMARY KEY, wallet TEXT, tid TEXT, payload TEXT, received INTEGER, UNIQUE(wallet,tid))')
+        db.execute('CREATE INDEX IF NOT EXISTS idx_pending_wallet_seq ON pending(wallet, seq)')
 
-    def pending(self):
-        return [(seq,(wallet,json.loads(payload),ms)) for seq,wallet,payload,ms in
-                self.db.execute('SELECT seq,wallet,payload,received FROM pending ORDER BY seq')]
+    def pending(self, wallet=None):
+        # Keep the live receive path scoped to the wallet that produced the event.
+        # The global queue is reserved for the background publisher.
+        if wallet is None:
+            rows = self.db.execute(
+                'SELECT seq,wallet,payload,received FROM pending ORDER BY seq'
+            )
+        else:
+            rows = self.db.execute(
+                'SELECT seq,wallet,payload,received FROM pending WHERE wallet=? ORDER BY seq',
+                (wallet,)
+            )
+        return [(seq,(item_wallet,json.loads(payload),ms))
+                for seq,item_wallet,payload,ms in rows]
 
     def receive(self,message):
         data=message.get('data')
@@ -193,7 +205,9 @@ class Observer:
             self.wake.set()
 
     def drain(self, wallet=None):
-        batch=[item for item in self.pending() if wallet is None or item[1][0]==wallet]
+        started = time.perf_counter()
+        # Avoid loading and filtering every account's backlog on each WebSocket event.
+        batch = self.pending(wallet)
         applied_ms=int(dt.datetime.now(dt.timezone.utc).timestamp()*1000)
         working=copy.deepcopy(self.ledger)
         _, statuses, blocked=apply_ordered(working,batch,self.paper,applied_ms)
@@ -219,6 +233,12 @@ class Observer:
             self.blocked_wallets.update(blocked)
         if blocked:
             self.recovery_wake.set()
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        if batch and elapsed_ms >= 100:
+            scope = wallet[:10] if wallet else 'all'
+            print('PAPER DRAIN', 'scope', scope, 'events', len(batch),
+                  'elapsed_ms', round(elapsed_ms, 1), 'pending_total', len(self.pending()),
+                  flush=True)
 
     async def recover(self):
         loop=asyncio.get_running_loop()
