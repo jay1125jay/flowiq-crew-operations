@@ -1,0 +1,459 @@
+{
+  "date": "2026-11-20",
+  "time": "03:35:24",
+  "generated_at": "2026-11-20T03:35:24.252838+09:00",
+  "domain": "SPORTS",
+  "source_contract": "CONFIGURED_TOP_TIER_SOURCE_LABELED",
+  "enabled_sports": [
+    "SOCCER",
+    "BASEBALL",
+    "BASKETBALL",
+    "VOLLEYBALL"
+  ],
+  "providers": [
+    {
+      "provider": "SPORTS_SOCCER_ESPN_PUBLIC+KLEAGUE_OFFICIAL",
+      "sport": "SOCCER",
+      "status": "PASS",
+      "requests": 23,
+      "successful_requests": 23,
+      "raw_events": 25,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASEBALL_ESPN_PUBLIC+KBO_OFFICIAL",
+      "sport": "BASEBALL",
+      "status": "PASS",
+      "requests": 3,
+      "successful_requests": 3,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_BASKETBALL_ESPN_PUBLIC+KBL_OFFICIAL",
+      "sport": "BASKETBALL",
+      "status": "PASS",
+      "requests": 7,
+      "successful_requests": 7,
+      "raw_events": 13,
+      "top_tier_events": 4,
+      "odds_events": 4,
+      "odds_summary_requests": 4,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_VOLLEYBALL_DAUM_SPORTS_PUBLIC_FALLBACK",
+      "sport": "VOLLEYBALL",
+      "status": "PASS",
+      "requests": 2,
+      "successful_requests": 2,
+      "raw_events": 0,
+      "top_tier_events": 0,
+      "odds_events": 0,
+      "odds_summary_requests": 0,
+      "failures": []
+    },
+    {
+      "provider": "SPORTS_ODDS_MULTIBOOK",
+      "sport": "ALL",
+      "status": "PARTIAL",
+      "plan_mode": "AMATEUR_LEAGUE_AWARE",
+      "events_enriched": 0,
+      "outcomes_enriched": 0,
+      "meta": [
+        {
+          "sport": "SOCCER",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "BASEBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        },
+        {
+          "sport": "VOLLEYBALL",
+          "status": "SKIP",
+          "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+          "local_scheduled_competitions": [],
+          "unsupported_on_amateur": [],
+          "league_ids": [],
+          "events": 0
+        }
+      ],
+      "errors": [
+        {
+          "sport": "BASKETBALL",
+          "league_ids": [
+            "NBA"
+          ],
+          "error": "HTTP_429: {\"success\":false,\"error\":\"Rate limit exceeded\"}"
+        }
+      ],
+      "updated_at": "2026-11-20T03:35:33.561507+09:00",
+      "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+    }
+  ],
+  "events": [
+    {
+      "id": "SPORTS-BASKETBALL-401910019",
+      "provider_event_id": "401910019",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-20",
+      "start_time": "10:00",
+      "start_label": "10:00",
+      "start_timestamp": 1795136400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Memphis Grizzlies vs Golden State Warriors",
+      "home": "Memphis Grizzlies",
+      "away": "Golden State Warriors",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Memphis Grizzlies",
+          "odds": 1.4115,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.794402+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "멤피스 그리즐리스",
+          "model_p": 0.49258960992873424,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Golden State Warriors",
+          "odds": 3.0,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.794402+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "골든스테이트 워리어스",
+          "model_p": 0.5074103900712658,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261119",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401910019",
+      "home_ko": "멤피스 그리즐리스",
+      "away_ko": "골든스테이트 워리어스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11861,
+        "home_team_games": 773,
+        "away_team_games": 829,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401910020",
+      "provider_event_id": "401910020",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-20",
+      "start_time": "10:00",
+      "start_label": "10:00",
+      "start_timestamp": 1795136400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Milwaukee Bucks vs Portland Trail Blazers",
+      "home": "Milwaukee Bucks",
+      "away": "Portland Trail Blazers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Milwaukee Bucks",
+          "odds": 4.6,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.839258+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "밀워키 벅스",
+          "model_p": 0.2619013863369912,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "Portland Trail Blazers",
+          "odds": 1.2141,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.839258+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "포틀랜드 트레일블레이저스",
+          "model_p": 0.7380986136630088,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261119",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401910020",
+      "home_ko": "밀워키 벅스",
+      "away_ko": "포틀랜드 트레일블레이저스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11861,
+        "home_team_games": 823,
+        "away_team_games": 775,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401910021",
+      "provider_event_id": "401910021",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-20",
+      "start_time": "10:00",
+      "start_label": "10:00",
+      "start_timestamp": 1795136400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "Minnesota Timberwolves vs New York Knicks",
+      "home": "Minnesota Timberwolves",
+      "away": "New York Knicks",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "Minnesota Timberwolves",
+          "odds": 1.9615,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.845801+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "미네소타 팀버울브스",
+          "model_p": 0.5253873649221394,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "New York Knicks",
+          "odds": 1.885,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.845801+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "뉴욕 닉스",
+          "model_p": 0.47461263507786056,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261119",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401910021",
+      "home_ko": "미네소타 팀버울브스",
+      "away_ko": "뉴욕 닉스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11861,
+        "home_team_games": 794,
+        "away_team_games": 796,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    },
+    {
+      "id": "SPORTS-BASKETBALL-401910022",
+      "provider_event_id": "401910022",
+      "domain": "SPORTS",
+      "sport": "BASKETBALL",
+      "provider": "ESPN_PUBLIC",
+      "provider_kind": "PUBLIC_SCORE_FEED",
+      "competition": "NBA",
+      "event_date": "2026-11-20",
+      "start_time": "10:00",
+      "start_label": "10:00",
+      "start_timestamp": 1795136400,
+      "time_known": true,
+      "status": "SCHEDULED",
+      "title": "San Antonio Spurs vs LA Clippers",
+      "home": "San Antonio Spurs",
+      "away": "LA Clippers",
+      "market_type": "TWO_WAY",
+      "outcomes": [
+        {
+          "key": "HOME",
+          "name": "San Antonio Spurs",
+          "odds": 1.0962,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.779008+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "샌안토니오 스퍼스",
+          "model_p": 0.7629931492372183,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        },
+        {
+          "key": "AWAY",
+          "name": "LA Clippers",
+          "odds": 7.7,
+          "odds_source": "ESPN_PUBLIC_ODDS",
+          "odds_provider": "DraftKings",
+          "odds_capture_mode": "PRE_GAME_SOURCE_LABELED",
+          "odds_updated_at": "2026-11-20T03:35:27.779008+09:00",
+          "odds_data_state": "FRESH",
+          "name_ko": "LA 클리퍼스",
+          "model_p": 0.23700685076278177,
+          "model_source": "sports_elo_v0.2",
+          "model_state": "VALIDATED_HOLDOUT"
+        }
+      ],
+      "tier": "TOP",
+      "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
+      "data_state": "FRESH",
+      "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261119",
+      "odds_source": "ESPN_PUBLIC_ODDS",
+      "odds_provider": "DraftKings",
+      "odds_state": "SOURCE_LABELED_MARKET",
+      "odds_data_state": "FRESH",
+      "odds_source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=401910022",
+      "home_ko": "샌안토니오 스퍼스",
+      "away_ko": "LA 클리퍼스",
+      "model_source": "sports_elo_v0.2",
+      "value_enabled": false,
+      "model_history_scope": {
+        "competition": "NBA",
+        "competition_games": 11861,
+        "home_team_games": 775,
+        "away_team_games": 793,
+        "min_competition_games": 50,
+        "min_team_games": 5
+      },
+      "model_validated": true,
+      "model_state": "VALIDATED_HOLDOUT"
+    }
+  ],
+  "integrity": {
+    "policy": "CURRENT_SOURCE_AUTHORITATIVE_NO_PHANTOM_RECOVERY",
+    "hard_failures": [],
+    "stale_events": 0,
+    "sports_multibook_status": "PARTIAL"
+  },
+  "team_name_localization": {
+    "language": "ko",
+    "translated_fields": 8,
+    "missing_team_names": []
+  },
+  "odds_provider": {
+    "provider": "SportsGameOdds",
+    "status": "PARTIAL",
+    "plan_mode": "AMATEUR_LEAGUE_AWARE",
+    "events_enriched": 0,
+    "outcomes_enriched": 0,
+    "meta": [
+      {
+        "sport": "SOCCER",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "BASEBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      },
+      {
+        "sport": "VOLLEYBALL",
+        "status": "SKIP",
+        "reason": "NO_AMATEUR_SUPPORTED_SCHEDULED_LEAGUE",
+        "local_scheduled_competitions": [],
+        "unsupported_on_amateur": [],
+        "league_ids": [],
+        "events": 0
+      }
+    ],
+    "errors": [
+      {
+        "sport": "BASKETBALL",
+        "league_ids": [
+          "NBA"
+        ],
+        "error": "HTTP_429: {\"success\":false,\"error\":\"Rate limit exceeded\"}"
+      }
+    ],
+    "updated_at": "2026-11-20T03:35:33.561507+09:00",
+    "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  }
+}
