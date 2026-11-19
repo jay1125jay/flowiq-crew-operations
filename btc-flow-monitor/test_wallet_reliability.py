@@ -27,6 +27,23 @@ class ReliabilityTests(unittest.TestCase):
                            accounts={'whale': self.account})
         self.row = dict(time=100, tid=1, px='100', sz='1', startPosition='0', side='B', coin='BTC')
 
+    def test_live_working_ledger_copies_only_changed_account(self):
+        original = copy.deepcopy(self.ledger)
+        original['accounts']['other'] = copy.deepcopy(self.account)
+        working = pc.live_working_ledger(original)
+        self.assertIsNot(working, original)
+        self.assertIsNot(working['accounts'], original['accounts'])
+        self.assertIs(working['accounts']['other'], original['accounts']['other'])
+        done, statuses, blocked = pc.apply_ordered(
+            working, [(1, ('whale', self.row, 200))], paper, 210
+        )
+        self.assertEqual(done, [1])
+        self.assertEqual(blocked, set())
+        self.assertIsNot(working['accounts']['whale'], original['accounts']['whale'])
+        self.assertEqual(original['accounts']['whale']['fill_count'], 0)
+        self.assertEqual(working['accounts']['whale']['fill_count'], 1)
+        self.assertIs(working['accounts']['other'], original['accounts']['other'])
+
     def test_pending_queue_can_be_scoped_to_one_wallet(self):
         with tempfile.TemporaryDirectory() as folder, sqlite3.connect(':memory:') as db:
             root = Path(folder)

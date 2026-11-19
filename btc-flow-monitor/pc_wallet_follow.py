@@ -77,6 +77,14 @@ def apply_event(ledger, event, paper, applied_ms=None):
     return 'applied'
 
 
+def live_working_ledger(ledger):
+    # apply_event deep-copies only the account it changes. Copying every
+    # wallet's full trade history for each WebSocket fill is unnecessary.
+    working = dict(ledger)
+    working['accounts'] = dict(ledger['accounts'])
+    return working
+
+
 def apply_ordered(ledger, batch, paper, applied_ms=None):
     """Preserve time order, but resolve tied fills using the source position chain."""
     done, statuses, blocked = [], {}, set()
@@ -209,7 +217,7 @@ class Observer:
         # Avoid loading and filtering every account's backlog on each WebSocket event.
         batch = self.pending(wallet)
         applied_ms=int(dt.datetime.now(dt.timezone.utc).timestamp()*1000)
-        working=copy.deepcopy(self.ledger)
+        working=live_working_ledger(self.ledger)
         _, statuses, blocked=apply_ordered(working,batch,self.paper,applied_ms)
         reports=[]
         with self.db:
@@ -236,8 +244,9 @@ class Observer:
         elapsed_ms = (time.perf_counter() - started) * 1000
         if batch and elapsed_ms >= 100:
             scope = wallet[:10] if wallet else 'all'
+            pending_total = self.db.execute('SELECT COUNT(*) FROM pending').fetchone()[0]
             print('PAPER DRAIN', 'scope', scope, 'events', len(batch),
-                  'elapsed_ms', round(elapsed_ms, 1), 'pending_total', len(self.pending()),
+                  'elapsed_ms', round(elapsed_ms, 1), 'pending_total', pending_total,
                   flush=True)
 
     async def recover(self):
