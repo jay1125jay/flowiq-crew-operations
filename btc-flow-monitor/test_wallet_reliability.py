@@ -27,6 +27,29 @@ class ReliabilityTests(unittest.TestCase):
                            accounts={'whale': self.account})
         self.row = dict(time=100, tid=1, px='100', sz='1', startPosition='0', side='B', coin='BTC')
 
+    def test_pending_queue_can_be_scoped_to_one_wallet(self):
+        with tempfile.TemporaryDirectory() as folder, sqlite3.connect(':memory:') as db:
+            root = Path(folder)
+            path = root / pc.LEDGER
+            path.parent.mkdir(parents=True)
+            ledger = copy.deepcopy(self.ledger)
+            ledger['accounts']['other'] = copy.deepcopy(self.account)
+            path.write_text(json.dumps(ledger))
+            observer = pc.Observer(root, paper, db)
+            with db:
+                db.executemany(
+                    'INSERT INTO pending(wallet,tid,payload,received) VALUES(?,?,?,?)',
+                    [
+                        ('whale', '1', json.dumps(self.row), 200),
+                        ('other', '2', json.dumps(dict(self.row, tid=2)), 201),
+                        ('whale', '3', json.dumps(dict(self.row, tid=3)), 202),
+                    ]
+                )
+            self.assertEqual([seq for seq, _ in observer.pending('whale')], [1, 3])
+            self.assertEqual(len(observer.pending()), 3)
+            indexes = {row[1] for row in db.execute('PRAGMA index_list(pending)')}
+            self.assertIn('idx_pending_wallet_seq', indexes)
+
     def test_rate_limit_stops_other_workers_requests(self):
         error = urllib.error.HTTPError('url', 429, 'Too Many Requests', None, None)
         with patch.object(paper.urllib.request, 'urlopen', side_effect=error) as request:
