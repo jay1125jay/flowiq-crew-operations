@@ -131,15 +131,17 @@ class V2Observer:
             await asyncio.sleep(60)
             async with self.lock:
                 try:
-                    await asyncio.to_thread(reconcile)
+                    try:
+                        await asyncio.to_thread(reconcile)
+                    except SystemExit as exit_error:
+                        if exit_error.code not in (0, 2):
+                            raise
                     self.ledger = load_ledger()
                     for wallet in self.ledger["wallets"]:
                         for coin in ("BTC", "ETH"):
                             self.drain_asset(wallet, coin)
                     print("V2_RECONCILE_OK", flush=True)
-                except BaseException as exc:
-                    if isinstance(exc, (KeyboardInterrupt, SystemExit)):
-                        raise
+                except Exception as exc:
                     self.errors += 1
                     print("V2_RECONCILE_ERROR", str(exc)[:300], flush=True)
 
