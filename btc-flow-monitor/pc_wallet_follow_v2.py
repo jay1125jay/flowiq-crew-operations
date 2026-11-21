@@ -72,23 +72,39 @@ class V2Observer:
 
     def drain_asset(self, wallet, coin):
         account = self.ledger["wallets"][wallet][coin]
-        rows = self.db.execute(
+        pending = list(self.db.execute(
             "SELECT seq,payload,received_ms FROM pending_v2 WHERE wallet=? AND coin=? ORDER BY fill_time,seq",
             (wallet, coin)
-        ).fetchall()
-        if not rows:
+        ).fetchall())
+        if not pending:
             return
         changed = False
-        for seq, payload, received_ms in rows:
-            row = json.loads(payload)
-            ms, tid = int(row["time"]), int(row["tid"])
-            key = [ms, tid]
-            if ms < int(account.get("fill_cursor", 0)) or key in account.get("stream_keys", []):
-                self.db.execute("DELETE FROM pending_v2 WHERE seq=?", (seq,))
-                continue
-            before = float(row["startPosition"])
-            if abs(before - float(account.get("source_size", 0.0))) > 1e-8:
+        while pending:
+            account = self.ledger["wallets"][wallet][coin]
+            cursor = int(account.get("fill_cursor", 0))
+            stream_keys = {tuple(key) for key in account.get("stream_keys", [])}
+            for item in pending[:]:
+                seq, payload, _ = item
+                row = json.loads(payload)
+                key = (int(row["time"]), int(row["tid"]))
+                if key[0] < cursor or key in stream_keys:
+                    self.db.execute("DELETE FROM pending_v2 WHERE seq=?", (seq,))
+                    pending.remove(item)
+            if not pending:
                 break
+
+            earliest_ms = min(int(json.loads(item[1])["time"]) for item in pending)
+            same_time = [item for item in pending if int(json.loads(item[1])["time"]) == earliest_ms]
+            expected = float(account.get("source_size", 0.0))
+            selected = next((item for item in same_time
+                if abs(float(json.loads(item[1])["startPosition"]) - expected) <= 1e-8), None)
+            if selected is None:
+                # Do not skip a source-position gap. REST reconciliation will repair it.
+                break
+
+            seq, payload, received_ms = selected
+            row = json.loads(payload)
+            ms = int(row["time"])
             from cash_flow_v2_core import apply_wallet_fill, mark_account
             now_ms = int(time.time() * 1000)
             status = apply_wallet_fill(
@@ -104,11 +120,11 @@ class V2Observer:
                 account["last_fill"]["receive_delay_ms"] = received_ms - ms
                 account["last_fill"]["apply_delay_ms"] = now_ms - ms
                 account["error"] = None
-                self.db.execute("DELETE FROM pending_v2 WHERE seq=?", (seq,))
                 self.applied += 1
                 changed = True
-            else:
-                self.db.execute("DELETE FROM pending_v2 WHERE seq=?", (seq,))
+            self.db.execute("DELETE FROM pending_v2 WHERE seq=?", (seq,))
+            pending.remove(selected)
+
         self.db.commit()
         if changed:
             save_ledger(self.ledger)
