@@ -4,7 +4,7 @@
 - `cash_flow_v2_core.py`: independent BTC/ETH paper accounts per whale, fee/slippage accounting, liquidation, aggregate net PnL and legacy BTC migration.
 - `wallet_paper_v2.py`: Hyperliquid REST recovery for BTC and ETH, independent L2 quotes and fill histories, baseline follow, same-timestamp overlap recovery, source-position chain validation and atomic V2 ledger writes.
 - `pc_wallet_follow_v2.py`: real-time Hyperliquid userFills observer for both coins, reconnect, durable SQLite queue keyed by wallet+coin+tid, periodic REST recovery and graceful stop signal.
-- `dashboard-v2.html`: BTC, ETH and aggregate PnL, whale/asset account table, fee and drawdown display, closed-trade history.
+- `dashboard-v2.html`: BTC, ETH and aggregate PnL, per-whale source unrealized PnL and margin return, follower account fees/drawdown and closed-trade history.
 - `wallet_phone_v2.py`: read-only local and QR phone bridge for the V2 dashboard.
 - `CASH_FLOW_V2_SUPERVISOR.ps1`: test-before-update supervisor, graceful engine handoff, V2 data backup, health check and automatic rollback.
 - `START_CASH_FLOW_V2.cmd`: one-click bootstrap for the supervisor.
