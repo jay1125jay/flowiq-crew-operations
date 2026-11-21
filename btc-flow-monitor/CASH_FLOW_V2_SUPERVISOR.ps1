@@ -98,8 +98,8 @@ function Test-GitHubCi {
             Write-Host "GitHub CI status unavailable: $($_.Exception.Message)"
             return $false
         }
-        $paper = $checks.check_runs | Where-Object { $_.name -eq 'paper-core-tests' } | Select-Object -Last 1
-        $windows = $checks.check_runs | Where-Object { $_.name -eq 'windows-powershell-parse' } | Select-Object -Last 1
+        $paper = $checks.check_runs | Where-Object { $_.name -eq 'paper-core-tests' } | Sort-Object started_at -Descending | Select-Object -First 1
+        $windows = $checks.check_runs | Where-Object { $_.name -eq 'windows-powershell-parse' } | Sort-Object started_at -Descending | Select-Object -First 1
         if (($paper.conclusion -eq 'failure') -or ($windows.conclusion -eq 'failure') -or
             ($paper.conclusion -eq 'cancelled') -or ($windows.conclusion -eq 'cancelled')) {
             return $false
