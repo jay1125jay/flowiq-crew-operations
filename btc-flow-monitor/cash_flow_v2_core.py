@@ -26,7 +26,8 @@ def new_account(capital=INITIAL_KRW):
     return {
         "initial_krw": capital, "cash_krw": capital, "equity_krw": capital,
         "position": None, "closed": [], "fill_count": 0,
-        "fees_krw": 0.0, "fill_cursor": 0, "stream_keys": [],
+        "fees_krw": 0.0, "fees_history_complete": True,
+        "fill_cursor": 0, "stream_keys": [],
         "source_size": 0.0, "peak_equity_krw": capital,
         "max_drawdown_pct": 0.0, "last_price": None, "updated_at": None,
     }
@@ -193,7 +194,9 @@ def totals(ledger):
             "initial_krw": initial, "equity_krw": equity,
             "net_pnl_krw": equity - initial,
             "return_pct": (equity / initial - 1.0) * 100 if initial else 0.0,
-            "fees_krw": fees, "accounts": len(accounts),
+            "fees_krw": fees, "fees_history_complete": all(
+                a.get("fees_history_complete", True) for a in accounts
+            ), "accounts": len(accounts),
         }
         total_initial += initial
         total_equity += equity
@@ -203,6 +206,10 @@ def totals(ledger):
         "equity_krw": total_equity, "net_pnl_krw": total_equity-total_initial,
         "return_pct": (total_equity/total_initial-1.0)*100 if total_initial else 0.0,
         "fees_krw": total_fees,
+        "fees_history_complete": all(
+            account.get("fees_history_complete", True)
+            for wallet in ledger["wallets"].values() for account in wallet.values()
+        ),
         "paper_only": True, "real_trading_enabled": False,
     }
 
@@ -221,6 +228,10 @@ def _migrate_legacy_btc_account(old, capital):
     account["last_price"] = old.get("price")
     account["updated_at"] = old.get("last_at")
     account["fees_krw"] = 0.0
+    # V1 closed-trade records do not retain enough fee detail to reconstruct
+    # historical cumulative fees exactly. Preserve net equity and mark the fee
+    # history incomplete rather than presenting a fabricated total.
+    account["fees_history_complete"] = False
     for item in old.get("closed", []):
         account["closed"].append({
             **copy.deepcopy(item),
