@@ -33,7 +33,7 @@ section{background:var(--panel);border:1px solid var(--line);border-radius:16px;
 </div>
 <div id="health" class="sub">자료 연결 확인 중…</div>
 <section><div class="section-head"><h2>고래별 · 코인별 계좌</h2><p>각 고래 BTC·ETH 독립 계좌 / 수수료·슬리피지 반영</p></div>
-<div class="table-wrap"><table><thead><tr><th>고래 지갑</th><th>코인</th><th>포지션</th><th>평가자산</th><th>순손익</th><th>수수료</th><th>낙폭</th><th>상태</th></tr></thead><tbody id="accounts"><tr><td colspan="8" class="empty">데이터 대기</td></tr></tbody></table></div></section>
+<div class="table-wrap"><table><thead><tr><th>고래 지갑</th><th>코인</th><th>고래 방향 / 내 포지션</th><th>내 평가자산</th><th>내 순손익</th><th>내 수수료</th><th>고래 미실현손익 USD</th><th>고래 ROE</th><th>낙폭</th><th>상태</th></tr></thead><tbody id="accounts"><tr><td colspan="10" class="empty">데이터 대기</td></tr></tbody></table></div></section>
 <section><div class="section-head"><h2>청산 거래 내역</h2><p>실현 손익은 진입·청산 수수료와 슬리피지를 반영</p></div>
 <div class="filters"><button data-filter="ALL" aria-pressed="true">전체</button><button data-filter="BTC" aria-pressed="false">BTC</button><button data-filter="ETH" aria-pressed="false">ETH</button></div>
 <div id="trades" class="trades"><div class="empty">데이터 대기</div></div></section>
@@ -41,7 +41,43 @@ section{background:var(--panel);border:1px solid var(--line);border-radius:16px;
 </main>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id),fmt=n=>'₩'+Math.round(Number(n)||0).toLocaleString('ko-KR'),pct=n=>(Number(n)||0).toFixed(2)+'%',tone=n=>Number(n)>=0?'positive':'negative';
+const $=id=>document.getElementById(id),fmt=n=>'₩'+Math.round(Number(n)||0).toLocaleString('ko-KR'),usd=n=>'
+let filter='ALL',last=null,busy=false;
+const hash=new URLSearchParams(location.hash.slice(1)),endpoint=hash.get('pc'),token=hash.get('key');
+const remote=Boolean(endpoint&&token),local=['127.0.0.1','localhost'].includes(location.hostname);
+async function getData(){
+ if(remote){const r=await fetch(endpoint+'/api/status',{cache:'no-store',credentials:'omit',headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(7000)});if(!r.ok)throw Error('PC 연결 인증 실패');return r.json()}
+ if(local){const r=await fetch('/api/status',{cache:'no-store',signal:AbortSignal.timeout(4000)});if(!r.ok)throw Error('PC API 조회 실패');return r.json()}
+ const r=await fetch('./trader-discovery/wallet-paper-v2.json?ts='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('V2 공개 계좌 자료 없음');return r.json()
+}
+function render(data){
+ if(data.paper_only!==true||data.real_trading_enabled!==false)throw Error('PAPER ONLY 검증 실패');
+ const totals=data.totals||{};const wallets=data.wallets||{};const count=Object.keys(wallets).length;
+ $('totalPnl').textContent=fmt(totals.net_pnl_krw);$('totalPnl').className='big '+tone(totals.net_pnl_krw);
+ $('totalReturn').textContent=pct(totals.return_pct)+' · BTC와 ETH 전체 합산';
+ $('totalEquity').textContent=fmt(totals.equity_krw);$('totalInitial').textContent=fmt(totals.initial_krw);$('totalFees').textContent=fmt(totals.fees_krw)+(totals.fees_history_complete?'':'*');$('walletCount').textContent=count+'명 · '+count*2+'계좌';
+ for(const coin of ['BTC','ETH']){const a=totals.by_asset?.[coin]||{};$ (coin==='BTC'?'btcPnl':'ethPnl').textContent=fmt(a.net_pnl_krw);$(coin==='BTC'?'btcPnl':'ethPnl').className='pnl '+tone(a.net_pnl_krw);$(coin==='BTC'?'btcMeta':'ethMeta').textContent='내 평가자산 '+fmt(a.equity_krw)+' · 내 수익률 '+pct(a.return_pct)+' · 고래 미실현손익 '+usd(a.source_unrealized_pnl_usd||0)+' · 수수료 '+fmt(a.fees_krw)+(a.fees_history_complete?'':' · 과거 V1 수수료 미복원')}
+ const rows=[],trades=[];
+ for(const [wallet,assets] of Object.entries(wallets))for(const coin of ['BTC','ETH']){
+  const a=assets[coin]||{},p=a.position,net=Number(a.equity_krw||0)-Number(a.initial_krw||0);
+  rows.push({wallet,coin,a,p,net});
+  for(const t of (a.closed||[]))trades.push({wallet,coin,t});
+ }
+ $('accounts').replaceChildren();
+ for(const r of rows){const tr=document.createElement('tr'),sourceSide=r.a.source_size>0?'롱':r.a.source_size<0?'숏':'관망',ownSide=r.p?(r.p.side>0?'롱':'숏'):'대기',sourcePnl=Number(r.a.source_unrealized_pnl_usd||0),vals=[r.wallet.slice(0,8)+'…'+r.wallet.slice(-5),r.coin,sourceSide+' / '+ownSide,fmt(r.a.equity_krw),fmt(r.net),fmt(r.a.fees_krw)+(r.a.fees_history_complete?'':'*'),usd(sourcePnl),pct(r.a.source_roe_pct),pct(r.a.max_drawdown_pct),r.a.error?'조회 지연':r.a.initialized?'정상':'초기화 대기'];for(let i=0;i<vals.length;i++){const td=document.createElement('td');td.textContent=vals[i];if(i===4)td.className=tone(r.net);if(i===6)td.className=tone(sourcePnl);if(i===0)td.title=r.wallet;if(i===9){const s=document.createElement('span');s.className='status '+(r.a.error?'error':'ok');s.textContent=vals[i];td.replaceChildren(s)}tr.append(td)}$('accounts').append(tr)}
+ if(!rows.length)$('accounts').innerHTML='<tr><td colspan="8" class="empty">아직 계좌가 없습니다.</td></tr>';
+ trades.sort((a,b)=>String(b.t.closed_at||'').localeCompare(String(a.t.closed_at||'')));
+ const selected=trades.filter(x=>filter==='ALL'||x.coin===filter);$('trades').replaceChildren();
+ for(const x of selected.slice(0,100)){const d=document.createElement('article');d.className='trade';const h=document.createElement('h3');h.textContent=x.coin+' · '+x.t.side;d.append(h);for(const [k,v] of [['지갑',x.wallet.slice(0,10)+'…'],['진입',x.t.entry_price],['청산',x.t.exit_price],['실현 순손익',fmt(x.t.net_pnl_krw)],['진입 수수료',fmt(x.t.entry_fee_krw)],['청산 수수료',fmt(x.t.exit_fee_krw)],['사유',x.t.reason],['시각',x.t.closed_at]]){const p=document.createElement('p'),a=document.createElement('span'),b=document.createElement('span');a.textContent=k;b.textContent=v??'—';p.append(a,b);d.append(p)}$('trades').append(d)}
+ if(!selected.length)$('trades').innerHTML='<div class="empty">해당 코인에 종료된 거래가 없습니다.</div>';
+ const live=data.pc_live;$('health').textContent=(remote||local?'PC 직접 연결':'공개 기록')+' · 갱신 '+(data.updated_at?new Date(data.updated_at).toLocaleString('ko-KR'):'시각 확인 불가')+(live?' · WebSocket '+(live.connected?'연결':'대기')+' · 대기 체결 '+(live.pending??'—'):'')+' · '+(data.paper_only?'PAPER ONLY':'안전 확인 실패')+(totals.fees_history_complete?'':' · * 이전 BTC 수수료 합계는 원본 기록에 없어 미복원');
+ last=data;
+}
+document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(last)render(last)});
+async function refresh(){if(busy||document.hidden)return;busy=true;try{render(await getData())}catch(e){$('health').textContent='조회 실패 · '+e.message;$('health').className='sub warning'}finally{busy=false}}
+refresh();setInterval(refresh,remote||local?1500:10000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+})();
+</script></body></html>+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2}),pct=n=>(Number(n)||0).toFixed(2)+'%',tone=n=>Number(n)>=0?'positive':'negative';
 let filter='ALL',last=null,busy=false;
 const hash=new URLSearchParams(location.hash.slice(1)),endpoint=hash.get('pc'),token=hash.get('key');
 const remote=Boolean(endpoint&&token),local=['127.0.0.1','localhost'].includes(location.hostname);
