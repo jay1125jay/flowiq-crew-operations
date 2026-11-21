@@ -167,7 +167,9 @@ def reconcile_wallet(ledger, wallet):
             cursor = int(account.get("fill_cursor", 0))
             if snapshot_ms < cursor:
                 raise ValueError(coin + " old source snapshot")
-            rows = fetch_fills(wallet, coin, cursor + 1, snapshot_ms) if snapshot_ms > cursor else []
+            # Re-fetch a short overlap so same-millisecond fills omitted by a prior
+            # WebSocket disconnect can still be recovered by (time, tid) deduplication.
+            rows = fetch_fills(wallet, coin, max(0, cursor - 1000), snapshot_ms) if snapshot_ms >= cursor else []
             result = apply_ordered_coin(ledger, wallet, coin, rows, equity, snapshot_ms)
             if not math.isclose(account["source_size"], source_size, rel_tol=0, abs_tol=1e-8):
                 raise ValueError(coin + " fill history gap; account held for recovery")
@@ -195,12 +197,13 @@ def load_ledger(addresses):
         return ledger
     if LEGACY_PATH.exists():
         raw = LEGACY_PATH.read_text(encoding="utf-8").strip()
-        if raw:
-            old = json.loads(raw)
-            ledger = migrate_btc_ledger(old)
-            if set(ledger["wallets"]) == set(addresses):
-                return ledger
-            raise ValueError("Legacy whale set differs from current selection; preserve and review before migration")
+        if not raw:
+            raise ValueError("Legacy BTC ledger is empty; refusing to create replacement accounts")
+        old = json.loads(raw)
+        ledger = migrate_btc_ledger(old)
+        if set(ledger["wallets"]) == set(addresses):
+            return ledger
+        raise ValueError("Legacy whale set differs from current selection; preserve and review before migration")
     return new_ledger(addresses)
 
 
