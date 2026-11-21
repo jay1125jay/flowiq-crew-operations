@@ -18,8 +18,8 @@ INFO_URL = "https://api.hyperliquid.xyz/info"
 OUTPUT = pathlib.Path(__file__).resolve().parent / "trader-discovery" / "eth-candidates.json"
 MIN_ACCOUNT_USD = 100_000.0
 MAX_MONTHLY_TURNOVER = 100.0
-MIN_ETH_FILLS = 30
-MIN_ETH_CLOSES = 12
+MIN_ETH_FILLS = 100
+MIN_ETH_CLOSES = 30
 MAX_SEEDS = 30
 MAX_FILLS_PER_ADDRESS = 10_000
 
