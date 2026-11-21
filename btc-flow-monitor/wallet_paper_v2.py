@@ -6,6 +6,7 @@ import json
 import math
 import os
 import pathlib
+import subprocess
 import tempfile
 import threading
 import time
@@ -191,6 +192,18 @@ def reconcile_wallet(ledger, wallet):
     return results
 
 
+def latest_main_text(relative_path):
+    repo_root = ROOT.parent
+    if not (repo_root / ".git").exists():
+        local_path = repo_root / relative_path
+        return local_path.read_text(encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo_root), "fetch", "--depth=1", "origin", "main"],
+                   check=True, capture_output=True, text=True, timeout=120)
+    result = subprocess.run(["git", "-C", str(repo_root), "show", "origin/main:" + relative_path],
+                            check=True, capture_output=True, text=True, timeout=60)
+    return result.stdout
+
+
 def load_ledger(addresses):
     if OUT.exists():
         ledger = json.loads(OUT.read_text(encoding="utf-8"))
@@ -199,16 +212,14 @@ def load_ledger(addresses):
         if set(ledger.get("wallets", {})) != set(addresses):
             raise ValueError("Selected whale set changed; explicit migration required")
         return ledger
-    if LEGACY_PATH.exists():
-        raw = LEGACY_PATH.read_text(encoding="utf-8").strip()
-        if not raw:
-            raise ValueError("Legacy BTC ledger is empty; refusing to create replacement accounts")
-        old = json.loads(raw)
-        ledger = migrate_btc_ledger(old)
-        if set(ledger["wallets"]) == set(addresses):
-            return ledger
-        raise ValueError("Legacy whale set differs from current selection; preserve and review before migration")
-    return new_ledger(addresses)
+    raw = latest_main_text("btc-flow-monitor/trader-discovery/wallet-paper.json").strip()
+    if not raw:
+        raise ValueError("Latest main BTC ledger is empty; refusing to create replacement accounts")
+    old = json.loads(raw)
+    ledger = migrate_btc_ledger(old)
+    if set(ledger["wallets"]) == set(addresses):
+        return ledger
+    raise ValueError("Legacy whale set differs from current selection; preserve and review before migration")
 
 
 def save_atomic(ledger):
@@ -229,7 +240,7 @@ def save_atomic(ledger):
 
 
 def main():
-    selected = json.loads(SELECTED.read_text(encoding="utf-8"))
+    selected = json.loads(latest_main_text("btc-flow-monitor/trader-discovery/selected-whales.json"))
     addresses = [row["address"].lower() for row in selected]
     if len(addresses) != 5 or len(set(addresses)) != 5:
         raise ValueError("Expected five distinct selected whales")
