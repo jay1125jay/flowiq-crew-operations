@@ -175,10 +175,23 @@ async def run():
     except SystemExit as exc:
         if exc.code not in (0, 2):
             raise
+    from wallet_phone_v2 import WalletPhoneV2
     with sqlite3.connect(DB_PATH) as db:
         observer = V2Observer(db)
+        phone = WalletPhoneV2(ROOT, ROOT)
+        phone.view.update(observer.ledger, observer.connected,
+                          db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0])
+        phone.start()
+        async def update_phone():
+            while True:
+                pending = db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0]
+                phone.view.update(observer.ledger, observer.connected, pending)
+                await asyncio.sleep(0.5)
         print("ENGINE", ENGINE_VERSION, "PAPER_ONLY", flush=True)
-        await asyncio.gather(observer.listen(), observer.reconcile_loop())
+        try:
+            await asyncio.gather(observer.listen(), observer.reconcile_loop(), update_phone())
+        finally:
+            await asyncio.to_thread(phone.close)
 
 
 if __name__ == "__main__":
