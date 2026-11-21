@@ -127,7 +127,10 @@ def apply_ordered_coin(ledger, wallet, coin, rows, source_equity, snapshot_ms):
         if index is None:
             raise ValueError(coin + " source fill chain mismatch")
         row = remaining.pop(index)
-        apply_wallet_fill(ledger, wallet, row, source_equity, allow_open=True)
+        fill_ms = int(row["time"])
+        now_ms = int(time.time() * 1000)
+        allow_open = -2000 <= now_ms - fill_ms <= 15000
+        apply_wallet_fill(ledger, wallet, row, source_equity, allow_open=allow_open)
     return "fills_applied" if pending else "no_new_fills"
 
 
