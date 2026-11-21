@@ -68,7 +68,7 @@ function Wait-EngineHealth {
             return $false
         }
         if ((Test-Path $script:OutLog) -and (Select-String -Path $script:OutLog -Pattern 'V2_WS_CONNECTED' -Quiet)) {
-            $ledgerPath = Join-Path $EngineDir 'trader-discoverywallet-paper-v2.json'
+            $ledgerPath = Join-Path (Join-Path $EngineDir 'trader-discovery') 'wallet-paper-v2.json'
             if (Test-Path $ledgerPath) {
                 try {
                     $ledger = Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json
@@ -168,7 +168,7 @@ try {
         $testsPassed = $false
         try {
             $testsPassed = Invoke-TestSuite $testDir
-            $candidateSupervisor = Join-Path $testDir 'btc-flow-monitorCASH_FLOW_V2_SUPERVISOR.ps1'
+            $candidateSupervisor = Join-Path (Join-Path $testDir 'btc-flow-monitor') 'CASH_FLOW_V2_SUPERVISOR.ps1'
             if ($testsPassed -and (Test-Path $candidateSupervisor)) {
                 $testsPassed = Test-PowerShellSyntax $candidateSupervisor
             }
