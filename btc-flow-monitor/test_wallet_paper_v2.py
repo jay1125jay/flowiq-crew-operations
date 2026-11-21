@@ -40,6 +40,8 @@ class WalletPaperV2Tests(unittest.TestCase):
         self.assertEqual(eth["source_size"], -0.5)
         self.assertEqual(btc["position"]["side"], 1)
         self.assertEqual(eth["position"]["side"], -1)
+        self.assertEqual(btc["source_side"], "LONG")
+        self.assertEqual(eth["source_side"], "SHORT")
         self.assertIn("BTC", result)
         self.assertIn("ETH", result)
 
