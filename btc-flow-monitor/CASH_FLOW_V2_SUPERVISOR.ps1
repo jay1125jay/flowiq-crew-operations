@@ -117,8 +117,9 @@ New-Item -ItemType Directory -Force -Path $Root | Out-Null
 New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null
 
 if (!(Test-Path (Join-Path $RepoDir '.git'))) {
-    & git clone --depth 1 --branch $Branch $RepoUrl $RepoDir
+    & git clone --depth 1 --filter=blob:none --sparse --branch $Branch $RepoUrl $RepoDir
     if ($LASTEXITCODE -ne 0) { throw 'V2 repository download failed.' }
+    Invoke-Git $RepoDir @('sparse-checkout', 'set', 'btc-flow-monitor')
 } else {
     Invoke-Git $RepoDir @('fetch', '--depth=1', 'origin', $Branch)
     Invoke-Git $RepoDir @('checkout', $Branch)
@@ -146,6 +147,7 @@ try {
         $testDir = Join-Path $Root ("test-" + $remoteSha.Substring(0, 8))
         if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
         Invoke-Git $RepoDir @('worktree', 'add', '--detach', $testDir, "origin/$Branch")
+        Invoke-Git $testDir @('sparse-checkout', 'set', 'btc-flow-monitor')
         $testsPassed = $false
         try { $testsPassed = Invoke-TestSuite $testDir }
         finally { Invoke-Git $RepoDir @('worktree', 'remove', '--force', $testDir) }
