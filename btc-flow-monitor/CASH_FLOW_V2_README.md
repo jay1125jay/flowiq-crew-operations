@@ -30,6 +30,7 @@
 ## Validation
 From `btc-flow-monitor`:
 ```powershell
+python -m pip install websockets==15.0.1 qrcode==8.2
 python -m py_compile cash_flow_v2_core.py wallet_paper_v2.py pc_wallet_follow_v2.py wallet_phone_v2.py test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
 python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
 ```
