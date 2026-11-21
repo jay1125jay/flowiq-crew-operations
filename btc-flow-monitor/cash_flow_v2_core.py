@@ -207,21 +207,62 @@ def totals(ledger):
     }
 
 
+def _migrate_legacy_btc_account(old, capital):
+    account = new_account(capital)
+    account["cash_krw"] = _finite(old.get("cash", capital), "legacy cash")
+    account["equity_krw"] = _finite(old.get("equity_krw", account["cash_krw"]), "legacy equity")
+    account["fill_cursor"] = int(old.get("fill_cursor", 0) or 0)
+    account["stream_keys"] = copy.deepcopy(old.get("stream_keys", []))
+    account["source_size"] = _finite(old.get("source_size", old.get("source_btc_size", 0.0)) or 0.0,
+                                     "legacy source size")
+    account["fill_count"] = int(old.get("fill_count", 0) or 0)
+    account["peak_equity_krw"] = _finite(old.get("peak_krw", capital), "legacy peak")
+    account["max_drawdown_pct"] = _finite(old.get("max_drawdown_pct", 0.0), "legacy drawdown")
+    account["last_price"] = old.get("price")
+    account["updated_at"] = old.get("last_at")
+    account["fees_krw"] = 0.0
+    for item in old.get("closed", []):
+        account["closed"].append({
+            **copy.deepcopy(item),
+            "opened_at": item.get("opened"), "closed_at": item.get("closed"),
+            "side": "LONG" if item.get("side") == 1 else "SHORT",
+            "entry_price": item.get("entry"), "exit_price": item.get("exit"),
+            "net_pnl_krw": item.get("net_krw", item.get("net_pnl_krw", 0.0)),
+            "entry_fee_krw": 0.0, "exit_fee_krw": 0.0,
+        })
+    pos = old.get("position")
+    if pos:
+        account["position"] = {
+            "side": int(pos["side"]), "entry_price": _finite(pos["entry"], "legacy entry"),
+            "notional_krw": _finite(pos["notional"], "legacy notional"),
+            "entry_fee_krw": _finite(pos.get("fee", 0.0), "legacy position fee"),
+            "opened_at": pos.get("at"), "reason": pos.get("reason"),
+            "source_entry": pos.get("source_entry"), "entry_gap_pct": pos.get("entry_gap_pct"),
+        }
+        account["fees_krw"] += account["position"]["entry_fee_krw"]
+    account["initial_krw"] = capital
+    return account
+
+
 def migrate_btc_ledger(old_ledger):
-    """Copy old BTC accounts byte-for-byte; create fresh ETH paper accounts."""
+    """Convert the old BTC account schema and create a separate fresh ETH account."""
     if old_ledger.get("paper_only") is not True or old_ledger.get("real_trading_enabled") is not False:
         raise ValueError("Refusing non-PAPER legacy ledger")
-    wallets = {}
-    for address, btc_account in old_ledger.get("accounts", {}).items():
-        wallets[address.lower()] = {
-            "BTC": copy.deepcopy(btc_account),
-            "ETH": new_account(old_ledger.get("initial_krw", INITIAL_KRW)),
+    capital = old_ledger.get("initial_krw", INITIAL_KRW)
+    wallets, snapshots = {}, {}
+    for address, old_account in old_ledger.get("accounts", {}).items():
+        wallet = address.lower()
+        snapshots[wallet] = copy.deepcopy(old_account)
+        wallets[wallet] = {
+            "BTC": _migrate_legacy_btc_account(old_account, capital),
+            "ETH": new_account(capital),
         }
     return {
         "schema_version": 2, "paper_only": True, "real_trading_enabled": False,
-        "initial_krw_per_wallet_asset": old_ledger.get("initial_krw", INITIAL_KRW),
+        "initial_krw_per_wallet_asset": capital,
         "leverage": old_ledger.get("leverage", LEVERAGE),
         "fee_rate": FEE_RATE, "slippage_rate": SLIPPAGE_RATE,
-        "wallets": wallets, "legacy_btc_preserved": True,
+        "wallets": wallets, "legacy_btc_snapshot": snapshots,
+        "legacy_btc_preserved": True,
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
