@@ -150,6 +150,37 @@ class WalletPaperV2Tests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "ETH invalid order book"):
                 paper.reconcile_wallet(ledger, W)
 
+    def test_eth_only_wallet_reconciles_eth_without_touching_btc(self):
+        ledger = new_ledger([W])
+        responses = [state_fixture(), book("ETH", 3000, 3001)]
+        with patch.object(paper, "info", side_effect=responses):
+            result = paper.reconcile_wallet(ledger, W, assets=("ETH",))
+        self.assertEqual(list(result), ["ETH"])
+        self.assertFalse(ledger["wallets"][W]["BTC"].get("initialized", False))
+        self.assertTrue(ledger["wallets"][W]["ETH"]["initialized"])
+        self.assertEqual(ledger["wallets"][W]["ETH"]["source_size"], -0.5)
+
+    def test_eth_only_wallets_extend_five_wallet_legacy_without_changing_them(self):
+        base = ["0x" + str(i) * 40 for i in range(1, 6)]
+        eth_only = ["0x" + str(i) * 40 for i in range(6, 8)]
+        legacy = {
+            "paper_only": True, "real_trading_enabled": False,
+            "initial_krw": 1_000_000, "leverage": 10,
+            "accounts": {address: {"cash": 1_000_000, "equity_krw": 1_000_000,
+                                  "fill_cursor": 1000, "source_size": 0.0, "closed": []}
+                        for address in base}
+        }
+        with patch.object(paper, "OUT") as out:
+            out.exists.return_value = False
+            with patch.object(paper, "latest_main_text", return_value=json.dumps(legacy)):
+                ledger = paper.load_ledger(base + eth_only, eth_only)
+        self.assertEqual(set(ledger["wallets"]), set(base + eth_only))
+        self.assertEqual(ledger["wallet_assets"][base[0]], ["BTC", "ETH"])
+        self.assertEqual(ledger["wallet_assets"][eth_only[0]], ["ETH"])
+        self.assertTrue(ledger["wallets"][base[0]]["BTC"]["initialized"])
+        self.assertFalse(ledger["wallets"][eth_only[0]]["BTC"].get("initialized", False))
+        self.assertFalse(ledger["wallets"][eth_only[0]]["ETH"].get("initialized", False))
+
 
 if __name__ == "__main__":
     unittest.main()
