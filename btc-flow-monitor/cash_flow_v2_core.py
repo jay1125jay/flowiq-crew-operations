@@ -106,6 +106,15 @@ def _close(account, fraction, market_price, stamp, reason):
         pos["entry_fee_krw"] -= entry_fee
 
 
+def close_position_fraction(account, fraction, market_price, stamp, reason):
+    price = _finite(market_price, "close price")
+    if price <= 0:
+        raise ValueError("Close price must be positive")
+    _close(account, fraction, price, stamp, reason)
+    _mark(account, price, stamp)
+    return account
+
+
 def apply_fill(account, row, source_equity_usd, allow_open=True, stamp=None):
     """Apply one source fill. The caller must sequence fills per wallet+coin."""
     coin = row.get("coin")
