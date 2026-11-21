@@ -139,6 +139,8 @@ def apply_ordered_coin(ledger, wallet, coin, rows, source_equity, snapshot_ms):
 def reconcile_wallet(ledger, wallet):
     state = info({"type": "clearinghouseState", "user": wallet})
     equity = finite(state["marginSummary"]["accountValue"], "source equity")
+    if equity <= 0:
+        raise ValueError("source equity must be positive")
     snapshot_ms = int(state["time"])
     positions = {
         item["position"]["coin"]: item["position"]
@@ -151,6 +153,8 @@ def reconcile_wallet(ledger, wallet):
         source = positions.get(coin, {})
         source_size = finite(source.get("szi", 0), coin + " source size")
         source_entry = finite(source["entryPx"], coin + " source entry") if source_size else None
+        if source_size and source_entry <= 0:
+            raise ValueError(coin + " invalid source entry")
         book = info({"type": "l2Book", "coin": coin})
         if book.get("coin") != coin or len(book.get("levels", [])) < 2:
             raise ValueError(coin + " invalid order book")
@@ -158,8 +162,10 @@ def reconcile_wallet(ledger, wallet):
         ask = finite(book["levels"][1][0]["px"], coin + " ask")
         quote_ms = int(book["time"])
         now_ms = int(time.time() * 1000)
-        if not (0 < bid <= ask) or now_ms - quote_ms > MAX_QUOTE_AGE_SECONDS * 1000 or quote_ms - now_ms > 2000:
-            raise ValueError(coin + " stale or invalid quote")
+        if (not (0 < bid <= ask <= bid * 1.005) or
+                now_ms - quote_ms > MAX_QUOTE_AGE_SECONDS * 1000 or quote_ms - now_ms > 2000 or
+                abs(snapshot_ms - quote_ms) > MAX_QUOTE_AGE_SECONDS * 1000):
+            raise ValueError(coin + " stale or invalid quote/position snapshot")
         stamp = dt.datetime.fromtimestamp(quote_ms / 1000, dt.timezone.utc).isoformat()
 
         if not account.get("initialized"):
