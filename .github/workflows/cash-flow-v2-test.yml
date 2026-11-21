@@ -1,0 +1,29 @@
+name: CASH FLOW V2 PAPER tests
+on:
+  push:
+    branches:
+      - feature/cash-flow-btc-eth-paper
+    paths:
+      - 'btc-flow-monitor/cash_flow_v2_core.py'
+      - 'btc-flow-monitor/test_cash_flow_v2_core.py'
+      - '.github/workflows/cash-flow-v2-test.yml'
+  pull_request:
+    paths:
+      - 'btc-flow-monitor/cash_flow_v2_core.py'
+      - 'btc-flow-monitor/test_cash_flow_v2_core.py'
+      - '.github/workflows/cash-flow-v2-test.yml'
+permissions:
+  contents: read
+jobs:
+  paper-core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile btc-flow-monitor/cash_flow_v2_core.py btc-flow-monitor/test_cash_flow_v2_core.py
+      - name: Unit tests
+        working-directory: btc-flow-monitor
+        run: python -m unittest -v test_cash_flow_v2_core.py
