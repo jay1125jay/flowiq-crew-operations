@@ -38,6 +38,26 @@ class CashFlowV2Tests(unittest.TestCase):
         self.assertGreater(a["fees_krw"],0)
         self.assertLess(a["equity_krw"],1_000_000)
 
+    def test_long_close_records_net_pnl_after_both_fees(self):
+        open_row=fill("BTC","B",1,0,1000,1,100000)
+        close_row=fill("BTC","A",1,1,2000,2,101000)
+        apply_wallet_fill(self.ledger,W,open_row,1_000_000)
+        apply_wallet_fill(self.ledger,W,close_row,1_000_000)
+        a=self.ledger["wallets"][W]["BTC"]
+        self.assertIsNone(a["position"])
+        self.assertGreater(a["closed"][-1]["net_pnl_krw"],0)
+        self.assertGreater(a["closed"][-1]["entry_fee_krw"],0)
+        self.assertGreater(a["closed"][-1]["exit_fee_krw"],0)
+
+    def test_liquidation_is_recorded_in_paper_account(self):
+        open_row=fill("BTC","B",1,0,1000,1,100000)
+        apply_wallet_fill(self.ledger,W,open_row,1_000_000)
+        a=self.ledger["wallets"][W]["BTC"]
+        from cash_flow_v2_core import mark_account
+        mark_account(a,89000,"test-liquidation")
+        self.assertIsNone(a["position"])
+        self.assertEqual(a["closed"][-1]["reason"],"liquidation")
+
     def test_total_is_sum_of_wallet_asset_accounts(self):
         ledger=new_ledger([W,"0x"+"2"*40])
         for wallet, pnl in [(W,10),("0x"+"2"*40,-5)]:
