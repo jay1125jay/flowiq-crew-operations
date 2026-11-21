@@ -156,12 +156,15 @@ def rank_eth_candidates(seeds, profiles, limit=5):
         if profile["eth_realized_pnl_usd"] <= 0 or profile["eth_win_rate_pct"] <= 50:
             continue
         eligible.append({**seed, **profile, "asset_specialty": "ETH", "paper_status": "PAPER_CANDIDATE"})
+    # Primary ranking is ETH win rate; net realized PnL and profit factor
+    # are tie-breakers. Eligibility requires a complete sample and positive
+    # net realized PnL after fees.
     eligible.sort(
         key=lambda x: (
+            x["eth_win_rate_pct"],
             x["eth_realized_pnl_usd"],
             x["eth_profit_factor"],
-            x["eth_win_rate_pct"],
-            x["leaderboard_month_pnl_usd"],
+            x["eth_close_count"],
         ),
         reverse=True,
     )
@@ -207,6 +210,9 @@ def discover(excluded=None, seed_limit=MAX_SEEDS, candidate_limit=5, now_ms=None
             "minimum_eth_closes": MIN_ETH_CLOSES,
             "minimum_eth_net_realized_pnl_usd": 0,
             "minimum_eth_win_rate_pct_exclusive": 50,
+            "ranking_primary": "eth_win_rate_pct_desc",
+            "ranking_tiebreakers": ["eth_realized_pnl_usd_desc", "eth_profit_factor_desc", "eth_close_count_desc"],
+            "candidate_limit": candidate_limit,
             "fees_included": True,
         },
         "candidates": selected,
