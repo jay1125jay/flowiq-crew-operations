@@ -48,10 +48,10 @@ class EthWhaleDiscoveryTests(unittest.TestCase):
         seeds = [{"address": "0x" + str(i) * 40, "leaderboard_month_pnl_usd": 1000}
                  for i in range(1, 4)]
         profiles = {
-            seeds[0]["address"]: {"eth_fill_count": 35, "eth_close_count": 15,
+            seeds[0]["address"]: {"eth_fill_count": 120, "eth_close_count": 40,
                                   "eth_realized_pnl_usd": 200, "eth_win_rate_pct": 60,
                                   "eth_profit_factor": 2.0, "eth_sample_complete": True},
-            seeds[1]["address"]: {"eth_fill_count": 35, "eth_close_count": 15,
+            seeds[1]["address"]: {"eth_fill_count": 120, "eth_close_count": 40,
                                   "eth_realized_pnl_usd": 500, "eth_win_rate_pct": 70,
                                   "eth_profit_factor": 3.0, "eth_sample_complete": True},
             seeds[2]["address"]: {"eth_fill_count": 5, "eth_close_count": 2,
