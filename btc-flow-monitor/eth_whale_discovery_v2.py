@@ -161,6 +161,7 @@ def discover(excluded=(), seed_limit=MAX_SEEDS, candidate_limit=5, now_ms=None):
         try:
             profiles[seed["address"]] = eth_fill_profile(seed["address"], start_ms, now_ms)
             print("ETH_SCREEN_OK", index, seed["address"][:10], flush=True)
+            time.sleep(6.1)
         except Exception as exc:
             print("ETH_SCREEN_HOLD", seed["address"][:10], str(exc)[:180], flush=True)
     selected = rank_eth_candidates(seeds, profiles, candidate_limit)
