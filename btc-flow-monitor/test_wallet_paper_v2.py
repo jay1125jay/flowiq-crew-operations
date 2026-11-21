@@ -87,6 +87,36 @@ class WalletPaperV2Tests(unittest.TestCase):
         self.assertFalse(migrated["wallets"][W]["BTC"]["fees_history_complete"])
         self.assertFalse(migrated["legacy_btc_snapshot"][W] is None)
 
+    def test_aged_source_gap_closes_only_the_verified_reduced_fraction(self):
+        wallet = W
+        stamp = int(time.time() * 1000)
+        state = {
+            "time": stamp, "marginSummary": {"accountValue": "100000"},
+            "assetPositions": [
+                {"position": {"coin": "BTC", "szi": "0.005", "entryPx": "100000"}}
+            ],
+        }
+        ledger = new_ledger([wallet])
+        btc = ledger["wallets"][wallet]["BTC"]
+        btc.update(initialized=True, source_size=0.01, fill_cursor=stamp-600000,
+                   source_equity_usd=100000, cash_krw=995000, equity_krw=995000,
+                   position={"side":1,"entry_price":100000,"notional_krw":10000000,
+                             "entry_fee_krw":5000,"opened_at":"2026-11-21T00:00:00+00:00"})
+        missing_chain = {"coin":"BTC","side":"A","sz":"0.004","startPosition":"0.009",
+                         "time":stamp-500000,"tid":77,"px":"99990"}
+        responses = [state, book("BTC", 99990, 100000), book("ETH", 3000, 3001)]
+        with patch.object(paper, "info", side_effect=responses), patch.object(
+            paper, "fetch_fills", return_value=[missing_chain]
+        ):
+            result = paper.reconcile_wallet(ledger, wallet)
+        btc = ledger["wallets"][wallet]["BTC"]
+        self.assertEqual(result["BTC"], "snapshot_gap_recovered")
+        self.assertAlmostEqual(btc["source_size"], 0.005)
+        self.assertAlmostEqual(btc["position"]["notional_krw"], 5_000_000)
+        self.assertEqual(btc["closed"][-1]["reason"], "snapshot_gap_recovery")
+        self.assertEqual(btc["fill_cursor"], stamp)
+        self.assertTrue(btc["history_gap_at"])
+
     def test_empty_latest_main_ledger_aborts_migration(self):
         with patch.object(paper, "OUT") as out:
             out.exists.return_value = False
