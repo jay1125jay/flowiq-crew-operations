@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "mode": "PAPER_ONLY",
+  "real_orders_enabled": false,
+  "purpose": "ETH-only forward paper tracking for the two provisional candidates from the 2026-11-21 screening run.",
+  "selection_source": {
+    "workflow_run_id": 44895961717,
+    "artifact_id": 14704765680,
+    "screening_window_days": 30,
+    "screened_seed_count": 30,
+    "profiled_count": 13,
+    "hold_count": 17,
+    "candidate_count": 2
+  },
+  "tracking_policy": {
+    "asset": "ETH",
+    "account_isolated": true,
+    "initial_status": "PAPER_FORWARD_TEST",
+    "minimum_forward_test_days": 7,
+    "do_not_promote_automatically": true,
+    "do_not_modify_existing_btc_or_eth_whales": true,
+    "do_not_merge_into_production_selected_whales": true,
+    "require_fee_and_slippage_accounting": true
+  },
+  "candidates": [
+    {
+      "address": "0x15a4f009bb324a3fb9e36137136b201e3fe0dfdb",
+      "asset_specialty": "ETH",
+      "paper_status": "PAPER_FORWARD_TEST",
+      "screening": {
+        "eth_fill_count": 2101,
+        "eth_close_count": 446,
+        "eth_wins": 446,
+        "eth_losses": 0,
+        "eth_win_rate_pct": 100.0,
+        "eth_gross_realized_pnl_usd": 4725958.9909,
+        "eth_fees_usd": 35243.50944100007,
+        "eth_realized_pnl_usd": 4690715.481459,
+        "eth_volume_usd": 86297114.10957,
+        "eth_sample_complete": true
+      },
+      "forward_test": {
+        "started_at": null,
+        "last_event_at": null,
+        "paper_realized_pnl_usd": 0.0,
+        "fees_usd": 0.0,
+        "slippage_usd": 0.0,
+        "events_observed": 0,
+        "status": "NOT_STARTED"
+      }
+    },
+    {
+      "address": "0x4ba3979955f52158c0e4e3378b18985475182ce2",
+      "asset_specialty": "ETH",
+      "paper_status": "PAPER_FORWARD_TEST",
+      "screening": {
+        "eth_fill_count": 153,
+        "eth_close_count": 153,
+        "eth_wins": 153,
+        "eth_losses": 0,
+        "eth_win_rate_pct": 100.0,
+        "eth_gross_realized_pnl_usd": 572928.78254,
+        "eth_fees_usd": 639.67016,
+        "eth_realized_pnl_usd": 572289.11238,
+        "eth_volume_usd": 3274045.43026,
+        "eth_sample_complete": true
+      },
+      "forward_test": {
+        "started_at": null,
+        "last_event_at": null,
+        "paper_realized_pnl_usd": 0.0,
+        "fees_usd": 0.0,
+        "slippage_usd": 0.0,
+        "events_observed": 0,
+        "status": "NOT_STARTED"
+      }
+    }
+  ],
+  "promotion_requirements": [
+    "At least 7 complete calendar days of ETH-only forward observation",
+    "Reconcile observed wallet fills and closes against the public source",
+    "Calculate PAPER PnL after fees and modeled slippage",
+    "Report event count, win rate, net PnL, drawdown, and data gaps",
+    "Require explicit approval before adding either wallet to production tracking"
+  ]
+}
