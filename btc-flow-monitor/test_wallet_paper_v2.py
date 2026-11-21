@@ -1,9 +1,12 @@
 import unittest
 import time
 import json
+import sqlite3
 from unittest.mock import patch
 
 import wallet_paper_v2 as paper
+import pc_wallet_follow_v2 as observer_module
+from pc_wallet_follow_v2 import V2Observer
 from cash_flow_v2_core import new_ledger
 
 
@@ -180,6 +183,26 @@ class WalletPaperV2Tests(unittest.TestCase):
         self.assertTrue(ledger["wallets"][base[0]]["BTC"]["initialized"])
         self.assertFalse(ledger["wallets"][eth_only[0]]["BTC"].get("initialized", False))
         self.assertFalse(ledger["wallets"][eth_only[0]]["ETH"].get("initialized", False))
+
+    def test_realtime_observer_queues_only_eth_for_eth_only_wallet(self):
+        ledger = new_ledger([W])
+        ledger["wallet_assets"] = {W: ["ETH"]}
+        stamp = int(time.time() * 1000)
+        message = {
+            "channel": "userFills",
+            "data": {"user": W, "fills": [
+                {"coin": "BTC", "tid": 1, "time": stamp, "side": "B",
+                 "sz": "0.01", "startPosition": "0", "px": "100000"},
+                {"coin": "ETH", "tid": 2, "time": stamp, "side": "B",
+                 "sz": "0.5", "startPosition": "0", "px": "3000"}
+            ]}
+        }
+        with patch.object(observer_module, "load_ledger", return_value=ledger):
+            with sqlite3.connect(":memory:") as db:
+                observer = V2Observer(db)
+                observer.receive(message)
+                queued = db.execute("SELECT coin FROM pending_v2").fetchall()
+        self.assertEqual(queued, [("ETH",)])
 
 
 if __name__ == "__main__":
