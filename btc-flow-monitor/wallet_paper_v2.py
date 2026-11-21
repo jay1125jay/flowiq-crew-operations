@@ -25,7 +25,7 @@ SELECTED = DATA / "selected-whales.json"
 API = "https://api.hyperliquid.xyz/info"
 MAX_QUOTE_AGE_SECONDS = 15
 MAX_FOLLOW_GAP = 0.003
-REQUEST_INTERVAL = 0.25
+REQUEST_BUDGET_PER_SECOND = 10.0
 _lock = threading.Lock()
 _next_request = 0.0
 _limited_until = 0.0
@@ -40,7 +40,8 @@ def info(payload):
         wait = max(0.0, _next_request - now)
         if wait:
             time.sleep(wait)
-        _next_request = time.monotonic() + REQUEST_INTERVAL
+        weight = 120 if payload.get("type") == "userFillsByTime" else 2
+        _next_request = time.monotonic() + weight / REQUEST_BUDGET_PER_SECOND
     req = urllib.request.Request(API, data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", "User-Agent": "CASH-FLOW-PAPER/2"})
     try:
