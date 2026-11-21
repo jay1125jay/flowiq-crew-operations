@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/cash-flow-v2-release-candidate
+      - feature/cash-flow-v2-eth-whale-screening
     paths:
       - 'btc-flow-monitor/cash_flow_v2_core.py'
       - 'btc-flow-monitor/test_cash_flow_v2_core.py'
@@ -12,6 +13,8 @@ on:
       - 'btc-flow-monitor/dashboard-v2.html'
       - 'btc-flow-monitor/test_wallet_paper_v2.py'
       - 'btc-flow-monitor/test_wallet_phone_v2.py'
+      - 'btc-flow-monitor/eth_whale_discovery_v2.py'
+      - 'btc-flow-monitor/test_eth_whale_discovery_v2.py'
       - 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'
       - 'btc-flow-monitor/START_CASH_FLOW_V2.cmd'
       - '.github/workflows/cash-flow-v2-test.yml'
@@ -25,6 +28,8 @@ on:
       - 'btc-flow-monitor/dashboard-v2.html'
       - 'btc-flow-monitor/test_wallet_paper_v2.py'
       - 'btc-flow-monitor/test_wallet_phone_v2.py'
+      - 'btc-flow-monitor/eth_whale_discovery_v2.py'
+      - 'btc-flow-monitor/test_eth_whale_discovery_v2.py'
       - 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'
       - 'btc-flow-monitor/START_CASH_FLOW_V2.cmd'
       - '.github/workflows/cash-flow-v2-test.yml'
@@ -53,10 +58,10 @@ jobs:
           PY
           node --check /tmp/cash-flow-dashboard-v2.js
       - name: Compile
-        run: python -m py_compile btc-flow-monitor/cash_flow_v2_core.py btc-flow-monitor/test_cash_flow_v2_core.py btc-flow-monitor/wallet_paper_v2.py btc-flow-monitor/pc_wallet_follow_v2.py btc-flow-monitor/wallet_phone_v2.py btc-flow-monitor/test_wallet_paper_v2.py btc-flow-monitor/test_wallet_phone_v2.py
+        run: python -m py_compile btc-flow-monitor/cash_flow_v2_core.py btc-flow-monitor/test_cash_flow_v2_core.py btc-flow-monitor/wallet_paper_v2.py btc-flow-monitor/pc_wallet_follow_v2.py btc-flow-monitor/wallet_phone_v2.py btc-flow-monitor/test_wallet_paper_v2.py btc-flow-monitor/test_wallet_phone_v2.py btc-flow-monitor/eth_whale_discovery_v2.py btc-flow-monitor/test_eth_whale_discovery_v2.py
       - name: Unit tests
         working-directory: btc-flow-monitor
-        run: python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
+        run: python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py test_eth_whale_discovery_v2.py
   windows-powershell-parse:
     runs-on: windows-latest
     steps:
