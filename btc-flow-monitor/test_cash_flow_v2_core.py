@@ -77,6 +77,9 @@ class CashFlowV2Tests(unittest.TestCase):
         self.assertEqual(migrated["legacy_btc_snapshot"][W],legacy["accounts"][W])
         self.assertIsNone(migrated["wallets"][W]["ETH"]["position"])
         self.assertAlmostEqual(totals(migrated)["initial_krw"],2_000_000)
+        self.assertFalse(btc["fees_history_complete"])
+        self.assertTrue(migrated["wallets"][W]["ETH"]["fees_history_complete"])
+        self.assertFalse(totals(migrated)["fees_history_complete"])
 
     def test_non_paper_ledger_is_rejected(self):
         ledger=dict(self.ledger,real_trading_enabled=True)
