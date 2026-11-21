@@ -40,6 +40,7 @@ python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wal
 - Run `START_CASH_FLOW_V2.cmd`; it creates a separate V2 folder and Python environment.
 - After first launch, code updates are checked automatically every 60 seconds. No PC reboot is required for updates.
 - Keep the supervisor window open and keep the PC online.
+- The QR phone tunnel serves the live local V2 ledger. Public GitHub Pages publication of the V2 JSON feed is not enabled yet; the static page is not a live data source until that publish step is added.
 - Windows acceptance test and real local BTC ledger migration must pass before replacing V1 permanently.
 
 ## Deployment state
