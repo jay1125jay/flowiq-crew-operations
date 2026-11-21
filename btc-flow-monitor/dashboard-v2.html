@@ -41,7 +41,7 @@ section{background:var(--panel);border:1px solid var(--line);border-radius:16px;
 </main>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id),fmt=n=>'₩'+Math.round(Number(n)||0).toLocaleString('ko-KR'),usd=n=>'
+const $=id=>document.getElementById(id);const fmt=n=>'₩'+Math.round(Number(n)||0).toLocaleString('ko-KR');const usd=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2});const pct=n=>(Number(n)||0).toFixed(2)+'%';const tone=n=>Number(n)>=0?'positive':'negative';
 let filter='ALL',last=null,busy=false;
 const hash=new URLSearchParams(location.hash.slice(1)),endpoint=hash.get('pc'),token=hash.get('key');
 const remote=Boolean(endpoint&&token),local=['127.0.0.1','localhost'].includes(location.hostname);
@@ -52,11 +52,11 @@ async function getData(){
 }
 function render(data){
  if(data.paper_only!==true||data.real_trading_enabled!==false)throw Error('PAPER ONLY 검증 실패');
- const totals=data.totals||{};const wallets=data.wallets||{};const count=Object.keys(wallets).length;
+ const totals=data.totals||{};const wallets=data.wallets||{};const count=Object.keys(wallets).length;const sourcePnlByAsset={BTC:0,ETH:0};for(const assets of Object.values(wallets))for(const coin of ['BTC','ETH'])sourcePnlByAsset[coin]+=Number(assets[coin]?.source_unrealized_pnl_usd||0);
  $('totalPnl').textContent=fmt(totals.net_pnl_krw);$('totalPnl').className='big '+tone(totals.net_pnl_krw);
  $('totalReturn').textContent=pct(totals.return_pct)+' · BTC와 ETH 전체 합산';
  $('totalEquity').textContent=fmt(totals.equity_krw);$('totalInitial').textContent=fmt(totals.initial_krw);$('totalFees').textContent=fmt(totals.fees_krw)+(totals.fees_history_complete?'':'*');$('walletCount').textContent=count+'명 · '+count*2+'계좌';
- for(const coin of ['BTC','ETH']){const a=totals.by_asset?.[coin]||{};$ (coin==='BTC'?'btcPnl':'ethPnl').textContent=fmt(a.net_pnl_krw);$(coin==='BTC'?'btcPnl':'ethPnl').className='pnl '+tone(a.net_pnl_krw);$(coin==='BTC'?'btcMeta':'ethMeta').textContent='내 평가자산 '+fmt(a.equity_krw)+' · 내 수익률 '+pct(a.return_pct)+' · 고래 미실현손익 '+usd(a.source_unrealized_pnl_usd||0)+' · 수수료 '+fmt(a.fees_krw)+(a.fees_history_complete?'':' · 과거 V1 수수료 미복원')}
+ for(const coin of ['BTC','ETH']){const a=totals.by_asset?.[coin]||{};$ (coin==='BTC'?'btcPnl':'ethPnl').textContent=fmt(a.net_pnl_krw);$(coin==='BTC'?'btcPnl':'ethPnl').className='pnl '+tone(a.net_pnl_krw);$(coin==='BTC'?'btcMeta':'ethMeta').textContent='내 평가자산 '+fmt(a.equity_krw)+' · 내 수익률 '+pct(a.return_pct)+' · 고래 미실현손익 '+usd(sourcePnlByAsset[coin])+' · 수수료 '+fmt(a.fees_krw)+(a.fees_history_complete?'':' · 과거 V1 수수료 미복원')}
  const rows=[],trades=[];
  for(const [wallet,assets] of Object.entries(wallets))for(const coin of ['BTC','ETH']){
   const a=assets[coin]||{},p=a.position,net=Number(a.equity_krw||0)-Number(a.initial_krw||0);
@@ -65,7 +65,7 @@ function render(data){
  }
  $('accounts').replaceChildren();
  for(const r of rows){const tr=document.createElement('tr'),sourceSide=r.a.source_size>0?'롱':r.a.source_size<0?'숏':'관망',ownSide=r.p?(r.p.side>0?'롱':'숏'):'대기',sourcePnl=Number(r.a.source_unrealized_pnl_usd||0),vals=[r.wallet.slice(0,8)+'…'+r.wallet.slice(-5),r.coin,sourceSide+' / '+ownSide,fmt(r.a.equity_krw),fmt(r.net),fmt(r.a.fees_krw)+(r.a.fees_history_complete?'':'*'),usd(sourcePnl),pct(r.a.source_roe_pct),pct(r.a.max_drawdown_pct),r.a.error?'조회 지연':r.a.initialized?'정상':'초기화 대기'];for(let i=0;i<vals.length;i++){const td=document.createElement('td');td.textContent=vals[i];if(i===4)td.className=tone(r.net);if(i===6)td.className=tone(sourcePnl);if(i===0)td.title=r.wallet;if(i===9){const s=document.createElement('span');s.className='status '+(r.a.error?'error':'ok');s.textContent=vals[i];td.replaceChildren(s)}tr.append(td)}$('accounts').append(tr)}
- if(!rows.length)$('accounts').innerHTML='<tr><td colspan="8" class="empty">아직 계좌가 없습니다.</td></tr>';
+ if(!rows.length)$('accounts').innerHTML='<tr><td colspan="10" class="empty">아직 계좌가 없습니다.</td></tr>';
  trades.sort((a,b)=>String(b.t.closed_at||'').localeCompare(String(a.t.closed_at||'')));
  const selected=trades.filter(x=>filter==='ALL'||x.coin===filter);$('trades').replaceChildren();
  for(const x of selected.slice(0,100)){const d=document.createElement('article');d.className='trade';const h=document.createElement('h3');h.textContent=x.coin+' · '+x.t.side;d.append(h);for(const [k,v] of [['지갑',x.wallet.slice(0,10)+'…'],['진입',x.t.entry_price],['청산',x.t.exit_price],['실현 순손익',fmt(x.t.net_pnl_krw)],['진입 수수료',fmt(x.t.entry_fee_krw)],['청산 수수료',fmt(x.t.exit_fee_krw)],['사유',x.t.reason],['시각',x.t.closed_at]]){const p=document.createElement('p'),a=document.createElement('span'),b=document.createElement('span');a.textContent=k;b.textContent=v??'—';p.append(a,b);d.append(p)}$('trades').append(d)}
