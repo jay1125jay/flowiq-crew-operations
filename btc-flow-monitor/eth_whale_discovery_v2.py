@@ -151,9 +151,15 @@ def rank_eth_candidates(seeds, profiles, limit=5):
     return eligible[:max(0, int(limit))]
 
 
-def discover(excluded=(), seed_limit=MAX_SEEDS, candidate_limit=5, now_ms=None):
+def discover(excluded=None, seed_limit=MAX_SEEDS, candidate_limit=5, now_ms=None):
     now_ms = int(now_ms or time.time() * 1000)
     start_ms = now_ms - 30 * 24 * 60 * 60 * 1000
+    if excluded is None:
+        selected_path = OUTPUT.parent / "selected-whales.json"
+        if not selected_path.exists():
+            raise FileNotFoundError("selected-whales.json is required to exclude the existing five whales")
+        selected_rows = json.loads(selected_path.read_text(encoding="utf-8"))
+        excluded = [row["address"] for row in selected_rows]
     payload = fetch_json(LEADERBOARD_URL)
     seeds = leaderboard_seeds(payload, excluded=excluded, limit=seed_limit)
     profiles = {}
