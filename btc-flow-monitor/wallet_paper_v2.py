@@ -151,7 +151,7 @@ def reconcile_wallet(ledger, wallet):
     for coin in ASSETS:
         account = ledger["wallets"][wallet][coin]
         source = positions.get(coin, {})
-        source_size = finite(source.get("szi", 0), coin + " source size")
+        source_size = finite(source.get("szi", 0.0) or 0.0, coin + " source size")
         source_entry = finite(source["entryPx"], coin + " source entry") if source_size else None
         if source_size and source_entry <= 0:
             raise ValueError(coin + " invalid source entry")
@@ -220,10 +220,10 @@ def reconcile_wallet(ledger, wallet):
         account["source_size"] = source_size
         account["source_entry_px"] = source_entry
         account["source_equity_usd"] = equity
-        account["source_unrealized_pnl_usd"] = finite(source.get("unrealizedPnl", 0.0), coin + " source unrealized PnL")
-        account["source_value_usd"] = finite(source.get("positionValue", 0.0), coin + " source position value")
-        account["source_margin_usd"] = finite(source.get("marginUsed", 0.0), coin + " source margin")
-        account["source_roe_pct"] = finite(source.get("returnOnEquity", 0.0), coin + " source ROE") * 100.0
+        account["source_unrealized_pnl_usd"] = finite(source.get("unrealizedPnl", 0.0) or 0.0, coin + " source unrealized PnL")
+        account["source_value_usd"] = finite(source.get("positionValue", 0.0) or 0.0, coin + " source position value")
+        account["source_margin_usd"] = finite(source.get("marginUsed", 0.0) or 0.0, coin + " source margin")
+        account["source_roe_pct"] = finite(source.get("returnOnEquity", 0.0) or 0.0, coin + " source ROE") * 100.0
         account["source_leverage"] = (source.get("leverage") or {}).get("value")
         account["source_side"] = "LONG" if source_size > 0 else "SHORT" if source_size < 0 else "FLAT"
         account["source_snapshot_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
