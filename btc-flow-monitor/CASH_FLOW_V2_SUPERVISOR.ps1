@@ -156,6 +156,18 @@ Write-Host 'V2 is healthy. Automatic code update checks are active. Keep this su
 try {
     while ($true) {
         Start-Sleep -Seconds 60
+        if (Test-LegacyEngine) {
+            Stop-Engine
+            throw 'V1 engine appeared while V2 was running. V2 was stopped to prevent duplicate whale tracking.'
+        }
+        if (!$script:EngineProcess -or $script:EngineProcess.HasExited) {
+            Write-Host 'V2 engine exited unexpectedly. Attempting restart of the current tested version.'
+            Start-Engine
+            if (!(Wait-EngineHealth 300)) {
+                Stop-Engine
+                throw 'V2 engine could not recover after an unexpected exit.'
+            }
+        }
         Invoke-Git $RepoDir @('fetch', '--depth=1', 'origin', $Branch)
         $remoteSha = (& git -C $RepoDir rev-parse "origin/$Branch").Trim()
         $localSha = (& git -C $RepoDir rev-parse HEAD).Trim()
