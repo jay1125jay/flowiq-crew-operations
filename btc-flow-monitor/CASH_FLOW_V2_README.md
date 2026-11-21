@@ -23,6 +23,7 @@
 - V2 queue is `pending-paper-v2.sqlite3`; V1 SQLite is not modified.
 - First migration fetches the latest `main` BTC ledger; empty data or changed whale selection causes a hard stop.
 - Exact raw legacy BTC account snapshots are retained in the V2 ledger.
+- V1 closed trades do not contain enough data to reconstruct all historical fees; the BTC fee total is explicitly marked incomplete. Existing BTC net equity and realized PnL are preserved.
 - Automatic update tests the candidate version first, backs up V2 data, stops V2 gracefully, checks health and rolls back on failure.
 - PAPER_ONLY is enforced. No exchange order, withdrawal or live execution endpoint is called.
 
