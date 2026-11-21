@@ -73,7 +73,7 @@ function Wait-EngineHealth {
                 try {
                     $ledger = Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json
                     if ($ledger.paper_only -eq $true -and $ledger.real_trading_enabled -eq $false -and
-                        [int]$ledger.observed_count -gt 0 -and @($ledger.wallets.PSObject.Properties).Count -eq 5) {
+                        [int]$ledger.observed_count -eq 5 -and @($ledger.wallets.PSObject.Properties).Count -eq 5) {
                         return $true
                     }
                 } catch {}
