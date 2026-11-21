@@ -68,6 +68,15 @@ class WalletPaperV2Tests(unittest.TestCase):
         self.assertEqual(account["fill_count"], 2)
         self.assertIsNone(ledger["wallets"][W]["ETH"]["position"])
 
+    def test_exhausted_paper_account_does_not_reopen(self):
+        ledger = new_ledger([W])
+        account = ledger["wallets"][W]["ETH"]
+        account["cash_krw"] = 0
+        account["equity_krw"] = 0
+        result = paper.follow_snapshot(account, "ETH", -0.5, 3000, 3000, 3001, "test")
+        self.assertEqual(result, "capital_exhausted")
+        self.assertIsNone(account["position"])
+
     def test_source_gap_is_held_not_guessed(self):
         ledger = new_ledger([W])
         account = ledger["wallets"][W]["ETH"]
