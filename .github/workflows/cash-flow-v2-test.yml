@@ -2,7 +2,7 @@ name: CASH FLOW V2 PAPER tests
 on:
   push:
     branches:
-      - feature/cash-flow-v2-integration
+      - feature/cash-flow-v2-release-candidate
     paths:
       - 'btc-flow-monitor/cash_flow_v2_core.py'
       - 'btc-flow-monitor/test_cash_flow_v2_core.py'
@@ -12,6 +12,8 @@ on:
       - 'btc-flow-monitor/dashboard-v2.html'
       - 'btc-flow-monitor/test_wallet_paper_v2.py'
       - 'btc-flow-monitor/test_wallet_phone_v2.py'
+      - 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'
+      - 'btc-flow-monitor/START_CASH_FLOW_V2.cmd'
       - '.github/workflows/cash-flow-v2-test.yml'
   pull_request:
     paths:
@@ -22,6 +24,9 @@ on:
       - 'btc-flow-monitor/wallet_phone_v2.py'
       - 'btc-flow-monitor/dashboard-v2.html'
       - 'btc-flow-monitor/test_wallet_paper_v2.py'
+      - 'btc-flow-monitor/test_wallet_phone_v2.py'
+      - 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'
+      - 'btc-flow-monitor/START_CASH_FLOW_V2.cmd'
       - '.github/workflows/cash-flow-v2-test.yml'
 permissions:
   contents: read
@@ -38,3 +43,18 @@ jobs:
       - name: Unit tests
         working-directory: btc-flow-monitor
         run: python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
+  windows-powershell-parse:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell supervisor
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+          Write-Host 'PowerShell syntax PASS'
