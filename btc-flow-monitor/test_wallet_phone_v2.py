@@ -1,6 +1,7 @@
 import unittest
 import sqlite3
 import time
+import json
 from unittest.mock import patch
 from cash_flow_v2_core import new_ledger
 from pc_wallet_follow_v2 import V2Observer
@@ -39,9 +40,9 @@ class V2WalletViewTests(unittest.TestCase):
                                "time":stamp,"tid":10,"px":"100000"}
                 with db:
                     db.execute("INSERT INTO pending_v2(wallet,coin,tid,fill_time,payload,received_ms) VALUES(?,?,?,?,?,?)",
-                               (wallet,"11",stamp,__import__("json").dumps(late_chain),first_received))
+                               (wallet,"BTC","11",stamp,json.dumps(late_chain),first_received))
                     db.execute("INSERT INTO pending_v2(wallet,coin,tid,fill_time,payload,received_ms) VALUES(?,?,?,?,?,?)",
-                               (wallet,"10",stamp,__import__("json").dumps(first_chain),first_received))
+                               (wallet,"BTC","10",stamp,json.dumps(first_chain),first_received))
                 with patch("pc_wallet_follow_v2.save_ledger"):
                     observer.drain_asset(wallet, "BTC")
                 self.assertAlmostEqual(account["source_size"], 0.02)
