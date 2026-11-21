@@ -81,6 +81,15 @@ class CashFlowV2Tests(unittest.TestCase):
         self.assertTrue(migrated["wallets"][W]["ETH"]["fees_history_complete"])
         self.assertFalse(totals(migrated)["fees_history_complete"])
 
+    def test_eth_only_wallet_does_not_add_inactive_btc_capital_to_totals(self):
+        second = "0x" + "2" * 40
+        ledger = new_ledger([W, second])
+        ledger["wallet_assets"] = {W: ["BTC", "ETH"], second: ["ETH"]}
+        result = totals(ledger)
+        self.assertEqual(result["by_asset"]["BTC"]["accounts"], 1)
+        self.assertEqual(result["by_asset"]["ETH"]["accounts"], 2)
+        self.assertEqual(result["initial_krw"], 3_000_000)
+
     def test_non_paper_ledger_is_rejected(self):
         ledger=dict(self.ledger,real_trading_enabled=True)
         with self.assertRaises(ValueError):
