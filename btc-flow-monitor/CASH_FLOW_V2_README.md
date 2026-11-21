@@ -5,7 +5,7 @@
 - `wallet_paper_v2.py`: Hyperliquid REST recovery for BTC and ETH, independent L2 quotes and fill histories, baseline follow, same-timestamp overlap recovery, source-position chain validation and atomic V2 ledger writes.
 - `pc_wallet_follow_v2.py`: real-time Hyperliquid userFills observer for both coins, reconnect, durable SQLite queue keyed by wallet+coin+tid, periodic REST recovery and graceful stop signal.
 - `dashboard-v2.html`: BTC, ETH and aggregate PnL, per-whale source unrealized PnL and margin return, follower account fees/drawdown and closed-trade history.
-- `wallet_phone_v2.py`: read-only local and QR phone bridge for the V2 dashboard.
+- `wallet_phone_v2.py`: read-only local and QR phone bridge for the V2 dashboard. The local PC dashboard displays the generated QR and connection status.
 - `CASH_FLOW_V2_SUPERVISOR.ps1`: test-before-update supervisor, graceful engine handoff, V2 data backup, health check and automatic rollback.
 - `START_CASH_FLOW_V2.cmd`: one-click bootstrap for the supervisor.
 - Offline tests cover accounting, migration, REST snapshots, fill ordering, source gaps and phone view snapshots.
