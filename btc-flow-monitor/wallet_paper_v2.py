@@ -23,6 +23,7 @@ DATA = ROOT / "trader-discovery"
 LEGACY_PATH = DATA / "wallet-paper.json"
 OUT = DATA / "wallet-paper-v2.json"
 SELECTED = DATA / "selected-whales.json"
+ETH_WATCHLIST = DATA / "eth-paper-watchlist.json"
 API = "https://api.hyperliquid.xyz/info"
 MAX_QUOTE_AGE_SECONDS = 15
 MAX_FOLLOW_GAP = 0.003
@@ -138,7 +139,7 @@ def apply_ordered_coin(ledger, wallet, coin, rows, source_equity, snapshot_ms):
     return "fills_applied" if pending else "no_new_fills"
 
 
-def reconcile_wallet(ledger, wallet):
+def reconcile_wallet(ledger, wallet, assets=None):
     state = info({"type": "clearinghouseState", "user": wallet})
     equity = finite(state["marginSummary"]["accountValue"], "source equity")
     if equity <= 0:
@@ -150,7 +151,9 @@ def reconcile_wallet(ledger, wallet):
         if item.get("position", {}).get("coin") in ASSETS
     }
     results = {}
-    for coin in ASSETS:
+    for coin in (tuple(assets) if assets is not None else ASSETS):
+        if coin not in ASSETS:
+            raise ValueError("Unsupported asset in wallet tracking policy")
         account = ledger["wallets"][wallet][coin]
         source = positions.get(coin, {})
         source_size = finite(source.get("szi", 0.0) or 0.0, coin + " source size")
@@ -246,22 +249,56 @@ def latest_main_text(relative_path):
     return result.stdout
 
 
-def load_ledger(addresses):
+def load_eth_only_addresses():
+    if not ETH_WATCHLIST.exists():
+        return []
+    config = json.loads(ETH_WATCHLIST.read_text(encoding="utf-8"))
+    if (config.get("mode") != "PAPER_ONLY" or config.get("real_orders_enabled") is not False or
+            config.get("tracking_policy", {}).get("asset") != "ETH"):
+        raise ValueError("ETH watchlist PAPER/asset policy invalid")
+    rows = config.get("candidates", [])
+    addresses = [str(row.get("address", "")).lower() for row in rows]
+    if len(addresses) != 2 or len(set(addresses)) != 2 or any(
+            len(address) != 42 or not address.startswith("0x") for address in addresses):
+        raise ValueError("Expected exactly two unique ETH-only candidate addresses")
+    return addresses
+
+
+def load_ledger(addresses, eth_only_addresses=()):
+    addresses = [str(x).lower() for x in addresses]
+    eth_only = {str(x).lower() for x in eth_only_addresses}
+    base_addresses = set(addresses) - eth_only
+    if len(addresses) != len(set(addresses)) or not eth_only.issubset(set(addresses)):
+        raise ValueError("Invalid selected/ETH-only wallet set")
     if OUT.exists():
         ledger = json.loads(OUT.read_text(encoding="utf-8"))
         if ledger.get("paper_only") is not True or ledger.get("real_trading_enabled") is not False:
             raise ValueError("Refusing non-PAPER V2 ledger")
-        if set(ledger.get("wallets", {})) != set(addresses):
-            raise ValueError("Selected whale set changed; explicit migration required")
+        existing = set(ledger.get("wallets", {}))
+        if not base_addresses.issubset(existing) or not existing.issubset(set(addresses)):
+            raise ValueError("Existing V2 wallet set differs; refusing destructive migration")
+        for address in addresses:
+            if address not in ledger["wallets"]:
+                ledger["wallets"][address] = new_ledger([address])["wallets"][address]
+        ledger["wallet_assets"] = {
+            address: (["ETH"] if address in eth_only else ["BTC", "ETH"])
+            for address in addresses
+        }
         return ledger
     raw = latest_main_text("btc-flow-monitor/trader-discovery/wallet-paper.json").strip()
     if not raw:
         raise ValueError("Latest main BTC ledger is empty; refusing to create replacement accounts")
     old = json.loads(raw)
     ledger = migrate_btc_ledger(old)
-    if set(ledger["wallets"]) == set(addresses):
-        return ledger
-    raise ValueError("Legacy whale set differs from current selection; preserve and review before migration")
+    if set(ledger["wallets"]) != base_addresses:
+        raise ValueError("Legacy BTC whale set differs from existing five; preserve and review before migration")
+    for address in eth_only:
+        ledger["wallets"][address] = new_ledger([address])["wallets"][address]
+    ledger["wallet_assets"] = {
+        address: (["ETH"] if address in eth_only else ["BTC", "ETH"])
+        for address in addresses
+    }
+    return ledger
 
 
 def save_atomic(ledger):
@@ -283,28 +320,35 @@ def save_atomic(ledger):
 
 def main():
     selected = json.loads(latest_main_text("btc-flow-monitor/trader-discovery/selected-whales.json"))
-    addresses = [row["address"].lower() for row in selected]
-    if len(addresses) != 5 or len(set(addresses)) != 5:
-        raise ValueError("Expected five distinct selected whales")
-    ledger = load_ledger(addresses)
+    base_addresses = [row["address"].lower() for row in selected]
+    if len(base_addresses) != 5 or len(set(base_addresses)) != 5:
+        raise ValueError("Expected five distinct existing selected whales")
+    eth_only = load_eth_only_addresses()
+    if set(base_addresses) & set(eth_only):
+        raise ValueError("ETH-only candidate overlaps an existing selected whale")
+    addresses = base_addresses + eth_only
+    ledger = load_ledger(addresses, eth_only)
     ledger["selected_whales"] = selected
     ledger["paper_only"] = True
     ledger["real_trading_enabled"] = False
     ok = 0
     for wallet in addresses:
+        assets = ledger["wallet_assets"][wallet]
         candidate = copy.deepcopy(ledger)
         try:
-            result = reconcile_wallet(candidate, wallet)
+            result = reconcile_wallet(candidate, wallet, assets=assets)
             candidate["wallets"][wallet]["last_reconcile"] = result
             ledger["wallets"][wallet] = candidate["wallets"][wallet]
             ok += 1
             print("V2_RECONCILE_OK", wallet[:10], result, flush=True)
         except (OSError, ValueError, KeyError, IndexError, TypeError, urllib.error.HTTPError) as exc:
-            for coin in ASSETS:
+            for coin in assets:
                 ledger["wallets"][wallet][coin]["error"] = str(exc)[:240]
             print("V2_RECONCILE_HOLD", wallet[:10], str(exc)[:240], flush=True)
         save_atomic(ledger)
     ledger["observed_count"] = ok
+    ledger["observed_wallet_count"] = len(addresses)
+    ledger["eth_only_wallet_count"] = len(eth_only)
     save_atomic(ledger)
     print("V2_SUMMARY", json.dumps(ledger["totals"], ensure_ascii=False), flush=True)
     if not ok:
