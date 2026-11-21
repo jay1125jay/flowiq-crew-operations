@@ -195,7 +195,10 @@ def totals(ledger):
     by_asset = {}
     total_initial = total_equity = total_fees = 0.0
     for coin in ASSETS:
-        accounts = [wallet[coin] for wallet in ledger["wallets"].values()]
+        accounts = [
+            wallet[coin] for address, wallet in ledger["wallets"].items()
+            if coin in ledger.get("wallet_assets", {}).get(address, ASSETS)
+        ]
         initial = sum(a["initial_krw"] for a in accounts)
         equity = sum(a["equity_krw"] for a in accounts)
         fees = sum(a["fees_krw"] for a in accounts)
@@ -217,7 +220,9 @@ def totals(ledger):
         "fees_krw": total_fees,
         "fees_history_complete": all(
             account.get("fees_history_complete", True)
-            for wallet in ledger["wallets"].values() for account in wallet.values()
+            for address, wallet in ledger["wallets"].items()
+            for coin, account in wallet.items()
+            if coin in ledger.get("wallet_assets", {}).get(address, ASSETS)
         ),
         "paper_only": True, "real_trading_enabled": False,
     }
