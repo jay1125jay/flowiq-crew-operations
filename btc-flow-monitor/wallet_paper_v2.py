@@ -15,7 +15,7 @@ import urllib.request
 
 from cash_flow_v2_core import (
     ASSETS, INITIAL_KRW, LEVERAGE, FEE_RATE, SLIPPAGE_RATE,
-    new_ledger, apply_wallet_fill, mark_account, totals, migrate_btc_ledger,
+    new_ledger, apply_wallet_fill, mark_account, close_position_fraction, totals, migrate_btc_ledger,
 )
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -175,9 +175,37 @@ def reconcile_wallet(ledger, wallet):
             # Re-fetch a short overlap so same-millisecond fills omitted by a prior
             # WebSocket disconnect can still be recovered by (time, tid) deduplication.
             rows = fetch_fills(wallet, coin, max(0, cursor - 1000), snapshot_ms) if snapshot_ms >= cursor else []
-            result = apply_ordered_coin(ledger, wallet, coin, rows, equity, snapshot_ms)
-            if not math.isclose(account["source_size"], source_size, rel_tol=0, abs_tol=1e-8):
-                raise ValueError(coin + " fill history gap; account held for recovery")
+            before_replay = copy.deepcopy(account)
+            try:
+                result = apply_ordered_coin(ledger, wallet, coin, rows, equity, snapshot_ms)
+                if not math.isclose(account["source_size"], source_size, rel_tol=0, abs_tol=1e-8):
+                    raise ValueError(coin + " fill history gap; account held for recovery")
+            except ValueError as gap_error:
+                is_history_gap = (
+                    "source fill chain mismatch" in str(gap_error) or
+                    "fill history gap" in str(gap_error)
+                )
+                if not is_history_gap or snapshot_ms - cursor < 300_000:
+                    raise
+                # Discard a partial replay and reconcile only the verified position-size
+                # reduction. Never guess missing entry prices or invent extra exposure.
+                ledger["wallets"][wallet][coin] = before_replay
+                account = ledger["wallets"][wallet][coin]
+                prior_size = finite(account.get("source_size", 0.0), coin + " prior source size")
+                position = account.get("position")
+                if position:
+                    if not prior_size or prior_size * position["side"] <= 0:
+                        raise ValueError(coin + " follower/source direction mismatch during gap recovery")
+                    retained = 0.0 if prior_size * source_size <= 0 else min(1.0, abs(source_size / prior_size))
+                    if retained < 1.0:
+                        exit_quote = bid if position["side"] > 0 else ask
+                        close_position_fraction(account, 1.0 - retained, exit_quote, stamp,
+                                                "snapshot_gap_recovery")
+                account["history_gap_at"] = stamp
+                account["history_gap_reason"] = "Missing source fills; reconciled at verified source position size"
+                account["history_gap_start_ms"] = cursor
+                account["source_size"] = source_size
+                result = "snapshot_gap_recovered"
             account["fill_cursor"] = snapshot_ms
             if not account.get("position") and source_size:
                 result += "+" + follow_snapshot(account, coin, source_size, source_entry, bid, ask, stamp)
