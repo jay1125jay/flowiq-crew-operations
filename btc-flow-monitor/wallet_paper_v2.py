@@ -88,6 +88,8 @@ def fetch_fills(wallet, coin, start_ms, end_ms):
 def follow_snapshot(account, coin, size, entry, bid, ask, stamp):
     if not size or account.get("position"):
         return "not_needed"
+    if account.get("equity_krw", 0.0) <= 0:
+        return "capital_exhausted"
     side = 1 if size > 0 else -1
     execution = (ask if side > 0 else bid) * (1 + side * SLIPPAGE_RATE)
     gap = abs(execution - entry) / entry
