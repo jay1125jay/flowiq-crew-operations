@@ -56,10 +56,10 @@ function render(data){
  const totals=data.totals||{};const wallets=data.wallets||{};const count=Object.keys(wallets).length;const sourcePnlByAsset={BTC:0,ETH:0};for(const assets of Object.values(wallets))for(const coin of ['BTC','ETH'])sourcePnlByAsset[coin]+=Number(assets[coin]?.source_unrealized_pnl_usd||0);
  $('totalPnl').textContent=fmt(totals.net_pnl_krw);$('totalPnl').className='big '+tone(totals.net_pnl_krw);
  $('totalReturn').textContent=pct(totals.return_pct)+' · BTC와 ETH 전체 합산';
- $('totalEquity').textContent=fmt(totals.equity_krw);$('totalInitial').textContent=fmt(totals.initial_krw);$('totalFees').textContent=fmt(totals.fees_krw)+(totals.fees_history_complete?'':'*');$('walletCount').textContent=count+'명 · '+count*2+'계좌';
+ $('totalEquity').textContent=fmt(totals.equity_krw);$('totalInitial').textContent=fmt(totals.initial_krw);$('totalFees').textContent=fmt(totals.fees_krw)+(totals.fees_history_complete?'':'*');const activeAccounts=Object.values(data.wallet_assets||{}).reduce((n,a)=>n+a.length,0)||count*2;$('walletCount').textContent=count+'명 · '+activeAccounts+'계좌';
  for(const coin of ['BTC','ETH']){const a=totals.by_asset?.[coin]||{};$ (coin==='BTC'?'btcPnl':'ethPnl').textContent=fmt(a.net_pnl_krw);$(coin==='BTC'?'btcPnl':'ethPnl').className='pnl '+tone(a.net_pnl_krw);$(coin==='BTC'?'btcMeta':'ethMeta').textContent='내 평가자산 '+fmt(a.equity_krw)+' · 내 수익률 '+pct(a.return_pct)+' · 고래 미실현손익 '+usd(sourcePnlByAsset[coin])+' · 수수료 '+fmt(a.fees_krw)+(a.fees_history_complete?'':' · 과거 V1 수수료 미복원')}
  const rows=[],trades=[];
- for(const [wallet,assets] of Object.entries(wallets))for(const coin of ['BTC','ETH']){
+ for(const [wallet,assets] of Object.entries(wallets))for(const coin of (data.wallet_assets?.[wallet]||['BTC','ETH'])){
   const a=assets[coin]||{},p=a.position,net=Number(a.equity_krw||0)-Number(a.initial_krw||0);
   rows.push({wallet,coin,a,p,net});
   for(const t of (a.closed||[]))trades.push({wallet,coin,t});
