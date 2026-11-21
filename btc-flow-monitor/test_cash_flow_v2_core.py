@@ -24,6 +24,13 @@ class CashFlowV2Tests(unittest.TestCase):
         self.assertEqual(apply_wallet_fill(self.ledger,W,row,1_000_000),"duplicate")
         self.assertEqual(self.ledger["wallets"][W]["BTC"]["fill_count"],1)
 
+    def test_multiple_fills_with_same_timestamp_are_processed(self):
+        first=fill("BTC","B",1,0,1000,1,100000)
+        second=fill("BTC","B",1,1,1000,2,100100)
+        self.assertEqual(apply_wallet_fill(self.ledger,W,first,1_000_000),"applied")
+        self.assertEqual(apply_wallet_fill(self.ledger,W,second,1_000_000),"applied")
+        self.assertEqual(self.ledger["wallets"][W]["BTC"]["fill_count"],2)
+
     def test_fee_and_slippage_reduce_long_equity(self):
         row=fill("BTC","B",1,0,1000,1,100000)
         apply_wallet_fill(self.ledger,W,row,1_000_000)
