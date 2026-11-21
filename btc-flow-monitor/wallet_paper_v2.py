@@ -220,6 +220,12 @@ def reconcile_wallet(ledger, wallet):
         account["source_size"] = source_size
         account["source_entry_px"] = source_entry
         account["source_equity_usd"] = equity
+        account["source_unrealized_pnl_usd"] = finite(source.get("unrealizedPnl", 0.0), coin + " source unrealized PnL")
+        account["source_value_usd"] = finite(source.get("positionValue", 0.0), coin + " source position value")
+        account["source_margin_usd"] = finite(source.get("marginUsed", 0.0), coin + " source margin")
+        account["source_roe_pct"] = finite(source.get("returnOnEquity", 0.0), coin + " source ROE") * 100.0
+        account["source_leverage"] = (source.get("leverage") or {}).get("value")
+        account["source_side"] = "LONG" if source_size > 0 else "SHORT" if source_size < 0 else "FLAT"
         account["source_snapshot_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
         account["source_quote_at"] = stamp
         account["error"] = None
