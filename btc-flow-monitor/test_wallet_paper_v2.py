@@ -15,8 +15,12 @@ def state_fixture():
         "time": int(time.time() * 1000),
         "marginSummary": {"accountValue": "100000"},
         "assetPositions": [
-            {"position": {"coin": "BTC", "szi": "0.01", "entryPx": "100000"}},
-            {"position": {"coin": "ETH", "szi": "-0.5", "entryPx": "3000"}},
+            {"position": {"coin": "BTC", "szi": "0.01", "entryPx": "100000",
+                           "unrealizedPnl": "125", "returnOnEquity": "0.125",
+                           "positionValue": "1000", "marginUsed": "100"}},
+            {"position": {"coin": "ETH", "szi": "-0.5", "entryPx": "3000",
+                           "unrealizedPnl": "-20", "returnOnEquity": "-0.02",
+                           "positionValue": "1500", "marginUsed": "150"}},
         ],
     }
 
@@ -42,6 +46,10 @@ class WalletPaperV2Tests(unittest.TestCase):
         self.assertEqual(eth["position"]["side"], -1)
         self.assertEqual(btc["source_side"], "LONG")
         self.assertEqual(eth["source_side"], "SHORT")
+        self.assertEqual(btc["source_unrealized_pnl_usd"], 125.0)
+        self.assertEqual(btc["source_roe_pct"], 12.5)
+        self.assertEqual(eth["source_unrealized_pnl_usd"], -20.0)
+        self.assertEqual(eth["source_roe_pct"], -2.0)
         self.assertIn("BTC", result)
         self.assertIn("ETH", result)
 
