@@ -1,0 +1,29 @@
+name: ETH whale screening tests
+on:
+  push:
+    branches:
+      - feature/eth-whale-screening-standalone
+    paths:
+      - 'btc-flow-monitor/eth_whale_discovery_v2.py'
+      - 'btc-flow-monitor/test_eth_whale_discovery_v2.py'
+      - '.github/workflows/eth-whale-screening-test.yml'
+  pull_request:
+    paths:
+      - 'btc-flow-monitor/eth_whale_discovery_v2.py'
+      - 'btc-flow-monitor/test_eth_whale_discovery_v2.py'
+      - '.github/workflows/eth-whale-screening-test.yml'
+permissions:
+  contents: read
+jobs:
+  eth-screening-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile btc-flow-monitor/eth_whale_discovery_v2.py btc-flow-monitor/test_eth_whale_discovery_v2.py
+      - name: Unit tests
+        working-directory: btc-flow-monitor
+        run: python -m unittest -v test_eth_whale_discovery_v2.py
