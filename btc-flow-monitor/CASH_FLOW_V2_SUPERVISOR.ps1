@@ -84,6 +84,35 @@ function Wait-EngineHealth {
     return $false
 }
 
+function Test-GitHubCi {
+    param([string]$Commit)
+    $until = (Get-Date).AddMinutes(10)
+    $uri = "https://api.github.com/repos/jay1125jay/flowiq-crew-operations/commits/$Commit/check-runs"
+    while ((Get-Date) -lt $until) {
+        try {
+            $checks = Invoke-RestMethod -Uri $uri -Headers @{
+                'Accept' = 'application/vnd.github+json'
+                'User-Agent' = 'CASH-FLOW-V2-SUPERVISOR'
+            } -TimeoutSec 20
+        } catch {
+            Write-Host "GitHub CI status unavailable: $($_.Exception.Message)"
+            return $false
+        }
+        $paper = $checks.check_runs | Where-Object { $_.name -eq 'paper-core-tests' } | Select-Object -Last 1
+        $windows = $checks.check_runs | Where-Object { $_.name -eq 'windows-powershell-parse' } | Select-Object -Last 1
+        if (($paper.conclusion -eq 'failure') -or ($windows.conclusion -eq 'failure') -or
+            ($paper.conclusion -eq 'cancelled') -or ($windows.conclusion -eq 'cancelled')) {
+            return $false
+        }
+        if ($paper.status -eq 'completed' -and $paper.conclusion -eq 'success' -and
+            $windows.status -eq 'completed' -and $windows.conclusion -eq 'success') {
+            return $true
+        }
+        Start-Sleep -Seconds 15
+    }
+    return $false
+}
+
 function Invoke-TestSuite {
     param([string]$Directory)
     $work = Join-Path $Directory 'btc-flow-monitor'
@@ -146,6 +175,7 @@ Install-Environment
 if (!(Invoke-TestSuite $RepoDir)) { throw 'V2 pre-start tests failed. Existing data and V1 are untouched.' }
 
 $localSha = (& git -C $RepoDir rev-parse HEAD).Trim()
+if (!(Test-GitHubCi $localSha)) { throw 'GitHub Python and Windows CI must both PASS before V2 startup.' }
 Start-Engine
 if (!(Wait-EngineHealth 300)) {
     Stop-Engine
@@ -172,6 +202,10 @@ try {
         $remoteSha = (& git -C $RepoDir rev-parse "origin/$Branch").Trim()
         $localSha = (& git -C $RepoDir rev-parse HEAD).Trim()
         if ($remoteSha -eq $localSha) { continue }
+        if (!(Test-GitHubCi $remoteSha)) {
+            Write-Host 'UPDATE HOLD: GitHub Python and Windows CI are not both PASS.'
+            continue
+        }
 
         $testDir = Join-Path $Root ("test-" + $remoteSha.Substring(0, 8))
         if (Test-Path $testDir) { Remove-Item $testDir -Recurse -Force }
