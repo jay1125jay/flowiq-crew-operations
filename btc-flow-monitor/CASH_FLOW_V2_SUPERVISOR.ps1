@@ -72,7 +72,8 @@ function Wait-EngineHealth {
             if (Test-Path $ledgerPath) {
                 try {
                     $ledger = Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json
-                    if ($ledger.paper_only -eq $true -and $ledger.real_trading_enabled -eq $false) {
+                    if ($ledger.paper_only -eq $true -and $ledger.real_trading_enabled -eq $false -and
+                        [int]$ledger.observed_count -gt 0 -and $ledger.wallets.Count -eq 5) {
                         return $true
                     }
                 } catch {}
