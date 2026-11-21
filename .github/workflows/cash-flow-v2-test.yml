@@ -1,0 +1,75 @@
+name: CASH FLOW V2 PAPER tests
+on:
+  push:
+    branches:
+      - feature/cash-flow-v2-release-candidate
+    paths:
+      - 'btc-flow-monitor/cash_flow_v2_core.py'
+      - 'btc-flow-monitor/test_cash_flow_v2_core.py'
+      - 'btc-flow-monitor/wallet_paper_v2.py'
+      - 'btc-flow-monitor/pc_wallet_follow_v2.py'
+      - 'btc-flow-monitor/wallet_phone_v2.py'
+      - 'btc-flow-monitor/dashboard-v2.html'
+      - 'btc-flow-monitor/test_wallet_paper_v2.py'
+      - 'btc-flow-monitor/test_wallet_phone_v2.py'
+      - 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'
+      - 'btc-flow-monitor/START_CASH_FLOW_V2.cmd'
+      - 'btc-flow-monitor/trader-discovery/eth-paper-watchlist.json'
+      - '.github/workflows/cash-flow-v2-test.yml'
+  pull_request:
+    paths:
+      - 'btc-flow-monitor/cash_flow_v2_core.py'
+      - 'btc-flow-monitor/test_cash_flow_v2_core.py'
+      - 'btc-flow-monitor/wallet_paper_v2.py'
+      - 'btc-flow-monitor/pc_wallet_follow_v2.py'
+      - 'btc-flow-monitor/wallet_phone_v2.py'
+      - 'btc-flow-monitor/dashboard-v2.html'
+      - 'btc-flow-monitor/test_wallet_paper_v2.py'
+      - 'btc-flow-monitor/test_wallet_phone_v2.py'
+      - 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'
+      - 'btc-flow-monitor/START_CASH_FLOW_V2.cmd'
+      - '.github/workflows/cash-flow-v2-test.yml'
+permissions:
+  contents: read
+jobs:
+  paper-core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime dependencies
+        run: python -m pip install websockets==15.0.1 qrcode==8.2
+      - name: Check dashboard JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('btc-flow-monitor/dashboard-v2.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script>(.*?)</script>', html, flags=re.S)
+          if len(scripts) != 1:
+              raise SystemExit('Expected exactly one dashboard script')
+          Path('/tmp/cash-flow-dashboard-v2.js').write_text(scripts[0], encoding='utf-8')
+          PY
+          node --check /tmp/cash-flow-dashboard-v2.js
+      - name: Compile
+        run: python -m py_compile btc-flow-monitor/cash_flow_v2_core.py btc-flow-monitor/test_cash_flow_v2_core.py btc-flow-monitor/wallet_paper_v2.py btc-flow-monitor/pc_wallet_follow_v2.py btc-flow-monitor/wallet_phone_v2.py btc-flow-monitor/test_wallet_paper_v2.py btc-flow-monitor/test_wallet_phone_v2.py
+      - name: Unit tests
+        working-directory: btc-flow-monitor
+        run: python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
+  windows-powershell-parse:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell supervisor
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'btc-flow-monitor/CASH_FLOW_V2_SUPERVISOR.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+          Write-Host 'PowerShell syntax PASS'
