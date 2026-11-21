@@ -68,7 +68,15 @@ function Wait-EngineHealth {
             return $false
         }
         if ((Test-Path $script:OutLog) -and (Select-String -Path $script:OutLog -Pattern 'V2_WS_CONNECTED' -Quiet)) {
-            return $true
+            $ledgerPath = Join-Path $EngineDir 'trader-discoverywallet-paper-v2.json'
+            if (Test-Path $ledgerPath) {
+                try {
+                    $ledger = Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json
+                    if ($ledger.paper_only -eq $true -and $ledger.real_trading_enabled -eq $false) {
+                        return $true
+                    }
+                } catch {}
+            }
         }
         Start-Sleep -Seconds 2
     }
@@ -86,6 +94,14 @@ function Invoke-TestSuite {
         & $Python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
         return ($LASTEXITCODE -eq 0)
     } finally { Pop-Location }
+}
+
+function Test-PowerShellSyntax {
+    param([string]$FilePath)
+    $tokens = $null
+    $errors = $null
+    [System.Management.Automation.Language.Parser]::ParseFile($FilePath, [ref]$tokens, [ref]$errors) | Out-Null
+    return ($errors.Count -eq 0)
 }
 
 function Backup-V2Data {
@@ -149,8 +165,13 @@ try {
         Invoke-Git $RepoDir @('worktree', 'add', '--detach', $testDir, "origin/$Branch")
         Invoke-Git $testDir @('sparse-checkout', 'set', 'btc-flow-monitor')
         $testsPassed = $false
-        try { $testsPassed = Invoke-TestSuite $testDir }
-        finally { Invoke-Git $RepoDir @('worktree', 'remove', '--force', $testDir) }
+        try {
+            $testsPassed = Invoke-TestSuite $testDir
+            $candidateSupervisor = Join-Path $testDir 'btc-flow-monitorCASH_FLOW_V2_SUPERVISOR.ps1'
+            if ($testsPassed -and (Test-Path $candidateSupervisor)) {
+                $testsPassed = Test-PowerShellSyntax $candidateSupervisor
+            }
+        } finally { Invoke-Git $RepoDir @('worktree', 'remove', '--force', $testDir) }
         if (!$testsPassed) {
             Write-Host 'UPDATE REJECTED: V2 tests failed. Current engine remains running.'
             continue
