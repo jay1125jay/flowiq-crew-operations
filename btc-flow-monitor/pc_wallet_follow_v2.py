@@ -172,28 +172,61 @@ class V2Observer:
 
 async def run():
     from wallet_paper_v2 import main as reconcile
-    try:
-        reconcile()
-    except SystemExit as exc:
-        if exc.code not in (0, 2):
-            raise
     from wallet_phone_v2 import WalletPhoneV2
-    with sqlite3.connect(DB_PATH) as db:
-        observer = V2Observer(db)
-        phone = WalletPhoneV2(ROOT, ROOT)
-        phone.view.update(observer.ledger, observer.connected,
-                          db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0])
-        phone.start()
-        async def update_phone():
-            while True:
-                pending = db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0]
-                phone.view.update(observer.ledger, observer.connected, pending)
-                await asyncio.sleep(0.5)
-        print("ENGINE", ENGINE_VERSION, "PAPER_ONLY", flush=True)
+    stop_file = ROOT / "STOP_CASH_FLOW_V2"
+    stop_event = asyncio.Event()
+
+    async def watch_stop():
+        while not stop_file.exists():
+            await asyncio.sleep(1)
+        stop_event.set()
+
+    stop_task = asyncio.create_task(watch_stop())
+    phone = None
+    try:
         try:
-            await asyncio.gather(observer.listen(), observer.reconcile_loop(), update_phone())
-        finally:
+            await asyncio.to_thread(reconcile)
+        except SystemExit as exc:
+            if exc.code not in (0, 2):
+                raise
+        if stop_event.is_set():
+            return
+        with sqlite3.connect(DB_PATH) as db:
+            observer = V2Observer(db)
+            phone = WalletPhoneV2(ROOT, ROOT)
+            phone.view.update(observer.ledger, observer.connected,
+                              db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0])
+            phone.start()
+
+            async def update_phone():
+                while True:
+                    pending = db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0]
+                    phone.view.update(observer.ledger, observer.connected, pending)
+                    await asyncio.sleep(0.5)
+
+            print("ENGINE", ENGINE_VERSION, "PAPER_ONLY", flush=True)
+            workers = [
+                asyncio.create_task(observer.listen()),
+                asyncio.create_task(observer.reconcile_loop()),
+                asyncio.create_task(update_phone()),
+            ]
+            done, pending = await asyncio.wait(
+                workers + [stop_task], return_when=asyncio.FIRST_COMPLETED
+            )
+            for task in pending:
+                task.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)
+            for task in done:
+                if task is not stop_task:
+                    task.result()
+    finally:
+        stop_task.cancel()
+        await asyncio.gather(stop_task, return_exceptions=True)
+        if phone is not None:
             await asyncio.to_thread(phone.close)
+        if stop_file.exists():
+            stop_file.unlink()
+        print("V2_ENGINE_STOPPED_GRACEFULLY", flush=True)
 
 
 if __name__ == "__main__":
