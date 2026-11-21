@@ -68,9 +68,15 @@ class CashFlowV2Tests(unittest.TestCase):
     def test_legacy_btc_history_is_preserved(self):
         legacy={"paper_only":True,"real_trading_enabled":False,"initial_krw":1_000_000,
                 "leverage":10,"accounts":{W:{"closed":[{"net_krw":123}],"cash":999}}}
+        legacy["accounts"][W].update(fill_cursor=1234,source_size=0.25,price=98000,last_at="2026-11-20T00:00:00+00:00")
         migrated=migrate_btc_ledger(legacy)
-        self.assertEqual(migrated["wallets"][W]["BTC"],legacy["accounts"][W])
+        btc=migrated["wallets"][W]["BTC"]
+        self.assertEqual(btc["cash_krw"],999)
+        self.assertEqual(btc["fill_cursor"],1234)
+        self.assertEqual(btc["source_size"],0.25)
+        self.assertEqual(migrated["legacy_btc_snapshot"][W],legacy["accounts"][W])
         self.assertIsNone(migrated["wallets"][W]["ETH"]["position"])
+        self.assertAlmostEqual(totals(migrated)["initial_krw"],2_000_000)
 
     def test_non_paper_ledger_is_rejected(self):
         ledger=dict(self.ledger,real_trading_enabled=True)
