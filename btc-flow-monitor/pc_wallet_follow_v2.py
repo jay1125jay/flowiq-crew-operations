@@ -60,7 +60,8 @@ class V2Observer:
         if wallet not in self.ledger["wallets"]:
             return
         received_ms = int(time.time() * 1000)
-        rows = [r for r in data.get("fills", []) if r.get("coin") in ("BTC", "ETH")]
+        allowed = set(self.ledger.get("wallet_assets", {}).get(wallet, ("BTC", "ETH")))
+        rows = [r for r in data.get("fills", []) if r.get("coin") in allowed]
         with self.db:
             for row in rows:
                 coin = row["coin"]
@@ -138,7 +139,8 @@ class V2Observer:
         if wallet not in self.ledger["wallets"]:
             return
         async with self.lock:
-            for coin in ("BTC", "ETH"):
+            allowed = self.ledger.get("wallet_assets", {}).get(wallet, ("BTC", "ETH"))
+            for coin in allowed:
                 self.drain_asset(wallet, coin)
 
     async def reconcile_loop(self):
@@ -154,7 +156,8 @@ class V2Observer:
                             raise
                     self.ledger = load_ledger()
                     for wallet in self.ledger["wallets"]:
-                        for coin in ("BTC", "ETH"):
+                        allowed = self.ledger.get("wallet_assets", {}).get(wallet, ("BTC", "ETH"))
+                        for coin in allowed:
                             self.drain_asset(wallet, coin)
                     print("V2_RECONCILE_OK", flush=True)
                 except Exception as exc:
@@ -171,7 +174,8 @@ class V2Observer:
                             "method": "subscribe",
                             "subscription": {"type": "userFills", "user": wallet}
                         }))
-                    print("V2_WS_CONNECTED", len(self.ledger["wallets"]), "wallets; BTC+ETH; PAPER ONLY", flush=True)
+                    eth_only_count = sum(1 for assets in self.ledger.get("wallet_assets", {}).values() if assets == ["ETH"])
+                    print("V2_WS_CONNECTED", len(self.ledger["wallets"]), "wallets;", eth_only_count, "ETH-only; PAPER ONLY", flush=True)
                     async for raw in ws:
                         try:
                             await self.handle(json.loads(raw))
