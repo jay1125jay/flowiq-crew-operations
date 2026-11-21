@@ -114,7 +114,7 @@ def apply_fill(account, row, source_equity_usd, allow_open=True, stamp=None):
         raise ValueError("Invalid fill")
     ms, tid = int(row["time"]), int(row["tid"])
     key = [ms, tid]
-    if key in account["stream_keys"] or ms <= account["fill_cursor"]:
+    if key in account["stream_keys"] or ms < account["fill_cursor"]:
         return "duplicate"
     if not math.isclose(before, account["source_size"], rel_tol=0, abs_tol=1e-8):
         raise ValueError("Source position chain mismatch")
