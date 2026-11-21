@@ -54,6 +54,10 @@ def _mark(account, price, stamp):
     if position:
         direction = position["side"]
         unrealized = direction * (price / position["entry_price"] - 1.0) * position["notional_krw"]
+        maintenance = 0.005 * position["notional_krw"] * price / position["entry_price"]
+        if account["cash_krw"] + unrealized <= maintenance:
+            _close(account, 1.0, price, stamp, "liquidation")
+            unrealized = 0.0
     account["equity_krw"] = max(0.0, account["cash_krw"] + unrealized)
     account["last_price"] = price
     account["updated_at"] = stamp
@@ -85,7 +89,7 @@ def _close(account, fraction, market_price, stamp, reason):
     gross = sign * quantity_notional * (exit_price / pos["entry_price"] - 1.0)
     exit_fee = quantity_notional * (exit_price / pos["entry_price"]) * FEE_RATE
     net = gross - entry_fee - exit_fee
-    account["cash_krw"] += gross - exit_fee
+    account["cash_krw"] = max(0.0, account["cash_krw"] + gross - exit_fee)
     account["fees_krw"] += exit_fee
     account["closed"].append({
         "opened_at": pos["opened_at"], "closed_at": stamp,
