@@ -52,14 +52,14 @@ class EthWhaleDiscoveryTests(unittest.TestCase):
                                   "eth_realized_pnl_usd": 200, "eth_win_rate_pct": 60,
                                   "eth_profit_factor": 2.0, "eth_sample_complete": True},
             seeds[1]["address"]: {"eth_fill_count": 35, "eth_close_count": 15,
-                                  "eth_realized_pnl_usd": 500, "eth_win_rate_pct": 50,
+                                  "eth_realized_pnl_usd": 500, "eth_win_rate_pct": 70,
                                   "eth_profit_factor": 3.0, "eth_sample_complete": True},
             seeds[2]["address"]: {"eth_fill_count": 5, "eth_close_count": 2,
                                   "eth_realized_pnl_usd": 900, "eth_win_rate_pct": 90,
                                   "eth_profit_factor": 5.0, "eth_sample_complete": True},
         }
         selected = rank_eth_candidates(seeds, profiles, 5)
-        self.assertEqual([x["address"] for x in selected], [seeds[0]["address"]])
+        self.assertEqual([x["address"] for x in selected], [seeds[1]["address"], seeds[0]["address"]])
 
 
 if __name__ == "__main__":
