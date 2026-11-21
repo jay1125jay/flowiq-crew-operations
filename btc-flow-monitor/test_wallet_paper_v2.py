@@ -1,5 +1,6 @@
 import unittest
 import time
+import json
 from unittest.mock import patch
 
 import wallet_paper_v2 as paper
@@ -68,6 +69,30 @@ class WalletPaperV2Tests(unittest.TestCase):
             paper.apply_ordered_coin(ledger, W, "ETH", rows, 100000, stamp)
         self.assertEqual(account["source_size"], 0.0)
         self.assertIsNone(account["position"])
+
+    def test_first_v2_load_migrates_latest_main_btc_ledger(self):
+        legacy = {
+            "paper_only": True, "real_trading_enabled": False,
+            "initial_krw": 1_000_000, "leverage": 10,
+            "accounts": {W: {"cash": 950000, "equity_krw": 960000,
+                            "fill_cursor": 1000, "source_size": 0.01,
+                            "closed": []}},
+        }
+        with patch.object(paper, "OUT") as out:
+            out.exists.return_value = False
+            with patch.object(paper, "latest_main_text", return_value=json.dumps(legacy)):
+                migrated = paper.load_ledger([W])
+        self.assertEqual(migrated["wallets"][W]["BTC"]["cash_krw"], 950000)
+        self.assertTrue(migrated["wallets"][W]["BTC"]["initialized"])
+        self.assertFalse(migrated["wallets"][W]["BTC"]["fees_history_complete"])
+        self.assertFalse(migrated["legacy_btc_snapshot"][W] is None)
+
+    def test_empty_latest_main_ledger_aborts_migration(self):
+        with patch.object(paper, "OUT") as out:
+            out.exists.return_value = False
+            with patch.object(paper, "latest_main_text", return_value=""):
+                with self.assertRaisesRegex(ValueError, "ledger is empty"):
+                    paper.load_ledger([W])
 
     def test_bad_or_stale_order_book_is_rejected(self):
         ledger = new_ledger([W])
