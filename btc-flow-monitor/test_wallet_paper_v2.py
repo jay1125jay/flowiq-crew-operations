@@ -1,0 +1,81 @@
+import unittest
+import time
+from unittest.mock import patch
+
+import wallet_paper_v2 as paper
+from cash_flow_v2_core import new_ledger
+
+
+W = "0x" + "1" * 40
+
+
+def state_fixture():
+    return {
+        "time": int(time.time() * 1000),
+        "marginSummary": {"accountValue": "100000"},
+        "assetPositions": [
+            {"position": {"coin": "BTC", "szi": "0.01", "entryPx": "100000"}},
+            {"position": {"coin": "ETH", "szi": "-0.5", "entryPx": "3000"}},
+        ],
+    }
+
+
+def book(coin, bid, ask):
+    return {"coin": coin, "time": int(time.time() * 1000),
+            "levels": [[{"px": str(bid)}], [{"px": str(ask)}]]}
+
+
+class WalletPaperV2Tests(unittest.TestCase):
+    def test_reconcile_initializes_btc_and_eth_independently(self):
+        ledger = new_ledger([W])
+        responses = [state_fixture(), book("BTC", 100000, 100010), book("ETH", 3000, 3001)]
+        with patch.object(paper, "info", side_effect=responses):
+            result = paper.reconcile_wallet(ledger, W)
+        btc = ledger["wallets"][W]["BTC"]
+        eth = ledger["wallets"][W]["ETH"]
+        self.assertTrue(btc["initialized"])
+        self.assertTrue(eth["initialized"])
+        self.assertEqual(btc["source_size"], 0.01)
+        self.assertEqual(eth["source_size"], -0.5)
+        self.assertEqual(btc["position"]["side"], 1)
+        self.assertEqual(eth["position"]["side"], -1)
+        self.assertIn("BTC", result)
+        self.assertIn("ETH", result)
+
+    def test_same_timestamp_fill_chain_applies_in_source_order(self):
+        ledger = new_ledger([W])
+        account = ledger["wallets"][W]["BTC"]
+        account.update(initialized=True, source_size=0.0, fill_cursor=0, source_equity_usd=100000)
+        stamp = int(time.time() * 1000)
+        rows = [
+            {"coin":"BTC","side":"B","sz":"0.01","startPosition":"0","time":stamp,"tid":10,"px":"100000"},
+            {"coin":"BTC","side":"B","sz":"0.01","startPosition":"0.01","time":stamp,"tid":11,"px":"100010"},
+        ]
+        result = paper.apply_ordered_coin(ledger, W, "BTC", rows, 100000, stamp)
+        self.assertEqual(result, "fills_applied")
+        self.assertAlmostEqual(account["source_size"], 0.02)
+        self.assertEqual(account["fill_count"], 2)
+        self.assertIsNone(ledger["wallets"][W]["ETH"]["position"])
+
+    def test_source_gap_is_held_not_guessed(self):
+        ledger = new_ledger([W])
+        account = ledger["wallets"][W]["ETH"]
+        account.update(initialized=True, source_size=0.0, fill_cursor=0)
+        stamp = int(time.time() * 1000)
+        rows = [{"coin":"ETH","side":"B","sz":"0.5","startPosition":"0.25",
+                 "time":stamp,"tid":99,"px":"3000"}]
+        with self.assertRaisesRegex(ValueError, "ETH source fill chain mismatch"):
+            paper.apply_ordered_coin(ledger, W, "ETH", rows, 100000, stamp)
+        self.assertEqual(account["source_size"], 0.0)
+        self.assertIsNone(account["position"])
+
+    def test_bad_or_stale_order_book_is_rejected(self):
+        ledger = new_ledger([W])
+        responses = [state_fixture(), book("BTC", 100000, 100010), book("WRONG", 3000, 3001)]
+        with patch.object(paper, "info", side_effect=responses):
+            with self.assertRaisesRegex(ValueError, "ETH invalid order book"):
+                paper.reconcile_wallet(ledger, W)
+
+
+if __name__ == "__main__":
+    unittest.main()
