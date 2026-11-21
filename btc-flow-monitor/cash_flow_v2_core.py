@@ -240,6 +240,7 @@ def _migrate_legacy_btc_account(old, capital):
             "source_entry": pos.get("source_entry"), "entry_gap_pct": pos.get("entry_gap_pct"),
         }
         account["fees_krw"] += account["position"]["entry_fee_krw"]
+    account["initialized"] = "fill_cursor" in old
     account["initial_krw"] = capital
     return account
 
