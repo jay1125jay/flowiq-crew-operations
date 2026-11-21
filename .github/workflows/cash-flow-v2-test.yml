@@ -11,6 +11,7 @@ on:
       - 'btc-flow-monitor/wallet_phone_v2.py'
       - 'btc-flow-monitor/dashboard-v2.html'
       - 'btc-flow-monitor/test_wallet_paper_v2.py'
+      - 'btc-flow-monitor/test_wallet_phone_v2.py'
       - '.github/workflows/cash-flow-v2-test.yml'
   pull_request:
     paths:
@@ -33,7 +34,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile
-        run: python -m py_compile btc-flow-monitor/cash_flow_v2_core.py btc-flow-monitor/test_cash_flow_v2_core.py btc-flow-monitor/wallet_paper_v2.py btc-flow-monitor/pc_wallet_follow_v2.py btc-flow-monitor/wallet_phone_v2.py btc-flow-monitor/test_wallet_paper_v2.py
+        run: python -m py_compile btc-flow-monitor/cash_flow_v2_core.py btc-flow-monitor/test_cash_flow_v2_core.py btc-flow-monitor/wallet_paper_v2.py btc-flow-monitor/pc_wallet_follow_v2.py btc-flow-monitor/wallet_phone_v2.py btc-flow-monitor/test_wallet_paper_v2.py btc-flow-monitor/test_wallet_phone_v2.py
       - name: Unit tests
         working-directory: btc-flow-monitor
-        run: python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py
+        run: python -m unittest -v test_cash_flow_v2_core.py test_wallet_paper_v2.py test_wallet_phone_v2.py
