@@ -296,15 +296,53 @@ function renderWalletCloses(paper) {
 }
 function renderWalletPositions(paper) {
   const list = document.getElementById('followList');
-  const entries = Object.entries(paper.accounts);
-  const active = entries.filter(([,a]) => a.fill_cursor !== undefined && a.position);
   list.replaceChildren();
+  // V2: render each wallet/asset independently so BTC and ETH are visible on Home.
+  if (paper && paper.wallets) {
+    const active = [];
+    for (const [address, assets] of Object.entries(paper.wallets)) {
+      const coins = paper.wallet_assets?.[address] || Object.keys(assets || {});
+      for (const coin of coins) {
+        const account = assets?.[coin] || {};
+        const pos = account.position;
+        if (!pos || !(Number(pos.notional_krw) > 0) || !(Number(pos.entry_price) > 0)) continue;
+        const entry = Number(pos.entry_price);
+        const qty = Number(pos.notional_krw) / entry;
+        const pnl = Number(account.equity_krw || 0) - Number(account.cash_krw || 0);
+        active.push({address, coin, pos, qty, pnl, mark:Number(account.last_price || 0)});
+      }
+    }
+    for (const item of active) {
+      const row = document.createElement('div');
+      row.className = 'follow-row';
+      const values = [
+        ['고래', short(item.address), 'wallet'],
+        ['종목', item.coin, 'asset-symbol'],
+        ['방향', Number(item.pos.side) > 0 ? '롱' : '숏', 'side'],
+        ['수량', item.qty.toLocaleString('en-US',{maximumFractionDigits:8}), 'quantity'],
+        ['평가손익', won(item.pnl), 'pnl '+tone(item.pnl)]
+      ];
+      for (const [label,value,style] of values) {
+        const cell = document.createElement('span');
+        cell.textContent = label+' · '+value;
+        cell.className = style;
+        row.append(cell);
+      }
+      row.title = item.address+' · '+item.coin+' · 진입 '+item.pos.entry_price+' · 현재 '+(item.mark || '가격 대기');
+      list.append(row);
+    }
+    if (!active.length) list.textContent = '현재 보유 중인 BTC·ETH 포지션이 없습니다.';
+    return;
+  }
+  // V1 compatibility: the legacy ledger contains BTC positions only.
+  const entries = Object.entries(paper.accounts || {});
+  const active = entries.filter(([,a]) => a.fill_cursor !== undefined && a.position);
   for (const [address,a] of active) {
     const pos = a.position;
     const pnl = pos.side*(a.price/pos.entry-1)*pos.notional;
     const row = document.createElement('div');
     row.className = 'follow-row';
-    for (const [value,style] of [['고래', ''],[short(address),'wallet'],[pos.side===1?'롱':'숏','side'],[won(pnl),'pnl '+tone(pnl)]]) {
+    for (const [value,style] of [['종목 · BTC', 'asset-symbol'],['고래 · '+short(address),'wallet'],[pos.side===1?'방향 · 롱':'방향 · 숏','side'],['평가손익 · '+won(pnl),'pnl '+tone(pnl)]]) {
       const cell = document.createElement('span');
       cell.textContent = value;
       row.append(cell);
@@ -356,16 +394,29 @@ function renderWalletPositions(paper) {
     if (busy) return;
     busy = true;
     try {
-      const [catalog, research, paper, replay] = await Promise.all([
+      const [catalog, research, paper, replay, v2Positions] = await Promise.all([
         ((local||remote)?Promise.resolve(null):fetchJson(publicData+'trader-discovery/latest.json').catch(()=>null)),
         ((local||remote)?Promise.resolve(null):fetchJson(publicData+'trader-discovery/research/2026-11-14-public-profit-screen.json').catch(()=>null)),
         loadLedger(),
-        ((local||remote)?Promise.resolve(null):fetchJson(publicData+'trader-discovery/cloud-replay-log.json').catch(()=>null))
+        ((local||remote)?Promise.resolve(null):fetchJson(publicData+'trader-discovery/cloud-replay-log.json').catch(()=>null)),
+        (async()=>{
+          const bases = remote ? [endpoint+'/api/status'] : local ? ['/api/status'] : [
+            publicData+'trader-discovery/wallet-paper-v2.json',
+            'https://raw.githubusercontent.com/jay1125jay/flowiq-crew-operations/main/btc-flow-monitor/trader-discovery/wallet-paper-v2.json'
+          ];
+          for (const url of bases) {
+            try {
+              const response = await fetchJson(url,{credentials:'omit',referrerPolicy:'no-referrer',headers:remote?{Authorization:'Bearer '+key}:{},signal:AbortSignal.timeout(5000)});
+              if (response?.wallets) { safety(response); return response; }
+            } catch (_) {}
+          }
+          return null;
+        })()
       ]);
       safety(paper);
       renderStrategies(paper);
       renderOverview(paper);
-      renderWalletPositions(paper);
+      renderWalletPositions(v2Positions || paper);
       renderWalletCloses(paper);
       const rows = new Map();
       function add(address, value, label) {
