@@ -96,6 +96,26 @@ body{font-variant-numeric:tabular-nums;line-height:1.5;word-break:keep-all}
  #recordsPanel .trade-record{padding:13px}
  #recordsPanel .trade-record p{grid-template-columns:minmax(95px,.75fr) minmax(0,1.25fr);font-size:12px}
 }
+
+/* Whale-first compact view: cumulative results and open positions only */
+#whaleStateCards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+#whales .whale-summary-card{padding:17px 18px}
+.whale-summary-values{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #2b3d47}
+.whale-summary-values .whale-pnl{font-size:23px;margin:0}
+.whale-position-list{padding-top:12px}
+.whale-position-heading{font-size:12px;color:#9db2bf;font-weight:700;margin-bottom:7px}
+.whale-position-row,.whale-record-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;font-size:12px}
+.whale-position-row{border-bottom:1px solid #263741}
+.whale-position-row span,.whale-position-row strong{overflow-wrap:anywhere}
+.whale-card-foot{padding-top:10px;font-size:11px}
+#recordsPanel .whale-record-group{padding:15px 17px}
+.whale-record-head{padding:0 0 7px;font-size:13px}
+.whale-record-details{margin-top:10px;padding-top:9px;border-top:1px solid #2c3e48}
+.whale-record-details summary{padding:5px 0}
+.whale-record-trades{display:grid;gap:8px;margin-top:9px}
+.whale-record-trade{padding:10px 12px;background:#0d171e;border:1px solid #263943;border-radius:10px}
+.whale-record-trade p{font-size:11px;color:#9db0bc;margin:4px 0}
+@media(max-width:640px){#whaleStateCards{grid-template-columns:1fr}.whale-summary-values .whale-pnl{font-size:20px}.whale-position-row{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -293,56 +313,48 @@ function renderOverview(paper) {
   }
 }
 function renderWalletCloses(paper) {
-  const events = Object.entries(paper.accounts).flatMap(([address,a]) =>
-    (a.fill_cursor === undefined ? [] : a.closed || []).map((trade, index) => ({address,trade,index})));
-  events.sort((a,b) => Date.parse(b.trade.closed)-Date.parse(a.trade.closed) || b.index-a.index);
-  const list = document.createDocumentFragment();
-  const time = value => Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}) : '—';
-  function add(address, pos, open, account) {
-    const card = document.createElement('article');
-    card.className = 'trade-record';
-    const title = document.createElement('h3');
-    const status = open ? '보유 중' : pos.reason === 'liquidation' ? '강제 청산' : pos.close_fraction == null ? '청산' : pos.close_fraction < 1 ? '부분 청산' : '전량 청산';
-    title.textContent = 'BTC (비트코인) · '+(pos.side===1?'롱':pos.side===-1?'숏':'방향 미상')+' · '+status;
-    card.append(title);
-    function line(label,value) {
-      const p=document.createElement('p');
-      const name=document.createElement('span'), amount=document.createElement('span');
-      name.textContent=label; amount.textContent=value; p.append(name,amount);
-      if(label.includes('손익')) p.className='profit-line';
-      card.append(p);
-    }
-    line('고래', short(address));
-    card.title=address;
-    line('최초 진입', time(open ? pos.at : pos.opened));
-    line('평균 진입가', usd(pos.entry));
-    if (pos.applied_at) {
-      line(open ? '추종 대상 체결' : '청산 대상 체결', time(pos.source_at));
-      line('엔진 수신', time(pos.received_at));
-      line('모의계좌 반영', time(pos.applied_at));
-      if (Number.isFinite(pos.apply_delay_ms)) line('체결 → 반영 지연', pos.apply_delay_ms.toLocaleString('ko-KR')+'ms (밀리초)');
-    }
-    if(open) {
-      line('최근 평가', time(account.last_at));
-      line('평가 가격', usd(account.price));
-      line('평가손익', won(pos.side*(account.price/pos.entry-1)*pos.notional));
-    } else {
-      line('청산', time(pos.closed));
-      line('청산가', usd(pos.exit));
-      if(Number.isFinite(pos.close_fraction)) line('직전 보유량 대비 청산 비율', (100*pos.close_fraction).toLocaleString('ko-KR',{maximumFractionDigits:2})+'%');
-      line('수수료 차감 후 확정손익', (pos.net_krw>0?'+':'')+won(pos.net_krw));
-      line('청산 직후 현금', won(pos.cash_after_krw));
-    }
-    list.append(card);
+ const grouped=Object.entries(paper.accounts||{}).map(([address,a])=>{
+  const trades=(a.fill_cursor===undefined?[]:a.closed||[]).slice().sort((x,y)=>Date.parse(y.closed)-Date.parse(x.closed));
+  return {address,a,trades,net:trades.reduce((sum,t)=>sum+Number(t.net_krw||0),0)};
+ }).filter(x=>x.trades.length||x.a.position);
+ const all=grouped.flatMap(x=>x.trades);
+ $('recordsGain').textContent=won(all.reduce((sum,t)=>sum+Math.max(0,Number(t.net_krw||0)),0));
+ $('recordsLoss').textContent=won(all.reduce((sum,t)=>sum+Math.max(0,-Number(t.net_krw||0)),0));
+ const fragment=document.createDocumentFragment();
+ const time=value=>Number.isFinite(Date.parse(value))?new Date(value).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'—';
+ for(const [i,g] of grouped.entries()){
+  const card=document.createElement('article');card.className='trade-record whale-record-group';
+  const head=document.createElement('div');head.className='whale-record-head';
+  const name=document.createElement('strong');name.textContent='고래 '+(i+1)+' · '+short(g.address);name.title=g.address;
+  const total=document.createElement('strong');total.className=g.net>0?'green':g.net<0?'red':'';total.textContent=(g.net>0?'+':'')+won(g.net);
+  head.append(name,total);card.append(head);
+  const meta=document.createElement('div');meta.className='meta';meta.textContent='모의 추종 확정 거래 '+g.trades.length+'건';card.append(meta);
+  if(g.a.position){
+   const p=g.a.position,unrealized=Number.isFinite(g.a.price)?p.side*(g.a.price/p.entry-1)*p.notional:null;
+   const pos=document.createElement('div');pos.className='whale-position-row';
+   const l=document.createElement('span');l.textContent='현재 BTC '+(p.side===1?'롱':'숏')+' 보유';
+   const v=document.createElement('strong');v.textContent=unrealized==null?'평가 대기':'평가손익 '+won(unrealized);v.className=unrealized>0?'green':unrealized<0?'red':'';
+   pos.append(l,v);card.append(pos);
   }
-  for(const [address,a] of Object.entries(paper.accounts)) {
-    if(a.fill_cursor!==undefined && a.position) add(address,a.position,true,a);
+  if(g.trades.length){
+   const details=document.createElement('details');details.className='whale-record-details';
+   const summary=document.createElement('summary');summary.textContent='거래 기록 '+g.trades.length+'건 보기';details.append(summary);
+   const list=document.createElement('div');list.className='whale-record-trades';
+   for(const t of g.trades){
+    const row=document.createElement('div');row.className='whale-record-trade';
+    const title=document.createElement('strong');title.textContent='BTC '+(t.side===1?'롱':'숏')+' · '+(t.reason==='liquidation'?'강제 청산':'청산');
+    const pnl=document.createElement('strong');pnl.className=Number(t.net_krw)>0?'green':Number(t.net_krw)<0?'red':'';pnl.textContent=(Number(t.net_krw)>0?'+':'')+won(t.net_krw);
+    const top=document.createElement('div');top.className='whale-record-head';top.append(title,pnl);
+    const date=document.createElement('p');date.textContent='진입 '+time(t.opened)+' · 청산 '+time(t.closed);
+    const price=document.createElement('p');price.textContent='진입가 '+usd(t.entry)+' · 청산가 '+usd(t.exit);
+    row.append(top,date,price);list.append(row);
+   }
+   details.append(list);card.append(details);
   }
-  for(const {address,trade} of events) add(address,trade,false);
-  $('recordsGain').textContent = won(events.reduce((sum,{trade})=>sum+Math.max(0,trade.net_krw),0));
-  $('recordsLoss').textContent = won(events.reduce((sum,{trade})=>sum+Math.max(0,-trade.net_krw),0));
-  $('walletCloses').replaceChildren(list);
-  $('closeStatus').textContent = events.length ? '확정 손익 '+events.length+'건' : '아직 청산된 거래가 없습니다.';
+  fragment.append(card);
+ }
+ $('walletCloses').replaceChildren(fragment);
+ $('closeStatus').textContent=all.length?'고래별 누적 기록 · 확정 거래 '+all.length+'건':'아직 확정된 거래 기록이 없습니다.';
 }
 function renderWalletPositions(paper) {
  const list=document.getElementById('followList');list.replaceChildren();
@@ -543,17 +555,38 @@ el('budgetInput').addEventListener('input',allocation);
 el('settingsForm').onsubmit=async e=>{e.preventDefault();if(!isPC)return;const data={budget_krw:Number(el('budgetInput').value),leverage:Number(el('leverageInput').value),compound:el('compoundInput').checked,capital_cap_krw:Number(el('capInput').value),daily_loss_krw:Number(el('lossInput').value),max_gap_pct:Number(el('gapInput').value),allocation:'equal',enabled_wallets:[...document.querySelectorAll('#walletChoices input:checked')].map(n=>n.value)};el('saveSettings').disabled=true;try{applySettings(await api('/api/settings',data));el('settingsStatus').textContent='준비 설정 저장 완료 · 실거래 엔진 미연결 · 현재 모의매매에는 적용되지 않습니다.'}catch(e){el('settingsStatus').textContent=errorMessage(e)}finally{el('saveSettings').disabled=false}};
 async function testConnection(useSaved){if(!isPC)return;el('testConnection').disabled=true;el('retestConnection').disabled=true;el('connectionStatus').textContent='바이낸스 조회 권한·선물 계좌 확인 중…';try{const data=useSaved?{}:{api_key:el('apiKeyInput').value.trim(),secret_key:el('secretKeyInput').value.trim(),save:true};const result=await api('/api/binance/test',data);connection(result)}catch(e){el('connectionStatus').textContent=errorMessage(e)}finally{el('apiKeyInput').value='';el('secretKeyInput').value='';el('testConnection').disabled=false;el('retestConnection').disabled=false}}
 el('connectionForm').onsubmit=e=>{e.preventDefault();testConnection(false)};el('retestConnection').onclick=()=>testConnection(true);el('disconnectConnection').onclick=async()=>{if(!isPC||!confirm('이 PC에 저장된 키를 삭제할까요? 바이낸스의 API 키 자체는 폐기되지 않습니다.'))return;try{connection(await api('/api/binance/disconnect',{}))}catch(e){el('connectionStatus').textContent=errorMessage(e)}};
-function whaleCards(paper){const cards=[];for(const [i,[address,a]] of Object.entries(paper.accounts).entries()){
-const snapshot=a.source_snapshot_at,rows=a.source_positions||[],stale=!snapshot||Date.now()-Date.parse(snapshot)>600000;
-let html='<h3>고래 '+(i+1)+' · '+esc(address.slice(0,8)+'…'+address.slice(-5))+'</h3><div class="meta">'+(stale?'조회 지연 또는 자료 대기':'최근 조회')+' · '+esc(stamp(snapshot))+'</div>';
-const line=(key,value)=>'<div><dt>'+esc(key)+'</dt><dd>'+esc(value)+'</dd></div>';
-html+='<dl>'+line('고래 총자산',fmt(a.source_equity_usd))+line('관찰한 BTC 크기',a.source_btc_size==null?'확인 불가':String(a.source_btc_size)+' BTC')+'</dl>';
-if(!snapshot)html+='<p class="meta">상세 잔고·증거금·수익률은 다음 고래 계좌 조회 성공 후 표시됩니다.</p>';
-else if(!rows.length)html+='<div class="whale-pnl">관망</div><p class="meta">마지막 조회 시 보유 포지션 없음</p>';
-for(const r of rows){if(!Number(r.size))continue;const pnl=Number(r.unrealized_usd),roe=r.roe==null?null:Number(r.roe)*100;html+='<h3>'+esc(r.coin)+' · '+(Number(r.size)>0?'롱':'숏')+' · '+esc(r.leverage??'—')+'배</h3><div class="whale-pnl '+(pnl>0?'green':pnl<0?'red':'')+'">'+esc(fmt(r.unrealized_usd))+'</div><div class="meta">평가손익 · '+(roe==null?'수익률 확인 불가':roe.toFixed(2)+'% · 증거금 대비')+'</div><dl>'+line('현재 포지션 금액',fmt(r.value_usd))+line('투입 증거금',fmt(r.margin_usd))+line('평균 진입가',fmt(r.entry))+line('보유 수량',Math.abs(Number(r.size))+' '+r.coin)+'</dl>'}
-const pos=a.position,own=pos&&Number.isFinite(a.price)?pos.side*(a.price/pos.entry-1)*pos.notional:null;
-html+='<hr><dl>'+line('내 모의 평가손익',own==null?'현재 보유 없음':fmt(own,'KRW'))+line('내 모의 누적손익',a.equity_krw==null?'확인 불가':fmt(a.equity_krw-paper.initial_krw,'KRW'))+line('고래 대상 체결 시각',stamp(pos?.source_at))+line('내 모의 진입 반영',stamp(pos?.applied_at||pos?.at))+'</dl><p class="meta">고래 전체 계좌와 내 BTC 모의 추종은 범위가 다릅니다. 입출금 보정 계좌 수익률은 아직 제공하지 않습니다.</p>';
-const card=document.createElement('article');card.className='whale-state';card.innerHTML=html;cards.push(card)}el('whaleStateCards').replaceChildren(...cards)}
+function whaleCards(paper){
+ const cards=[];
+ for(const [i,[address,a]] of Object.entries(paper.accounts||{}).entries()){
+  const closed=a.closed||[];
+  const realized=closed.reduce((sum,t)=>sum+Number(t.net_krw||0),0);
+  const sourceRows=(a.source_positions||[]).filter(r=>Number(r.size)!==0);
+  const own=a.position&&Number.isFinite(a.price)?a.position.side*(a.price/a.position.entry-1)*a.position.notional:null;
+  const card=document.createElement('article');card.className='whale-state whale-summary-card';
+  const title=document.createElement('h3');title.textContent='고래 '+(i+1)+' · '+address.slice(0,8)+'…'+address.slice(-5);title.title=address;card.append(title);
+  const summary=document.createElement('div');summary.className='whale-summary-values';
+  const pnl=document.createElement('strong');pnl.className='whale-pnl '+(realized>0?'green':realized<0?'red':'');pnl.textContent=(realized>0?'+':'')+fmt(realized,'KRW');
+  const count=document.createElement('span');count.className='meta';count.textContent='모의 추종 누적 실현손익 · '+closed.length+'건';
+  summary.append(pnl,count);card.append(summary);
+  const positions=document.createElement('div');positions.className='whale-position-list';
+  const label=document.createElement('div');label.className='whale-position-heading';label.textContent='현재 보유 포지션';positions.append(label);
+  if(!sourceRows.length){
+   const empty=document.createElement('p');empty.className='meta';empty.textContent='현재 보유 중인 포지션 없음';positions.append(empty);
+  }else{
+   for(const r of sourceRows){
+    const row=document.createElement('div');row.className='whale-position-row';
+    const left=document.createElement('strong');left.textContent=r.coin+' · '+(Number(r.size)>0?'롱':'숏');
+    const right=document.createElement('span');const pnl=Number(r.unrealized_usd);right.className=pnl>0?'green':pnl<0?'red':'';
+    right.textContent='평가손익 '+fmt(r.unrealized_usd);
+    row.append(left,right);positions.append(row);
+   }
+  }
+  const foot=document.createElement('div');foot.className='whale-card-foot meta';
+  foot.textContent='내 모의 포지션 평가손익 · '+(own==null?'보유 없음':fmt(own,'KRW'))+' · 자료 '+(a.source_snapshot_at?stamp(a.source_snapshot_at):'조회 대기');
+  card.append(positions,foot);cards.push(card);
+ }
+ el('whaleStateCards').replaceChildren(...cards);
+}
 window.addEventListener('cash-ledger',e=>{ledger=e.detail;choices();const revision=ledger.pc_live?.revision??ledger.updated_at;if(lastRevision!==revision){lastRevision=revision;whaleCards(ledger)}});
 el('exportRecords').onclick=()=>{if(!ledger)return;const rows=[['wallet','symbol','side','opened_kst','closed_kst','entry_usd','exit_usd','net_krw','reason']];for(const [address,a] of Object.entries(ledger.accounts))for(const t of a.closed||[])rows.push([address,'BTC',t.side===1?'LONG':'SHORT',stamp(t.opened),stamp(t.closed),t.entry,t.exit,t.net_krw,t.reason]);const cell=value=>'"'+String(value??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';const blob=new Blob(['\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='cash-flow-paper-records.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 })();
