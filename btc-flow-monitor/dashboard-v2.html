@@ -31,6 +31,8 @@ section{background:var(--panel);border:1px solid var(--line);border-radius:16px;
  <article class="asset"><h2>BTC 모의계좌</h2><div id="btcPnl" class="pnl">—</div><div id="btcMeta" class="muted">—</div></article>
  <article class="asset"><h2>ETH 모의계좌</h2><div id="ethPnl" class="pnl">—</div><div id="ethMeta" class="muted">—</div></article>
 </div>
+<section><div class="section-head"><h2>보유 포지션 <span id="positionCount" class="muted">0개</span></h2><p>현재 열려 있는 PAPER 포지션만 표시 · 수량·진입가·현재가·미실현손익</p></div>
+<div class="table-wrap"><table style="min-width:850px"><thead><tr><th>고래 지갑</th><th>종목</th><th>방향</th><th>보유 수량</th><th>진입 가격</th><th>현재 가격</th><th>포지션 명목금액</th><th>미실현 손익</th><th>진입 시각</th></tr></thead><tbody id="positions"><tr><td colspan="9" class="empty">데이터 대기</td></tr></tbody></table></div></section>
 <div id="health" class="sub">자료 연결 확인 중…</div>
 <section id="phoneSection" hidden><div class="section-head"><h2>휴대전화 실시간 연결</h2><p>PC가 켜져 있고 이 창이 실행 중일 때 QR로 접속할 수 있습니다.</p></div><div class="phone-panel"><img id="phoneQr" alt="휴대전화 연결 QR" hidden><div><div id="phoneStatus">연결 주소 생성 중…</div><a id="phoneUrl" href="#" target="_blank" rel="noreferrer" hidden></a><div class="phone-note">QR이 준비될 때까지 PC와 인터넷 연결을 유지하세요.</div></div></div></section>
 <section><div class="section-head"><h2>고래별 · 코인별 계좌</h2><p>각 고래 BTC·ETH 독립 계좌 / 수수료·슬리피지 반영</p></div>
@@ -59,6 +61,23 @@ function render(data){
  $('totalReturn').textContent=pct(totals.return_pct)+' · BTC와 ETH 전체 합산';
  $('totalEquity').textContent=fmt(totals.equity_krw);$('totalInitial').textContent=fmt(totals.initial_krw);$('totalFees').textContent=fmt(totals.fees_krw)+(totals.fees_history_complete?'':'*');const activeAccounts=Object.values(data.wallet_assets||{}).reduce((n,a)=>n+a.length,0)||count*2;$('walletCount').textContent=count+'명 · '+activeAccounts+'계좌';
  for(const coin of ['BTC','ETH']){const a=totals.by_asset?.[coin]||{};$ (coin==='BTC'?'btcPnl':'ethPnl').textContent=fmt(a.net_pnl_krw);$(coin==='BTC'?'btcPnl':'ethPnl').className='pnl '+tone(a.net_pnl_krw);$(coin==='BTC'?'btcMeta':'ethMeta').textContent='내 평가자산 '+fmt(a.equity_krw)+' · 내 수익률 '+pct(a.return_pct)+' · 고래 미실현손익 '+usd(sourcePnlByAsset[coin])+' · 수수료 '+fmt(a.fees_krw)+(a.fees_history_complete?'':' · 과거 V1 수수료 미복원')}
+ const openPositions=[];
+ for(const [wallet,assets] of Object.entries(wallets))for(const coin of (data.wallet_assets?.[wallet]||['BTC','ETH'])){
+  const a=assets[coin]||{},p=a.position;
+  if(p&&Number(p.notional_krw)>0&&Number(p.entry_price)>0){
+   const qty=Number(p.notional_krw)/Number(p.entry_price);
+   openPositions.push({wallet,coin,p,qty,mark:Number(a.last_price||0),unrealized:Number(a.equity_krw||0)-Number(a.cash_krw||0)});
+  }
+ }
+ $('positionCount').textContent=openPositions.length+'개';
+ $('positions').replaceChildren();
+ for(const x of openPositions){
+  const tr=document.createElement('tr');
+  const vals=[x.wallet.slice(0,8)+'…'+x.wallet.slice(-5),x.coin,x.p.side>0?'LONG (롱)':'SHORT (숏)',x.qty.toLocaleString('en-US',{maximumFractionDigits:8}),x.p.entry_price.toLocaleString('en-US',{maximumFractionDigits:4}),x.mark?x.mark.toLocaleString('en-US',{maximumFractionDigits:4}):'—',fmt(x.p.notional_krw),fmt(x.unrealized),x.p.opened_at?new Date(x.p.opened_at).toLocaleString('ko-KR'):'—'];
+  for(let i=0;i<vals.length;i++){const td=document.createElement('td');td.textContent=vals[i];if(i===0)td.title=x.wallet;if(i===7)td.className=tone(x.unrealized);tr.append(td)}
+  $('positions').append(tr);
+ }
+ if(!openPositions.length)$('positions').innerHTML='<tr><td colspan="9" class="empty">현재 보유 중인 포지션이 없습니다.</td></tr>';
  const rows=[],trades=[];
  for(const [wallet,assets] of Object.entries(wallets))for(const coin of (data.wallet_assets?.[wallet]||['BTC','ETH'])){
   const a=assets[coin]||{},p=a.position,net=Number(a.equity_krw||0)-Number(a.initial_krw||0);
