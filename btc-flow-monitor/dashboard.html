@@ -328,7 +328,7 @@ function renderWalletCloses(paper) {
   const name=document.createElement('strong');name.textContent='고래 '+(i+1)+' · '+short(g.address);name.title=g.address;
   const total=document.createElement('strong');total.className=g.net>0?'green':g.net<0?'red':'';total.textContent=(g.net>0?'+':'')+won(g.net);
   head.append(name,total);card.append(head);
-  const meta=document.createElement('div');meta.className='meta';meta.textContent='누적 확정 거래 '+g.trades.length+'건';card.append(meta);
+  const meta=document.createElement('div');meta.className='meta';meta.textContent='모의 추종 확정 거래 '+g.trades.length+'건';card.append(meta);
   if(g.a.position){
    const p=g.a.position,unrealized=Number.isFinite(g.a.price)?p.side*(g.a.price/p.entry-1)*p.notional:null;
    const pos=document.createElement('div');pos.className='whale-position-row';
@@ -566,7 +566,7 @@ function whaleCards(paper){
   const title=document.createElement('h3');title.textContent='고래 '+(i+1)+' · '+address.slice(0,8)+'…'+address.slice(-5);title.title=address;card.append(title);
   const summary=document.createElement('div');summary.className='whale-summary-values';
   const pnl=document.createElement('strong');pnl.className='whale-pnl '+(realized>0?'green':realized<0?'red':'');pnl.textContent=(realized>0?'+':'')+fmt(realized,'KRW');
-  const count=document.createElement('span');count.className='meta';count.textContent='누적 실현손익 · '+closed.length+'건';
+  const count=document.createElement('span');count.className='meta';count.textContent='모의 추종 누적 실현손익 · '+closed.length+'건';
   summary.append(pnl,count);card.append(summary);
   const positions=document.createElement('div');positions.className='whale-position-list';
   const label=document.createElement('div');label.className='whale-position-heading';label.textContent='현재 보유 포지션';positions.append(label);
