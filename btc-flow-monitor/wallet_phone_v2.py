@@ -65,6 +65,7 @@ class WalletPhoneV2:
         self.dashboard = Path(root) / "dashboard-v2.html"
         html = self.dashboard.read_text(encoding="utf-8")
         self.share = PhoneShare(self.view, directory, dashboard_html=html)
+        self.share.direct_dashboard = False  # Open Home with authenticated V2 PC API
         self.portal = local_portal(self.view, self.share, self.dashboard, settings=None)
         self.url = f"http://127.0.0.1:{self.portal.server_port}/"
 
