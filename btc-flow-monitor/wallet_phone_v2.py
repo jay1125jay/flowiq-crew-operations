@@ -66,6 +66,7 @@ class WalletPhoneV2:
         html = self.dashboard.read_text(encoding="utf-8")
         self.share = PhoneShare(self.view, directory, dashboard_html=html)
         self.share.direct_dashboard = False  # Open Home with authenticated V2 PC API
+        self.share.open_public_home = True  # Open the Home URL on this PC after tunnel authentication is ready
         self.portal = local_portal(self.view, self.share, self.dashboard, settings=None)
         self.url = f"http://127.0.0.1:{self.portal.server_port}/"
 

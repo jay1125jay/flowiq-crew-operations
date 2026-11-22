@@ -111,6 +111,7 @@ class PhoneShare:
         self.token = secrets.token_urlsafe(32)
         self.server = bridge(view, self.token, dashboard_html)
         self.direct_dashboard = dashboard_html is not None
+        self.open_public_home = False
         self.stop = threading.Event()
         self.lock = threading.Lock()
         self.process = None
@@ -152,6 +153,9 @@ class PhoneShare:
                     self.server.public_origin = match.group(0)
                     target = match.group(0)+'/dashboard.html' if self.direct_dashboard else DASHBOARD
                     url = target+'#'+urlencode({'pc': match.group(0), 'key': self.token})
+                    if self.open_public_home:
+                        import webbrowser
+                        webbrowser.open(url)
                     svg = qrcode.make(url, image_factory=SvgPathImage, box_size=4, border=4).to_string()
                     with self.lock:
                         self.url, self.svg, self.status = url, svg, 'LINK_READY'
