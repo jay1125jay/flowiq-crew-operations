@@ -47,8 +47,9 @@ let filter='ALL',last=null,busy=false;
 const hash=new URLSearchParams(location.hash.slice(1)),endpoint=hash.get('pc'),token=hash.get('key');
 const remote=Boolean(endpoint&&token),local=['127.0.0.1','localhost'].includes(location.hostname);
 async function getData(){
- if(remote){const r=await fetch(endpoint+'/api/status',{cache:'no-store',credentials:'omit',headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(7000)});if(!r.ok)throw Error('PC 연결 인증 실패');return r.json()}
- if(local){const r=await fetch('/api/status',{cache:'no-store',signal:AbortSignal.timeout(4000)});if(!r.ok)throw Error('PC API 조회 실패');return r.json()}
+ const since=last?.pc_live?.revision;
+ if(remote){const suffix=since==null?'':'?since='+encodeURIComponent(since);const r=await fetch(endpoint+'/api/status'+suffix,{cache:'no-store',credentials:'omit',headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(7000)});if(!r.ok)throw Error('PC 연결 인증 실패');return r.json()}
+ if(local){const suffix=since==null?'':'?since='+encodeURIComponent(since);const r=await fetch('/api/status'+suffix,{cache:'no-store',signal:AbortSignal.timeout(4000)});if(!r.ok)throw Error('PC API 조회 실패');return r.json()}
  const r=await fetch('./trader-discovery/wallet-paper-v2.json?ts='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('V2 공개 계좌 자료 없음');return r.json()
 }
 function render(data){
@@ -88,7 +89,7 @@ async function refreshPhoneShare(){
   }else{$('phoneQr').hidden=true;$('phoneUrl').hidden=true}
  }catch(e){$('phoneStatus').textContent='휴대전화 연결 상태 확인 실패'}
 }
-async function refresh(){if(busy||document.hidden)return;busy=true;try{render(await getData())}catch(e){$('health').textContent='조회 실패 · '+e.message;$('health').className='sub warning'}finally{busy=false}}
+async function refresh(){if(busy||document.hidden)return;busy=true;try{const data=await getData();if(data.unchanged){const live=data.pc_live||{};$('health').textContent='PC 직접 연결 · '+(live.connected?'WebSocket 연결':'WebSocket 대기')+' · 대기 체결 '+(live.pending??'—')+' · 하트비트 '+(live.heartbeat_ms?new Date(live.heartbeat_ms).toLocaleTimeString('ko-KR'):'—')+' · 변경 데이터 없음'}else render(data)}catch(e){$('health').textContent='조회 실패 · '+e.message;$('health').className='sub warning'}finally{busy=false}}
 refresh();refreshPhoneShare();setInterval(refresh,remote||local?1500:10000);setInterval(refreshPhoneShare,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 })();
 </script></body></html>+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2}),pct=n=>(Number(n)||0).toFixed(2)+'%',tone=n=>Number(n)>=0?'positive':'negative';
