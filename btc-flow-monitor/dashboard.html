@@ -382,6 +382,7 @@ function renderV2HomeOverview(data){
       const v2Live=v2Positions?.wallets? v2Positions : (paper?.wallets?paper:null);
       if(v2Live){renderV2HomeOverview(v2Live);renderWalletPositions(v2Live);$('closeStatus').textContent='V2 청산 내역은 기록 탭에서 확인할 수 있습니다.';}
       else{renderStrategies(paper);renderOverview(paper);renderWalletPositions(paper);renderWalletCloses(paper);}
+      if (!v2Live) {
       const rows = new Map();
       function add(address, value, label) {
         if (/^0x[a-f0-9]{40}$/i.test(address) && Number.isFinite(value))
@@ -425,6 +426,7 @@ function renderV2HomeOverview(data){
       document.getElementById('whaleDate').textContent = ordered.length
         ? '개별 조회 '+paper.observed_count+'/'+Object.keys(paper.accounts).length+' · 회차 '+new Date(paper.updated_at).toLocaleString('ko-KR')+' · 원본 24시간 기록률 '+(replay?.capture_health?.coverage_pct_24h??'—')+'% · 최장 공백 '+(replay?.capture_health ? Math.round(replay.capture_health.max_gap_seconds_24h/60)+'분':'—')
         : '표시할 고래 후보가 없습니다.';
+      }
     } catch {
       $('ledgerHealth').dataset.warning='true';
       $('ledgerHealth').textContent='최신 계좌 조회 실패 · 새로고침으로 다시 확인하세요.';
@@ -445,13 +447,18 @@ function renderV2HomeOverview(data){
       liveBusy=true;
       try {
         const paper=await loadLedger();
-        renderOverview(paper);
-        if (force || paper.pc_live.revision!==previousRevision) {
-          renderStrategies(paper);
+        if (paper.wallets) {
+          renderV2HomeOverview(paper);
           renderWalletPositions(paper);
-          if (!$('records').hidden || force) renderWalletCloses(paper);
-          previousRevision=paper.pc_live.revision;
+        } else {
+          renderOverview(paper);
+          if (force || paper.pc_live.revision!==previousRevision) {
+            renderStrategies(paper);
+            renderWalletPositions(paper);
+            if (!$('records').hidden || force) renderWalletCloses(paper);
+          }
         }
+        previousRevision=paper.pc_live?.revision??previousRevision;
       } catch {
         $('ledgerHealth').dataset.warning='true';
         $('ledgerHealth').textContent='PC 직접 연결 끊김 · 마지막 표시값입니다. PC와 연결 QR을 확인하세요.';
