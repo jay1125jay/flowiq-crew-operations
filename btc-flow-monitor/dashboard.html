@@ -295,64 +295,29 @@ function renderWalletCloses(paper) {
   $('closeStatus').textContent = events.length ? '확정 손익 '+events.length+'건' : '아직 청산된 거래가 없습니다.';
 }
 function renderWalletPositions(paper) {
-  const list = document.getElementById('followList');
-  list.replaceChildren();
-  // V2: render each wallet/asset independently so BTC and ETH are visible on Home.
-  if (paper && paper.wallets) {
-    const active = [];
-    for (const [address, assets] of Object.entries(paper.wallets)) {
-      const coins = paper.wallet_assets?.[address] || Object.keys(assets || {});
-      for (const coin of coins) {
-        const account = assets?.[coin] || {};
-        const pos = account.position;
-        if (!pos || !(Number(pos.notional_krw) > 0) || !(Number(pos.entry_price) > 0)) continue;
-        const entry = Number(pos.entry_price);
-        const qty = Number(pos.notional_krw) / entry;
-        const pnl = Number(account.equity_krw || 0) - Number(account.cash_krw || 0);
-        active.push({address, coin, pos, qty, pnl, mark:Number(account.last_price || 0)});
-      }
-    }
-    for (const item of active) {
-      const row = document.createElement('div');
-      row.className = 'follow-row';
-      const values = [
-        ['고래', short(item.address), 'wallet'],
-        ['종목', item.coin, 'asset-symbol'],
-        ['방향', Number(item.pos.side) > 0 ? '롱' : '숏', 'side'],
-        ['수량', item.qty.toLocaleString('en-US',{maximumFractionDigits:8}), 'quantity'],
-        ['평가손익', won(item.pnl), 'pnl '+tone(item.pnl)]
-      ];
-      for (const [label,value,style] of values) {
-        const cell = document.createElement('span');
-        cell.textContent = label+' · '+value;
-        cell.className = style;
-        row.append(cell);
-      }
-      row.title = item.address+' · '+item.coin+' · 진입 '+item.pos.entry_price+' · 현재 '+(item.mark || '가격 대기');
-      list.append(row);
-    }
-    if (!active.length) list.textContent = '현재 보유 중인 BTC·ETH 포지션이 없습니다.';
-    return;
+ const list=document.getElementById('followList');list.replaceChildren();
+ if(paper&&paper.wallets){
+  const active=[];
+  for(const [address,assets] of Object.entries(paper.wallets)){
+   for(const coin of (paper.wallet_assets?.[address]||Object.keys(assets||{}))){
+    const a=assets?.[coin]||{},p=a.position;
+    if(p&&Number(p.notional_krw)>0&&Number(p.entry_price)>0)active.push({address,coin,a,p,qty:Number(p.notional_krw)/Number(p.entry_price),pnl:Number(a.equity_krw||0)-Number(a.cash_krw||0)});
+   }
   }
-  // V1 compatibility: the legacy ledger contains BTC positions only.
-  const entries = Object.entries(paper.accounts || {});
-  const active = entries.filter(([,a]) => a.fill_cursor !== undefined && a.position);
-  for (const [address,a] of active) {
-    const pos = a.position;
-    const pnl = pos.side*(a.price/pos.entry-1)*pos.notional;
-    const row = document.createElement('div');
-    row.className = 'follow-row';
-    for (const [value,style] of [['종목 · BTC', 'asset-symbol'],['고래 · '+short(address),'wallet'],[pos.side===1?'방향 · 롱':'방향 · 숏','side'],['평가손익 · '+won(pnl),'pnl '+tone(pnl)]]) {
-      const cell = document.createElement('span');
-      cell.textContent = value;
-      row.append(cell);
-      cell.className = style;
-    }
-    row.title = address+' · 평균 진입 '+usd(pos.entry)+' · '+new Date(pos.at).toLocaleString('ko-KR');
-    list.append(row);
+  for(const x of active){const row=document.createElement('div');row.className='follow-row';
+   for(const [label,value,style] of [['고래',short(x.address),'wallet'],['종목',x.coin,'asset-symbol'],['방향',x.p.side>0?'롱':'숏','side'],['수량',x.qty.toLocaleString('en-US',{maximumFractionDigits:8}),'quantity'],['평가손익',won(x.pnl),'pnl '+tone(x.pnl)]]){const cell=document.createElement('span');cell.textContent=label+' · '+value;cell.className=style;row.append(cell)}
+   row.title=x.address+' · '+x.coin+' · 진입 '+usd(x.p.entry_price)+' · 현재 '+usd(x.a.last_price);list.append(row);
   }
-  if (!active.length) list.textContent = entries.some(([,a]) => a.fill_cursor !== undefined)
-    ? (entries.some(([,a])=>Number.isFinite(a.follow_wait_gap_pct))?'고래 진입가와 0.30% 이내가 되면 추종 · 전략 비교에서 가격 차이 확인':'신규 체결 또는 고래 보유 포지션 확인 대기') : '지갑별 체결 추적 초기화 대기 중';
+  if(!active.length)list.textContent='현재 보유 중인 BTC·ETH 포지션이 없습니다.';return;
+ }
+ const entries=Object.entries(paper.accounts||{}),active=entries.filter(([,a])=>a.fill_cursor!==undefined&&a.position);
+ for(const [address,a] of active){const p=a.position,pnl=p.side*(a.price/p.entry-1)*p.notional,row=document.createElement('div');row.className='follow-row';for(const [v,s] of [['종목 · BTC','asset-symbol'],['고래 · '+short(address),'wallet'],[p.side===1?'방향 · 롱':'방향 · 숏','side'],['평가손익 · '+won(pnl),'pnl '+tone(pnl)]]){const e=document.createElement('span');e.textContent=v;e.className=s;row.append(e)}list.append(row)}
+ if(!active.length)list.textContent='현재 보유 중인 포지션이 없습니다.';
+}
+function renderV2HomeOverview(data){
+ const t=data.totals||{},w=data.wallets||{},n=Object.values(w).reduce((s,a)=>s+Object.values(a||{}).filter(x=>x?.position).length,0),closed=Object.values(w).reduce((s,a)=>s+Object.values(a||{}).reduce((k,x)=>k+(x?.closed||[]).length,0),0);
+ $('walletEquity').textContent=won(t.equity_krw||0);$('walletReturn').textContent='누적손익 '+(t.net_pnl_krw>=0?'+':'')+won(t.net_pnl_krw||0)+' · '+Number(t.return_pct||0).toFixed(2)+'%';$('walletReturn').className=tone(t.net_pnl_krw||0);$('walletCount').textContent=Object.keys(w).length+'개';$('openCount').textContent=n+'개';$('doneCount').textContent=closed+'건';
+ const h=$('ledgerHealth'),live=data.pc_live||{};h.dataset.warning=String(!live.connected||Number(live.pending)>0);h.textContent='V2 실시간 연결 · WebSocket '+(live.connected?'연결':'대기')+' · 대기 체결 '+(live.pending??0)+'건 · '+(data.updated_at?new Date(data.updated_at).toLocaleString('ko-KR'):'갱신 시각 확인 중');
 }
 {
   const publicData = local ? 'https://jay1125jay.github.io/flowiq-crew-operations/btc-flow-monitor/' : './';
@@ -371,7 +336,7 @@ function renderWalletPositions(paper) {
       });
       safety(ledger);
       if (ledger.unchanged && lastDirectLedger) ledger={...lastDirectLedger,pc_live:ledger.pc_live};
-      if (!ledger.pc_live || !ledger.accounts) throw Error('PC 엔진 업데이트가 필요합니다');
+      if (!ledger.pc_live || (!ledger.accounts && !ledger.wallets)) throw Error('PC 엔진 업데이트가 필요합니다');
       lastDirectLedger=ledger;
       return ledger;
     }
@@ -413,11 +378,10 @@ function renderWalletPositions(paper) {
           return null;
         })()
       ]);
-      safety(paper);
-      renderStrategies(paper);
-      renderOverview(paper);
-      renderWalletPositions(v2Positions || paper);
-      renderWalletCloses(paper);
+      safety(paper || v2Positions);
+      const v2Live=v2Positions?.wallets? v2Positions : (paper?.wallets?paper:null);
+      if(v2Live){renderV2HomeOverview(v2Live);renderWalletPositions(v2Live);$('closeStatus').textContent='V2 청산 내역은 기록 탭에서 확인할 수 있습니다.';}
+      else{renderStrategies(paper);renderOverview(paper);renderWalletPositions(paper);renderWalletCloses(paper);}
       const rows = new Map();
       function add(address, value, label) {
         if (/^0x[a-f0-9]{40}$/i.test(address) && Number.isFinite(value))
