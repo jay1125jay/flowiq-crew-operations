@@ -57,9 +57,8 @@ def info(payload):
             if extra_weight:
                 with _lock:
                     _next_request = max(
-                        _next_request,
-                        time.monotonic() + extra_weight / REQUEST_BUDGET_PER_SECOND,
-                    )
+                        _next_request, time.monotonic()
+                    ) + extra_weight / REQUEST_BUDGET_PER_SECOND
         return result
     except urllib.error.HTTPError as exc:
         if exc.code == 429:
