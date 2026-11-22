@@ -13,12 +13,23 @@ class V2WalletView:
         self.lock = threading.Lock()
         self.ledger = None
         self.revision = 0
+        self.ledger_version = None
+        self.source_identity = None
         self.state = {}
 
-    def update(self, ledger, connected, pending):
+    def update(self, ledger, connected, pending, ledger_version=None):
         with self.lock:
-            self.ledger = copy.deepcopy(ledger)
-            self.revision += 1
+            # The 500ms heartbeat must not copy or publish an unchanged ledger.
+            changed = (
+                self.ledger is None or
+                (ledger_version is not None and ledger_version != self.ledger_version) or
+                (ledger_version is None and ledger is not self.source_identity)
+            )
+            if changed:
+                self.ledger = copy.deepcopy(ledger)
+                self.ledger_version = ledger_version
+                self.source_identity = ledger
+                self.revision += 1
             self.state = {
                 "heartbeat_ms": int(time.time() * 1000),
                 "connected": bool(connected),

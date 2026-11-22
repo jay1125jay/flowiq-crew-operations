@@ -37,6 +37,7 @@ class V2Observer:
         self.received = 0
         self.applied = 0
         self.errors = 0
+        self.ledger_version = 0
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS pending_v2 (
                 seq INTEGER PRIMARY KEY,
@@ -129,6 +130,7 @@ class V2Observer:
         self.db.commit()
         if changed:
             save_ledger(self.ledger)
+            self.ledger_version += 1
 
     async def handle(self, message):
         self.receive(message)
@@ -155,6 +157,7 @@ class V2Observer:
                         if exit_error.code not in (0, 2):
                             raise
                     self.ledger = load_ledger()
+                    self.ledger_version += 1
                     for wallet in self.ledger["wallets"]:
                         allowed = self.ledger.get("wallet_assets", {}).get(wallet, ("BTC", "ETH"))
                         for coin in allowed:
@@ -215,13 +218,15 @@ async def run():
             observer = V2Observer(db)
             phone = WalletPhoneV2(ROOT, ROOT)
             phone.view.update(observer.ledger, observer.connected,
-                              db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0])
+                              db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0],
+                              observer.ledger_version)
             phone.start()
 
             async def update_phone():
                 while True:
                     pending = db.execute("SELECT COUNT(*) FROM pending_v2").fetchone()[0]
-                    phone.view.update(observer.ledger, observer.connected, pending)
+                    phone.view.update(observer.ledger, observer.connected, pending,
+                                      observer.ledger_version)
                     await asyncio.sleep(0.5)
 
             print("ENGINE", ENGINE_VERSION, "PAPER_ONLY", flush=True)
