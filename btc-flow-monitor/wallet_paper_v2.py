@@ -42,13 +42,25 @@ def info(payload):
         wait = max(0.0, _next_request - now)
         if wait:
             time.sleep(wait)
-        weight = 120 if payload.get("type") == "userFillsByTime" else 2
+        # Hyperliquid documents 20 base weight for userFillsByTime and
+        # +1 per 20 returned fills. Reserve the base weight before the call;
+        # account for response-size weight immediately after it returns.
+        weight = 20 if payload.get("type") == "userFillsByTime" else 2
         _next_request = time.monotonic() + weight / REQUEST_BUDGET_PER_SECOND
     req = urllib.request.Request(API, data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", "User-Agent": "CASH-FLOW-PAPER/2"})
     try:
         with urllib.request.urlopen(req, timeout=15) as response:
-            return json.load(response)
+            result = json.load(response)
+        if payload.get("type") == "userFillsByTime" and isinstance(result, list):
+            extra_weight = math.ceil(len(result) / 20)
+            if extra_weight:
+                with _lock:
+                    _next_request = max(
+                        _next_request,
+                        time.monotonic() + extra_weight / REQUEST_BUDGET_PER_SECOND,
+                    )
+        return result
     except urllib.error.HTTPError as exc:
         if exc.code == 429:
             with _lock:
