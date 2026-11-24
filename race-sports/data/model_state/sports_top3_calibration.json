@@ -1,6 +1,6 @@
 {
   "version": "SPORTS_TOP3_CALIBRATION_V2_UNBIASED_OOS_POOL",
-  "generated_at": "2026-11-24T10:57:39+09:00",
+  "generated_at": "2026-11-24T15:28:42+09:00",
   "by_sport": {
     "SOCCER": {
       "state": "HOLD_INSUFFICIENT_COVERAGE",
@@ -20,13 +20,36 @@
       "source": "BASE_HEURISTIC_FLOOR"
     },
     "BASKETBALL": {
-      "state": "HOLD_INSUFFICIENT_COVERAGE",
-      "evaluated": 236,
-      "required_selected": 20,
-      "min_coverage": 0.35,
+      "state": "CALIBRATED_KEEP_BASE",
+      "evaluated": 246,
       "effective_min_top_p": 0.7,
       "effective_min_margin": 0.2,
-      "source": "BASE_HEURISTIC_FLOOR"
+      "source": "UNBIASED_PRE_EVENT_CANDIDATE_OOS",
+      "tighten_only": true,
+      "min_selected": 20,
+      "min_coverage": 0.35,
+      "best": {
+        "min_top_p": 0.7,
+        "min_margin": 0.2,
+        "selected": 87,
+        "coverage": 0.353659,
+        "hits": 64,
+        "hit_rate": 0.735632,
+        "wilson95_lower": 0.634434,
+        "wilson95_upper": 0.816901
+      },
+      "base": {
+        "min_top_p": 0.7,
+        "min_margin": 0.2,
+        "selected": 87,
+        "coverage": 0.353659,
+        "hits": 64,
+        "hit_rate": 0.735632,
+        "wilson95_lower": 0.634434,
+        "wilson95_upper": 0.816901
+      },
+      "wilson_lower_gain": 0.0,
+      "candidate_grid_size": 6
     },
     "VOLLEYBALL": {
       "state": "HOLD_SAMPLE",
