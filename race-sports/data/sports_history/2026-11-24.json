@@ -2133,7 +2133,7 @@
   "sports_top3": {
     "version": "SPORTS_TOP3_V6_UNBIASED_OOS_CALIBRATED",
     "date": "2026-11-24",
-    "generated_at": "2026-11-24T07:42:03+09:00",
+    "generated_at": "2026-11-24T10:57:39+09:00",
     "selection_state": "HIGH_PRECISION_WITH_CIRCUIT_AND_UNBIASED_OOS_CALIBRATION",
     "policy": "MODEL_TOP_PICK_ONLY; VALIDATED_FRESH_ONLY; BASE_GATES_ARE_FLOORS; UNBIASED_PRE_EVENT_OOS_POOL_CAN_TIGHTEN_NEW_PICKS_ONLY; EXISTING_LOCKED_PICKS_GRANDFATHERED; CIRCUIT_BREAKER; NO_FORCED_FILL",
     "thresholds": {
@@ -2176,7 +2176,7 @@
           },
           "selection_score": 80.932,
           "confidence": "HIGH_PRECISION",
-          "status": "SCHEDULED",
+          "status": "LIVE",
           "locked_at": "2026-11-24T07:42:03+09:00",
           "rank": 1,
           "current_state": "FRESH",
@@ -2189,6 +2189,50 @@
             "threshold_source": "BASE_HEURISTIC_FLOOR"
           },
           "performance_safety_state": "ACTIVE"
+        },
+        {
+          "event_id": "SPORTS-BASKETBALL-401910045",
+          "sport": "BASKETBALL",
+          "competition": "NBA",
+          "event_date": "2026-11-24",
+          "start_time": "12:00",
+          "start_label": "12:00",
+          "start_timestamp": 1795489200,
+          "title": "Sacramento Kings vs San Antonio Spurs",
+          "home": "Sacramento Kings",
+          "away": "San Antonio Spurs",
+          "home_ko": "새크라멘토 킹스",
+          "away_ko": "샌안토니오 스퍼스",
+          "pick_key": "AWAY",
+          "pick_name": "샌안토니오 스퍼스",
+          "pick_basis": "MODEL_HIGH_CONFIDENCE",
+          "selection_type": "HIT_RATE",
+          "model_p": 0.81862935,
+          "odds": 1.3247,
+          "market_p": 0.72486344,
+          "edge": 0.09376591,
+          "ev": 0.0844383,
+          "odds_provider": "DraftKings",
+          "history": {
+            "competition_games": 11887,
+            "home_team_games": 750,
+            "away_team_games": 777
+          },
+          "selection_score": 77.753,
+          "confidence": "HIGH_PRECISION",
+          "status": "SCHEDULED",
+          "locked_at": "2026-11-24T10:57:39+09:00",
+          "rank": 2,
+          "current_state": "FRESH",
+          "result": null,
+          "precision_gate": {
+            "top_p": 0.81862935,
+            "margin": 0.63725871,
+            "min_top_p": 0.7,
+            "min_margin": 0.2,
+            "threshold_source": "BASE_HEURISTIC_FLOOR"
+          },
+          "performance_safety_state": "ACTIVE"
         }
       ],
       "VOLLEYBALL": []
@@ -2196,7 +2240,7 @@
     "counts": {
       "SOCCER": 0,
       "BASEBALL": 0,
-      "BASKETBALL": 1,
+      "BASKETBALL": 2,
       "VOLLEYBALL": 0
     },
     "precision_thresholds": {
@@ -2243,7 +2287,7 @@
     },
     "performance_safety": {
       "version": "SPORTS_TOP3_CIRCUIT_V1",
-      "generated_at": "2026-11-24T07:42:03+09:00",
+      "generated_at": "2026-11-24T10:57:39+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "LEARNING",
@@ -2279,7 +2323,7 @@
           "state": "ACTIVE",
           "allow_new_picks": 3,
           "evaluated": 34,
-          "pending": 0,
+          "pending": 1,
           "hits": 21,
           "hit_rate": 0.617647,
           "wilson95_lower": 0.450407,
@@ -2309,7 +2353,7 @@
     },
     "calibration": {
       "version": "SPORTS_TOP3_CALIBRATION_V2_UNBIASED_OOS_POOL",
-      "generated_at": "2026-11-24T07:42:03+09:00",
+      "generated_at": "2026-11-24T10:57:39+09:00",
       "by_sport": {
         "SOCCER": {
           "state": "HOLD_INSUFFICIENT_COVERAGE",
@@ -2337,27 +2381,26 @@
         }
       }
     },
-    "rejected_count": 3,
+    "rejected_count": 1,
     "rejected_reason_counts": {
-      "NOT_MODEL_TOP_PICK": 2,
-      "TOP_PROBABILITY_BELOW_PRECISION_GATE": 1
+      "NOT_MODEL_TOP_PICK": 1
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-24T07:42:03+09:00",
+      "updated_at": "2026-11-24T10:57:39+09:00",
       "summary": {
         "overall": {
-          "picks": 42,
+          "picks": 43,
           "evaluated": 41,
-          "pending": 1,
+          "pending": 2,
           "hits": 25,
           "misses": 16,
           "hit_rate": 0.609756,
           "paper_roi": {
             "stake_per_pick_krw": 100000,
-            "odds_locked_picks": 14,
+            "odds_locked_picks": 15,
             "settled": 13,
-            "pending": 1,
+            "pending": 2,
             "excluded_no_locked_odds": 0,
             "total_staked_krw": 1300000,
             "total_return_krw": 1220830,
@@ -2405,17 +2448,17 @@
             }
           },
           "BASKETBALL": {
-            "picks": 35,
+            "picks": 36,
             "evaluated": 34,
-            "pending": 1,
+            "pending": 2,
             "hits": 21,
             "misses": 13,
             "hit_rate": 0.617647,
             "paper_roi": {
               "stake_per_pick_krw": 100000,
-              "odds_locked_picks": 13,
+              "odds_locked_picks": 14,
               "settled": 12,
-              "pending": 1,
+              "pending": 2,
               "excluded_no_locked_odds": 0,
               "total_staked_krw": 1200000,
               "total_return_krw": 1220830,
@@ -2469,6 +2512,25 @@
         }
       },
       "recent": [
+        {
+          "event_id": "SPORTS-BASKETBALL-401910045",
+          "date": "2026-11-24",
+          "sport": "BASKETBALL",
+          "competition": "NBA",
+          "title": "Sacramento Kings vs San Antonio Spurs",
+          "pick_key": "AWAY",
+          "pick_name": "샌안토니오 스퍼스",
+          "model_p": 0.81862935,
+          "locked_odds": 1.3247,
+          "locked_odds_provider": "DraftKings",
+          "resolution_state": "PENDING_RESULT",
+          "virtual_bet": {
+            "state": "PENDING_RESULT",
+            "stake_krw": 100000,
+            "locked_decimal_odds": 1.3247,
+            "odds_provider": "DraftKings"
+          }
+        },
         {
           "event_id": "SPORTS-BASKETBALL-401910038",
           "date": "2026-11-24",
@@ -2667,42 +2729,12 @@
             "profit_krw": 52360,
             "settled_at": "2026-11-19T22:16:35+09:00"
           }
-        },
-        {
-          "event_id": "SPORTS-BASKETBALL-401910006",
-          "date": "2026-11-18",
-          "sport": "BASKETBALL",
-          "competition": "NBA",
-          "title": "LA Clippers vs Utah Jazz",
-          "pick_key": "HOME",
-          "pick_name": "LA 클리퍼스",
-          "model_p": 0.76457659,
-          "locked_odds": 1.4202,
-          "locked_odds_provider": "DraftKings",
-          "resolution_state": "RESOLVED_BOARD",
-          "evaluation": {
-            "winner_key": "AWAY",
-            "hit": false,
-            "evaluated_at": "2026-11-19T01:32:15+09:00",
-            "source": "LOCKED_BOARD",
-            "source_snapshot_date": "2026-11-18"
-          },
-          "virtual_bet": {
-            "state": "SETTLED",
-            "stake_krw": 100000,
-            "locked_decimal_odds": 1.4202,
-            "odds_provider": "DraftKings",
-            "hit": false,
-            "return_krw": 0,
-            "profit_krw": -100000,
-            "settled_at": "2026-11-19T01:32:15+09:00"
-          }
         }
       ],
       "carryover": {
         "resolved_from_history": 0,
         "conflicts": 0,
-        "pending_within_window": 1,
+        "pending_within_window": 2,
         "unresolved_after_window": 0,
         "window_days": 3
       },
@@ -2721,7 +2753,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-24T07:42:03+09:00",
+      "generated_at": "2026-11-24T10:57:39+09:00",
       "overall": {
         "observed": 491,
         "evaluated": 408,
@@ -3229,8 +3261,7 @@
         "state": "READABLE"
       },
       "policy": "TRUE_OOS_FIRST_PRE_EVENT_PREDICTIONS_ONLY; FINAL_RESULTS_ONLY; NO_TOP3_SELECTION_FILTER; FIXED_PROBABILITY_BINS; WILSON_95_INTERVAL; NO_THRESHOLD_AUTO_MUTATION"
-    },
-    "snapshot_preserved_at": "2026-11-24T10:52:54.600878+09:00"
+    }
   },
   "team_name_localization": {
     "language": "ko",
