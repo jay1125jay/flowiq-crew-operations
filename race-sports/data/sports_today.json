@@ -1208,7 +1208,7 @@
       "start_label": "09:00",
       "start_timestamp": 1795564800,
       "time_known": true,
-      "status": "LIVE",
+      "status": "FINAL",
       "title": "Orlando Magic vs Detroit Pistons",
       "home": "Orlando Magic",
       "away": "Detroit Pistons",
@@ -1247,10 +1247,6 @@
       "tier_filter": "CONFIGURED_TOP_TIER_LEAGUE",
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261124",
-      "score": {
-        "home": 52,
-        "away": 65
-      },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
       "odds_state": "SOURCE_LABELED_MARKET",
@@ -1269,7 +1265,16 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "result": {
+        "official": false,
+        "status": "CONFIRMED",
+        "home_score": 86,
+        "away_score": 104,
+        "winner_key": "AWAY",
+        "source": "ESPN_PUBLIC",
+        "updated_at": "2026-11-25T11:39:46.789868+09:00"
+      }
     },
     {
       "id": "SPORTS-BASKETBALL-401909315",
@@ -1324,8 +1329,8 @@
       "data_state": "FRESH",
       "source_url": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20261124",
       "score": {
-        "home": 26,
-        "away": 33
+        "home": 68,
+        "away": 90
       },
       "odds_source": "ESPN_PUBLIC_ODDS",
       "odds_provider": "DraftKings",
@@ -1992,7 +1997,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-25T07:50:31+09:00",
+      "updated_at": "2026-11-25T11:39:49+09:00",
       "summary": {
         "overall": {
           "picks": 43,
@@ -2380,18 +2385,18 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-25T07:50:31+09:00",
+      "generated_at": "2026-11-25T11:39:49+09:00",
       "overall": {
         "observed": 500,
-        "evaluated": 424,
-        "pending": 76,
-        "hits": 245,
+        "evaluated": 425,
+        "pending": 75,
+        "hits": 246,
         "misses": 179,
-        "hit_rate": 0.57783,
-        "mean_model_p": 0.600592,
-        "calibration_gap": -0.022762,
-        "wilson95_lower": 0.530326,
-        "wilson95_upper": 0.623937
+        "hit_rate": 0.578824,
+        "mean_model_p": 0.600511,
+        "calibration_gap": -0.021687,
+        "wilson95_lower": 0.531381,
+        "wilson95_upper": 0.624854
       },
       "bins": {
         "UNDER_50": {
@@ -2420,15 +2425,15 @@
         },
         "55_60": {
           "observed": 74,
-          "evaluated": 65,
-          "pending": 9,
-          "hits": 34,
+          "evaluated": 66,
+          "pending": 8,
+          "hits": 35,
           "misses": 31,
-          "hit_rate": 0.523077,
-          "mean_model_p": 0.571911,
-          "calibration_gap": -0.048834,
-          "wilson95_lower": 0.403796,
-          "wilson95_upper": 0.639782
+          "hit_rate": 0.530303,
+          "mean_model_p": 0.571819,
+          "calibration_gap": -0.041516,
+          "wilson95_lower": 0.411577,
+          "wilson95_upper": 0.645696
         },
         "60_65": {
           "observed": 55,
@@ -2683,15 +2688,15 @@
         "BASKETBALL": {
           "overall": {
             "observed": 253,
-            "evaluated": 246,
-            "pending": 7,
-            "hits": 145,
+            "evaluated": 247,
+            "pending": 6,
+            "hits": 146,
             "misses": 101,
-            "hit_rate": 0.589431,
-            "mean_model_p": 0.659981,
-            "calibration_gap": -0.07055,
-            "wilson95_lower": 0.527041,
-            "wilson95_upper": 0.649071
+            "hit_rate": 0.591093,
+            "mean_model_p": 0.6596,
+            "calibration_gap": -0.068507,
+            "wilson95_lower": 0.528842,
+            "wilson95_upper": 0.650554
           },
           "bins": {
             "UNDER_50": {
@@ -2720,15 +2725,15 @@
             },
             "55_60": {
               "observed": 41,
-              "evaluated": 39,
-              "pending": 2,
-              "hits": 19,
+              "evaluated": 40,
+              "pending": 1,
+              "hits": 20,
               "misses": 20,
-              "hit_rate": 0.487179,
-              "mean_model_p": 0.572354,
-              "calibration_gap": -0.085174,
-              "wilson95_lower": 0.338652,
-              "wilson95_upper": 0.638006
+              "hit_rate": 0.5,
+              "mean_model_p": 0.572192,
+              "calibration_gap": -0.072192,
+              "wilson95_lower": 0.351995,
+              "wilson95_upper": 0.648005
             },
             "60_65": {
               "observed": 36,
@@ -2970,5 +2975,23 @@
     ],
     "updated_at": "2026-11-25T10:39:12.770938+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-25T11:39:46+09:00",
+    "polled_sports": [
+      "BASKETBALL"
+    ],
+    "field_changes": 4,
+    "providers": [
+      {
+        "sport": "BASKETBALL",
+        "status": "PASS",
+        "matched": 3,
+        "field_changes": 4,
+        "provider": "ESPN_PUBLIC+KBL_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
