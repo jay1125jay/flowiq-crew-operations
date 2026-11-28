@@ -1769,7 +1769,7 @@
       "start_label": "22:00",
       "start_timestamp": 1795870800,
       "time_known": true,
-      "status": "SCHEDULED",
+      "status": "LIVE",
       "title": "Real Betis vs Rayo Vallecano",
       "home": "Real Betis",
       "away": "Rayo Vallecano",
@@ -1840,7 +1840,11 @@
         "min_team_games": 5
       },
       "model_validated": true,
-      "model_state": "VALIDATED_HOLDOUT"
+      "model_state": "VALIDATED_HOLDOUT",
+      "score": {
+        "home": 0,
+        "away": 0
+      }
     },
     {
       "id": "SPORTS-SOCCER-401875081",
@@ -2606,7 +2610,7 @@
     },
     "performance": {
       "version": "SPORTS_TOP3_PERFORMANCE_V5_PENDING_SOURCE_RECHECK",
-      "updated_at": "2026-11-28T20:45:04+09:00",
+      "updated_at": "2026-11-28T22:20:32+09:00",
       "summary": {
         "overall": {
           "picks": 46,
@@ -2746,7 +2750,7 @@
           "evaluation": {
             "winner_key": "AWAY",
             "hit": true,
-            "evaluated_at": "2026-11-28T20:45:04+09:00",
+            "evaluated_at": "2026-11-28T22:20:32+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-28"
           },
@@ -2758,7 +2762,7 @@
             "hit": true,
             "return_krw": 158820,
             "profit_krw": 58820,
-            "settled_at": "2026-11-28T20:45:04+09:00"
+            "settled_at": "2026-11-28T22:20:32+09:00"
           }
         },
         {
@@ -2776,7 +2780,7 @@
           "evaluation": {
             "winner_key": "AWAY",
             "hit": false,
-            "evaluated_at": "2026-11-28T20:45:04+09:00",
+            "evaluated_at": "2026-11-28T22:20:32+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-28"
           },
@@ -2788,7 +2792,7 @@
             "hit": false,
             "return_krw": 0,
             "profit_krw": -100000,
-            "settled_at": "2026-11-28T20:45:04+09:00"
+            "settled_at": "2026-11-28T22:20:32+09:00"
           }
         },
         {
@@ -2806,7 +2810,7 @@
           "evaluation": {
             "winner_key": "AWAY",
             "hit": false,
-            "evaluated_at": "2026-11-28T20:45:04+09:00",
+            "evaluated_at": "2026-11-28T22:20:32+09:00",
             "source": "LOCKED_BOARD",
             "source_snapshot_date": "2026-11-28"
           },
@@ -2818,7 +2822,7 @@
             "hit": false,
             "return_krw": 0,
             "profit_krw": -100000,
-            "settled_at": "2026-11-28T20:45:04+09:00"
+            "settled_at": "2026-11-28T22:20:32+09:00"
           }
         },
         {
@@ -2994,7 +2998,7 @@
     },
     "oos_probability_report": {
       "version": "SPORTS_TOP3_PROBABILITY_REPORT_V1_TRUE_OOS_WILSON95",
-      "generated_at": "2026-11-28T20:45:04+09:00",
+      "generated_at": "2026-11-28T22:20:32+09:00",
       "overall": {
         "observed": 534,
         "evaluated": 456,
@@ -3573,5 +3577,23 @@
     "errors": [],
     "updated_at": "2026-11-28T21:16:36.009842+09:00",
     "status_contract": "PASS_ONLY_WHEN_AT_LEAST_ONE_EVENT_ENRICHED; NO_ELIGIBLE_LEAGUE_AND_NO_MATCH_ARE_NON_ERROR_STATES"
+  },
+  "fast_results": {
+    "version": "SPORTS_FAST_RESULTS_V1_RESULT_ONLY",
+    "updated_at": "2026-11-28T22:20:28+09:00",
+    "polled_sports": [
+      "SOCCER"
+    ],
+    "field_changes": 2,
+    "providers": [
+      {
+        "sport": "SOCCER",
+        "status": "PASS",
+        "matched": 6,
+        "field_changes": 2,
+        "provider": "ESPN_PUBLIC+KLEAGUE_OFFICIAL"
+      }
+    ],
+    "policy": "RESULT_ONLY_DELTA; CURRENT_EVENT_IDS_ONLY; NO_EVENT_INSERT; NO_ODDS_OR_MODEL_MUTATION; NO_STATUS_DOWNGRADE"
   }
 }
